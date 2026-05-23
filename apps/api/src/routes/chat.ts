@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { ollamaClient, type OllamaMessage } from '../services/ollama.js';
+import { openaiClient } from '../services/openai.js';
 import { toolExecutor } from '../tools/executor.js';
 import { TOOL_DEFINITIONS } from '../tools/definitions.js';
 import { sessionStore } from '../services/sessions.js';
@@ -21,6 +22,7 @@ chatRouter.post('/', async (req, res, next) => {
       return;
     }
 
+    const useOpenAI = openaiClient.isAvailable();
     const activeModel = model ?? env.ollamaModel;
     const history = sessionStore.get(sessionId);
     history.push({ role: 'user', content: message });
@@ -34,7 +36,9 @@ chatRouter.post('/', async (req, res, next) => {
     const MAX_ROUNDS = 5;
 
     for (let round = 0; round < MAX_ROUNDS; round++) {
-      const response = await ollamaClient.chat(messages, TOOL_DEFINITIONS, activeModel);
+      const response = useOpenAI
+        ? await openaiClient.chat(messages, TOOL_DEFINITIONS)
+        : await ollamaClient.chat(messages, TOOL_DEFINITIONS, activeModel);
       const assistantMsg = response.message;
 
       if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
@@ -70,6 +74,14 @@ chatRouter.post('/', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// Provider-Status
+chatRouter.get('/provider', (_req, res) => {
+  res.json({
+    provider: openaiClient.isAvailable() ? 'openai' : 'ollama',
+    model:    openaiClient.isAvailable() ? 'gpt-4o' : env.ollamaModel,
+  });
 });
 
 // Verlauf abrufen

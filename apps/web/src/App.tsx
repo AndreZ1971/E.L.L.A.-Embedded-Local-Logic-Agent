@@ -6,7 +6,7 @@ import Settings from './pages/settings/Settings';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="ella-layout">
         <nav className="ella-sidebar">
           <h1 className="ella-logo">E.L.L.A.</h1>

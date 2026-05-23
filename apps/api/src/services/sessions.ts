@@ -14,8 +14,9 @@ export const sessionStore = {
   },
 
   set: (id: string, messages: HistoryMessage[]): void => {
-    // Nur die letzten N Nachrichten behalten um Token-Limit zu vermeiden
-    store.set(id, messages.slice(-MAX_HISTORY));
+    // Nur user/assistant behalten — tool-Nachrichten gehören nicht in den Verlauf
+    const clean = messages.filter(m => m.role === 'user' || m.role === 'assistant');
+    store.set(id, clean.slice(-MAX_HISTORY));
   },
 
   clear: (id: string): void => {

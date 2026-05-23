@@ -10,7 +10,7 @@ USE ella;
 CREATE TABLE rules (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   name       VARCHAR(255) NOT NULL,
-  trigger    TEXT         NOT NULL,
+  `trigger`  TEXT         NOT NULL,
   action     JSON         NOT NULL,
   enabled    BOOLEAN      NOT NULL DEFAULT TRUE,
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,

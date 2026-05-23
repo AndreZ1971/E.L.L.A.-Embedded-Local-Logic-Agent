@@ -2,108 +2,174 @@
 
 ## Embedded Local Logic Agent
 
-E.L.L.A. ist ein lokaler KI-Agent für Windows, der als Websystem aufgebaut wird und kontrolliert mit dem Betriebssystem interagiert. Ziel ist ein pragmatischer, lokaler Assistent mit sauberer Architektur, Dashboard-Ebene, klaren Tool-Grenzen und optionaler Cloud-Anbindung.
+E.L.L.A. ist ein lokaler KI-Assistent für Windows, der als Web-Anwendung aufgebaut wird und kontrolliert mit dem Betriebssystem interagiert. Ziel ist ein pragmatischer, lokaler Assistent mit sauberer Architektur, Dashboard-Ebene, klaren Tool-Grenzen und optionaler Cloud-Anbindung.
 
 ---
 
-## Aktueller Stand — v0.0.1 (23.05.2026)
+## Aktueller Stand — v0.0.2 (24.05.2026)
 
-Das Fundament steht. Beide Apps starten, kommunizieren miteinander und die Ollama-Integration ist vollständig implementiert.
+### Was läuft
 
-### Fertiggestellt
+- **API** auf `localhost:3002` — Express + TypeScript
+- **Frontend** auf `localhost:5173` — React + Vite
+- **Ollama** mit `llama3.1:8b` auf `E:\Ollama\models`
+- **MariaDB 12.2.2** auf `E:\MariaDB` — Datenbank `ella` mit vollständigem Schema
+- **GPT-4o via OpenAI API** — wird automatisch bevorzugt wenn Key vorhanden
+- **Dualer LLM-Provider** — OpenAI wenn Key gesetzt, Ollama als Fallback
 
-- [x] Monorepo-Struktur (`apps/`, `packages/`, `database/`)
-- [x] Backend (`@ella/api`) — Express + TypeScript, Port 3002
-- [x] Frontend (`@ella/web`) — React + Vite, Port 5173 mit API-Proxy
-- [x] Shared Types (`@ella/shared`) — `Message`, `ToolCall`, `ToolResult`, `ToolName`
-- [x] Agent Tools (`@ella/agent-tools`) — `open_app`, `get_disk_usage`, `clean_temp`, `empty_recycle_bin`
-- [x] Tool-Registry & Tool-Executor mit Whitelist-Prinzip
-- [x] **Ollama-Client** (`services/ollama.ts`) — Chat-API mit Tool-Support
-- [x] **Tool-Definitionen für LLM** (`tools/definitions.ts`) — alle 4 Tools als Ollama-Function-Schemas
-- [x] **Chat-Route mit Tool-Loop** — LLM → Tool-Call → Ausführung → LLM → finale Antwort (max. 5 Runden)
-- [x] **Session-Verlauf** (`services/sessions.ts`) — In-Memory, letzte 40 Nachrichten pro Session
-- [x] **Chat-Frontend** — Verlaufsanzeige, Fehlerbehandlung, Verlauf löschen
-- [x] System-Prompt auf Deutsch
-- [x] Fehlerbehandlung für Ollama-Ausfall (HTTP 503 mit klarer Meldung)
-- [x] GitHub Repository (privat): `AndreZ1971/E.L.L.A`
+---
 
-### Noch ausstehend (Ollama-Setup)
+## Entwicklungshistorie
 
-Ollama muss einmalig installiert und ein Modell geladen werden:
+### v0.0.1 — 23.05.2026 — Grundstruktur & Ollama-Anbindung
 
-```bash
-# 1. Installieren: https://ollama.com/download
-# 2. Modell laden (32 GB RAM → llama3.1:8b empfohlen)
-ollama pull llama3.1:8b
-# 3. Starten
-ollama serve
+**Ziel:** Lauffähiges Fundament mit echter LLM-Kommunikation.
+
+**Was gemacht wurde:**
+
+- Monorepo-Struktur angelegt (`apps/api`, `apps/web`, `packages/shared`, `packages/agent-tools`)
+- Backend mit Express + TypeScript — Chat-Route, Tool-Route, Error-Handler
+- Frontend mit React + Vite — Chat-Seite, Dashboard, Settings
+- Shared-Types für `Message`, `ToolCall`, `ToolResult`, `ToolName`
+- 4 Windows-Tools implementiert: `open_app`, `get_disk_usage`, `clean_temp`, `empty_recycle_bin`
+- Tool-Registry mit Whitelist-Prinzip — das Modell kann nur explizit freigegebene Tools aufrufen
+- `OllamaClient` Service — kommuniziert mit der Ollama REST-API
+- Tool-Definitionen als Ollama-Function-Schemas — das LLM weiß welche Tools es hat
+- **Tool-Loop** in der Chat-Route — LLM kann bis zu 5 Runden Tools aufrufen bevor es antwortet
+- Session-Verlauf im Speicher (max. 40 Nachrichten) — Kontext bleibt über mehrere Nachrichten erhalten
+- Fehlerbehandlung wenn Ollama nicht erreichbar (HTTP 503)
+- GitHub Repository als privates Repo erstellt und gepusht
+
+**Warum Tool-Loop:** Ein einzelner LLM-Request reicht nicht wenn mehrere Tool-Calls nötig sind (z.B. erst Disk prüfen, dann Temp bereinigen). Der Loop gibt dem Modell die Möglichkeit die Ergebnisse zu verarbeiten und weiter zu denken.
+
+---
+
+### v0.0.2 — 24.05.2026 — Infrastruktur & OpenAI-Anbindung
+
+**Ziel:** Stabile Infrastruktur auf dediziertem Laufwerk, dualer LLM-Provider.
+
+**Was gemacht wurde und warum:**
+
+#### Infrastruktur — Laufwerk E: als "Gehirn"
+
+**Problem:** C: war vollständig voll (0 Byte frei), Ollama-Download schlug fehl.
+
+**Lösung:** E: (238 GB, intern) als dediziertes KI-Laufwerk eingerichtet:
+
+- `E:\Ollama\models` — Ollama-Modelle
+- `E:\MariaDB` — Datenbankserver und Daten
+
+**Umgebungsvariable** `OLLAMA_MODELS=E:\Ollama\models` als User-Variable gesetzt damit Ollama die Modelle auf E: sucht und speichert.
+
+#### MySQL entfernt, MariaDB installiert
+
+**Warum MariaDB statt MySQL:**
+
+- MariaDB ist ein direkter Nachfolger von MySQL — vollständig kompatibel
+- Aktiv weiterentwickelt, bessere Performance, Open Source
+- MySQL Server 8.4 + Shell + Installer (~1,5 GB) von C: entfernt um Platz freizumachen
+- MariaDB 12.2.2 auf `E:\MariaDB\server` installiert, Daten auf `E:\MariaDB\data`
+
+**Root-Passwort Reset:** Beim MSI-Installer wurde Windows-SSPI-Authentifizierung aktiviert was das normale Passwort-Login blockierte. Gelöst durch Start mit `--skip-grant-tables`, Passwort-Reset auf `EllaRoot2026`, dann normaler Neustart.
+
+**Datenbanknutzer und Schema:**
+
+```sql
+CREATE USER 'ella'@'localhost' IDENTIFIED BY 'ella_dev_2026';
+GRANT ALL PRIVILEGES ON ella.* TO 'ella'@'localhost';
 ```
 
-Danach ist E.L.L.A. vollständig funktionsfähig.
+Schema-Fix: `trigger` ist ein reserviertes Schlüsselwort in MariaDB — wurde mit Backticks escaped `` `trigger` ``.
 
----
+#### Dualer LLM-Provider (OpenAI + Ollama)
 
-## Nächste Schritte — Phase 2
+**Warum:** GPT-4o liefert deutlich bessere Antworten als lokale Modelle, ist aber kostenpflichtig. Ollama bleibt als kostenloser Fallback.
 
-### Priorität 1 — Kern-Features
+**Logik:** Wenn `OPENAI_API_KEY` in `.env` gesetzt ist, wird automatisch GPT-4o verwendet. Sonst Ollama mit konfiguriertem Modell.
 
-- [ ] **Streaming** — Antworten Zeichen für Zeichen anzeigen (Ollama stream-API + EventSource im Frontend)
-- [ ] **Tool-Bestätigung** — gefährliche Tools (clean_temp, empty_recycle_bin) im Frontend erst bestätigen lassen
-- [ ] **Dashboard** — echte Daten anzeigen (Disk-Usage, aktive Tools, letzte Aktionen)
+```typescript
+const useOpenAI = openaiClient.isAvailable(); // true wenn API-Key vorhanden
+const response = useOpenAI
+  ? await openaiClient.chat(messages, TOOL_DEFINITIONS)
+  : await ollamaClient.chat(messages, TOOL_DEFINITIONS, activeModel);
+```
 
-### Priorität 2 — Stabilität
+**Provider-Status-Endpunkt:** `GET /api/chat/provider` zeigt welcher Provider aktiv ist:
 
-- [ ] **MariaDB-Anbindung** — Gesprächsverlauf und Tool-Ausführungen persistent speichern
-- [ ] **Settings-Seite** — Modell wechseln, Tools aktivieren/deaktivieren
-- [ ] **Audit-Log** — jede Tool-Ausführung mit Zeitstempel und Ergebnis festhalten
+```json
+{ "provider": "openai", "model": "gpt-4o" }
+```
 
-### Priorität 3 — Ausbau
+#### Session-Fix: Tool-Nachrichten im Verlauf
 
-- [ ] Regel-Editor (automatische Aktionen bei Systemereignissen)
-- [ ] Secrets-Verwaltung (OpenAI-Key über Dashboard eintragen)
-- [ ] Systemstatus und Metriken in Echtzeit
+**Problem:** Beim Tool-Loop werden interne `tool`-Nachrichten (Ergebnisse der Tool-Ausführungen) an das LLM gesendet. OpenAI lehnt `tool`-Nachrichten ab wenn ihnen keine `tool_calls` vom Assistenten vorausgehen. Nach einem Neustart oder Provider-Wechsel enthielt der Session-Verlauf verwaiste `tool`-Nachrichten.
+
+**Lösung:** Session-Store filtert beim Speichern automatisch alle Nicht-User/Nicht-Assistent-Nachrichten heraus:
+
+```typescript
+const clean = messages.filter(m => m.role === 'user' || m.role === 'assistant');
+```
+
+#### Frontend-Fixes
+
+**React Router Warnings** (`v7_startTransition`, `v7_relativeSplatPath`): Future-Flags im BrowserRouter gesetzt um Deprecation-Warnungen zu unterdrücken und auf React Router v7 vorzubereiten.
+
+**`vite-env.d.ts`** hinzugefügt: TypeScript kannte ohne diese Datei keine CSS-Imports und Vite-spezifischen Features. Die Datei enthält `/// <reference types="vite/client" />` und ist Standard für alle Vite+TypeScript Projekte.
+
+**`main.tsx` Refactor:** Von `React.StrictMode` auf `{ StrictMode }` Named-Import umgestellt — saubererer Code mit dem neuen JSX-Transform (`react-jsx`).
 
 ---
 
 ## Architektur
 
 ```text
-Browser (React Dashboard)
-        │
+Browser (React, Port 5173)
+        │  Vite Proxy /api → 3002
         ▼
   apps/api  (Express, Port 3002)
-   ├─ OllamaClient  ──────────────────► Ollama (Port 11434)
-   ├─ Tool-Registry + Executor
+   ├─ Provider-Auswahl
+   │   ├─ OpenAI GPT-4o  ──────────────► api.openai.com
+   │   └─ OllamaClient  ───────────────► Ollama (Port 11434)
+   ├─ Tool-Registry + Executor (Whitelist)
    │   └─ open_app / get_disk_usage / clean_temp / empty_recycle_bin
-   └─ Session-Store (In-Memory)
-        │  (später)
-        ▼
-      MariaDB
+   ├─ Session-Store (In-Memory, max. 40 Nachrichten)
+   └─ MariaDB Pool (Port 3306) ────────► E:\MariaDB\data
 ```
 
-### Data-Flow: Chat mit Tool-Call
+### Chat-Flow mit Tool-Loop
 
 ```text
 Nutzer-Eingabe
   → POST /api/chat
-    → OllamaClient.chat(verlauf, tool-definitionen)
-      → Ollama gibt tool_call zurück
-        → toolExecutor.execute(tool, args)
-          → Ergebnis zurück an Ollama
-            → Ollama formuliert finale Antwort
-              → Response ans Frontend
+    → Provider-Auswahl (OpenAI wenn Key, sonst Ollama)
+      → LLM antwortet mit tool_call
+        → toolExecutor.execute() — prüft Whitelist
+          → Tool-Ergebnis zurück ans LLM
+            → LLM formuliert finale Antwort (max. 5 Runden)
+              → Nur user+assistant in Session gespeichert
+                → Response ans Frontend
 ```
 
-### Stack
+### Wichtige Ports
 
-| Schicht       | Technologie                             |
-|---------------|-----------------------------------------|
-| Frontend      | React 18 + Vite 5 + TypeScript          |
-| Backend       | Node.js 24 + Express 4 + TypeScript     |
-| LLM lokal     | Ollama (llama3.1:8b empfohlen)          |
-| LLM extern    | OpenAI (optional, vorbereitet)          |
-| Datenbank     | MariaDB (vorbereitet, noch nicht aktiv) |
-| Windows Tools | PowerShell / WMI                        |
+| Service | Port | Hinweis |
+| --- | --- | --- |
+| Frontend (Vite) | 5173 | Proxy leitet /api weiter |
+| Backend (Express) | 3002 | 3001 von Docker belegt |
+| MariaDB | 3306 | Standard |
+| Ollama | 11434 | Standard |
+
+---
+
+## Stack
+
+| Schicht | Technologie | Version |
+| --- | --- | --- |
+| Frontend | React + Vite + TypeScript | 18 / 5 / 5 |
+| Backend | Node.js + Express + TypeScript | 24 / 4 / 5 |
+| Datenbank | MariaDB | 12.2.2 auf E: |
+| LLM lokal | Ollama + llama3.1:8b | auf E:\Ollama |
+| LLM cloud | OpenAI GPT-4o | optional, via API-Key |
 
 ---
 
@@ -112,76 +178,128 @@ Nutzer-Eingabe
 ```text
 ella/
 ├─ apps/
-│  ├─ web/                  # React Dashboard         (@ella/web)
-│  │  └─ src/pages/
-│  │     ├─ chat/           # Chat-Interface
-│  │     ├─ dashboard/      # Systemübersicht
-│  │     └─ settings/       # Konfiguration
-│  └─ api/                  # Node.js Backend          (@ella/api)
+│  ├─ web/                      # React Frontend         (@ella/web)
+│  │  └─ src/
+│  │     ├─ pages/chat/         # Chat-Interface mit Verlauf
+│  │     ├─ pages/dashboard/    # Systemübersicht (noch Stub)
+│  │     ├─ pages/settings/     # Konfiguration (noch Stub)
+│  │     ├─ vite-env.d.ts       # Vite TypeScript-Typen
+│  │     └─ App.tsx             # Router + Layout
+│  └─ api/                      # Express Backend         (@ella/api)
 │     └─ src/
-│        ├─ config/         # env.ts, database.ts
-│        ├─ middleware/     # errorHandler.ts
-│        ├─ routes/         # chat.ts, tools.ts
-│        ├─ services/       # ollama.ts, sessions.ts
-│        └─ tools/          # registry.ts, executor.ts, definitions.ts
+│        ├─ config/             # env.ts (Umgebungsvariablen), database.ts
+│        ├─ middleware/         # errorHandler.ts
+│        ├─ routes/             # chat.ts (mit Tool-Loop), tools.ts
+│        ├─ services/           # ollama.ts, openai.ts, sessions.ts
+│        └─ tools/              # registry.ts, executor.ts, definitions.ts
 ├─ packages/
-│  ├─ shared/               # Typen, Interfaces        (@ella/shared)
-│  └─ agent-tools/          # Windows-Tool-Implementierungen (@ella/agent-tools)
+│  ├─ shared/                   # Gemeinsame Typen        (@ella/shared)
+│  └─ agent-tools/              # Windows-Tool-Implementierungen (@ella/agent-tools)
 ├─ database/
-│  ├─ migrations/
-│  ├─ seeds/
-│  └─ schema.sql
+│  ├─ schema.sql                # Vollständiges MariaDB-Schema
+│  ├─ migrations/               # (für spätere Schema-Änderungen)
+│  └─ seeds/
 ├─ logs/
-├─ .env.local               # nicht in Git
+├─ .env.local                   # Nicht in Git — enthält API-Keys
 └─ tsconfig.base.json
 ```
 
 ---
 
-## Schnellstart
+## Schnellstart (Entwicklung)
 
 ```bash
 # 1. Abhängigkeiten installieren
 npm install
 
-# 2. Packages bauen (einmalig)
+# 2. Packages bauen (einmalig nach Clone)
 npm run build --workspace=packages/shared
 npm run build --workspace=packages/agent-tools
 
-# 3. Ollama starten (muss installiert sein)
-ollama serve
+# 3. Voraussetzungen sicherstellen
+#    - Ollama läuft: ollama serve
+#    - MariaDB-Dienst läuft (Windows-Dienst "MariaDB")
+#    - .env in apps/api/ mit DB-Zugangsdaten und optionalem OPENAI_API_KEY
 
-# 4. Entwicklungsmodus starten
+# 4. Entwicklungsmodus
 npm run dev
-# → API:  http://localhost:3002
-# → Web:  http://localhost:5173
+# → API:      http://localhost:3002
+# → Frontend: http://localhost:5173
+```
+
+### Umgebungsvariablen (apps/api/.env)
+
+```env
+PORT=3002
+NODE_ENV=development
+
+# LLM
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.1:8b
+OPENAI_API_KEY=          # Optional — wenn gesetzt wird GPT-4o verwendet
+
+# Datenbank
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=ella
+DB_USER=ella
+DB_PASSWORD=ella_dev_2026
+```
+
+---
+
+## Datenbank-Schema
+
+```sql
+ella/
+├─ rules            — Automatisierungsregeln (Trigger + Aktion)
+├─ approvals        — Freigabe-Queue für gefährliche Tool-Ausführungen
+├─ tool_executions  — Audit-Log jeder Tool-Ausführung
+├─ system_events    — Systemereignisse (append-only)
+└─ settings         — Schlüssel-Wert-Konfiguration
 ```
 
 ---
 
 ## Sicherheitsprinzip
 
-E.L.L.A. trennt strikt zwischen **Verstehen** und **Ausführen**:
+E.L.L.A. trennt strikt **Verstehen** (LLM) von **Ausführen** (Backend):
 
-- Das LLM interpretiert Anfragen und erzeugt Tool-Calls als strukturiertes JSON
-- Das Backend validiert **immer** gegen die Whitelist in der Tool-Registry
-- Nur explizit freigegebene Tools können ausgeführt werden
-- API-Schlüssel leben ausschließlich im Backend — niemals im Frontend
-
-```json
-{ "tool": "open_app", "args": { "name": "vscode" } }
-```
-
-Aktive Tools: `open_app` · `get_disk_usage` · `clean_temp` · `empty_recycle_bin`
+- Das LLM interpretiert Anfragen und erzeugt strukturierte Tool-Calls
+- Das Backend prüft **immer** gegen die Whitelist in der Tool-Registry
+- Kein freier Shell-Zugriff — nur explizit definierte Tools können aufgerufen werden
+- API-Keys leben ausschließlich im Backend (`.env`) — niemals im Frontend
 
 ---
 
-## Hardware (Entwicklungsrechner)
+## Nächste Schritte — Phase 2
 
-| Komponente | Spezifikation        | Bemerkung                              |
-|------------|----------------------|----------------------------------------|
-| CPU        | Intel i3, 12. Gen    | Backend + Services: problemlos         |
-| RAM        | 32 GB                | Gut fuer llama3.1:8b (5 GB Modell)    |
-| GPU        | RTX 2080 (8 GB VRAM) | Ollama GPU-Beschleunigung möglich      |
+### Priorität 1 — Kern-Features
 
-Empfohlenes Modell: `llama3.1:8b` (CPU) oder `qwen2.5:14b` (GPU, 8 GB VRAM grenzwertig)
+- [ ] **Streaming** — Antworten Zeichen für Zeichen anzeigen (Ollama stream-API + EventSource im Frontend)
+- [ ] **Tool-Bestätigung** — gefährliche Tools (`clean_temp`, `empty_recycle_bin`) im Frontend bestätigen lassen
+- [ ] **Dashboard** — echte Daten anzeigen (Disk-Usage via `get_disk_usage`, aktive Tools)
+
+### Priorität 2 — Stabilität
+
+- [ ] **MariaDB Session-Persistenz** — Gesprächsverlauf in DB statt In-Memory
+- [ ] **Tool-Ausführungen loggen** — jede Aktion in `tool_executions` schreiben
+- [ ] **Settings-Seite** — Provider wechseln, Modell auswählen, Tools aktivieren/deaktivieren
+
+### Priorität 3 — Ausbau
+
+- [ ] Regel-Editor (automatische Aktionen bei Systemereignissen)
+- [ ] Secrets-Verwaltung (API-Keys sicher über Dashboard verwalten)
+- [ ] Systemstatus und Metriken in Echtzeit
+
+---
+
+## Hardware (Entwicklungsrechner "Dante-Home")
+
+| Komponente | Spezifikation | Bemerkung |
+| --- | --- | --- |
+| CPU | Intel i3, 12. Gen | Backend + Services: problemlos |
+| RAM | 32 GB | Gut fuer llama3.1:8b (5 GB Modell) |
+| GPU | RTX 2080 (8 GB VRAM) | Ollama GPU-Beschleunigung moeglich |
+| Laufwerk E: | 238 GB intern | "Gehirn" — Ollama + MariaDB |
+| Laufwerk Z: | 34 GB | Projekte / Code |
