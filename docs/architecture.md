@@ -6,7 +6,8 @@
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  Browser (React, Port 5173)                                 │
+│  Browser (React, Port 5173)          oder                   │
+│  Electron-Fenster (apps/desktop)                            │
 │  Vite Dev-Proxy: /api/* → http://localhost:3002             │
 └──────────────────────────┬──────────────────────────────────┘
                            │ HTTP
@@ -119,6 +120,8 @@ Der zentrale Ablauf für jede Nutzeranfrage:
 | Frontend | React | 18 | Stable, breites Ökosystem |
 | Frontend Build | Vite | 5 | Schnell, guter Proxy, kein CRA |
 | Frontend Routing | React Router | 6 | Standard für React SPAs |
+| Desktop-Shell | Electron | 33 | Natives Fenster, Tray, GlobalShortcut |
+| Desktop Build | esbuild | — | Zuverlässiges Externalisieren von `electron` |
 | Backend Runtime | Node.js | 24 | LTS, async-first |
 | Backend Framework | Express | 4 | Minimal, explizit, keine Magie |
 | Sprache | TypeScript | 5 | Typsicherheit über alle Schichten |
@@ -154,6 +157,14 @@ z:\repos\E.L.L.A\
 │  │  │     ├─ executor.ts          — Whitelist-Check + Tool-Dispatch
 │  │  │     └─ registry.ts          — Registrierte Tool-Implementierungen
 │  │  ├─ .env                       — Lokale Konfiguration (nicht in Git)
+│  │  ├─ package.json
+│  │  └─ tsconfig.json
+│  │
+│  ├─ desktop/                      — Electron Desktop-App (@ella/desktop)
+│  │  ├─ src/
+│  │  │  ├─ main.ts                 — BrowserWindow, Tray, Single-Instance-Lock
+│  │  │  └─ preload.ts              — IPC-Bridge (Platzhalter für Sprachsteuerung)
+│  │  ├─ build-main.mjs             — esbuild-Script (externalisiert electron korrekt)
 │  │  ├─ package.json
 │  │  └─ tsconfig.json
 │  │

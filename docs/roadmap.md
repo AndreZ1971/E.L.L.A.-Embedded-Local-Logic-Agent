@@ -4,6 +4,16 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 
 ---
 
+## Abgeschlossen
+
+| Feature | Version | Beschreibung |
+| --- | --- | --- |
+| Chat end-to-end | v0.0.3 | OpenAI + Ollama, Tool-Loop mit bis zu 5 Runden |
+| Tool-Call-Fix | v0.0.3 | `tool_call_id` korrekt weitergegeben, kein 400-Fehler mehr |
+| Electron Desktop-App | v0.0.3 | Natives Fenster, Minimize-to-Tray (Dev-Modus lauffähig) |
+
+---
+
 ## Priorität 1 — Kern-Features (unmittelbar nützlich)
 
 ### Streaming-Antworten

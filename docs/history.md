@@ -405,3 +405,155 @@ import { StrictMode } from 'react';
 ```
 
 Mit dem neuen JSX-Transform (`"jsx": "react-jsx"` in `tsconfig.json`) muss React nicht mehr global importiert werden. Named-Imports sind expliziter und vermeiden unnötige Bundle-Abhängigkeiten.
+
+---
+
+## v0.0.3 — 25.05.2026 — Chat-Fix & Electron Desktop-App
+
+**Ziel:** Funktionsfähiger Chat end-to-end, natives Desktop-Fenster als Grundlage für Sprachsteuerung.
+
+---
+
+### Bug-Fix — OpenAI Tool-Call-Loop
+
+**Problem:** Jeder Chat-Request der ein Tool auslöste schlug beim zweiten Loop-Durchgang mit HTTP 400 fehl:
+
+```text
+OpenAI error 400: "Invalid parameter: messages with role 'tool' must be a
+response to a preceding message with 'tool_calls'."
+```
+
+**Ursache:** In `openai.ts` wurden alle Messages für den OpenAI-Request auf `{ role, content }` reduziert:
+
+```typescript
+// Vorher — stripped tool_calls und tool_call_id:
+messages.map(m => ({ role: m.role, content: m.content }))
+```
+
+Damit fehlten im zweiten Durchgang:
+
+1. Das `tool_calls`-Array im vorausgehenden `assistant`-Message
+2. Die `tool_call_id` in der `tool`-Antwort
+
+OpenAI verlangt diese IDs zur Zuordnung — ohne sie versteht es nicht welche Tool-Antwort zu welchem Tool-Aufruf gehört.
+
+**Fix in drei Dateien:**
+
+`ollama.ts` — Type um `id` und `tool_call_id` erweitert:
+
+```typescript
+export interface OllamaMessage {
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content: string;
+  tool_call_id?: string;
+  tool_calls?: Array<{
+    id?: string;
+    function: { name: string; arguments: Record<string, unknown> };
+  }>;
+}
+```
+
+`openai.ts` — Mapping behält jetzt alle relevanten Felder:
+
+```typescript
+messages.map((m): OpenAIMessage => {
+  const msg: OpenAIMessage = { role: m.role, content: m.content || null };
+  if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
+  if (m.tool_calls?.length) {
+    msg.tool_calls = m.tool_calls.map(tc => ({
+      id: tc.id ?? 'call_unknown',
+      type: 'function',
+      function: { name: tc.function.name, arguments: JSON.stringify(tc.function.arguments) },
+    }));
+  }
+  return msg;
+})
+```
+
+`openai.ts` — Response-Mapping behält `id` aus OpenAI-Antwort:
+
+```typescript
+const toolCalls = choice.tool_calls?.map(tc => ({
+  id: tc.id,  // War vorher weggefallen
+  function: { name: tc.function.name, arguments: JSON.parse(tc.function.arguments) },
+}));
+```
+
+`chat.ts` — Tool-Ergebnis bekommt `tool_call_id`:
+
+```typescript
+messages.push({
+  role: 'tool',
+  tool_call_id: call.id,  // Neu
+  content: JSON.stringify(result),
+});
+```
+
+**Warum dieser Ansatz korrekt ist:** OpenAI verlangt dass jede `tool`-Nachricht eine `tool_call_id` trägt die mit der `id` im vorausgehenden `assistant.tool_calls`-Eintrag übereinstimmt. Das ermöglicht es bei mehreren parallelen Tool-Calls eindeutig zuzuordnen welches Ergebnis zu welchem Aufruf gehört. Die IDs sind UUID-ähnliche Strings die OpenAI selbst generiert (`call_abc123...`).
+
+---
+
+### Electron Desktop-App
+
+**Entscheidung:** E.L.L.A. öffnet sich in einem nativen Fenster statt im Browser. Minimieren legt das Fenster in den System-Tray.
+
+**Warum Desktop statt Browser:** Der mittelfristige Plan ist Sprachsteuerung. Eine Browser-Erweiterung die permanent im Hintergrund auf Spracheingaben wartet wäre aufdringlich und technisch eingeschränkt. Ein nativer Prozess im System-Tray ist die sauberere Lösung — immer verfügbar, nie im Weg.
+
+**Warum Electron:** React läuft ohne Änderungen als Electron-Renderer. Die gesamte Frontend-Codebasis bleibt unverändert. Electron hat direkte Windows-Integration (Tray-Icons, Native Notifications, zukünftig: GlobalShortcut für Push-to-Talk).
+
+**Struktur:**
+
+```text
+apps/desktop/
+├─ src/
+│  ├─ main.ts      — BrowserWindow, Tray, Single-Instance-Lock
+│  └─ preload.ts   — Leer (IPC-Bridge-Platzhalter für Sprachsteuerung)
+├─ build-main.mjs  — esbuild-Build-Script
+├─ package.json    — @ella/desktop
+└─ tsconfig.json
+```
+
+**Warum esbuild statt electron-vite:**
+
+`electron-vite` Version 5.0.0 verwendet Vite 8 mit `rolldown` als Bundler. In dieser Kombination wird das `electron`-Paket trotz korrekter `external`-Konfiguration gebündelt statt externalisiert. Das Resultat: `require('electron')` gibt den Binär-Pfad zurück (npm-Package) statt die Electron-API — `app.isPackaged` ist `undefined`.
+
+`esbuild` externalisiert `'electron'` korrekt über die `external`-Option:
+
+```javascript
+// build-main.mjs
+await build({
+  entryPoints: ['src/main.ts'],
+  bundle: true, platform: 'node', target: 'node20', format: 'cjs',
+  outfile: 'dist/main/index.js',
+  external: ['electron', ...builtinModules, ...builtinModules.map(m => `node:${m}`)],
+});
+```
+
+**Tray-Verhalten:**
+
+```typescript
+// Minimize → Tray (nicht Taskleiste)
+mainWindow.on('minimize', () => {
+  mainWindow?.hide();
+  mainWindow?.setSkipTaskbar(true);
+});
+
+// Close-Button → Tray (echter Beenden-Button nur im Tray-Menü)
+mainWindow.on('close', (e) => {
+  if (!isQuitting) { e.preventDefault(); mainWindow?.hide(); }
+});
+```
+
+**Tray-Icon:** Programmatisch generiertes PNG (#7C3AED Violet) über manuelle CRC32/IHDR/IDAT/IEND-Konstruktion mit `zlib.deflateSync`. Keine externen Assets, kein Asset-Build-Step.
+
+**Bekannte Einschränkung:** `ELECTRON_RUN_AS_NODE=1` deaktiviert alle Electron-APIs wenn es in der Shell-Umgebung gesetzt ist (electron-vite setzt es intern). Dev-Workflow: neue Terminal-Session öffnen oder `$env:ELECTRON_RUN_AS_NODE = $null` vor dem Start.
+
+**Dev-Mode:** `isDev = !app.isPackaged` — lädt im Entwicklungs-Modus `http://localhost:5173` (React-Dev-Server), im Build `web/dist/index.html`.
+
+---
+
+### Ergebnis v0.0.3
+
+- Chat funktioniert end-to-end (getestet: `status festplatte c` → Tool-Call → Antwort)
+- Tool-Loop mit mehreren Runden stabil
+- Natives Fenster vorhanden, Minimize-to-Tray funktioniert
