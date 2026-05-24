@@ -3,8 +3,13 @@ import type { OllamaMessage, OllamaTool } from './ollama.js';
 
 interface OpenAIMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
-  content: string;
+  content: string | null;
   tool_call_id?: string;
+  tool_calls?: Array<{
+    id: string;
+    type: 'function';
+    function: { name: string; arguments: string };
+  }>;
 }
 
 interface OpenAIResponse {
@@ -36,8 +41,22 @@ export const openaiClient = {
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        ...messages.map(m => ({ role: m.role, content: m.content })),
-      ] as OpenAIMessage[],
+        ...messages.map((m): OpenAIMessage => {
+          const msg: OpenAIMessage = { role: m.role, content: m.content || null };
+          if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
+          if (m.tool_calls?.length) {
+            msg.tool_calls = m.tool_calls.map(tc => ({
+              id: tc.id ?? 'call_unknown',
+              type: 'function',
+              function: {
+                name: tc.function.name,
+                arguments: JSON.stringify(tc.function.arguments),
+              },
+            }));
+          }
+          return msg;
+        }),
+      ],
       tools: tools.map(t => ({ type: 'function', function: t.function })),
     };
 
@@ -59,6 +78,7 @@ export const openaiClient = {
     const choice = data.choices[0].message;
 
     const toolCalls = choice.tool_calls?.map(tc => ({
+      id: tc.id,
       function: {
         name: tc.function.name,
         arguments: JSON.parse(tc.function.arguments) as Record<string, unknown>,

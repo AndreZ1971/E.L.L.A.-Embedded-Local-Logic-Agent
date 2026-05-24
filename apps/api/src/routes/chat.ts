@@ -58,6 +58,7 @@ chatRouter.post('/', async (req, res, next) => {
 
         messages.push({
           role: 'tool',
+          tool_call_id: call.id,
           content: JSON.stringify(result),
         });
       }
