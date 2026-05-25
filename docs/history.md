@@ -4,6 +4,56 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v0.0.5 — 25.05.2026 — Vollständige Desktop-App
+
+**Ziel:** E.L.L.A. läuft vollständig als native Windows-Anwendung ohne Browser, startet automatisch mit Windows und verwaltet alle Abhängigkeiten selbst.
+
+---
+
+### Frameless Window + Custom Titlebar
+
+**Entscheidung:** `frame: false` in BrowserWindow, eigene TitleBar-Komponente in React.
+
+**Warum:** Eine klassische Fensterleiste sieht nach Browser aus. Mit `frame: false` und einer eigenen Titelleiste (violet, E.L.L.A.-Branding, SVG-Icons) wirkt die App wie eine native Anwendung. IPC überbrückt Renderer und Main für Minimize/Maximize/Close.
+
+**Technischer Kniff:** `-webkit-app-region: drag` macht die Titelleiste ziehbar. Die Buttons müssen explizit `drag: none` erhalten damit Klicks funktionieren.
+
+---
+
+### Production Build + HashRouter
+
+**Entscheidung:** Vite baut nach `apps/web/dist/`, Electron lädt via `loadFile()` statt `loadURL()`. HashRouter statt BrowserRouter.
+
+**Warum HashRouter:** BrowserRouter nutzt die HTML5 History API (`/chat`, `/dashboard`). Unter `file://` gibt es keinen Server der diese Pfade auflöst — Navigation funktioniert nicht. HashRouter kodiert den Pfad als URL-Fragment (`#/chat`) — funktioniert ohne Server.
+
+**Warum `base: './'` in Vite:** Ohne diese Option generiert Vite absolute Asset-Pfade (`/assets/index.js`). Unter `file://` wird `/` als Dateisystem-Root interpretiert — die Assets werden nicht gefunden. Mit `base: './'` werden relative Pfade (`./assets/index.js`) generiert.
+
+**CORS für `file://`:** Requests von `file://`-Seiten zu `http://localhost:3002` haben `Origin: null`. Ohne CORS-Header lehnt der Browser sie ab. Lösung: minimales CORS-Middleware in der API (`Access-Control-Allow-Origin: *`) — sicher da die API nur auf localhost lauscht.
+
+---
+
+### API als Child-Prozess
+
+**Entscheidung:** Electron spawnt `node dist/index.js` in `apps/api/` und wartet via Port-Check auf Port 3002.
+
+**Warum Child-Prozess statt separatem Start:** Ziel ist ein einzelner Klick der alles startet. Der Nutzer soll nicht drei Terminals öffnen. Electron ist der natürliche Orchestrator — es hat den Lifecycle der App im Griff und kann den API-Prozess beim Beenden sauber killen.
+
+**Port-Check statt Timeout:** `net.connect(3002)` in einer Schleife ist zuverlässiger als ein festes `setTimeout`. Die API kann je nach Last unterschiedlich lange zum Start brauchen (MariaDB-Verbindung, Ollama-Initialisierung).
+
+**isDev via `ELLA_DEV=1`:** Statt `!app.isPackaged` (immer false im Dev-Modus) kontrolliert eine explizite Env-Variable den Modus. `ELLA_DEV=1` → Vite-Dev-Server, kein API-Spawn. Kein Flag → Production-Modus.
+
+---
+
+### Autostart
+
+**Entscheidung:** `app.setLoginItemSettings` mit `path: process.execPath, args: [app.getAppPath()]`. Toggle im Tray-Menü als Checkbox.
+
+**Warum Tray-Toggle statt immer-an:** Der Nutzer soll Kontrolle haben. Der Toggle ist sichtbar (Tray-Menü), reversibel (einmal klicken deaktiviert) und erfordert keine Registry-Kenntnisse.
+
+**MariaDB:** `sc.exe config MariaDB start=auto` — einmalig als Admin ausgeführt. MariaDB ist ein Windows-Service und hat native Autostart-Unterstützung.
+
+---
+
 ## v0.0.1 — 23.05.2026 — Grundstruktur & Ollama-Anbindung
 
 **Ziel:** Ein lauffähiges Fundament mit echter LLM-Kommunikation und ersten ausführbaren System-Tools.

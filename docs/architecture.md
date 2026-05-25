@@ -6,9 +6,15 @@
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  Browser (React, Port 5173)          oder                   │
-│  Electron-Fenster (apps/desktop)                            │
-│  Vite Dev-Proxy: /api/* → http://localhost:3002             │
+│  Electron (apps/desktop)                                    │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  main.ts — startet API, wartet auf :3002            │   │
+│  │  Lädt apps/web/dist/index.html (Production Build)   │   │
+│  │  Tray-Icon: Autostart-Toggle, Beenden               │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  React Frontend (HashRouter, file:// Protokoll)             │
+│  HTTP → http://localhost:3002 (absolut, kein Proxy)         │
 └──────────────────────────┬──────────────────────────────────┘
                            │ HTTP
                            ▼
@@ -102,12 +108,12 @@ Der zentrale Ablauf für jede Nutzeranfrage (gilt für `/api/chat` und `/api/cha
 
 ## Ports
 
-| Service             | Port  | Hinweis                                |
-| ------------------- | ----- | -------------------------------------- |
-| Frontend (Vite Dev) | 5173  | Proxy leitet `/api/*` nach 3002 weiter |
-| Backend (Express)   | 3002  | Port 3001 von Docker Desktop belegt    |
-| MariaDB             | 3306  | Standard-Port, Windows-Dienst          |
-| Ollama              | 11434 | Standard-Port, läuft als Tray-App      |
+| Service             | Port  | Hinweis                                     |
+| ------------------- | ----- | ------------------------------------------- |
+| Frontend (Vite Dev) | 5173  | Nur Dev-Modus — Production lädt via file:// |
+| Backend (Express)   | 3002  | Port 3001 von Docker Desktop belegt         |
+| MariaDB             | 3306  | Standard-Port, Windows-Dienst               |
+| Ollama              | 11434 | Standard-Port, läuft als Tray-App           |
 
 ---
 
@@ -117,8 +123,8 @@ Der zentrale Ablauf für jede Nutzeranfrage (gilt für `/api/chat` und `/api/cha
 | ----------------- | -------------------- | ------- | -------------------------------------------- |
 | Frontend          | React                | 18      | Stable, breites Ökosystem                    |
 | Frontend Build    | Vite                 | 5       | Schnell, guter Proxy, kein CRA               |
-| Frontend Routing  | React Router         | 6       | Standard für React SPAs                      |
-| Desktop-Shell     | Electron             | 33      | Natives Fenster, Tray, GlobalShortcut        |
+| Frontend Routing  | React Router         | 6       | HashRouter für file://-Kompatibilität        |
+| Desktop-Shell     | Electron             | 33      | Natives Fenster, Tray, Autostart, Child-Proc |
 | Desktop Build     | esbuild              | —       | Zuverlässiges Externalisieren von `electron` |
 | Backend Runtime   | Node.js              | 24      | LTS, async-first                             |
 | Backend Framework | Express              | 4       | Minimal, explizit, keine Magie               |

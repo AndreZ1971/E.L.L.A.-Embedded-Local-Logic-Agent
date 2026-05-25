@@ -6,13 +6,17 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 
 ## Abgeschlossen
 
-| Feature                    | Version | Beschreibung                                                   |
-| -------------------------- | ------- | -------------------------------------------------------------- |
-| Chat end-to-end            | v0.0.3  | OpenAI + Ollama, Tool-Loop mit bis zu 5 Runden                 |
-| Tool-Call-Fix              | v0.0.3  | `tool_call_id` korrekt weitergegeben, kein 400-Fehler mehr     |
-| Electron Desktop-App       | v0.0.3  | Natives Fenster, Minimize-to-Tray (Dev-Modus lauffähig)        |
-| SSE-Streaming              | v0.0.4  | Text erscheint live während LLM antwortet, Tool-Status-Anzeige |
-| MariaDB Session-Persistenz | v0.0.4  | Verlauf in DB, überlebt API-Neustart, wird beim Start geladen  |
+| Feature                     | Version | Beschreibung                                                   |
+| --------------------------- | ------- | -------------------------------------------------------------- |
+| Chat end-to-end             | v0.0.3  | OpenAI + Ollama, Tool-Loop mit bis zu 5 Runden                 |
+| Tool-Call-Fix               | v0.0.3  | `tool_call_id` korrekt weitergegeben, kein 400-Fehler mehr     |
+| Electron Desktop-App        | v0.0.3  | Natives Fenster, Minimize-to-Tray (Dev-Modus lauffähig)        |
+| SSE-Streaming               | v0.0.4  | Text erscheint live während LLM antwortet, Tool-Status-Anzeige |
+| MariaDB Session-Persistenz  | v0.0.4  | Verlauf in DB, überlebt API-Neustart, wird beim Start geladen  |
+| Frameless Window + Titlebar | v0.0.5  | Eigenes Fenster ohne Browserchrome, violet Titelleiste, IPC    |
+| Production Build            | v0.0.5  | Vite baut nach dist/, Electron lädt ohne Dev-Server            |
+| API als Child-Prozess       | v0.0.5  | Electron startet/stoppt API automatisch, wartet auf Port 3002  |
+| Autostart                   | v0.0.5  | app.setLoginItemSettings, Toggle im Tray-Menü, MariaDB auto    |
 
 ---
 

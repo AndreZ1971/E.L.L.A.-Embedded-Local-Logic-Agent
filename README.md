@@ -4,57 +4,77 @@ Lokaler KI-Assistent für Windows als Web-Anwendung. LLM-gesteuerte Automatisier
 
 ---
 
-## Aktueller Stand — v0.0.4 (25.05.2026)
+## Aktueller Stand — v0.0.5 (25.05.2026)
 
-| Komponente                         | Status                              |
-| ---------------------------------- | ----------------------------------- |
-| API (Express, Port 3002)           | Läuft                               |
-| Frontend (React/Vite, Port 5173)   | Läuft                               |
-| Chat + Tool-Loop                   | Funktionsfähig (OpenAI + Ollama)    |
-| SSE-Streaming                      | Aktiv — Text erscheint live         |
-| Session-Persistenz                 | MariaDB — Verlauf überlebt Neustart |
-| Ollama (`llama3.1:8b`, Port 11434) | Läuft auf E:\Ollama                 |
-| MariaDB 12.2.2 (Port 3306)         | Läuft auf E:\MariaDB                |
-| OpenAI GPT-4o                      | Aktiv wenn `OPENAI_API_KEY` gesetzt |
-| Electron Desktop-App               | In Entwicklung (`apps/desktop`)     |
+| Komponente                         | Status                                   |
+| ---------------------------------- | ---------------------------------------- |
+| API (Express, Port 3002)           | Läuft — wird von Electron gestartet      |
+| Frontend (Production Build)        | `apps/web/dist/` — Electron lädt direkt  |
+| Chat + Tool-Loop                   | Funktionsfähig (OpenAI + Ollama)         |
+| SSE-Streaming                      | Aktiv — Text erscheint live              |
+| Session-Persistenz                 | MariaDB — Verlauf überlebt Neustart      |
+| Ollama (`llama3.1:8b`, Port 11434) | Läuft auf E:\Ollama                      |
+| MariaDB 12.2.2 (Port 3306)         | Windows-Dienst, Autostart aktiviert      |
+| OpenAI GPT-4o                      | Aktiv wenn `OPENAI_API_KEY` gesetzt      |
+| Electron Desktop-App               | Vollständig — frameless, Tray, Autostart |
 
 ---
 
-## Desktop-App starten (Electron)
+## Desktop-App starten
 
 ```powershell
-# Einmalig bauen:
-cd apps/desktop
-node build-main.mjs
+# Einmalig — alle Packages bauen:
+npm run build --workspace=packages/shared
+npm run build --workspace=packages/agent-tools
+npm run build --workspace=apps/api
+npm run build --workspace=apps/web
+cd apps/desktop && node build-main.mjs
 
-# Starten (React-Dev-Server muss laufen):
-node_modules\electron\dist\electron.exe .
+# Starten (Electron verwaltet API automatisch):
+cd apps\desktop
+.\node_modules\electron\dist\electron.exe .
 ```
 
-> Die Electron-App öffnet ein natives Fenster statt eines Browser-Tabs.
-> Minimieren legt das Fenster in den System-Tray (nicht in die Taskleiste).
+> Electron startet die API als Child-Prozess, wartet auf Port 3002 und öffnet dann das Fenster.
+> Minimieren legt das Fenster in den System-Tray. Autostart über Tray-Menü (Rechtsklick) aktivierbar.
 
 ---
 
-## Schnellstart
+## Entwicklungsmodus
+
+```powershell
+# API + Vite Dev-Server parallel starten:
+npm run dev
+
+# Electron mit Dev-Flag (lädt Vite statt Production-Build):
+$env:ELLA_DEV = "1"
+cd apps\desktop
+.\node_modules\electron\dist\electron.exe .
+```
+
+---
+
+## Schnellstart (nach Clone)
 
 ```bash
 # Abhängigkeiten installieren
 npm install
 
-# Packages einmalig bauen (nach Clone oder Änderungen)
-npm run build --workspace=packages/shared
-npm run build --workspace=packages/agent-tools
-
 # Voraussetzungen:
 #   - Ollama läuft:   ollama serve
-#   - MariaDB läuft:  net start MariaDB  (Windows-Dienst)
-#   - apps/api/.env   mit DB-Zugangsdaten
+#   - MariaDB läuft:  sc start MariaDB  (Windows-Dienst)
+#   - apps/api/.env   mit DB-Zugangsdaten (siehe unten)
+
+# Packages bauen
+npm run build --workspace=packages/shared
+npm run build --workspace=packages/agent-tools
+npm run build --workspace=apps/api
+npm run build --workspace=apps/web
+cd apps/desktop && node build-main.mjs
 
 # Starten
-npm run dev
-# API:      http://localhost:3002
-# Frontend: http://localhost:5173
+cd apps\desktop
+.\node_modules\electron\dist\electron.exe .
 ```
 
 ### Umgebungsvariablen (`apps/api/.env`)
