@@ -3,7 +3,7 @@ import type { Event as ElectronEvent } from "electron";
 import { deflateSync } from "zlib";
 import * as path from "path";
 
-const isDev = !app.isPackaged;
+const isDev = process.env.ELLA_DEV === "1";
 const FRONTEND_URL = "http://127.0.0.1:5173";
 
 let mainWindow: BrowserWindow | null = null;

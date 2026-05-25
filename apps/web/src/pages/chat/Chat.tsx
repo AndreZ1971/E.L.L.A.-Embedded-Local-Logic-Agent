@@ -12,6 +12,7 @@ type StreamEvent =
   | { type: "error"; message: string };
 
 const SESSION_ID = "default";
+const API = import.meta.env.VITE_API_BASE ?? "";
 
 const TOOL_LABELS: Record<string, string> = {
   get_disk_usage: "Festplattennutzung abrufen",
@@ -30,7 +31,7 @@ const Chat: React.FC = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(`/api/chat/history/${SESSION_ID}`)
+    fetch(`${API}/api/chat/history/${SESSION_ID}`)
       .then((r) => r.json())
       .then((data: { messages: Message[] }) => {
         if (data.messages?.length > 0) setMessages(data.messages);
@@ -54,7 +55,7 @@ const Chat: React.FC = () => {
     setToolStatus("");
 
     try {
-      const res = await fetch("/api/chat/stream", {
+      const res = await fetch(`${API}/api/chat/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text, sessionId: SESSION_ID }),
@@ -114,7 +115,7 @@ const Chat: React.FC = () => {
   };
 
   const clearHistory = async () => {
-    await fetch(`/api/chat/history/${SESSION_ID}`, { method: "DELETE" });
+    await fetch(`${API}/api/chat/history/${SESSION_ID}`, { method: "DELETE" });
     setMessages([]);
     setStreaming("");
     setToolStatus("");
