@@ -165,15 +165,35 @@ function createWindow(): void {
   });
 }
 
+// ── Autostart ─────────────────────────────────────────────────────────────────
+
+function autostartArgs() {
+  return { path: process.execPath, args: [app.getAppPath()] };
+}
+
+function isAutostartEnabled(): boolean {
+  return app.getLoginItemSettings(autostartArgs()).openAtLogin;
+}
+
+function setAutostart(enable: boolean): void {
+  app.setLoginItemSettings({ openAtLogin: enable, ...autostartArgs() });
+}
+
 // ── Tray ──────────────────────────────────────────────────────────────────────
 
-function createTray(): void {
-  const icon = nativeImage.createFromBuffer(buildPngIcon(32));
-  tray = new Tray(icon);
-  tray.setToolTip("E.L.L.A. — Embedded Local Logic Agent");
-
-  const menu = Menu.buildFromTemplate([
+function buildTrayMenu(): Menu {
+  return Menu.buildFromTemplate([
     { label: "E.L.L.A. öffnen", click: showWindow },
+    { type: "separator" },
+    {
+      label: "Autostart",
+      type: "checkbox",
+      checked: isAutostartEnabled(),
+      click: () => {
+        setAutostart(!isAutostartEnabled());
+        tray?.setContextMenu(buildTrayMenu());
+      },
+    },
     { type: "separator" },
     {
       label: "Beenden",
@@ -183,8 +203,13 @@ function createTray(): void {
       },
     },
   ]);
+}
 
-  tray.setContextMenu(menu);
+function createTray(): void {
+  const icon = nativeImage.createFromBuffer(buildPngIcon(32));
+  tray = new Tray(icon);
+  tray.setToolTip("E.L.L.A. — Embedded Local Logic Agent");
+  tray.setContextMenu(buildTrayMenu());
   tray.on("click", () => {
     if (mainWindow?.isVisible()) {
       mainWindow.hide();
