@@ -5,7 +5,20 @@ import { toolExecutor } from "../tools/executor.js";
 import { TOOL_DEFINITIONS } from "../tools/definitions.js";
 import { sessionStore } from "../services/sessions.js";
 import { env } from "../config/env.js";
+import { getSettings } from "../services/settings.js";
 import type { ToolName } from "@ella/shared";
+
+function resolveProvider(): "openai" | "ollama" {
+  const { provider } = getSettings();
+  if (provider === "openai") return "openai";
+  if (provider === "ollama") return "ollama";
+  return openaiClient.isAvailable() ? "openai" : "ollama";
+}
+
+function activeToolDefs() {
+  const { enabledTools } = getSettings();
+  return TOOL_DEFINITIONS.filter((t) => enabledTools.includes(t.function.name));
+}
 
 export const chatRouter = Router();
 
@@ -26,8 +39,9 @@ chatRouter.post("/", async (req, res, next) => {
       return;
     }
 
-    const useOpenAI = openaiClient.isAvailable();
-    const activeModel = model ?? env.ollamaModel;
+    const useOpenAI = resolveProvider() === "openai";
+    const activeModel = model ?? getSettings().ollamaModel ?? env.ollamaModel;
+    const tools = activeToolDefs();
     const history = await sessionStore.get(sessionId);
     history.push({ role: "user", content: message });
 
@@ -35,14 +49,13 @@ chatRouter.post("/", async (req, res, next) => {
       history.map((m) => ({ ...m, id: "", createdAt: "" })),
     );
 
-    // Tool-Loop: LLM kann mehrere Tools hintereinander aufrufen
     let finalReply = "";
     const MAX_ROUNDS = 5;
 
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const response = useOpenAI
-        ? await openaiClient.chat(messages, TOOL_DEFINITIONS)
-        : await ollamaClient.chat(messages, TOOL_DEFINITIONS, activeModel);
+        ? await openaiClient.chat(messages, tools)
+        : await ollamaClient.chat(messages, tools, activeModel);
       const assistantMsg = response.message;
 
       if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
@@ -104,8 +117,9 @@ chatRouter.post("/stream", async (req, res) => {
 
   const emit = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
-  const useOpenAI = openaiClient.isAvailable();
-  const activeModel = model ?? env.ollamaModel;
+  const useOpenAI = resolveProvider() === "openai";
+  const activeModel = model ?? getSettings().ollamaModel ?? env.ollamaModel;
+  const tools = activeToolDefs();
   const history = await sessionStore.get(sessionId);
   history.push({ role: "user", content: message });
 
@@ -119,8 +133,8 @@ chatRouter.post("/stream", async (req, res) => {
   try {
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const stream = useOpenAI
-        ? openaiClient.chatStream(messages, TOOL_DEFINITIONS)
-        : ollamaClient.chatStream(messages, TOOL_DEFINITIONS, activeModel);
+        ? openaiClient.chatStream(messages, tools)
+        : ollamaClient.chatStream(messages, tools, activeModel);
 
       let roundContent = "";
       let roundToolCalls: OllamaMessage["tool_calls"] | undefined;
@@ -180,9 +194,11 @@ chatRouter.post("/stream", async (req, res) => {
 
 // Provider-Status
 chatRouter.get("/provider", (_req, res) => {
+  const p = resolveProvider();
+  const s = getSettings();
   res.json({
-    provider: openaiClient.isAvailable() ? "openai" : "ollama",
-    model: openaiClient.isAvailable() ? "gpt-4o" : env.ollamaModel,
+    provider: p,
+    model: p === "openai" ? "gpt-4o" : (s.ollamaModel ?? env.ollamaModel),
   });
 });
 

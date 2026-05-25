@@ -1,4 +1,5 @@
 import { env } from "../config/env.js";
+import { getActiveApiKey } from "./settings.js";
 import type { OllamaMessage, OllamaTool } from "./ollama.js";
 
 interface OpenAIMessage {
@@ -52,7 +53,7 @@ function buildOpenAIMessages(messages: OllamaMessage[]): OpenAIMessage[] {
 }
 
 export const openaiClient = {
-  isAvailable: (): boolean => Boolean(env.openaiApiKey),
+  isAvailable: (): boolean => Boolean(getActiveApiKey(env.openaiApiKey)),
 
   chat: async (
     messages: OllamaMessage[],
@@ -62,7 +63,7 @@ export const openaiClient = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${env.openaiApiKey}`,
+        Authorization: `Bearer ${getActiveApiKey(env.openaiApiKey)}`,
       },
       body: JSON.stringify({
         model: "gpt-4o",
@@ -108,7 +109,7 @@ export const openaiClient = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${env.openaiApiKey}`,
+        Authorization: `Bearer ${getActiveApiKey(env.openaiApiKey)}`,
       },
       body: JSON.stringify({
         model: "gpt-4o",
