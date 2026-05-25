@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { chatRouter } from "./routes/chat.js";
 import { toolsRouter } from "./routes/tools.js";
+import { systemRouter } from "./routes/system.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { env } from "./config/env.js";
 
@@ -22,6 +23,7 @@ app.use(express.json());
 
 app.use("/api/chat", chatRouter);
 app.use("/api/tools", toolsRouter);
+app.use("/api/system", systemRouter);
 
 app.use(errorHandler);
 
