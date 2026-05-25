@@ -17,6 +17,9 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 | Production Build            | v0.0.5  | Vite baut nach dist/, Electron lädt ohne Dev-Server            |
 | API als Child-Prozess       | v0.0.5  | Electron startet/stoppt API automatisch, wartet auf Port 3002  |
 | Autostart                   | v0.0.5  | app.setLoginItemSettings, Toggle im Tray-Menü, MariaDB auto    |
+| Dashboard                   | v0.1.0  | Status-Karten (LLM, Ollama, DB) + Disk-Balken, Auto-Refresh    |
+| Settings-Seite              | v0.1.0  | Provider, Modell, Tools, Session-Limit, OpenAI API-Key         |
+| Programme-Verwaltung        | v0.1.0  | System-Scan (Start-Menü), Checkbox-Liste erlaubt/verboten      |
 
 ---
 

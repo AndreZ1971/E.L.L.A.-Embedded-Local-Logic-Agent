@@ -5,3 +5,6 @@ logs/*.log
 .env.local
 .env.*.local
 *.tsbuildinfo
+apps/api/settings.json
+.claude/
+.vscode/

@@ -4,6 +4,49 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v0.1.0 — 25.05.2026 — Dashboard, Settings, Programme-Verwaltung
+
+**Ziel:** E.L.L.A. bekommt eine vollständige Konfigurationsoberfläche und zeigt Systemstatus in Echtzeit. Der Nutzer kann alle relevanten Einstellungen ohne `.env`-Bearbeitung vornehmen.
+
+---
+
+### Dashboard
+
+**Entscheidung:** Drei Status-Karten (LLM-Provider, Ollama, MariaDB) + Disk-Usage-Balken für C:, E:, Z:. Auto-Refresh alle 30 Sekunden.
+
+**Neue Endpunkte:**
+
+- `GET /api/system/status` — Ollama und MariaDB per Ping, gibt `{ ok: boolean }` zurück
+- `GET /api/system/disk` — ruft `getDiskUsage()` für drei Laufwerke auf
+
+**Warum keine WebSockets:** SSE reicht für unidirektionale Daten, aber 30-Sekunden-Polling ist noch einfacher und völlig ausreichend für Systemmetriken die sich langsam ändern.
+
+---
+
+### Settings-Seite
+
+**Entscheidung:** Persistenz in `settings.json` (serverseitig, nicht in DB). Zwei Tabs: Allgemein + Programme.
+
+**Warum JSON-Datei statt DB-Tabelle:** Keine Migration nötig, kein Schema-Lock-in. Settings sind flach genug dass ein JSON-Objekt ausreicht. Bei komplexeren Anforderungen (Mehrnutzer, Audit-Log) wäre MariaDB besser.
+
+**OpenAI API-Key:** Wird als `"***"` ans Frontend geliefert (nie im Klartext). Frontend sendet nur dann einen neuen Wert, wenn der Nutzer etwas eingetippt hat — `"***"` als Sentinel verhindert versehentliches Überschreiben.
+
+**Provider-Auswahl:** `auto` | `openai` | `ollama` — `auto` entspricht dem bisherigen Verhalten (OpenAI wenn verfügbar). Durch explizite Auswahl kann der Nutzer Ollama erzwingen auch wenn ein API-Key hinterlegt ist.
+
+---
+
+### Programme-Verwaltung
+
+**Entscheidung:** Einzelne Liste mit Checkboxen statt getrennter Erlaubt/Verboten-Listen. System-Scan über Windows Start-Menü (`.lnk`-Shortcuts).
+
+**Warum Start-Menü statt Registry:** Die Registry liefert installierte Pakete mit Installationspfad — aber nicht den Pfad zum ausführbaren Programm. Start-Menü-Shortcuts sind direkt launchbar und entsprechen genau dem was der Nutzer als "Programm" versteht.
+
+**Base64 `-EncodedCommand`:** Das PowerShell-Skript enthält Sonderzeichen und Pfade mit Leerzeichen. Statt fragiler Shell-Escaping wird das Skript als UTF-16LE Base64 kodiert — das ist die offizielle PowerShell-Methode für programmgesteuerte Ausführung.
+
+**Datenmodell:** `apps: { name, command, allowed }[]` — eine einzige Liste. `allowed: false` ist gleichbedeutend mit verboten. Beim Scan werden neue Programme mit `allowed: false` gemergt — der Nutzer muss explizit freigeben.
+
+---
+
 ## v0.0.5 — 25.05.2026 — Vollständige Desktop-App
 
 **Ziel:** E.L.L.A. läuft vollständig als native Windows-Anwendung ohne Browser, startet automatisch mit Windows und verwaltet alle Abhängigkeiten selbst.

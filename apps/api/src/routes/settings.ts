@@ -18,20 +18,28 @@ settingsRouter.get("/", (_req, res) => {
 
 settingsRouter.put("/", async (req, res, next) => {
   try {
-    const { provider, ollamaModel, enabledTools, sessionLimit, openaiApiKey } =
-      req.body as {
-        provider?: "auto" | "openai" | "ollama";
-        ollamaModel?: string;
-        enabledTools?: string[];
-        sessionLimit?: number;
-        openaiApiKey?: string;
-      };
+    const {
+      provider,
+      ollamaModel,
+      enabledTools,
+      sessionLimit,
+      openaiApiKey,
+      apps,
+    } = req.body as {
+      provider?: "auto" | "openai" | "ollama";
+      ollamaModel?: string;
+      enabledTools?: string[];
+      sessionLimit?: number;
+      openaiApiKey?: string;
+      apps?: { name: string; command: string; allowed: boolean }[];
+    };
 
     const patch: Parameters<typeof saveSettings>[0] = {
       provider,
       ollamaModel,
       enabledTools,
       sessionLimit,
+      apps,
     };
     if (openaiApiKey !== undefined && openaiApiKey !== MASKED) {
       patch.openaiApiKey = openaiApiKey;

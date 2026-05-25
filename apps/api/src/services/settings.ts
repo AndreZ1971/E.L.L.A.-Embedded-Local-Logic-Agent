@@ -2,12 +2,19 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { fileURLToPath } from "url";
 
+export interface AppEntry {
+  name: string;
+  command: string;
+  allowed: boolean;
+}
+
 export interface Settings {
   provider: "auto" | "openai" | "ollama";
   ollamaModel: string;
   enabledTools: string[];
   sessionLimit: number;
   openaiApiKey: string;
+  apps: AppEntry[];
 }
 
 const SETTINGS_PATH = path.join(
@@ -26,6 +33,14 @@ export const DEFAULT_SETTINGS: Settings = {
   ],
   sessionLimit: 40,
   openaiApiKey: "",
+  apps: [
+    { name: "vscode", command: "code", allowed: true },
+    { name: "notepad", command: "notepad.exe", allowed: true },
+    { name: "explorer", command: "explorer.exe", allowed: true },
+    { name: "terminal", command: "wt.exe", allowed: true },
+    { name: "chrome", command: "chrome.exe", allowed: true },
+    { name: "edge", command: "msedge.exe", allowed: true },
+  ],
 };
 
 export const MASKED = "***" as const;

@@ -106,6 +106,22 @@ Der zentrale Ablauf für jede Nutzeranfrage (gilt für `/api/chat` und `/api/cha
 
 ---
 
+## API-Endpunkte
+
+| Route                   | Methode      | Funktion                                 |
+| ----------------------- | ------------ | ---------------------------------------- |
+| `/api/chat/stream`      | POST         | SSE-Streaming, Tool-Loop                 |
+| `/api/chat/provider`    | GET          | Aktiver Provider + Modell                |
+| `/api/chat/history/:id` | GET / DELETE | Session laden / löschen                  |
+| `/api/system/status`    | GET          | Ollama + MariaDB Erreichbarkeit          |
+| `/api/system/disk`      | GET          | Disk-Usage C:, E:, Z:                    |
+| `/api/system/programs`  | GET          | Installierte Programme (Start-Menü-Scan) |
+| `/api/settings`         | GET / PUT    | Einstellungen lesen / schreiben          |
+| `/api/settings/models`  | GET          | Verfügbare Ollama-Modelle                |
+| `/api/tools`            | GET          | Registrierte Tool-Definitionen           |
+
+---
+
 ## Ports
 
 | Service             | Port  | Hinweis                                     |
