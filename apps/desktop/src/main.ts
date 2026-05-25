@@ -1,98 +1,110 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage } from 'electron';
-import type { Event as ElectronEvent } from 'electron';
-import { deflateSync } from 'zlib';
-import * as path from 'path';
+import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } from "electron";
+import type { Event as ElectronEvent } from "electron";
+import { deflateSync } from "zlib";
+import * as path from "path";
 
 const isDev = !app.isPackaged;
-const FRONTEND_URL = 'http://localhost:5173';
+const FRONTEND_URL = "http://127.0.0.1:5173";
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
 
-// Erzeugt ein einfaches PNG-Icon ohne externe Abhängigkeiten.
-// r=124 g=58 b=237 → #7C3AED (Violet) als E.L.L.A.-Farbe.
 function buildPngIcon(size: number): Buffer {
   const crcTable = new Uint32Array(256);
   for (let n = 0; n < 256; n++) {
     let c = n;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
     crcTable[n] = c;
   }
   const crc32 = (buf: Buffer): number => {
-    let crc = 0xFFFFFFFF;
-    for (const byte of buf) crc = crcTable[(crc ^ byte) & 0xFF] ^ (crc >>> 8);
-    return (crc ^ 0xFFFFFFFF) >>> 0;
+    let crc = 0xffffffff;
+    for (const byte of buf) crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+    return (crc ^ 0xffffffff) >>> 0;
   };
   const chunk = (type: string, data: Buffer): Buffer => {
-    const t = Buffer.from(type, 'ascii');
-    const len = Buffer.alloc(4); len.writeUInt32BE(data.length);
-    const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(Buffer.concat([t, data])));
+    const t = Buffer.from(type, "ascii");
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(Buffer.concat([t, data])));
     return Buffer.concat([len, t, data, crc]);
   };
 
-  // IHDR: Breite, Höhe, 8-bit RGB (color type 2)
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(size, 0);
   ihdr.writeUInt32BE(size, 4);
   ihdr[8] = 8;
   ihdr[9] = 2;
 
-  // Scanlines: 1 Filter-Byte + size * 3 RGB-Bytes pro Zeile
   const raw = Buffer.alloc(size * (1 + size * 3));
   for (let y = 0; y < size; y++) {
     const off = y * (1 + size * 3);
-    raw[off] = 0; // Filter: None
+    raw[off] = 0;
     for (let x = 0; x < size; x++) {
-      raw[off + 1 + x * 3]     = 124; // R
-      raw[off + 1 + x * 3 + 1] = 58;  // G
-      raw[off + 1 + x * 3 + 2] = 237; // B
+      raw[off + 1 + x * 3] = 124;
+      raw[off + 1 + x * 3 + 1] = 58;
+      raw[off + 1 + x * 3 + 2] = 237;
     }
   }
 
   return Buffer.concat([
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), // PNG-Signatur
-    chunk('IHDR', ihdr),
-    chunk('IDAT', deflateSync(raw)),
-    chunk('IEND', Buffer.alloc(0)),
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    chunk("IHDR", ihdr),
+    chunk("IDAT", deflateSync(raw)),
+    chunk("IEND", Buffer.alloc(0)),
   ]);
 }
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width:    1100,
-    height:   750,
+    width: 1100,
+    height: 750,
     minWidth: 800,
     minHeight: 550,
-    title: 'E.L.L.A.',
+    title: "E.L.L.A.",
     icon: nativeImage.createFromBuffer(buildPngIcon(64)),
+    frame: false,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      preload: path.join(__dirname, "preload.js"),
     },
-    show: false, // erst anzeigen wenn geladen
+    show: false,
   });
 
   if (isDev) {
     mainWindow.loadURL(FRONTEND_URL);
   } else {
-    // dist/main/index.js → ../../web/dist/index.html
-    mainWindow.loadFile(path.join(__dirname, '../../../web/dist/index.html'));
+    mainWindow.loadFile(path.join(__dirname, "../../../web/dist/index.html"));
   }
 
-  mainWindow.once('ready-to-show', () => {
+  mainWindow.webContents.on("did-fail-load", (_e, code, desc) => {
+    console.error("[ELLA] Ladefehler:", code, desc);
+  });
+
+  if (isDev) {
+    mainWindow.webContents.openDevTools({ mode: "detach" });
+  }
+
+  mainWindow.once("ready-to-show", () => {
     mainWindow?.show();
     mainWindow?.focus();
   });
 
-  // Minimieren → in Tray legen statt Taskleiste
-  mainWindow.on('minimize', () => {
+  mainWindow.on("maximize", () =>
+    mainWindow?.webContents.send("window:maximized", true),
+  );
+  mainWindow.on("unmaximize", () =>
+    mainWindow?.webContents.send("window:maximized", false),
+  );
+
+  mainWindow.on("minimize", () => {
     mainWindow?.hide();
     mainWindow?.setSkipTaskbar(true);
   });
 
-  // Schließen → in Tray legen (außer beim echten Beenden via Tray-Menü)
-  mainWindow.on('close', (e: ElectronEvent) => {
+  mainWindow.on("close", (e: ElectronEvent) => {
     if (!isQuitting) {
       e.preventDefault();
       mainWindow?.hide();
@@ -104,16 +116,13 @@ function createWindow(): void {
 function createTray(): void {
   const icon = nativeImage.createFromBuffer(buildPngIcon(32));
   tray = new Tray(icon);
-  tray.setToolTip('E.L.L.A. — Embedded Local Logic Agent');
+  tray.setToolTip("E.L.L.A. — Embedded Local Logic Agent");
 
   const menu = Menu.buildFromTemplate([
+    { label: "E.L.L.A. öffnen", click: showWindow },
+    { type: "separator" },
     {
-      label: 'E.L.L.A. öffnen',
-      click: showWindow,
-    },
-    { type: 'separator' },
-    {
-      label: 'Beenden',
+      label: "Beenden",
       click: () => {
         isQuitting = true;
         app.quit();
@@ -122,9 +131,7 @@ function createTray(): void {
   ]);
 
   tray.setContextMenu(menu);
-
-  // Linksklick auf Tray-Icon → Fenster ein-/ausblenden
-  tray.on('click', () => {
+  tray.on("click", () => {
     if (mainWindow?.isVisible()) {
       mainWindow.hide();
       mainWindow.setSkipTaskbar(true);
@@ -141,29 +148,38 @@ function showWindow(): void {
   mainWindow.focus();
 }
 
+function registerIpc(): void {
+  ipcMain.on("window:minimize", () => mainWindow?.minimize());
+  ipcMain.on("window:maximize", () => {
+    if (mainWindow?.isMaximized()) mainWindow.unmaximize();
+    else mainWindow?.maximize();
+  });
+  ipcMain.on("window:close", () => mainWindow?.close());
+  ipcMain.handle(
+    "window:isMaximized",
+    () => mainWindow?.isMaximized() ?? false,
+  );
+}
+
 app.whenReady().then(() => {
-  // Nur eine Instanz erlauben
   if (!app.requestSingleInstanceLock()) {
     app.quit();
     return;
   }
+  app.on("second-instance", () => showWindow());
 
-  // Zweite Instanz öffnet das bestehende Fenster
-  app.on('second-instance', () => showWindow());
-
+  registerIpc();
   createWindow();
   createTray();
 });
 
-// Fenster geschlossen ≠ App beendet — wir leben im Tray weiter
-app.on('window-all-closed', () => { /* nichts tun */ });
-
-app.on('before-quit', () => {
+app.on("window-all-closed", () => {
+  /* Tray-App — absichtlich leer */
+});
+app.on("before-quit", () => {
   isQuitting = true;
 });
-
-// macOS: Dock-Klick öffnet das Fenster (falls je portiert)
-app.on('activate', () => {
+app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
   else showWindow();
 });

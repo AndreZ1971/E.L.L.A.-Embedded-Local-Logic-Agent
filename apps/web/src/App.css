@@ -1,59 +1,94 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
+html,
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   background: #0f1117;
   color: #e2e8f0;
+  overflow: hidden;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+.ella-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .ella-layout {
   display: flex;
-  height: 100vh;
+  flex: 1;
+  overflow: hidden;
 }
 
 .ella-sidebar {
-  width: 220px;
+  width: 200px;
   background: #1a1d27;
-  padding: 24px 16px;
+  padding: 24px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   border-right: 1px solid #2d3148;
   flex-shrink: 0;
+  overflow-y: auto;
 }
 
 .ella-logo {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #7c6af7;
   letter-spacing: 0.08em;
   margin-bottom: 20px;
-  padding: 0 12px;
+  padding: 0 10px;
 }
 
 .ella-sidebar a {
   color: #94a3b8;
   text-decoration: none;
-  padding: 9px 12px;
+  padding: 9px 10px;
   border-radius: 6px;
   font-size: 0.875rem;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
-.ella-sidebar a:hover { background: #252837; color: #cbd5e1; }
-.ella-sidebar a.active { background: #2d3148; color: #e2e8f0; }
+.ella-sidebar a:hover {
+  background: #252837;
+  color: #cbd5e1;
+}
+.ella-sidebar a.active {
+  background: #2d3148;
+  color: #e2e8f0;
+}
 
 .ella-main {
   flex: 1;
-  overflow-y: auto;
-  padding: 32px;
+  overflow: hidden;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
 }
 
 h2 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #f1f5f9;
   margin-bottom: 8px;
 }
 
-.muted { color: #64748b; font-size: 0.875rem; }
+.muted {
+  color: #64748b;
+  font-size: 0.875rem;
+}
