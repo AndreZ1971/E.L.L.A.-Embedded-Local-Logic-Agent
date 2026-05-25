@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-  NavLink,
-} from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate, NavLink } from "react-router-dom";
 import TitleBar from "./components/TitleBar";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Chat from "./pages/chat/Chat";
@@ -13,7 +7,7 @@ import Settings from "./pages/settings/Settings";
 
 function App() {
   return (
-    <BrowserRouter
+    <HashRouter
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
     >
       <div className="ella-root">
@@ -35,7 +29,7 @@ function App() {
           </main>
         </div>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
