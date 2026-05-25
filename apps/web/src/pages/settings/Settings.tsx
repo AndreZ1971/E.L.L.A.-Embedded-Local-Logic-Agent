@@ -16,6 +16,7 @@ interface Settings {
   sessionLimit: number;
   openaiApiKey: string;
   apps: AppEntry[];
+  voiceMode: "off" | "manual" | "wakeword";
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -25,7 +26,7 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "empty_recycle_bin", label: "Papierkorb leeren" },
 ];
 
-const inputStyle: React.CSSProperties = {
+const input: React.CSSProperties = {
   padding: "8px 10px",
   borderRadius: 6,
   border: "1px solid #2d3148",
@@ -43,16 +44,16 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
       background: "#1a1d27",
       border: "1px solid #2d3148",
       borderRadius: 8,
-      padding: "16px 20px",
+      padding: "14px 18px",
     }}
   >
     <div
       style={{
-        fontSize: "0.75rem",
+        fontSize: "0.72rem",
         color: "#64748b",
         textTransform: "uppercase",
         letterSpacing: "0.06em",
-        marginBottom: 14,
+        marginBottom: 12,
       }}
     >
       {title}
@@ -61,8 +62,10 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   </div>
 );
 
+type Tab = "llm" | "tools" | "programme";
+
 const Settings: React.FC = () => {
-  const [tab, setTab] = useState<"allgemein" | "programme">("allgemein");
+  const [tab, setTab] = useState<Tab>("llm");
   const [settings, setSettings] = useState<Settings | null>(null);
   const [models, setModels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -110,16 +113,15 @@ const Settings: React.FC = () => {
     try {
       const data = (await fetch(`${API}/api/system/programs`).then((r) =>
         r.json(),
-      )) as { programs: { name: string; command: string }[] };
-
+      )) as {
+        programs: { name: string; command: string }[];
+      };
       const existing = new Map(
         settings.apps.map((a) => [a.name.toLowerCase(), a]),
       );
-
       const merged: AppEntry[] = [...settings.apps];
       for (const p of data.programs) {
-        const key = p.name.toLowerCase();
-        if (!existing.has(key)) {
+        if (!existing.has(p.name.toLowerCase())) {
           merged.push({ name: p.name, command: p.command, allowed: false });
         }
       }
@@ -151,6 +153,7 @@ const Settings: React.FC = () => {
     );
   }
 
+  const allowedCount = settings.apps.filter((a) => a.allowed).length;
   const filteredApps = settings.apps.filter(
     (a) =>
       !filter ||
@@ -158,14 +161,27 @@ const Settings: React.FC = () => {
       a.command.toLowerCase().includes(filter.toLowerCase()),
   );
 
-  const allowedCount = settings.apps.filter((a) => a.allowed).length;
+  const TAB_LABELS: Record<Tab, string> = {
+    llm: "LLM",
+    tools: "Tools",
+    programme: `Programme (${allowedCount})`,
+  };
+
+  const rowLabel: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 10,
+    cursor: "pointer",
+    fontSize: "0.9rem",
+  };
 
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: 16,
+        gap: 14,
         maxWidth: 620,
         height: "100%",
       }}
@@ -178,9 +194,10 @@ const Settings: React.FC = () => {
           display: "flex",
           gap: 4,
           borderBottom: "1px solid #2d3148",
+          flexShrink: 0,
         }}
       >
-        {(["allgemein", "programme"] as const).map((t) => (
+        {(["llm", "tools", "programme"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -197,27 +214,20 @@ const Settings: React.FC = () => {
               marginBottom: -1,
             }}
           >
-            {t === "allgemein"
-              ? "Allgemein"
-              : `Programme (${allowedCount} erlaubt)`}
+            {TAB_LABELS[t]}
           </button>
         ))}
       </div>
 
-      {/* ── Tab: Allgemein ─────────────────────────────────── */}
-      {tab === "allgemein" && (
+      {/* ── Tab: LLM ─────────────────────────────────────────── */}
+      {tab === "llm" && (
         <>
-          <Section title="LLM-Provider">
+          <Section title="Provider">
             {(["auto", "openai", "ollama"] as const).map((p) => (
               <label
                 key={p}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  marginBottom: 10,
-                  cursor: "pointer",
-                  fontSize: "0.9rem",
+                  ...rowLabel,
                   color: settings.provider === p ? "#e2e8f0" : "#94a3b8",
                 }}
               >
@@ -240,7 +250,7 @@ const Settings: React.FC = () => {
             <select
               value={settings.ollamaModel}
               onChange={(e) => patch({ ollamaModel: e.target.value })}
-              style={{ ...inputStyle, width: "100%" }}
+              style={{ ...input, width: "100%" }}
             >
               {models.length === 0 && (
                 <option value={settings.ollamaModel}>
@@ -255,17 +265,53 @@ const Settings: React.FC = () => {
             </select>
           </Section>
 
+          <Section title="OpenAI API-Key">
+            <input
+              type="password"
+              value={settings.openaiApiKey}
+              placeholder={
+                settings.openaiApiKey === MASKED
+                  ? "gesetzt (ändern zum Überschreiben)"
+                  : "sk-…"
+              }
+              onChange={(e) => patch({ openaiApiKey: e.target.value })}
+              style={{ ...input, width: "100%" }}
+            />
+            <div
+              style={{ fontSize: "0.78rem", color: "#64748b", marginTop: 6 }}
+            >
+              Leer lassen = Wert aus .env nutzen.
+            </div>
+            {settings.openaiApiKey === MASKED && (
+              <button
+                onClick={() => patch({ openaiApiKey: "" })}
+                style={{
+                  marginTop: 8,
+                  padding: "4px 10px",
+                  fontSize: "0.78rem",
+                  borderRadius: 4,
+                  background: "transparent",
+                  border: "1px solid #7f1d1d",
+                  color: "#f87171",
+                  cursor: "pointer",
+                }}
+              >
+                Key entfernen
+              </button>
+            )}
+          </Section>
+        </>
+      )}
+
+      {/* ── Tab: Tools ───────────────────────────────────────── */}
+      {tab === "tools" && (
+        <>
           <Section title="Aktivierte Tools">
             {ALL_TOOLS.map((t) => (
               <label
                 key={t.name}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  marginBottom: 10,
-                  cursor: "pointer",
-                  fontSize: "0.9rem",
+                  ...rowLabel,
                   color: settings.enabledTools.includes(t.name)
                     ? "#e2e8f0"
                     : "#94a3b8",
@@ -295,7 +341,7 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   patch({ sessionLimit: Number(e.target.value) })
                 }
-                style={{ ...inputStyle, width: 80 }}
+                style={{ ...input, width: 80 }}
               />
               <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
                 Maximale Nachrichten im Verlauf (1–100)
@@ -303,62 +349,63 @@ const Settings: React.FC = () => {
             </div>
           </Section>
 
-          <Section title="OpenAI API-Key">
-            <input
-              type="password"
-              value={settings.openaiApiKey}
-              placeholder={
-                settings.openaiApiKey === MASKED
-                  ? "gesetzt (ändern zum Überschreiben)"
-                  : "sk-…"
-              }
-              onChange={(e) => patch({ openaiApiKey: e.target.value })}
-              style={{ ...inputStyle, width: "100%" }}
-            />
-            <div
-              style={{ fontSize: "0.78rem", color: "#64748b", marginTop: 6 }}
-            >
-              Leer lassen = Wert aus .env nutzen.
-            </div>
-            {settings.openaiApiKey === MASKED && (
-              <button
-                onClick={() => patch({ openaiApiKey: "" })}
+          <Section title="Spracheingabe">
+            {(["off", "manual", "wakeword"] as const).map((m) => (
+              <label
+                key={m}
                 style={{
-                  marginTop: 8,
-                  padding: "4px 10px",
-                  fontSize: "0.78rem",
-                  borderRadius: 4,
-                  background: "transparent",
-                  border: "1px solid #7f1d1d",
-                  color: "#f87171",
-                  cursor: "pointer",
+                  ...rowLabel,
+                  color: settings.voiceMode === m ? "#e2e8f0" : "#94a3b8",
                 }}
               >
-                Key entfernen
-              </button>
+                <input
+                  type="radio"
+                  name="voiceMode"
+                  value={m}
+                  checked={settings.voiceMode === m}
+                  onChange={() => patch({ voiceMode: m })}
+                  style={{ accentColor: "#7c6af7" }}
+                />
+                {m === "off" && "Aus — nur Tastatur"}
+                {m === "manual" && "Manuell — Mikrofon-Taste im Chat"}
+                {m === "wakeword" && 'Immer aktiv — Aktivierungswort "ella"'}
+              </label>
+            ))}
+            {settings.voiceMode === "wakeword" && (
+              <div
+                style={{ fontSize: "0.78rem", color: "#64748b", marginTop: 2 }}
+              >
+                "ella" zum Aktivieren → Befehl sprechen → "ausführen" oder "los"
+              </div>
             )}
           </Section>
         </>
       )}
 
-      {/* ── Tab: Programme ─────────────────────────────────── */}
+      {/* ── Tab: Programme ───────────────────────────────────── */}
       {tab === "programme" && (
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 12,
+            gap: 10,
             flex: 1,
             minHeight: 0,
           }}
         >
-          {/* Toolbar */}
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexShrink: 0,
+            }}
+          >
             <input
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder="Suchen…"
-              style={{ ...inputStyle, flex: 1 }}
+              style={{ ...input, flex: 1 }}
             />
             <button
               onClick={scan}
@@ -378,17 +425,11 @@ const Settings: React.FC = () => {
             </button>
           </div>
 
-          <div
-            style={{
-              fontSize: "0.78rem",
-              color: "#64748b",
-            }}
-          >
-            {settings.apps.length} Programme bekannt · {allowedCount} erlaubt ·{" "}
+          <div style={{ fontSize: "0.78rem", color: "#64748b", flexShrink: 0 }}>
+            {settings.apps.length} bekannt · {allowedCount} erlaubt ·{" "}
             {settings.apps.length - allowedCount} verboten
           </div>
 
-          {/* Liste */}
           <div
             style={{
               flex: 1,
@@ -408,7 +449,7 @@ const Settings: React.FC = () => {
                 }}
               >
                 {settings.apps.length === 0
-                  ? 'Noch keine Programme — "System scannen" klicken.'
+                  ? '"System scannen" klicken.'
                   : "Keine Treffer."}
               </div>
             )}
@@ -471,6 +512,7 @@ const Settings: React.FC = () => {
         disabled={saving}
         style={{
           alignSelf: "flex-start",
+          flexShrink: 0,
           padding: "10px 24px",
           borderRadius: 6,
           background: saved ? "#4ade80" : "#7c6af7",

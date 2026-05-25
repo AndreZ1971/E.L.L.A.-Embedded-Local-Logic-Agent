@@ -15,6 +15,7 @@ export interface Settings {
   sessionLimit: number;
   openaiApiKey: string;
   apps: AppEntry[];
+  voiceMode: "off" | "manual" | "wakeword";
 }
 
 const SETTINGS_PATH = path.join(
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
   ],
   sessionLimit: 40,
   openaiApiKey: "",
+  voiceMode: "off",
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },

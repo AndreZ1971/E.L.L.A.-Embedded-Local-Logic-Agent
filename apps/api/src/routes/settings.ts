@@ -25,6 +25,7 @@ settingsRouter.put("/", async (req, res, next) => {
       sessionLimit,
       openaiApiKey,
       apps,
+      voiceMode,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -32,6 +33,7 @@ settingsRouter.put("/", async (req, res, next) => {
       sessionLimit?: number;
       openaiApiKey?: string;
       apps?: { name: string; command: string; allowed: boolean }[];
+      voiceMode?: "off" | "manual" | "wakeword";
     };
 
     const patch: Parameters<typeof saveSettings>[0] = {
@@ -40,6 +42,7 @@ settingsRouter.put("/", async (req, res, next) => {
       enabledTools,
       sessionLimit,
       apps,
+      voiceMode,
     };
     if (openaiApiKey !== undefined && openaiApiKey !== MASKED) {
       patch.openaiApiKey = openaiApiKey;

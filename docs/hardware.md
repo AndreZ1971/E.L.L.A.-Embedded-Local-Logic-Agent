@@ -4,15 +4,15 @@
 
 ## Spezifikation
 
-| Komponente | Spezifikation | Relevanz für E.L.L.A. |
-| --- | --- | --- |
-| CPU | Intel Core i3, 12. Generation | Ausreichend für Node.js + Express. Ollama auf CPU: 5-15 Sek./Antwort |
-| RAM | 32 GB DDR4/5 | llama3.1:8b braucht ~5 GB — genug Puffer für OS + Browser + Node.js |
-| GPU | NVIDIA RTX 2080 (8 GB VRAM) | GPU-Inferenz möglich: llama3.1:8b passt mit ~5 GB in den VRAM |
-| Laufwerk C: | (Primär, Windows) | Betriebssystem, Code-Editor, Node.js, npm — kein KI-Ballast |
-| Laufwerk E: | 238 GB, intern | "Gehirn" — Ollama-Modelle + MariaDB |
-| Laufwerk Z: | 34 GB, intern | Code & Projekte (inkl. E.L.L.A.) |
-| Laufwerk H: | Extern | Medien — nicht für KI-Infrastruktur geeignet |
+| Komponente  | Spezifikation                               | Relevanz für E.L.L.A.                                                |
+| ----------- | ------------------------------------------- | -------------------------------------------------------------------- |
+| CPU         | Intel Core i3, 12. Generation               | Ausreichend für Node.js + Express. Ollama auf CPU: 5-15 Sek./Antwort |
+| RAM         | 32 GB DDR4/5                                | llama3.1:8b braucht ~5 GB — genug Puffer für OS + Browser + Node.js  |
+| GPU         | NVIDIA GTX 1080 (8 GB VRAM), RTX 2080 folgt | GPU-Inferenz möglich: llama3.1:8b passt mit ~5 GB in den VRAM        |
+| Laufwerk C: | (Primär, Windows)                           | Betriebssystem, Code-Editor, Node.js, npm — kein KI-Ballast          |
+| Laufwerk E: | 238 GB, intern                              | "Gehirn" — Ollama-Modelle + MariaDB                                  |
+| Laufwerk Z: | 34 GB, intern                               | Code & Projekte (inkl. E.L.L.A.)                                     |
+| Laufwerk H: | Extern                                      | Medien — nicht für KI-Infrastruktur geeignet                         |
 
 ---
 
@@ -66,8 +66,8 @@ Ollama speichert Modelle standardmäßig unter `C:\Users\<User>\.ollama\models`.
 
 ### Installierte Modelle
 
-| Modell | Größe | Typ | Zweck |
-| --- | --- | --- | --- |
+| Modell        | Größe   | Typ        | Zweck                                  |
+| ------------- | ------- | ---------- | -------------------------------------- |
 | `llama3.1:8b` | ~4,7 GB | Generalist | Standard-Fallback wenn kein OpenAI-Key |
 
 ### Ollama starten
@@ -122,12 +122,13 @@ net stop MariaDB
 
 ## GPU-Beschleunigung (Potential)
 
-Die RTX 2080 mit 8 GB VRAM könnte die Ollama-Inferenz drastisch beschleunigen:
+Aktuelle GPU: **GTX 1080 (8 GB VRAM)**. RTX 2080 folgt nächsten Monat — beide haben 8 GB VRAM, die 2080 ist durch Tensor Cores und höhere Bandbreite deutlich schneller für Inferenz.
 
-| Modus | Erwartete Latenz | Voraussetzung |
-| --- | --- | --- |
-| CPU (aktuell) | 5-15 Sek./Antwort | — |
-| GPU (RTX 2080) | 0,5-2 Sek./Antwort | CUDA-Treiber, Ollama CUDA-Build |
+| Modus          | Erwartete Latenz   | Karte                  |
+| -------------- | ------------------ | ---------------------- |
+| CPU (aktuell)  | 5-15 Sek./Antwort  | —                      |
+| GPU (GTX 1080) | 1-4 Sek./Antwort   | CUDA, kein Tensor Core |
+| GPU (RTX 2080) | 0,5-2 Sek./Antwort | CUDA + Tensor Cores    |
 
 **Modell-Fit:** llama3.1:8b braucht ~5 GB VRAM — passt in 8 GB mit Puffer für OS-GPU-Anteil (~500 MB).
 
@@ -163,11 +164,11 @@ nvidia-smi
 
 ## Performance-Einschätzung
 
-| Aufgabe | Performance | Engpass |
-| --- | --- | --- |
-| Node.js API (Express) | Sehr gut | — |
-| MariaDB Abfragen | Sehr gut | — |
-| Ollama (CPU, llama3.1:8b) | Akzeptabel (5-15s) | CPU-Kerne |
-| Ollama (GPU, mit CUDA) | Gut (0.5-2s) | VRAM-Bandwidth |
-| OpenAI GPT-4o | Sehr gut (1-3s) | Netzwerklatenz |
-| React Dev-Server (Vite) | Sehr gut | — |
+| Aufgabe                   | Performance        | Engpass        |
+| ------------------------- | ------------------ | -------------- |
+| Node.js API (Express)     | Sehr gut           | —              |
+| MariaDB Abfragen          | Sehr gut           | —              |
+| Ollama (CPU, llama3.1:8b) | Akzeptabel (5-15s) | CPU-Kerne      |
+| Ollama (GPU, mit CUDA)    | Gut (0.5-2s)       | VRAM-Bandwidth |
+| OpenAI GPT-4o             | Sehr gut (1-3s)    | Netzwerklatenz |
+| React Dev-Server (Vite)   | Sehr gut           | —              |

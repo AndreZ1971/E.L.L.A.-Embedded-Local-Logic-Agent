@@ -1,4 +1,12 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } from "electron";
+import {
+  app,
+  BrowserWindow,
+  Tray,
+  Menu,
+  nativeImage,
+  ipcMain,
+  session,
+} from "electron";
 import type { Event as ElectronEvent } from "electron";
 import { spawn } from "child_process";
 import type { ChildProcess } from "child_process";
@@ -250,6 +258,13 @@ app.whenReady().then(async () => {
     return;
   }
   app.on("second-instance", () => showWindow());
+
+  // Grant microphone access for Web Speech API
+  session.defaultSession.setPermissionRequestHandler(
+    (_wc, permission, callback) => {
+      callback(permission === "media");
+    },
+  );
 
   if (!isDev) {
     startApi();
