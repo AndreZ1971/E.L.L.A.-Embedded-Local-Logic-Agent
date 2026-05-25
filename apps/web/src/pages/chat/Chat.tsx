@@ -53,9 +53,16 @@ interface Message {
   role: "user" | "assistant";
   content: string;
 }
+interface ConfirmRequest {
+  id: string;
+  tool: string;
+  label: string;
+}
+
 type StreamEvent =
   | { type: "chunk"; text: string }
   | { type: "tool"; name: string }
+  | { type: "confirm"; id: string; tool: string; label: string }
   | { type: "done" }
   | { type: "error"; message: string };
 
@@ -77,7 +84,16 @@ const Chat: React.FC = () => {
   const [toolStatus, setToolStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [confirms, setConfirms] = useState<ConfirmRequest[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  /* Hausaufgaben-Modus */
+  const [homeworkActive, setHomeworkActive] = useState(false);
+  const [homeworkConfigured, setHomeworkConfigured] = useState(false);
+  const [showPinDialog, setShowPinDialog] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState("");
+  const [pinBusy, setPinBusy] = useState(false);
 
   /* Voice state */
   const [voiceMode, setVoiceMode] = useState<VoiceMode>("off");
@@ -150,10 +166,17 @@ const Chat: React.FC = () => {
             setToolStatus("");
           } else if (ev.type === "tool") {
             setToolStatus(TOOL_LABELS[ev.name] ?? ev.name);
+          } else if (ev.type === "confirm") {
+            setToolStatus("");
+            setConfirms((p) => [
+              ...p,
+              { id: ev.id, tool: ev.tool, label: ev.label },
+            ]);
           } else if (ev.type === "done") {
             setMessages((p) => [...p, { role: "assistant", content: full }]);
             setStreaming("");
             setToolStatus("");
+            setConfirms([]);
             break outer;
           } else if (ev.type === "error") throw new Error(ev.message);
         }
@@ -171,6 +194,14 @@ const Chat: React.FC = () => {
     sendFnRef.current = sendText;
   }, [sendText]);
   const send = useCallback(() => sendText(input.trim()), [input, sendText]);
+
+  /* ── Tool-Bestätigung ── */
+  const resolveConfirm = useCallback(async (id: string, approved: boolean) => {
+    setConfirms((p) => p.filter((c) => c.id !== id));
+    await fetch(`${API}/api/approvals/${id}/${approved ? "confirm" : "deny"}`, {
+      method: "POST",
+    });
+  }, []);
 
   /* ── Voice helpers ── */
   const setPhase = useCallback((p: VoicePhase) => {
@@ -312,19 +343,60 @@ const Chat: React.FC = () => {
     startCmdRef.current = startCmd;
   }, [startWake, startCmd]);
 
-  /* Load voiceMode from settings on mount */
+  /* Load voiceMode + homework status on mount */
   useEffect(() => {
-    fetch(`${API}/api/settings`)
-      .then((r) => r.json())
-      .then((s: { voiceMode?: VoiceMode }) => {
+    Promise.all([
+      fetch(`${API}/api/settings`).then((r) => r.json()) as Promise<{
+        voiceMode?: VoiceMode;
+      }>,
+      fetch(`${API}/api/homework/status`).then((r) => r.json()) as Promise<{
+        active: boolean;
+        configured: boolean;
+      }>,
+    ])
+      .then(([s, h]) => {
         const m = s.voiceMode ?? "off";
         voiceModeRef.current = m;
         setVoiceMode(m);
         if (m === "wakeword") setTimeout(() => startWakeRef.current(), 500);
+        setHomeworkActive(h.active);
+        setHomeworkConfigured(h.configured);
       })
       .catch(() => {});
     return () => stopAll();
   }, [stopAll]);
+
+  const activateHomework = useCallback(async () => {
+    const r = await fetch(`${API}/api/homework/activate`, { method: "POST" });
+    const d = (await r.json()) as { success?: boolean; error?: string };
+    if (d.success) setHomeworkActive(true);
+  }, []);
+
+  const deactivateHomework = useCallback(async () => {
+    if (!pinInput.trim()) {
+      setPinError("PIN eingeben.");
+      return;
+    }
+    setPinBusy(true);
+    setPinError("");
+    try {
+      const r = await fetch(`${API}/api/homework/deactivate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: pinInput }),
+      });
+      const d = (await r.json()) as { success?: boolean; error?: string };
+      if (d.success) {
+        setHomeworkActive(false);
+        setShowPinDialog(false);
+        setPinInput("");
+      } else {
+        setPinError(d.error ?? "Falscher PIN.");
+      }
+    } finally {
+      setPinBusy(false);
+    }
+  }, [pinInput]);
 
   /* Manual mic toggle */
   const toggleMic = useCallback(() => {
@@ -384,23 +456,169 @@ const Chat: React.FC = () => {
         }}
       >
         <h2 style={{ margin: 0 }}>Chat</h2>
-        {messages.length > 0 && (
-          <button
-            onClick={clearHistory}
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {homeworkConfigured && (
+            <button
+              onClick={() =>
+                homeworkActive ? setShowPinDialog(true) : activateHomework()
+              }
+              title={
+                homeworkActive
+                  ? "Hausaufgaben-Modus deaktivieren"
+                  : "Hausaufgaben-Modus aktivieren"
+              }
+              style={{
+                padding: "4px 10px",
+                borderRadius: 4,
+                fontSize: "0.85rem",
+                background: homeworkActive ? "#431407" : "transparent",
+                border: homeworkActive
+                  ? "1px solid #c2410c"
+                  : "1px solid #2d3148",
+                color: homeworkActive ? "#fdba74" : "#64748b",
+                cursor: "pointer",
+              }}
+            >
+              {homeworkActive ? "🔒" : "🔓"}
+            </button>
+          )}
+          {messages.length > 0 && (
+            <button
+              onClick={clearHistory}
+              style={{
+                padding: "4px 12px",
+                borderRadius: 4,
+                fontSize: "0.8rem",
+                background: "transparent",
+                border: "1px solid #2d3148",
+                color: "#64748b",
+                cursor: "pointer",
+              }}
+            >
+              Verlauf löschen
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Hausaufgaben-Modus Banner */}
+      {homeworkActive && (
+        <div
+          style={{
+            background: "#431407",
+            border: "1px solid #c2410c",
+            borderRadius: 6,
+            padding: "8px 14px",
+            fontSize: "0.82rem",
+            color: "#fdba74",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            flexShrink: 0,
+          }}
+        >
+          <span>🔒</span> Hausaufgaben-Modus aktiv — nur erlaubte Programme
+          laufen.
+        </div>
+      )}
+
+      {/* PIN-Dialog */}
+      {showPinDialog && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowPinDialog(false);
+              setPinInput("");
+              setPinError("");
+            }
+          }}
+        >
+          <div
             style={{
-              padding: "4px 12px",
-              borderRadius: 4,
-              fontSize: "0.8rem",
-              background: "transparent",
+              background: "#1a1d27",
               border: "1px solid #2d3148",
-              color: "#64748b",
-              cursor: "pointer",
+              borderRadius: 10,
+              padding: 24,
+              width: 300,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
             }}
           >
-            Verlauf löschen
-          </button>
-        )}
-      </div>
+            <div style={{ fontWeight: 600, fontSize: "1rem" }}>
+              Hausaufgaben-Modus deaktivieren
+            </div>
+            <input
+              type="password"
+              value={pinInput}
+              onChange={(e) => setPinInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && deactivateHomework()}
+              placeholder="PIN eingeben"
+              autoFocus
+              style={{
+                padding: "8px 12px",
+                borderRadius: 6,
+                border: "1px solid #2d3148",
+                background: "#0f1117",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                outline: "none",
+              }}
+            />
+            {pinError && (
+              <div style={{ fontSize: "0.82rem", color: "#f87171" }}>
+                {pinError}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={deactivateHomework}
+                disabled={pinBusy}
+                style={{
+                  flex: 1,
+                  padding: "8px",
+                  borderRadius: 6,
+                  border: "none",
+                  background: "#c2410c",
+                  color: "#fff",
+                  cursor: pinBusy ? "not-allowed" : "pointer",
+                  fontSize: "0.88rem",
+                  fontWeight: 600,
+                }}
+              >
+                {pinBusy ? "…" : "Deaktivieren"}
+              </button>
+              <button
+                onClick={() => {
+                  setShowPinDialog(false);
+                  setPinInput("");
+                  setPinError("");
+                }}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: 6,
+                  border: "1px solid #2d3148",
+                  background: "transparent",
+                  color: "#64748b",
+                  cursor: "pointer",
+                  fontSize: "0.88rem",
+                }}
+              >
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div
@@ -461,6 +679,69 @@ const Chat: React.FC = () => {
             {toolStatus}…
           </div>
         )}
+
+        {/* Bestätigungs-Cards */}
+        {confirms.map((c) => (
+          <div
+            key={c.id}
+            style={{
+              alignSelf: "flex-start",
+              background: "#1a1d27",
+              border: "1px solid #7c6af7",
+              borderRadius: 8,
+              padding: "14px 16px",
+              maxWidth: "75%",
+            }}
+          >
+            <div
+              style={{ fontSize: "0.8rem", color: "#94a3b8", marginBottom: 8 }}
+            >
+              <span style={{ color: "#7c6af7" }}>⚙</span> E.L.L.A. möchte
+              ausführen:
+            </div>
+            <div
+              style={{
+                fontSize: "0.9rem",
+                color: "#e2e8f0",
+                marginBottom: 12,
+                fontWeight: 500,
+              }}
+            >
+              {c.label}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => resolveConfirm(c.id, true)}
+                style={{
+                  padding: "6px 16px",
+                  borderRadius: 5,
+                  border: "none",
+                  background: "#22c55e",
+                  color: "#0f1117",
+                  cursor: "pointer",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                }}
+              >
+                Bestätigen
+              </button>
+              <button
+                onClick={() => resolveConfirm(c.id, false)}
+                style={{
+                  padding: "6px 16px",
+                  borderRadius: 5,
+                  border: "1px solid #7f1d1d",
+                  background: "transparent",
+                  color: "#f87171",
+                  cursor: "pointer",
+                  fontSize: "0.85rem",
+                }}
+              >
+                Ablehnen
+              </button>
+            </div>
+          </div>
+        ))}
         {streaming && (
           <div
             style={{

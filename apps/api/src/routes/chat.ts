@@ -2,8 +2,9 @@ import { Router } from "express";
 import { ollamaClient, type OllamaMessage } from "../services/ollama.js";
 import { openaiClient } from "../services/openai.js";
 import { toolExecutor } from "../tools/executor.js";
-import { TOOL_DEFINITIONS } from "../tools/definitions.js";
+import { buildToolDefinitions } from "../tools/definitions.js";
 import { sessionStore } from "../services/sessions.js";
+import { requestApproval } from "../services/approvals.js";
 import { env } from "../config/env.js";
 import { getSettings } from "../services/settings.js";
 import type { ToolName } from "@ella/shared";
@@ -16,8 +17,12 @@ function resolveProvider(): "openai" | "ollama" {
 }
 
 function activeToolDefs() {
-  const { enabledTools } = getSettings();
-  return TOOL_DEFINITIONS.filter((t) => enabledTools.includes(t.function.name));
+  const { enabledTools, setups } = getSettings();
+  return buildToolDefinitions(setups).filter(
+    (t) =>
+      enabledTools.includes(t.function.name) ||
+      t.function.name === "load_setup",
+  );
 }
 
 export const chatRouter = Router();
@@ -161,10 +166,17 @@ chatRouter.post("/stream", async (req, res) => {
 
       for (const call of roundToolCalls) {
         emit({ type: "tool", name: call.function.name });
-        const result = await toolExecutor.execute({
-          tool: call.function.name as ToolName,
-          args: call.function.arguments,
-        });
+        const onConfirm = async (id: string, tool: string, label: string) => {
+          emit({ type: "confirm", id, tool, label });
+          return requestApproval(id);
+        };
+        const result = await toolExecutor.execute(
+          {
+            tool: call.function.name as ToolName,
+            args: call.function.arguments,
+          },
+          onConfirm,
+        );
         messages.push({
           role: "tool",
           tool_call_id: call.id,

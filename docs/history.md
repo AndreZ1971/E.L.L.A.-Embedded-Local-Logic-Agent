@@ -4,6 +4,177 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v0.1.2 — 25.05.2026 — Hausaufgaben-Modus
+
+**Ziel:** PIN-gesicherter Kiosk-Modus der nur definierte Apps erlaubt — gedacht für Kinder oder kontrollierte Arbeitsumgebungen.
+
+---
+
+### Konzept: Asymmetrische PIN-Logik
+
+**Entscheidung:** Aktivieren ohne PIN, Deaktivieren erfordert PIN.
+
+**Warum:** Ein symmetrisches PIN-System (beide Richtungen gesichert) wäre für den Sprachbefehlsfall unbrauchbar — der Nutzer müsste seinen PIN laut ins Mikrofon sprechen um den Modus zu starten. Da das Aktivieren keinen Schutz braucht (jeder darf den Modus einschalten), gibt es keinen Grund dafür eine Hürde einzubauen.
+
+---
+
+### Backend — `services/homework.ts`
+
+**`activateHomeworkMode()`:**
+
+1. Alle bekannten Apps die **nicht** in `homeworkMode.apps` stehen → `taskkill /F /IM`
+2. Erlaubte Apps starten via `openApp()`
+3. `active: true` in `settings.json` persistieren
+
+**`deactivateHomeworkMode(pin)`:**
+
+1. SHA-256 des PIN gegen gespeicherten Hash prüfen
+2. Bei Übereinstimmung: `active: false` persistieren
+
+**Warum SHA-256 statt bcrypt:** SHA-256 hat keine externe Abhängigkeit (`crypto` ist Node-built-in). Für einen lokalen, single-user PIN-Schutz — kein Netzwerkzugang, kein Brute-Force über das Netz — ist SHA-256 ausreichend. bcrypt würde eine npm-Dependency und längere Hash-Zeit einführen ohne echten Sicherheitsgewinn in diesem Kontext.
+
+**Warum `active` in `settings.json` persistiert:** Der Modus muss einen API-Neustart überleben. Ein Kind darf den Modus nicht durch `Ctrl+C` + Neustart umgehen können.
+
+---
+
+### REST-API — `routes/homework.ts`
+
+| Route                      | Methode | Auth               | Funktion                              |
+| -------------------------- | ------- | ------------------ | ------------------------------------- |
+| `/api/homework/status`     | GET     | —                  | `{ active, configured }`              |
+| `/api/homework/activate`   | POST    | kein PIN           | Apps schließen/öffnen, `active: true` |
+| `/api/homework/deactivate` | POST    | PIN                | `active: false`                       |
+| `/api/homework/config`     | PUT     | PIN (wenn gesetzt) | PIN-Hash setzen, App-Liste ändern     |
+
+**Sicherheit der Config-Route:** Wenn ein PIN bereits gesetzt ist, muss der aktuelle PIN zur Änderung angegeben werden. Erstmaliges Setzen eines PINs ist ohne Authentifizierung möglich — das ist das initiale Setup.
+
+---
+
+### LLM-Tool — `homework_mode`
+
+```
+homework_mode(action: "activate" | "deactivate", pin?: string)
+```
+
+ELLA kennt die Asymmetrie: Die Tool-Beschreibung macht explizit, dass `activate` keinen PIN braucht und `deactivate` einen. Das Modell fragt beim Nutzer nach dem PIN nur wenn es deaktivieren soll.
+
+---
+
+### Settings-Tab "Modus"
+
+Zwei Sektionen:
+
+- **PIN:** Eingabe + Bestätigung, separater "PIN setzen"-Button → `/api/homework/config`
+- **Erlaubte Apps:** Checkboxen aus allen bekannten Apps (unabhängig von `allowed`-Flag) — orangefarbener Accent zur visuellen Unterscheidung von den regulären Setup-Listen
+
+Die App-Auswahl wird über den normalen "Speichern"-Button gesichert. Der Settings-PUT-Handler extrahiert nur `homeworkMode.apps` — `pinHash` und `active` sind von außen nicht überschreibbar.
+
+---
+
+### Chat-Integration
+
+- **🔓-Button im Header** (nur sichtbar wenn PIN konfiguriert): Klick → sofort aktivieren (kein Dialog)
+- **🔒-Button im Header**: Klick → PIN-Dialog → Deaktivieren
+- **Orangefarbener Banner** im Chat wenn Modus aktiv: `"🔒 Hausaufgaben-Modus aktiv — nur erlaubte Programme laufen."`
+- **PIN-Dialog** schließt bei Klick auf den Backdrop (Escape-Äquivalent)
+
+---
+
+## v0.1.1 — 25.05.2026 — Spracheingabe, Tool-Bestätigung, Setup-Shortcuts
+
+**Ziel:** E.L.L.A. wird sprachsteuerbar, gefährliche Aktionen erfordern Bestätigung, und der Nutzer kann konfigurierbare App-Sets per Sprachbefehl laden.
+
+---
+
+### 3-Modi Spracheingabe
+
+**Entscheidung:** Drei Modi — `off`, `manual`, `wakeword`.
+
+| Modus      | Verhalten                                                         |
+| ---------- | ----------------------------------------------------------------- |
+| `off`      | Kein Mikrofon-Button, nur Tastatur                                |
+| `manual`   | Mikrofon-Button im Chat — Klick startet/stoppt Aufnahme           |
+| `wakeword` | Dauerhaft aktiv — "ella" aktiviert, dann Befehl, dann "ausführen" |
+
+**Warum Web Speech API statt Whisper:** Web Speech API ist im Chromium-Renderer direkt verfügbar, kein separater Dienst, keine Latenz durch Modell-Laden. Für lokal-laufende Sprachsteuerung die schnell reagieren soll ist das die richtige Wahl. Whisper wäre besser für transkribierte Archivierung, nicht für Echtzeit-Kommandos.
+
+**Mikrofon-Berechtigung in Electron:** Chromium blockiert Mikrofon-Zugriff ohne explizite Genehmigung. In Electron wird das über `session.defaultSession.setPermissionRequestHandler` gelöst:
+
+```typescript
+session.defaultSession.setPermissionRequestHandler(
+  (_wc, permission, callback) => {
+    callback(permission === "media");
+  },
+);
+```
+
+**Wakeword-Zustandsmaschine:** `idle → wake → listen`. Stabile Refs (`startWakeRef`, `startCmdRef`, `sendFnRef`) verhindern stale-Closures in den `onresult`/`onend`-Callbacks der Web Speech API.
+
+**Submit- und Cancel-Worte:**
+
+- Absenden: `"ausführen"`, `"los"`, `"mach es"`, `"abschicken"`, `"sende"`
+- Abbrechen: `"abbrechen"`, `"stopp"`, `"vergiss es"`
+
+---
+
+### Tool-Bestätigung via SSE-Pause
+
+**Problem:** Gefährliche Tools (`clean_temp`, `empty_recycle_bin`) wurden sofort ausgeführt ohne Rückfrage.
+
+**Architektur:** Das SSE-Streaming pausiert den Tool-Loop und wartet auf eine externe HTTP-Bestätigung:
+
+```text
+LLM ruft clean_temp auf
+  → Backend emittiert { type: "confirm", id, label } via SSE
+  → Frontend zeigt Bestätigungs-Card im Chat
+  → Nutzer klickt "Bestätigen" oder "Ablehnen"
+  → Frontend POST /api/approvals/:id/confirm (oder /deny)
+  → Backend-Promise resolved → Tool wird ausgeführt (oder nicht)
+  → Stream geht weiter
+```
+
+**`services/approvals.ts`:** In-Memory Map von `id → resolve-Funktion`. 60-Sekunden-Auto-Timeout verhindert hängende Streams wenn der Nutzer nicht antwortet.
+
+**Warum In-Memory statt DB:** Approvals sind flüchtig — sie existieren nur während einer laufenden Anfrage. Eine DB-Tabelle würde zusätzliche Cleanup-Logik erfordern und keinen Nutzen bringen.
+
+---
+
+### Setup-Shortcuts — `load_setup`
+
+**Was:** Konfigurierbare App-Sets die per Sprachbefehl oder Chat geladen werden: "lade mein Arbeitssetup".
+
+**Dynamische Tool-Definitionen:** `buildToolDefinitions(setups)` generiert das `load_setup`-Tool nur wenn Setups existieren und bettet die Setup-Namen in die Beschreibung ein:
+
+```
+"Startet alle Apps eines definierten Setups. Verfügbare Setups: "arbeit", "freizeit"."
+```
+
+Damit weiß das LLM welche Namen gültig sind ohne Code zu sehen.
+
+**Öffnen + Schließen:** Jedes Setup hat `open: string[]` und `close: string[]`. Beim Laden werden zuerst die `close`-Apps via `taskkill` beendet, dann die `open`-Apps gestartet. Die Reihenfolge verhindert dass Apps die in beiden Listen stehen erst geöffnet und sofort wieder geschlossen werden.
+
+**Settings-Tab "Setups":** Zweispaltige Ansicht im Editor — links "Öffnen" (nur erlaubte Apps, violet Accent), rechts "Schließen" (alle bekannten Apps, roter Accent). Badge im Tab-Header zeigt `(2↑ 1↓)`.
+
+---
+
+### Settings-Tabs — Overflow-Fix
+
+**Problem:** Der ursprüngliche "Allgemein"-Tab enthielt 6 Sektionen (Provider, Modell, API-Key, Tools, Session-Limit, Voice) — mehr als in die Fensterhöhe passte. Da die App grundsätzlich keine Scrollbars zeigt war der untere Teil nicht erreichbar.
+
+**Lösung:** Aufteilung in 4 fokussierte Tabs: `LLM` | `Tools` | `Setups` | `Programme`. Jeder Tab hat max. 3 Sektionen und passt ohne Scrollbedarf in das Fenster.
+
+---
+
+### Bug-Fix — `voiceMode` wurde nicht gespeichert
+
+**Symptom:** Voice-Modus-Auswahl ging nach dem Neuladen verloren. Der Mikrofon-Button tauchte nicht im Chat auf.
+
+**Ursache:** In `routes/settings.ts` wurde `voiceMode` aus `req.body` destrukturiert aber nicht in das `patch`-Objekt aufgenommen — der Wert wurde gelesen und sofort verworfen.
+
+**Fix:** `voiceMode` (und `setups`) explizit in den `patch` aufnehmen.
+
+---
+
 ## v0.1.0 — 25.05.2026 — Dashboard, Settings, Programme-Verwaltung
 
 **Ziel:** E.L.L.A. bekommt eine vollständige Konfigurationsoberfläche und zeigt Systemstatus in Echtzeit. Der Nutzer kann alle relevanten Einstellungen ohne `.env`-Bearbeitung vornehmen.

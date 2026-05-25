@@ -9,6 +9,19 @@ interface AppEntry {
   allowed: boolean;
 }
 
+interface Setup {
+  id: string;
+  name: string;
+  open: string[];
+  close: string[];
+}
+
+interface HomeworkModeConfig {
+  pinHash: string;
+  apps: string[];
+  active: boolean;
+}
+
 interface Settings {
   provider: "auto" | "openai" | "ollama";
   ollamaModel: string;
@@ -17,6 +30,8 @@ interface Settings {
   openaiApiKey: string;
   apps: AppEntry[];
   voiceMode: "off" | "manual" | "wakeword";
+  setups: Setup[];
+  homeworkMode: HomeworkModeConfig;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -62,7 +77,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   </div>
 );
 
-type Tab = "llm" | "tools" | "programme";
+type Tab = "llm" | "tools" | "programme" | "setups" | "modus";
 
 const Settings: React.FC = () => {
   const [tab, setTab] = useState<Tab>("llm");
@@ -72,6 +87,16 @@ const Settings: React.FC = () => {
   const [saved, setSaved] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [filter, setFilter] = useState("");
+  const [selectedSetupId, setSelectedSetupId] = useState<string | null>(null);
+
+  // Hausaufgaben-Modus PIN-Formular
+  const [pinCurrent, setPinCurrent] = useState("");
+  const [pinNew, setPinNew] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+  const [pinSaving, setPinSaving] = useState(false);
+  const [pinMsg, setPinMsg] = useState<{ ok: boolean; text: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     Promise.all([
@@ -132,6 +157,92 @@ const Settings: React.FC = () => {
     }
   };
 
+  const addSetup = () => {
+    if (!settings) return;
+    const id = crypto.randomUUID();
+    patch({
+      setups: [
+        ...(settings.setups ?? []),
+        { id, name: "Neues Setup", open: [], close: [] },
+      ],
+    });
+    setSelectedSetupId(id);
+  };
+
+  const deleteSetup = (id: string) => {
+    if (!settings) return;
+    patch({ setups: settings.setups.filter((s) => s.id !== id) });
+    if (selectedSetupId === id) setSelectedSetupId(null);
+  };
+
+  const renameSetup = (id: string, name: string) => {
+    if (!settings) return;
+    patch({
+      setups: settings.setups.map((s) => (s.id === id ? { ...s, name } : s)),
+    });
+  };
+
+  const toggleSetupList = (
+    setupId: string,
+    appName: string,
+    list: "open" | "close",
+  ) => {
+    if (!settings) return;
+    patch({
+      setups: settings.setups.map((s) => {
+        if (s.id !== setupId) return s;
+        const arr = s[list];
+        const has = arr.includes(appName);
+        return {
+          ...s,
+          [list]: has ? arr.filter((a) => a !== appName) : [...arr, appName],
+        };
+      }),
+    });
+  };
+
+  const savePin = async () => {
+    if (!pinNew) {
+      setPinMsg({ ok: false, text: "Bitte neuen PIN eingeben." });
+      return;
+    }
+    if (pinNew !== pinConfirm) {
+      setPinMsg({ ok: false, text: "PINs stimmen nicht überein." });
+      return;
+    }
+    if (pinNew.length < 4) {
+      setPinMsg({ ok: false, text: "PIN muss mindestens 4 Zeichen haben." });
+      return;
+    }
+    setPinSaving(true);
+    setPinMsg(null);
+    try {
+      const body: Record<string, string> = { newPin: pinNew };
+      if (pinCurrent) body.currentPin = pinCurrent;
+      const r = await fetch(`${API}/api/homework/config`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = (await r.json()) as { success?: boolean; error?: string };
+      if (data.success) {
+        setPinMsg({ ok: true, text: "PIN gespeichert." });
+        setPinCurrent("");
+        setPinNew("");
+        setPinConfirm("");
+        // Refresh settings to update pinHash indicator
+        const s = (await fetch(`${API}/api/settings`).then((r) =>
+          r.json(),
+        )) as Settings;
+        setSettings(s);
+      } else {
+        setPinMsg({ ok: false, text: data.error ?? "Fehler beim Speichern." });
+      }
+    } finally {
+      setPinSaving(false);
+    }
+  };
+
   const save = async () => {
     if (!settings) return;
     setSaving(true);
@@ -164,7 +275,9 @@ const Settings: React.FC = () => {
   const TAB_LABELS: Record<Tab, string> = {
     llm: "LLM",
     tools: "Tools",
+    setups: `Setups (${(settings.setups ?? []).length})`,
     programme: `Programme (${allowedCount})`,
+    modus: settings.homeworkMode?.active ? "🔒 Modus" : "Modus",
   };
 
   const rowLabel: React.CSSProperties = {
@@ -197,26 +310,28 @@ const Settings: React.FC = () => {
           flexShrink: 0,
         }}
       >
-        {(["llm", "tools", "programme"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{
-              padding: "8px 18px",
-              background: "transparent",
-              border: "none",
-              borderBottom:
-                tab === t ? "2px solid #7c6af7" : "2px solid transparent",
-              color: tab === t ? "#e2e8f0" : "#64748b",
-              cursor: "pointer",
-              fontSize: "0.9rem",
-              fontWeight: tab === t ? 600 : 400,
-              marginBottom: -1,
-            }}
-          >
-            {TAB_LABELS[t]}
-          </button>
-        ))}
+        {(["llm", "tools", "setups", "programme", "modus"] as Tab[]).map(
+          (t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{
+                padding: "8px 18px",
+                background: "transparent",
+                border: "none",
+                borderBottom:
+                  tab === t ? "2px solid #7c6af7" : "2px solid transparent",
+                color: tab === t ? "#e2e8f0" : "#64748b",
+                cursor: "pointer",
+                fontSize: "0.9rem",
+                fontWeight: tab === t ? 600 : 400,
+                marginBottom: -1,
+              }}
+            >
+              {TAB_LABELS[t]}
+            </button>
+          ),
+        )}
       </div>
 
       {/* ── Tab: LLM ─────────────────────────────────────────── */}
@@ -382,6 +497,260 @@ const Settings: React.FC = () => {
         </>
       )}
 
+      {/* ── Tab: Setups ──────────────────────────────────────── */}
+      {tab === "setups" && (
+        <div style={{ display: "flex", gap: 12, flex: 1, minHeight: 0 }}>
+          {/* Setup-Liste links */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+              width: 180,
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+              }}
+            >
+              {(settings.setups ?? []).length === 0 && (
+                <div
+                  style={{
+                    fontSize: "0.8rem",
+                    color: "#475569",
+                    padding: "8px 4px",
+                  }}
+                >
+                  Noch keine Setups.
+                </div>
+              )}
+              {(settings.setups ?? []).map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setSelectedSetupId(s.id)}
+                  style={{
+                    textAlign: "left",
+                    padding: "8px 12px",
+                    borderRadius: 6,
+                    background:
+                      selectedSetupId === s.id ? "#2d3148" : "transparent",
+                    border:
+                      selectedSetupId === s.id
+                        ? "1px solid #7c6af7"
+                        : "1px solid #2d3148",
+                    color: selectedSetupId === s.id ? "#e2e8f0" : "#94a3b8",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {s.name}
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "#475569",
+                      marginLeft: 6,
+                    }}
+                  >
+                    ({s.open.length}↑ {s.close.length}↓)
+                  </span>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={addSetup}
+              style={{
+                padding: "7px 12px",
+                borderRadius: 6,
+                border: "1px dashed #2d3148",
+                background: "transparent",
+                color: "#7c6af7",
+                cursor: "pointer",
+                fontSize: "0.85rem",
+              }}
+            >
+              + Neues Setup
+            </button>
+          </div>
+
+          {/* Setup-Editor rechts */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {(() => {
+              const setup = (settings.setups ?? []).find(
+                (s) => s.id === selectedSetupId,
+              );
+              if (!setup) {
+                return (
+                  <div
+                    style={{
+                      color: "#475569",
+                      fontSize: "0.85rem",
+                      paddingTop: 8,
+                    }}
+                  >
+                    Setup auswählen oder neu anlegen.
+                  </div>
+                );
+              }
+              return (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    height: "100%",
+                  }}
+                >
+                  {/* Name + Löschen */}
+                  <div
+                    style={{ display: "flex", gap: 8, alignItems: "center" }}
+                  >
+                    <input
+                      value={setup.name}
+                      onChange={(e) => renameSetup(setup.id, e.target.value)}
+                      style={{ ...input, flex: 1 }}
+                    />
+                    <button
+                      onClick={() => deleteSetup(setup.id)}
+                      style={{
+                        padding: "8px 12px",
+                        borderRadius: 6,
+                        background: "transparent",
+                        border: "1px solid #7f1d1d",
+                        color: "#f87171",
+                        cursor: "pointer",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      Löschen
+                    </button>
+                  </div>
+
+                  {/* Öffnen / Schließen — zwei Spalten */}
+                  <div
+                    style={{ display: "flex", gap: 10, flex: 1, minHeight: 0 }}
+                  >
+                    {(
+                      [
+                        {
+                          key: "open" as const,
+                          label: "Öffnen",
+                          apps: settings.apps.filter((a) => a.allowed),
+                          emptyHint: 'Erst unter "Programme" Apps erlauben.',
+                          color: "#7c6af7",
+                        },
+                        {
+                          key: "close" as const,
+                          label: "Schließen",
+                          apps: settings.apps,
+                          emptyHint: "Keine Programme bekannt.",
+                          color: "#f87171",
+                        },
+                      ] as const
+                    ).map(({ key, label, apps, emptyHint, color }) => (
+                      <div
+                        key={key}
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          minWidth: 0,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "0.72rem",
+                            color,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.06em",
+                            marginBottom: 6,
+                          }}
+                        >
+                          {label}
+                        </div>
+                        <div
+                          style={{
+                            flex: 1,
+                            overflowY: "auto",
+                            background: "#1a1d27",
+                            border: "1px solid #2d3148",
+                            borderRadius: 8,
+                          }}
+                        >
+                          {apps.length === 0 && (
+                            <div
+                              style={{
+                                padding: 12,
+                                color: "#475569",
+                                fontSize: "0.82rem",
+                              }}
+                            >
+                              {emptyHint}
+                            </div>
+                          )}
+                          {apps.map((a) => {
+                            const checked = setup[key].includes(a.name);
+                            return (
+                              <label
+                                key={a.name}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  padding: "7px 12px",
+                                  borderBottom: "1px solid #1e2133",
+                                  cursor: "pointer",
+                                  background: checked
+                                    ? "#1e2440"
+                                    : "transparent",
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() =>
+                                    toggleSetupList(setup.id, a.name, key)
+                                  }
+                                  style={{
+                                    accentColor: color,
+                                    width: 14,
+                                    height: 14,
+                                    flexShrink: 0,
+                                  }}
+                                />
+                                <span
+                                  style={{
+                                    fontSize: "0.85rem",
+                                    color: checked ? "#e2e8f0" : "#94a3b8",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {a.name}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
       {/* ── Tab: Programme ───────────────────────────────────── */}
       {tab === "programme" && (
         <div
@@ -503,6 +872,190 @@ const Settings: React.FC = () => {
               </label>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ── Tab: Modus ───────────────────────────────────────── */}
+      {tab === "modus" && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 14,
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          {/* Status-Banner wenn aktiv */}
+          {settings.homeworkMode?.active && (
+            <div
+              style={{
+                background: "#431407",
+                border: "1px solid #c2410c",
+                borderRadius: 8,
+                padding: "10px 16px",
+                fontSize: "0.88rem",
+                color: "#fdba74",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <span>🔒</span>
+              Hausaufgaben-Modus ist aktiv — nur erlaubte Programme laufen.
+            </div>
+          )}
+
+          {/* PIN-Sektion */}
+          <Section title="PIN">
+            <div
+              style={{
+                fontSize: "0.82rem",
+                color: "#64748b",
+                marginBottom: 10,
+              }}
+            >
+              {settings.homeworkMode?.pinHash
+                ? "PIN ist gesetzt. Zum Ändern aktuellen PIN eingeben."
+                : "Noch kein PIN gesetzt."}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {settings.homeworkMode?.pinHash && (
+                <input
+                  type="password"
+                  value={pinCurrent}
+                  onChange={(e) => setPinCurrent(e.target.value)}
+                  placeholder="Aktueller PIN"
+                  style={{ ...input, width: "100%", maxWidth: 280 }}
+                />
+              )}
+              <input
+                type="password"
+                value={pinNew}
+                onChange={(e) => setPinNew(e.target.value)}
+                placeholder="Neuer PIN (min. 4 Zeichen)"
+                style={{ ...input, width: "100%", maxWidth: 280 }}
+              />
+              <input
+                type="password"
+                value={pinConfirm}
+                onChange={(e) => setPinConfirm(e.target.value)}
+                placeholder="PIN bestätigen"
+                style={{ ...input, width: "100%", maxWidth: 280 }}
+              />
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <button
+                  onClick={savePin}
+                  disabled={pinSaving}
+                  style={{
+                    padding: "8px 18px",
+                    borderRadius: 6,
+                    background: pinSaving ? "#2d3148" : "#7c6af7",
+                    color: "#fff",
+                    border: "none",
+                    cursor: pinSaving ? "not-allowed" : "pointer",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  {pinSaving ? "Speichern…" : "PIN setzen"}
+                </button>
+                {pinMsg && (
+                  <span
+                    style={{
+                      fontSize: "0.82rem",
+                      color: pinMsg.ok ? "#4ade80" : "#f87171",
+                    }}
+                  >
+                    {pinMsg.ok ? "✓" : "✗"} {pinMsg.text}
+                  </span>
+                )}
+              </div>
+            </div>
+          </Section>
+
+          {/* Erlaubte Apps */}
+          <Section title="Erlaubte Apps im Hausaufgaben-Modus">
+            <div
+              style={{
+                fontSize: "0.82rem",
+                color: "#64748b",
+                marginBottom: 10,
+              }}
+            >
+              Nur diese Apps laufen wenn der Modus aktiviert wird. Alle anderen
+              bekannten Programme werden geschlossen.
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {settings.apps.length === 0 && (
+                <div
+                  style={{ color: "#475569", fontSize: "0.85rem", padding: 8 }}
+                >
+                  Erst unter "Programme" Apps eintragen.
+                </div>
+              )}
+              {settings.apps.map((a) => {
+                const checked = (settings.homeworkMode?.apps ?? []).includes(
+                  a.name,
+                );
+                return (
+                  <label
+                    key={a.name}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "7px 4px",
+                      borderBottom: "1px solid #1e2133",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        const cur = settings.homeworkMode?.apps ?? [];
+                        patch({
+                          homeworkMode: {
+                            ...(settings.homeworkMode ?? {
+                              pinHash: "",
+                              active: false,
+                              apps: [],
+                            }),
+                            apps: checked
+                              ? cur.filter((n) => n !== a.name)
+                              : [...cur, a.name],
+                          },
+                        });
+                      }}
+                      style={{
+                        accentColor: "#f97316",
+                        width: 14,
+                        height: 14,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "0.875rem",
+                        color: checked ? "#e2e8f0" : "#94a3b8",
+                        flex: 1,
+                      }}
+                    >
+                      {a.name}
+                    </span>
+                    {!a.allowed && (
+                      <span
+                        style={{ fontSize: "0.72rem", color: "#475569" }}
+                        title="App ist unter 'Programme' nicht erlaubt — wird trotzdem geöffnet"
+                      >
+                        (nicht erlaubt)
+                      </span>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          </Section>
         </div>
       )}
 

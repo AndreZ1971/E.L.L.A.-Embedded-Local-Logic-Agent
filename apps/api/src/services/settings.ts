@@ -8,6 +8,19 @@ export interface AppEntry {
   allowed: boolean;
 }
 
+export interface Setup {
+  id: string;
+  name: string;
+  open: string[];
+  close: string[];
+}
+
+export interface HomeworkModeConfig {
+  pinHash: string;
+  apps: string[];
+  active: boolean;
+}
+
 export interface Settings {
   provider: "auto" | "openai" | "ollama";
   ollamaModel: string;
@@ -16,6 +29,8 @@ export interface Settings {
   openaiApiKey: string;
   apps: AppEntry[];
   voiceMode: "off" | "manual" | "wakeword";
+  setups: Setup[];
+  homeworkMode: HomeworkModeConfig;
 }
 
 const SETTINGS_PATH = path.join(
@@ -35,6 +50,8 @@ export const DEFAULT_SETTINGS: Settings = {
   sessionLimit: 40,
   openaiApiKey: "",
   voiceMode: "off",
+  setups: [],
+  homeworkMode: { pinHash: "", apps: [], active: false },
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -52,7 +69,27 @@ let current: Settings = { ...DEFAULT_SETTINGS };
 export async function loadSettings(): Promise<void> {
   try {
     const raw = await fs.readFile(SETTINGS_PATH, "utf-8");
-    current = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    // Migrate old setup format: apps[] → open[]
+    if (Array.isArray(parsed.setups)) {
+      parsed.setups = parsed.setups.map((s: Record<string, unknown>) => ({
+        ...s,
+        open: Array.isArray(s.open)
+          ? s.open
+          : Array.isArray(s.apps)
+            ? s.apps
+            : [],
+        close: Array.isArray(s.close) ? s.close : [],
+      }));
+    }
+    // Migrate homeworkMode: fill in missing fields
+    if (parsed.homeworkMode && typeof parsed.homeworkMode === "object") {
+      parsed.homeworkMode = {
+        ...DEFAULT_SETTINGS.homeworkMode,
+        ...parsed.homeworkMode,
+      };
+    }
+    current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults
   }

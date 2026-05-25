@@ -4,21 +4,25 @@ Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automat
 
 ---
 
-## Aktueller Stand — v0.1.0 (25.05.2026)
+## Aktueller Stand — v0.1.2 (25.05.2026)
 
-| Komponente                         | Status                                         |
-| ---------------------------------- | ---------------------------------------------- |
-| API (Express, Port 3002)           | Läuft — wird von Electron gestartet            |
-| Frontend (Production Build)        | `apps/web/dist/` — Electron lädt direkt        |
-| Chat + Tool-Loop + SSE-Streaming   | Funktionsfähig (OpenAI + Ollama)               |
-| Session-Persistenz                 | MariaDB — Verlauf überlebt Neustart            |
-| Ollama (`llama3.1:8b`, Port 11434) | Läuft auf E:\Ollama                            |
-| MariaDB 12.2.2 (Port 3306)         | Windows-Dienst, Autostart aktiviert            |
-| OpenAI GPT-4o                      | Key via Settings-UI oder `.env` konfigurierbar |
-| Electron Desktop-App               | Frameless, Tray, Autostart                     |
-| Dashboard                          | Status-Karten + Disk-Usage, Auto-Refresh 30s   |
-| Settings                           | Provider, Modell, Tools, API-Key, Programme    |
-| Programme-Verwaltung               | System-Scan, Checkbox-Liste erlaubt/verboten   |
+| Komponente                         | Status                                                             |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| API (Express, Port 3002)           | Läuft — wird von Electron gestartet                                |
+| Frontend (Production Build)        | `apps/web/dist/` — Electron lädt direkt                            |
+| Chat + Tool-Loop + SSE-Streaming   | Funktionsfähig (OpenAI + Ollama)                                   |
+| Session-Persistenz                 | MariaDB — Verlauf überlebt Neustart                                |
+| Ollama (`llama3.1:8b`, Port 11434) | Läuft auf E:\Ollama                                                |
+| MariaDB 12.2.2 (Port 3306)         | Windows-Dienst, Autostart aktiviert                                |
+| OpenAI GPT-4o                      | Key via Settings-UI oder `.env` konfigurierbar                     |
+| Electron Desktop-App               | Frameless, Tray, Autostart                                         |
+| Dashboard                          | Status-Karten + Disk-Usage, Auto-Refresh 30s                       |
+| Settings (4 Tabs)                  | LLM · Tools · Setups · Programme                                   |
+| Programme-Verwaltung               | System-Scan, Checkbox-Liste erlaubt/verboten                       |
+| Spracheingabe                      | 3 Modi: Aus / Manuell / Wakeword "ella"                            |
+| Tool-Bestätigung                   | Gefährliche Tools pausieren via SSE, Nutzer bestätigt im Chat      |
+| Setup-Shortcuts                    | Konfigurierbare App-Sets öffnen und schließen per Sprachbefehl     |
+| Hausaufgaben-Modus                 | PIN-gesicherter Kiosk-Modus — aktivieren ohne PIN, sperren mit PIN |
 
 ---
 
