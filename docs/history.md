@@ -4,6 +4,94 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v0.1.3 — 25.05.2026 — ML-Gedächtnisebene
+
+**Ziel:** E.L.L.A. baut ein persönliches Langzeitgedächtnis auf — automatisch durch Beobachtung, explizit durch Nutzerbefehl. Jedes Gespräch wird relevanter als das vorherige.
+
+---
+
+### Architektur: Lokale Embeddings + Cosinus-Suche
+
+**Embedding-Modell:** `nomic-embed-text` via Ollama (274 MB, lokal, kein Cloud-Dienst). Produziert 768-dimensionale Vektoren pro Text.
+
+**Warum kein externer Vektor-Dienst (Pinecone, Weaviate etc.):** E.L.L.A. ist ein lokaler Assistent — Daten verlassen den Rechner nicht. Alle ML-Infrastruktur läuft in Ollama oder der eigenen MariaDB.
+
+**Cosinus-Ähnlichkeit:** 10 Zeilen TypeScript im Memory-Service — keine externe Bibliothek. Für den aktuellen Umfang (bis ~10.000 Erinnerungen) ist In-Process-Berechnung schnell genug.
+
+**Warum kein `sqlite-vss` oder `pgvector`:** MariaDB ist bereits die Datenbank der Wahl. Eine separate Vektor-DB würde Infrastruktur-Overhead erzeugen. Die Embeddings werden als JSON (`MEDIUMTEXT`) gespeichert und beim Recall in Node.js sortiert.
+
+---
+
+### DB-Schema — `memories`
+
+```sql
+CREATE TABLE memories (
+  id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  type       ENUM('user', 'system', 'note') NOT NULL,
+  content    TEXT         NOT NULL,
+  embedding  MEDIUMTEXT   NOT NULL,
+  source     VARCHAR(255),
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+Drei Speichertypen:
+
+| Typ      | Bedeutung                   | Quelle                             |
+| -------- | --------------------------- | ---------------------------------- |
+| `user`   | Fakten über den Nutzer      | Automatische Extraktion + explizit |
+| `system` | App/Setup-Nutzungsverhalten | Nach jedem `open_app`/`load_setup` |
+| `note`   | Explizite Notizen           | Nutzer sagt "Merk dir…"            |
+
+---
+
+### `services/memory.ts`
+
+**`remember(type, content, source?)`:** Embedded den Text via Ollama API (`POST /api/embed`), speichert Vektor + Inhalt in MariaDB. Gibt `{ success: false }` wenn `nomic-embed-text` nicht gezogen wurde — kein Crash.
+
+**`recall(query, limit=5)`:** Embedded die Anfrage, lädt die letzten 500 Erinnerungen aus der DB, berechnet Cosinus-Ähnlichkeit, filtert alles unter 0.3, gibt Top-5 zurück.
+
+**`extractAndRemember(userMsg, assistantMsg, sessionId)`:** Läuft via `setImmediate` (fire-and-forget, blockiert keine Antwort). Schickt den letzten Gesprächsturn an das LLM mit der Frage: "Gibt es einen lernwürdigen Fakt?". Bei "NICHTS" passiert nichts, sonst wird der Fakt als `user`-Memory gespeichert. Temperatur 0.1 und `num_predict: 60` halten die Extraktion schnell und fokussiert.
+
+**`trackToolUsage(tool, detail)`:** Ebenfalls fire-and-forget. Wird nach `open_app` und `load_setup` aufgerufen und schreibt ein `system`-Memory wie "Nutzer hat chrome verwendet (open_app)".
+
+---
+
+### System-Prompt Injektion
+
+**Vorher:** `SYSTEM_PROMPT` war ein unveränderlicher String in `ollama.ts`.
+
+**Nachher:** `buildSystemPrompt(memories: string[]): string` — exportierte Funktion, teilt sich beide LLM-Provider (Ollama + OpenAI). Wenn Erinnerungen vorhanden, wird ein Abschnitt `Relevantes Gedächtnis (nutze dies als Kontext):` mit Bullet-Points angehängt.
+
+`openai.ts` importiert `buildSystemPrompt` aus `ollama.ts` — ein einziger Prompt, zwei Provider, kein Drift.
+
+**Warum System-Prompt statt eigene Message:** Eine separate `system`-Nachricht in der Message-History würde beim OpenAI-Format zu Validierungsproblemen führen (nur eine System-Message erlaubt). Der Prompt-Anhang ist die sauberste Lösung.
+
+---
+
+### LLM-Tools
+
+`remember(type, content)` — ELLA speichert auf expliziten Befehl. Der System-Prompt instruiert das Modell, dieses Tool bei "Merk dir" / "Denk daran" zu verwenden.
+
+`forget(id)` — Löscht eine Erinnerung per ID. Für den Fall dass gespeichertes veraltet oder falsch ist.
+
+---
+
+### Ablauf pro Chat-Request
+
+```
+User-Nachricht eingetroffen
+  → recall(message)        — Top-5 relevante Erinnerungen laden
+  → buildSystemPrompt(…)   — Memories in System-Prompt einbetten
+  → LLM-Call               — mit angereichtem Kontext
+  → Antwort an Nutzer
+  → extractAndRemember()   — async, fire-and-forget
+     → LLM prüft ob Fakt lernwürdig
+     → wenn ja: embed + in DB speichern
+```
+
+---
+
 ## v0.1.2 — 25.05.2026 — Hausaufgaben-Modus
 
 **Ziel:** PIN-gesicherter Kiosk-Modus der nur definierte Apps erlaubt — gedacht für Kinder oder kontrollierte Arbeitsumgebungen.

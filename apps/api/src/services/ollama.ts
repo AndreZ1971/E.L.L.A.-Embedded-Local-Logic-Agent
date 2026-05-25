@@ -29,23 +29,34 @@ export interface OllamaChatResponse {
   done: boolean;
 }
 
-const SYSTEM_PROMPT = `Du bist E.L.L.A. (Embedded Local LLM Assistant), ein intelligenter persönlicher Assistent der lokal auf dem Rechner des Nutzers läuft.
+const BASE_PROMPT = `Du bist E.L.L.A. (Embedded Local LLM Assistant), ein intelligenter persönlicher Assistent der lokal auf dem Rechner des Nutzers läuft.
 Du kannst Programme öffnen, Systeminformationen abrufen, temporäre Dateien bereinigen und den Papierkorb leeren.
 Antworte immer auf Deutsch, es sei denn, der Nutzer spricht eine andere Sprache.
-Wenn du ein Tool benutzt, erkläre kurz was du tust.`;
+Wenn du ein Tool benutzt, erkläre kurz was du tust.
+Wenn der Nutzer sagt "Merk dir" oder "Denk daran", nutze das remember-Tool um die Information zu speichern.`;
+
+export function buildSystemPrompt(memories: string[] = []): string {
+  if (memories.length === 0) return BASE_PROMPT;
+  const ctx = memories.map((m) => `- ${m}`).join("\n");
+  return `${BASE_PROMPT}\n\nRelevantes Gedächtnis (nutze dies als Kontext):\n${ctx}`;
+}
 
 export const ollamaClient = {
   chat: async (
     messages: OllamaMessage[],
     tools: OllamaTool[],
     model: string,
+    memories: string[] = [],
   ): Promise<OllamaChatResponse> => {
     const response = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        messages: [
+          { role: "system", content: buildSystemPrompt(memories) },
+          ...messages,
+        ],
         tools: tools.length > 0 ? tools : undefined,
         stream: false,
       }),
@@ -70,6 +81,7 @@ export const ollamaClient = {
     messages: OllamaMessage[],
     tools: OllamaTool[],
     model: string,
+    memories: string[] = [],
   ): AsyncGenerator<
     | { type: "chunk"; text: string }
     | { type: "done"; toolCalls?: OllamaMessage["tool_calls"] }
@@ -79,7 +91,10 @@ export const ollamaClient = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        messages: [
+          { role: "system", content: buildSystemPrompt(memories) },
+          ...messages,
+        ],
         tools: tools.length > 0 ? tools : undefined,
         stream: true,
       }),

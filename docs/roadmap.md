@@ -24,6 +24,7 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 | Tool-Bestätigung            | v0.1.1  | SSE-Pause für clean_temp / empty_recycle_bin, Card im Chat      |
 | Setup-Shortcuts             | v0.1.1  | load_setup-Tool, open[] + close[], dynamische Tool-Definitionen |
 | Hausaufgaben-Modus          | v0.1.2  | PIN-Kiosk: aktivieren ohne PIN, deaktivieren mit PIN, SHA-256   |
+| ML-Gedächtnisebene          | v0.1.3  | nomic-embed-text, Cosinus-Suche, auto Extraktion, 3 Typen       |
 
 ---
 

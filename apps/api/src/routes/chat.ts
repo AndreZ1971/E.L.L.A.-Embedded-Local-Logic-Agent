@@ -7,6 +7,7 @@ import { sessionStore } from "../services/sessions.js";
 import { requestApproval } from "../services/approvals.js";
 import { env } from "../config/env.js";
 import { getSettings } from "../services/settings.js";
+import { recall, extractAndRemember } from "../services/memory.js";
 import type { ToolName } from "@ella/shared";
 
 function resolveProvider(): "openai" | "ollama" {
@@ -50,6 +51,8 @@ chatRouter.post("/", async (req, res, next) => {
     const history = await sessionStore.get(sessionId);
     history.push({ role: "user", content: message });
 
+    const memories = await recall(message);
+
     const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
       history.map((m) => ({ ...m, id: "", createdAt: "" })),
     );
@@ -59,8 +62,8 @@ chatRouter.post("/", async (req, res, next) => {
 
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const response = useOpenAI
-        ? await openaiClient.chat(messages, tools)
-        : await ollamaClient.chat(messages, tools, activeModel);
+        ? await openaiClient.chat(messages, tools, memories)
+        : await ollamaClient.chat(messages, tools, activeModel, memories);
       const assistantMsg = response.message;
 
       if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
@@ -92,6 +95,7 @@ chatRouter.post("/", async (req, res, next) => {
 
     history.push({ role: "assistant", content: finalReply });
     await sessionStore.set(sessionId, history);
+    extractAndRemember(message, finalReply, sessionId);
 
     res.json({ reply: finalReply, sessionId });
   } catch (err) {
@@ -128,6 +132,8 @@ chatRouter.post("/stream", async (req, res) => {
   const history = await sessionStore.get(sessionId);
   history.push({ role: "user", content: message });
 
+  const memories = await recall(message);
+
   const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
     history.map((m) => ({ ...m, id: "", createdAt: "" })),
   );
@@ -138,8 +144,8 @@ chatRouter.post("/stream", async (req, res) => {
   try {
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const stream = useOpenAI
-        ? openaiClient.chatStream(messages, tools)
-        : ollamaClient.chatStream(messages, tools, activeModel);
+        ? openaiClient.chatStream(messages, tools, memories)
+        : ollamaClient.chatStream(messages, tools, activeModel, memories);
 
       let roundContent = "";
       let roundToolCalls: OllamaMessage["tool_calls"] | undefined;
@@ -194,6 +200,7 @@ chatRouter.post("/stream", async (req, res) => {
 
     history.push({ role: "assistant", content: finalReply });
     await sessionStore.set(sessionId, history);
+    extractAndRemember(message, finalReply, sessionId);
   } catch (err) {
     emit({
       type: "error",

@@ -7,6 +7,8 @@ const ENABLED_TOOLS = new Set<ToolName>([
   "empty_recycle_bin",
   "load_setup",
   "homework_mode",
+  "remember",
+  "forget",
 ]);
 
 export const toolRegistry = {

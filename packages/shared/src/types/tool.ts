@@ -5,7 +5,9 @@ export type ToolName =
   | "empty_recycle_bin"
   | "list_running_processes"
   | "load_setup"
-  | "homework_mode";
+  | "homework_mode"
+  | "remember"
+  | "forget";
 
 export interface ToolCall {
   tool: ToolName;

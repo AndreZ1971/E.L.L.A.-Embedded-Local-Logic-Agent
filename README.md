@@ -4,7 +4,7 @@ Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automat
 
 ---
 
-## Aktueller Stand — v0.1.2 (25.05.2026)
+## Aktueller Stand — v0.1.3 (25.05.2026)
 
 | Komponente                         | Status                                                             |
 | ---------------------------------- | ------------------------------------------------------------------ |
@@ -23,6 +23,7 @@ Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automat
 | Tool-Bestätigung                   | Gefährliche Tools pausieren via SSE, Nutzer bestätigt im Chat      |
 | Setup-Shortcuts                    | Konfigurierbare App-Sets öffnen und schließen per Sprachbefehl     |
 | Hausaufgaben-Modus                 | PIN-gesicherter Kiosk-Modus — aktivieren ohne PIN, sperren mit PIN |
+| ML-Gedächtnisebene                 | Embeddings (nomic-embed-text), Cosinus-Suche, 3 Speichertypen      |
 
 ---
 
@@ -67,9 +68,10 @@ cd apps\desktop
 npm install
 
 # Voraussetzungen:
-#   - Ollama läuft:   ollama serve
-#   - MariaDB läuft:  sc start MariaDB  (Windows-Dienst)
-#   - apps/api/.env   mit DB-Zugangsdaten (siehe unten)
+#   - Ollama läuft:       ollama serve
+#   - MariaDB läuft:      sc start MariaDB  (Windows-Dienst)
+#   - apps/api/.env       mit DB-Zugangsdaten (siehe unten)
+#   - Embedding-Modell:   ollama pull nomic-embed-text  (einmalig, ~274 MB)
 
 # Packages bauen
 npm run build --workspace=packages/shared

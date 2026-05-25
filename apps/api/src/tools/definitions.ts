@@ -68,6 +68,51 @@ export const TOOL_DEFINITIONS: OllamaTool[] = [
   },
 ];
 
+const MEMORY_TOOLS: OllamaTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "remember",
+      description:
+        'Speichert eine wichtige Information dauerhaft im Langzeitgedächtnis. Nutze dies wenn der Nutzer "Merk dir", "Denk daran" o.ä. sagt, oder wenn du eine dauerhaft relevante Beobachtung machen willst.',
+      parameters: {
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+            description:
+              '"user" für persönliche Infos über den Nutzer, "system" für System-/App-Infos, "note" für explizite Notizen',
+          },
+          content: {
+            type: "string",
+            description:
+              "Der zu merkende Inhalt als vollständiger, verständlicher Satz",
+          },
+        },
+        required: ["type", "content"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "forget",
+      description:
+        "Löscht eine Erinnerung aus dem Langzeitgedächtnis anhand ihrer ID.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "Die numerische ID der zu löschenden Erinnerung",
+          },
+        },
+        required: ["id"],
+      },
+    },
+  },
+];
+
 const HOMEWORK_TOOL: OllamaTool = {
   type: "function",
   function: {
@@ -94,7 +139,7 @@ const HOMEWORK_TOOL: OllamaTool = {
 };
 
 export function buildToolDefinitions(setups: Setup[]): OllamaTool[] {
-  const defs = [...TOOL_DEFINITIONS, HOMEWORK_TOOL];
+  const defs = [...TOOL_DEFINITIONS, ...MEMORY_TOOLS, HOMEWORK_TOOL];
 
   if (setups.length > 0) {
     const names = setups.map((s) => `"${s.name.toLowerCase()}"`).join(", ");

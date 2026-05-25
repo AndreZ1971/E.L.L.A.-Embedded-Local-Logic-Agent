@@ -1,5 +1,6 @@
 import { env } from "../config/env.js";
 import { getActiveApiKey } from "./settings.js";
+import { buildSystemPrompt } from "./ollama.js";
 import type { OllamaMessage, OllamaTool } from "./ollama.js";
 
 interface OpenAIMessage {
@@ -26,14 +27,12 @@ interface OpenAIResponse {
   }>;
 }
 
-const SYSTEM_PROMPT = `Du bist E.L.L.A. (Embedded Local Logic Assistant), ein intelligenter persönlicher Assistent der lokal auf dem Rechner des Nutzers läuft.
-Du kannst Programme öffnen, Systeminformationen abrufen, temporäre Dateien bereinigen und den Papierkorb leeren.
-Antworte immer auf Deutsch, es sei denn, der Nutzer spricht eine andere Sprache.
-Wenn du ein Tool benutzt, erkläre kurz was du tust.`;
-
-function buildOpenAIMessages(messages: OllamaMessage[]): OpenAIMessage[] {
+function buildOpenAIMessages(
+  messages: OllamaMessage[],
+  memories: string[] = [],
+): OpenAIMessage[] {
   return [
-    { role: "system", content: SYSTEM_PROMPT },
+    { role: "system", content: buildSystemPrompt(memories) },
     ...messages.map((m): OpenAIMessage => {
       const msg: OpenAIMessage = { role: m.role, content: m.content || null };
       if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
@@ -58,6 +57,7 @@ export const openaiClient = {
   chat: async (
     messages: OllamaMessage[],
     tools: OllamaTool[],
+    memories: string[] = [],
   ): Promise<{ message: OllamaMessage; done: boolean }> => {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -67,7 +67,7 @@ export const openaiClient = {
       },
       body: JSON.stringify({
         model: "gpt-4o",
-        messages: buildOpenAIMessages(messages),
+        messages: buildOpenAIMessages(messages, memories),
         tools: tools.map((t) => ({ type: "function", function: t.function })),
       }),
     });
@@ -101,6 +101,7 @@ export const openaiClient = {
   async *chatStream(
     messages: OllamaMessage[],
     tools: OllamaTool[],
+    memories: string[] = [],
   ): AsyncGenerator<
     | { type: "chunk"; text: string }
     | { type: "done"; toolCalls?: OllamaMessage["tool_calls"] }
@@ -114,7 +115,7 @@ export const openaiClient = {
       body: JSON.stringify({
         model: "gpt-4o",
         stream: true,
-        messages: buildOpenAIMessages(messages),
+        messages: buildOpenAIMessages(messages, memories),
         tools: tools.map((t) => ({ type: "function", function: t.function })),
       }),
     });

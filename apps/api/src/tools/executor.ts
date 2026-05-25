@@ -12,6 +12,7 @@ import {
   activateHomeworkMode,
   deactivateHomeworkMode,
 } from "../services/homework.js";
+import { remember, forgetById, trackToolUsage } from "../services/memory.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -24,7 +25,7 @@ const DANGEROUS_LABELS: Partial<Record<ToolName, string>> = {
   empty_recycle_bin: "Papierkorb leeren",
 };
 
-function openAppWithSettings(
+async function openAppWithSettings(
   args: Record<string, unknown>,
 ): Promise<ToolResult> {
   const { apps } = getSettings();
@@ -46,7 +47,9 @@ function openAppWithSettings(
       error: `'${name}' ist verboten.`,
     });
   }
-  return openApp({ name }, { [name]: entry.command });
+  const result = await openApp({ name }, { [name]: entry.command });
+  if (result.success) trackToolUsage("open_app", name);
+  return result;
 }
 
 function killProcess(command: string): void {
@@ -101,6 +104,7 @@ async function loadSetup(args: Record<string, unknown>): Promise<ToolResult> {
   if (opened > 0) parts.push(`${opened} gestartet`);
   if (toClose.length > 0) parts.push(`${toClose.length} geschlossen`);
 
+  trackToolUsage("load_setup", setup.name);
   return {
     success: true,
     output: `${setup.name} geladen — ${parts.join(", ") || "nichts zu tun"}.`,
@@ -127,6 +131,12 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
   empty_recycle_bin: () => emptyRecycleBin(),
   load_setup: loadSetup,
   homework_mode: homeworkModeTool,
+  remember: (a) =>
+    remember(
+      (a.type as "user" | "system" | "note") ?? "note",
+      (a.content as string) ?? "",
+    ),
+  forget: (a) => forgetById(Number(a.id)),
 };
 
 export const toolExecutor = {
