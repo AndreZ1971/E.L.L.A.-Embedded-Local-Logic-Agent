@@ -1,13 +1,13 @@
-import { env } from '../config/env.js';
-import type { Message } from '@ella/shared';
+import { env } from "../config/env.js";
+import type { Message } from "@ella/shared";
 
 export interface OllamaTool {
-  type: 'function';
+  type: "function";
   function: {
     name: string;
     description: string;
     parameters: {
-      type: 'object';
+      type: "object";
       properties: Record<string, { type: string; description: string }>;
       required?: string[];
     };
@@ -15,7 +15,7 @@ export interface OllamaTool {
 }
 
 export interface OllamaMessage {
-  role: 'system' | 'user' | 'assistant' | 'tool';
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
   tool_call_id?: string;
   tool_calls?: Array<{
@@ -41,11 +41,11 @@ export const ollamaClient = {
     model: string,
   ): Promise<OllamaChatResponse> => {
     const response = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
         tools: tools.length > 0 ? tools : undefined,
         stream: false,
       }),
@@ -61,11 +61,66 @@ export const ollamaClient = {
 
   listModels: async (): Promise<string[]> => {
     const response = await fetch(`${env.ollamaBaseUrl}/api/tags`);
-    if (!response.ok) throw new Error('Ollama nicht erreichbar');
-    const data = await response.json() as { models: Array<{ name: string }> };
-    return data.models.map(m => m.name);
+    if (!response.ok) throw new Error("Ollama nicht erreichbar");
+    const data = (await response.json()) as { models: Array<{ name: string }> };
+    return data.models.map((m) => m.name);
+  },
+
+  async *chatStream(
+    messages: OllamaMessage[],
+    tools: OllamaTool[],
+    model: string,
+  ): AsyncGenerator<
+    | { type: "chunk"; text: string }
+    | { type: "done"; toolCalls?: OllamaMessage["tool_calls"] }
+  > {
+    const response = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        tools: tools.length > 0 ? tools : undefined,
+        stream: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Ollama error ${response.status}: ${text}`);
+    }
+
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const chunk = JSON.parse(line) as OllamaChatResponse;
+          if (chunk.done) {
+            yield { type: "done", toolCalls: chunk.message.tool_calls };
+          } else if (chunk.message?.content) {
+            yield { type: "chunk", text: chunk.message.content };
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
   },
 
   toOllamaMessages: (history: Message[]): OllamaMessage[] =>
-    history.map(m => ({ role: m.role as OllamaMessage['role'], content: m.content })),
+    history.map((m) => ({
+      role: m.role as OllamaMessage["role"],
+      content: m.content,
+    })),
 };
