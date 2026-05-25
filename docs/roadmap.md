@@ -6,17 +6,19 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 
 ## Abgeschlossen
 
-| Feature | Version | Beschreibung |
-| --- | --- | --- |
-| Chat end-to-end | v0.0.3 | OpenAI + Ollama, Tool-Loop mit bis zu 5 Runden |
-| Tool-Call-Fix | v0.0.3 | `tool_call_id` korrekt weitergegeben, kein 400-Fehler mehr |
-| Electron Desktop-App | v0.0.3 | Natives Fenster, Minimize-to-Tray (Dev-Modus lauffähig) |
+| Feature                    | Version | Beschreibung                                                   |
+| -------------------------- | ------- | -------------------------------------------------------------- |
+| Chat end-to-end            | v0.0.3  | OpenAI + Ollama, Tool-Loop mit bis zu 5 Runden                 |
+| Tool-Call-Fix              | v0.0.3  | `tool_call_id` korrekt weitergegeben, kein 400-Fehler mehr     |
+| Electron Desktop-App       | v0.0.3  | Natives Fenster, Minimize-to-Tray (Dev-Modus lauffähig)        |
+| SSE-Streaming              | v0.0.4  | Text erscheint live während LLM antwortet, Tool-Status-Anzeige |
+| MariaDB Session-Persistenz | v0.0.4  | Verlauf in DB, überlebt API-Neustart, wird beim Start geladen  |
 
 ---
 
 ## Priorität 1 — Kern-Features (unmittelbar nützlich)
 
-### Streaming-Antworten
+### ~~Streaming-Antworten~~ ✓ v0.0.4
 
 **Was:** Antworten des LLM werden Zeichen für Zeichen angezeigt statt erst wenn die vollständige Antwort vorliegt.
 
@@ -25,26 +27,31 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 **Technische Umsetzung:**
 
 Backend:
+
 ```typescript
 // Ollama Stream-API
 const stream = await ollamaClient.chatStream(messages, tools, model);
-res.setHeader('Content-Type', 'text/event-stream');
-res.setHeader('Cache-Control', 'no-cache');
+res.setHeader("Content-Type", "text/event-stream");
+res.setHeader("Cache-Control", "no-cache");
 
 for await (const chunk of stream) {
   res.write(`data: ${JSON.stringify({ delta: chunk.message.content })}\n\n`);
 }
-res.write('data: [DONE]\n\n');
+res.write("data: [DONE]\n\n");
 res.end();
 ```
 
 Frontend:
+
 ```typescript
-const eventSource = new EventSource('/api/chat/stream');
+const eventSource = new EventSource("/api/chat/stream");
 eventSource.onmessage = (e) => {
-  if (e.data === '[DONE]') { eventSource.close(); return; }
+  if (e.data === "[DONE]") {
+    eventSource.close();
+    return;
+  }
   const { delta } = JSON.parse(e.data);
-  setCurrentResponse(prev => prev + delta);
+  setCurrentResponse((prev) => prev + delta);
 };
 ```
 
@@ -83,13 +90,13 @@ LLM ruft clean_temp auf
 
 **Geplante Widgets:**
 
-| Widget | Tool/Quelle | Aktualisierung |
-| --- | --- | --- |
-| Disk-Usage (C:, E:, Z:) | `get_disk_usage` | Manuell / alle 60s |
-| Aktiver LLM-Provider | `GET /api/chat/provider` | Beim Load |
-| Letzte Tool-Ausführungen | `tool_executions`-Tabelle | Live |
-| Offene Freigaben | `approvals`-Tabelle | Live |
-| System-Events | `system_events`-Tabelle | Live |
+| Widget                   | Tool/Quelle               | Aktualisierung     |
+| ------------------------ | ------------------------- | ------------------ |
+| Disk-Usage (C:, E:, Z:)  | `get_disk_usage`          | Manuell / alle 60s |
+| Aktiver LLM-Provider     | `GET /api/chat/provider`  | Beim Load          |
+| Letzte Tool-Ausführungen | `tool_executions`-Tabelle | Live               |
+| Offene Freigaben         | `approvals`-Tabelle       | Live               |
+| System-Events            | `system_events`-Tabelle   | Live               |
 
 **Abhängigkeiten:** `tool_executions`-Logging (Priorität 2) für die Ausführungs-Historie.
 
@@ -97,7 +104,7 @@ LLM ruft clean_temp auf
 
 ## Priorität 2 — Stabilität
 
-### MariaDB Session-Persistenz
+### ~~MariaDB Session-Persistenz~~ ✓ v0.0.4
 
 **Was:** Der Gesprächsverlauf wird in MariaDB gespeichert statt nur im RAM.
 
@@ -139,7 +146,14 @@ await pool.execute(
   `INSERT INTO tool_executions
    (tool_name, parameters, result, status, duration_ms, session_id)
    VALUES (?, ?, ?, ?, ?, ?)`,
-  [name, JSON.stringify(params), JSON.stringify(result), 'success', duration, sessionId]
+  [
+    name,
+    JSON.stringify(params),
+    JSON.stringify(result),
+    "success",
+    duration,
+    sessionId,
+  ],
 );
 ```
 
@@ -153,12 +167,12 @@ await pool.execute(
 
 **Geplante Einstellungen:**
 
-| Setting | Typ | Beschreibung |
-| --- | --- | --- |
-| Aktiver LLM-Provider | Radio | OpenAI / Ollama / Auto |
-| Ollama-Modell | Dropdown | Liste aus `GET /api/ollama/models` |
-| Aktivierte Tools | Checkboxen | Welche Tools das LLM aufrufen darf |
-| Session-Limit | Number | Max. Nachrichten im Verlauf |
+| Setting              | Typ        | Beschreibung                       |
+| -------------------- | ---------- | ---------------------------------- |
+| Aktiver LLM-Provider | Radio      | OpenAI / Ollama / Auto             |
+| Ollama-Modell        | Dropdown   | Liste aus `GET /api/ollama/models` |
+| Aktivierte Tools     | Checkboxen | Welche Tools das LLM aufrufen darf |
+| Session-Limit        | Number     | Max. Nachrichten im Verlauf        |
 
 **Abhängigkeiten:** `settings`-Tabelle ist bereits im Schema. Backend braucht `GET/PUT /api/settings`-Endpunkte.
 
@@ -189,6 +203,7 @@ Hintergrund-Worker (alle 5 Min.)
 **Was:** API-Keys (OpenAI, zukünftige Services) über das Dashboard verwalten statt per `.env`-Datei.
 
 **Sicherheits-Anforderungen:**
+
 - Keys werden verschlüsselt in MariaDB gespeichert (AES-256)
 - Master-Passwort oder Windows DPAPI zum Entschlüsseln
 - Niemals im Klartext in Logs oder API-Responses
@@ -202,6 +217,7 @@ Hintergrund-Worker (alle 5 Min.)
 **Was:** Dashboard zeigt Live-Metriken via WebSocket oder Server-Sent Events.
 
 **Geplante Metriken:**
+
 - CPU-Auslastung (prozentsatz)
 - RAM-Nutzung (gesamt / verfügbar)
 - Disk-I/O
@@ -239,9 +255,9 @@ ollama run llama3.1:8b "Hallo"
 
 ## Nicht geplant (bewusste Entscheidung)
 
-| Feature | Warum nicht |
-| --- | --- |
-| Multi-User | E.L.L.A. ist ein persönlicher Assistent — ein User, ein System |
-| Docker-Deployment | Direkte Windows-Integration ist der Kern — Docker abstrahiert das weg |
-| Cloud-Hosting | Lokale Ausführung ist Designprinzip — API-Keys für externe LLMs sind die einzige Cloud-Abhängigkeit |
-| Plugin-System | Premature generalization — erst wenn klar ist was konkret gebraucht wird |
+| Feature           | Warum nicht                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------------- |
+| Multi-User        | E.L.L.A. ist ein persönlicher Assistent — ein User, ein System                                      |
+| Docker-Deployment | Direkte Windows-Integration ist der Kern — Docker abstrahiert das weg                               |
+| Cloud-Hosting     | Lokale Ausführung ist Designprinzip — API-Keys für externe LLMs sind die einzige Cloud-Abhängigkeit |
+| Plugin-System     | Premature generalization — erst wenn klar ist was konkret gebraucht wird                            |

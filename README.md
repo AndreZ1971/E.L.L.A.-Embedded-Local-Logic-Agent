@@ -4,17 +4,19 @@ Lokaler KI-Assistent für Windows als Web-Anwendung. LLM-gesteuerte Automatisier
 
 ---
 
-## Aktueller Stand — v0.0.3 (25.05.2026)
+## Aktueller Stand — v0.0.4 (25.05.2026)
 
-| Komponente | Status |
-| --- | --- |
-| API (Express, Port 3002) | Läuft |
-| Frontend (React/Vite, Port 5173) | Läuft |
-| Chat + Tool-Loop | Funktionsfähig (OpenAI + Ollama) |
-| Ollama (`llama3.1:8b`, Port 11434) | Läuft auf E:\Ollama |
-| MariaDB 12.2.2 (Port 3306) | Läuft auf E:\MariaDB |
-| OpenAI GPT-4o | Aktiv wenn `OPENAI_API_KEY` gesetzt |
-| Electron Desktop-App | In Entwicklung (`apps/desktop`) |
+| Komponente                         | Status                              |
+| ---------------------------------- | ----------------------------------- |
+| API (Express, Port 3002)           | Läuft                               |
+| Frontend (React/Vite, Port 5173)   | Läuft                               |
+| Chat + Tool-Loop                   | Funktionsfähig (OpenAI + Ollama)    |
+| SSE-Streaming                      | Aktiv — Text erscheint live         |
+| Session-Persistenz                 | MariaDB — Verlauf überlebt Neustart |
+| Ollama (`llama3.1:8b`, Port 11434) | Läuft auf E:\Ollama                 |
+| MariaDB 12.2.2 (Port 3306)         | Läuft auf E:\MariaDB                |
+| OpenAI GPT-4o                      | Aktiv wenn `OPENAI_API_KEY` gesetzt |
+| Electron Desktop-App               | In Entwicklung (`apps/desktop`)     |
 
 ---
 
@@ -76,10 +78,10 @@ DB_PASSWORD=ella_dev_2026
 
 ## Dokumentation
 
-| Dokument | Inhalt |
-| --- | --- |
+| Dokument                                     | Inhalt                                                                        |
+| -------------------------------------------- | ----------------------------------------------------------------------------- |
 | [docs/architecture.md](docs/architecture.md) | Systemübersicht, Chat-Flow, Ports, Stack, Projektstruktur, Sicherheitsprinzip |
-| [docs/history.md](docs/history.md) | Entwicklungshistorie — was wurde gebaut und warum (v0.0.1–v0.0.3) |
-| [docs/database.md](docs/database.md) | MariaDB-Schema, Tabellenbeschreibungen, Admin-Befehle |
-| [docs/roadmap.md](docs/roadmap.md) | Geplante Features mit technischen Details und Prioritäten |
-| [docs/hardware.md](docs/hardware.md) | Hardware-Spezifikation Dante-Home, Laufwerk-Architektur, GPU-Potential |
+| [docs/history.md](docs/history.md)           | Entwicklungshistorie — was wurde gebaut und warum (v0.0.1–v0.0.4)             |
+| [docs/database.md](docs/database.md)         | MariaDB-Schema, Tabellenbeschreibungen, Admin-Befehle                         |
+| [docs/roadmap.md](docs/roadmap.md)           | Geplante Features mit technischen Details und Prioritäten                     |
+| [docs/hardware.md](docs/hardware.md)         | Hardware-Spezifikation Dante-Home, Laufwerk-Architektur, GPU-Potential        |

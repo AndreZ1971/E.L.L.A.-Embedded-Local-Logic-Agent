@@ -37,13 +37,13 @@ packages/agent-tools — Windows-Tools   (@ella/agent-tools)
 
 **Routen:**
 
-| Route | Methode | Funktion |
-| --- | --- | --- |
-| `/api/chat` | POST | Haupt-Chat-Endpunkt mit Tool-Loop |
-| `/api/chat/provider` | GET | Aktiver LLM-Provider und Modell |
-| `/api/chat/history/:id` | GET | Session-Verlauf lesen |
-| `/api/chat/history/:id` | DELETE | Session löschen |
-| `/api/tools` | GET | Liste aller registrierten Tools |
+| Route                   | Methode | Funktion                          |
+| ----------------------- | ------- | --------------------------------- |
+| `/api/chat`             | POST    | Haupt-Chat-Endpunkt mit Tool-Loop |
+| `/api/chat/provider`    | GET     | Aktiver LLM-Provider und Modell   |
+| `/api/chat/history/:id` | GET     | Session-Verlauf lesen             |
+| `/api/chat/history/:id` | DELETE  | Session löschen                   |
+| `/api/tools`            | GET     | Liste aller registrierten Tools   |
 
 ---
 
@@ -57,11 +57,11 @@ packages/agent-tools — Windows-Tools   (@ella/agent-tools)
 
 **Seiten (Stand v0.0.1):**
 
-| Pfad | Seite | Status |
-| --- | --- | --- |
-| `/` | Chat | Funktionsfähig |
-| `/dashboard` | Systemübersicht | Stub |
-| `/settings` | Konfiguration | Stub |
+| Pfad         | Seite           | Status         |
+| ------------ | --------------- | -------------- |
+| `/`          | Chat            | Funktionsfähig |
+| `/dashboard` | Systemübersicht | Stub           |
+| `/settings`  | Konfiguration   | Stub           |
 
 **Vite-Proxy-Konfiguration** (`vite.config.ts`):
 
@@ -89,8 +89,8 @@ Das Frontend macht alle API-Calls gegen `/api/*` — Vite leitet sie im Dev-Modu
 **OllamaClient API:**
 
 ```typescript
-ollamaClient.chat(messages, toolDefinitions, model)
-ollamaClient.listModels()
+ollamaClient.chat(messages, toolDefinitions, model);
+ollamaClient.listModels();
 ```
 
 **Systemprompt (Deutsch):** Das Modell wird auf Deutsch instruiert damit es auf deutschen Nutzer-Input natürlich antwortet. Der Systemprompt erklärt welche Tools verfügbar sind und dass es strukturierte Tool-Calls verwenden soll wenn eine Anfrage ein Tool erfordert.
@@ -105,12 +105,12 @@ ollamaClient.listModels()
 
 **Registrierte Tools (v0.0.1):**
 
-| Tool | Funktion | Risiko |
-| --- | --- | --- |
-| `open_app` | Startet eine Anwendung per Name | Niedrig |
-| `get_disk_usage` | Liest Laufwerk-Belegung | Keines (read-only) |
-| `clean_temp` | Löscht temporäre Dateien | Mittel |
-| `empty_recycle_bin` | Leert den Papierkorb | Mittel |
+| Tool                | Funktion                        | Risiko             |
+| ------------------- | ------------------------------- | ------------------ |
+| `open_app`          | Startet eine Anwendung per Name | Niedrig            |
+| `get_disk_usage`    | Liest Laufwerk-Belegung         | Keines (read-only) |
+| `clean_temp`        | Löscht temporäre Dateien        | Mittel             |
+| `empty_recycle_bin` | Leert den Papierkorb            | Mittel             |
 
 **Tool-Definitionen** werden als Ollama-Function-Schema an das LLM übergeben. Das Modell weiß damit welche Tools existieren, welche Parameter sie erwarten und was sie tun — ohne Code zu sehen.
 
@@ -129,6 +129,7 @@ ollamaClient.listModels()
 Ohne Loop würde das Modell nach dem ersten Tool-Call stoppen. Der Loop gibt dem Modell die Möglichkeit, Ergebnisse zu verarbeiten und weitere Entscheidungen zu treffen — wie ein Mensch der einen Plan Schritt für Schritt abarbeitet.
 
 **Abbruchbedingungen:**
+
 - Kein `tool_calls` in der Antwort → Modell ist fertig, Antwort an den Nutzer
 - 5 Runden erreicht → Zwangsabbruch um Endlosschleifen zu verhindern
 
@@ -169,6 +170,7 @@ Ohne Loop würde das Modell nach dem ersten Tool-Call stoppen. Der Loop gibt dem
 **Symptom:** Ollama-Download schlug fehl mit "insufficient disk space". `C:` hatte 0 Byte frei.
 
 **Ursachen:**
+
 - MySQL Server 8.4 + Shell + Router + Installer: ~1,5 GB
 - Windows-Update-Cache
 - Diverse Entwicklungs-Artefakte
@@ -207,13 +209,13 @@ Ollama sucht Modelle standardmäßig unter `C:\Users\<User>\.ollama\models`. Dam
 
 **Warum MariaDB statt MySQL:**
 
-| Kriterium | MySQL 8.4 | MariaDB 12.2.2 |
-| --- | --- | --- |
-| Lizenz | GPL + kommerzielle Einschränkungen | GPL, vollständig Open Source |
-| Performance | Gut | Tendenziell besser bei Reads |
-| Kompatibilität | — | Drop-in-Replacement für MySQL |
-| Entwicklung | Oracle-gesteuert | Community-gesteuert |
-| Installationsgröße | ~1,5 GB (Server + Shell + Installer) | ~60 MB |
+| Kriterium          | MySQL 8.4                            | MariaDB 12.2.2                |
+| ------------------ | ------------------------------------ | ----------------------------- |
+| Lizenz             | GPL + kommerzielle Einschränkungen   | GPL, vollständig Open Source  |
+| Performance        | Gut                                  | Tendenziell besser bei Reads  |
+| Kompatibilität     | —                                    | Drop-in-Replacement für MySQL |
+| Entwicklung        | Oracle-gesteuert                     | Community-gesteuert           |
+| Installationsgröße | ~1,5 GB (Server + Shell + Installer) | ~60 MB                        |
 
 **Installationspfade:**
 
@@ -292,13 +294,13 @@ CREATE TABLE rules (
 
 **Warum dieser Ansatz:**
 
-| | OpenAI GPT-4o | Ollama llama3.1:8b |
-| --- | --- | --- |
-| Qualität | Sehr hoch | Gut (für 8B) |
-| Kosten | ~$0.005 / 1K Token | Kostenlos |
-| Latenz | ~1-3 Sek. | ~5-15 Sek. (CPU) |
-| Datenschutz | Daten an OpenAI | Vollständig lokal |
-| Verfügbarkeit | Internet nötig | Offline-fähig |
+|               | OpenAI GPT-4o      | Ollama llama3.1:8b |
+| ------------- | ------------------ | ------------------ |
+| Qualität      | Sehr hoch          | Gut (für 8B)       |
+| Kosten        | ~$0.005 / 1K Token | Kostenlos          |
+| Latenz        | ~1-3 Sek.          | ~5-15 Sek. (CPU)   |
+| Datenschutz   | Daten an OpenAI    | Vollständig lokal  |
+| Verfügbarkeit | Internet nötig     | Offline-fähig      |
 
 Die automatische Umschaltung verhindert unnötige Konfiguration: Dev-Modus ohne Key → Ollama. Mit Key → GPT-4o. Kein Neustart, kein Code-Wechsel.
 
@@ -319,19 +321,23 @@ OpenAI verwendet ein anderes Format für Tool-Calls als Ollama:
 ```typescript
 // OpenAI-Format:
 {
-  tool_calls: [{
-    id: "call_abc123",
-    type: "function",
-    function: { name: "get_disk_usage", arguments: '{"drive":"C"}' }
-  }]
+  tool_calls: [
+    {
+      id: "call_abc123",
+      type: "function",
+      function: { name: "get_disk_usage", arguments: '{"drive":"C"}' },
+    },
+  ];
 }
 
 // Internes E.L.L.A.-Format:
 {
-  tool_calls: [{
-    name: "get_disk_usage",
-    parameters: { drive: "C" }
-  }]
+  tool_calls: [
+    {
+      name: "get_disk_usage",
+      parameters: { drive: "C" },
+    },
+  ];
 }
 ```
 
@@ -396,11 +402,11 @@ TypeScript kennt ohne diese Datei keine Vite-spezifischen Typen: CSS-Module-Impo
 
 ```typescript
 // Vorher:
-import React from 'react';
+import React from "react";
 // <React.StrictMode>
 
 // Nachher:
-import { StrictMode } from 'react';
+import { StrictMode } from "react";
 // <StrictMode>
 ```
 
@@ -427,7 +433,7 @@ response to a preceding message with 'tool_calls'."
 
 ```typescript
 // Vorher — stripped tool_calls und tool_call_id:
-messages.map(m => ({ role: m.role, content: m.content }))
+messages.map((m) => ({ role: m.role, content: m.content }));
 ```
 
 Damit fehlten im zweiten Durchgang:
@@ -443,7 +449,7 @@ OpenAI verlangt diese IDs zur Zuordnung — ohne sie versteht es nicht welche To
 
 ```typescript
 export interface OllamaMessage {
-  role: 'system' | 'user' | 'assistant' | 'tool';
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
   tool_call_id?: string;
   tool_calls?: Array<{
@@ -460,22 +466,28 @@ messages.map((m): OpenAIMessage => {
   const msg: OpenAIMessage = { role: m.role, content: m.content || null };
   if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
   if (m.tool_calls?.length) {
-    msg.tool_calls = m.tool_calls.map(tc => ({
-      id: tc.id ?? 'call_unknown',
-      type: 'function',
-      function: { name: tc.function.name, arguments: JSON.stringify(tc.function.arguments) },
+    msg.tool_calls = m.tool_calls.map((tc) => ({
+      id: tc.id ?? "call_unknown",
+      type: "function",
+      function: {
+        name: tc.function.name,
+        arguments: JSON.stringify(tc.function.arguments),
+      },
     }));
   }
   return msg;
-})
+});
 ```
 
 `openai.ts` — Response-Mapping behält `id` aus OpenAI-Antwort:
 
 ```typescript
-const toolCalls = choice.tool_calls?.map(tc => ({
-  id: tc.id,  // War vorher weggefallen
-  function: { name: tc.function.name, arguments: JSON.parse(tc.function.arguments) },
+const toolCalls = choice.tool_calls?.map((tc) => ({
+  id: tc.id, // War vorher weggefallen
+  function: {
+    name: tc.function.name,
+    arguments: JSON.parse(tc.function.arguments),
+  },
 }));
 ```
 
@@ -483,8 +495,8 @@ const toolCalls = choice.tool_calls?.map(tc => ({
 
 ```typescript
 messages.push({
-  role: 'tool',
-  tool_call_id: call.id,  // Neu
+  role: "tool",
+  tool_call_id: call.id, // Neu
   content: JSON.stringify(result),
 });
 ```
@@ -522,10 +534,17 @@ apps/desktop/
 ```javascript
 // build-main.mjs
 await build({
-  entryPoints: ['src/main.ts'],
-  bundle: true, platform: 'node', target: 'node20', format: 'cjs',
-  outfile: 'dist/main/index.js',
-  external: ['electron', ...builtinModules, ...builtinModules.map(m => `node:${m}`)],
+  entryPoints: ["src/main.ts"],
+  bundle: true,
+  platform: "node",
+  target: "node20",
+  format: "cjs",
+  outfile: "dist/main/index.js",
+  external: [
+    "electron",
+    ...builtinModules,
+    ...builtinModules.map((m) => `node:${m}`),
+  ],
 });
 ```
 
@@ -533,14 +552,17 @@ await build({
 
 ```typescript
 // Minimize → Tray (nicht Taskleiste)
-mainWindow.on('minimize', () => {
+mainWindow.on("minimize", () => {
   mainWindow?.hide();
   mainWindow?.setSkipTaskbar(true);
 });
 
 // Close-Button → Tray (echter Beenden-Button nur im Tray-Menü)
-mainWindow.on('close', (e) => {
-  if (!isQuitting) { e.preventDefault(); mainWindow?.hide(); }
+mainWindow.on("close", (e) => {
+  if (!isQuitting) {
+    e.preventDefault();
+    mainWindow?.hide();
+  }
 });
 ```
 
@@ -557,3 +579,81 @@ mainWindow.on('close', (e) => {
 - Chat funktioniert end-to-end (getestet: `status festplatte c` → Tool-Call → Antwort)
 - Tool-Loop mit mehreren Runden stabil
 - Natives Fenster vorhanden, Minimize-to-Tray funktioniert
+
+---
+
+## v0.0.4 — 25.05.2026 — SSE-Streaming & MariaDB Session-Persistenz
+
+**Ziel:** Wahrnehmbare Antwortzeit drastisch reduzieren, Gesprächsverlauf dauerhaft speichern.
+
+---
+
+### SSE-Streaming
+
+**Problem:** Ollama benötigt auf CPU 5–15 Sekunden für eine Antwort. Der Nutzer starrte auf einen leeren Chat ohne Feedback ob überhaupt etwas passiert.
+
+**Entscheidung:** Server-Sent Events (SSE) über einen neuen Endpunkt `POST /api/chat/stream`. Der Tool-Loop läuft weiterhin synchron — nur die finale LLM-Antwort wird als Stream an den Client geschickt.
+
+**Warum SSE statt WebSocket:** SSE ist unidirektional (Server → Client) und reicht für diesen Anwendungsfall vollständig aus. Kein Handshake-Overhead, nativ im Browser unterstützt. WebSocket wäre Overengineering.
+
+**Warum `fetch` + `ReadableStream` statt `EventSource`:** `EventSource` unterstützt nur GET-Requests. Der Chat-Endpunkt braucht einen POST-Body (`message`, `sessionId`). `fetch` mit `ReadableStream` gibt die gleiche SSE-Funktionalität mit voller Kontrolle über den Request-Body.
+
+**Event-Format:**
+
+```text
+data: {"type":"tool","name":"get_disk_usage"}\n\n   ← Tool wird ausgeführt
+data: {"type":"chunk","text":"Hier "}\n\n           ← Textchunk
+data: {"type":"chunk","text":"sind "}\n\n
+data: {"type":"done"}\n\n                          ← Fertig
+data: {"type":"error","message":"..."}\n\n         ← Fehlerfall
+```
+
+**`chatStream()` für Ollama:** Ollama liefert bei `stream: true` Zeilenweise JSON. Textchunks werden sofort weitergeleitet. Tool-Calls kommen gebündelt im finalen `done: true`-Chunk — sie werden nicht selbst gestreamt.
+
+**`chatStream()` für OpenAI:** OpenAI streamt Tool-Calls über mehrere Chunks aufgeteilt (Index, ID, Name und Arguments kommen separat). Ein Akkumulator (`Map<index, {id, name, args}>`) sammelt die Fragmente bis `[DONE]` signalisiert dass der Call vollständig ist.
+
+**Frontend-Änderungen in `Chat.tsx`:**
+
+- `streaming`-State hält den laufenden Text für die Live-Bubble
+- `toolStatus`-State zeigt während Tool-Ausführung einen lesbaren Status (`"Festplattennutzung abrufen…"`)
+- Blinkender Cursor (CSS `@keyframes blink`) während der Text aufgebaut wird
+- Nach `done`-Event: Streaming-Bubble wird zur permanenten Nachricht in `messages`
+
+---
+
+### MariaDB Session-Persistenz
+
+**Problem:** Der In-Memory Session-Store verlor den gesamten Gesprächsverlauf bei jedem API-Neustart. Für einen täglichen Assistenten nicht akzeptabel.
+
+**Entscheidung:** `sessions.ts` wird auf MariaDB umgestellt. Das Interface (`get`, `set`, `clear`) bleibt identisch — nur die Implementierung ändert sich. `chat.ts` benötigt keine Änderungen außer `await` vor den Aufrufen.
+
+**Neue Tabellen (Migration `001_sessions.sql`):**
+
+```sql
+CREATE TABLE sessions (
+  id         VARCHAR(36)  NOT NULL PRIMARY KEY,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE session_messages (
+  id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  session_id VARCHAR(36)  NOT NULL,
+  role       ENUM('user', 'assistant') NOT NULL,
+  content    TEXT         NOT NULL,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+);
+```
+
+**`set()`-Strategie — Delete + Re-Insert:** Statt einzelne neue Nachrichten einzufügen, wird bei jedem `set()`-Aufruf die gesamte Session neu geschrieben. Das vereinfacht die Logik erheblich: kein Tracking welche Nachrichten neu sind, kein Diff. Der Overhead ist vernachlässigbar weil Sessions max. 40 Nachrichten enthalten.
+
+**Frontend lädt Verlauf beim Start:** Ein `useEffect` in `Chat.tsx` ruft beim Mount `GET /api/chat/history/:sessionId` auf und befüllt den `messages`-State. Ohne diesen Schritt wäre die Persistenz zwar vorhanden aber für den Nutzer unsichtbar.
+
+---
+
+### Ergebnis v0.0.4
+
+- Text erscheint live während das LLM antwortet (GPT-4o: sehr schnell, Ollama: sichtbar Wort für Wort)
+- Tool-Status wird während der Ausführung angezeigt ("Festplattennutzung abrufen…")
+- Gesprächsverlauf überlebt API-Neustart und wird beim Seitenaufruf wiederhergestellt

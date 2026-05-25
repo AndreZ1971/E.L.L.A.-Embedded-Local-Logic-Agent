@@ -15,12 +15,12 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  apps/api  (Express, Port 3002)                             │
 │                                                             │
-│  ┌──────────────┐   ┌─────────────────────────────────┐    │
-│  │ POST /api/chat│   │ Provider-Auswahl                │    │
-│  │              │──►│  openaiClient.isAvailable()      │    │
-│  │              │   │  true  → OpenAI GPT-4o           │    │
-│  │              │   │  false → Ollama llama3.1:8b      │    │
-│  └──────────────┘   └──────────────┬────────────────┬─┘    │
+│  ┌─────────────────┐ ┌─────────────────────────────────┐    │
+│  │ POST /api/chat  │ │ Provider-Auswahl                │    │
+│  │ POST /api/chat/ │►│  openaiClient.isAvailable()      │    │
+│  │       stream    │ │  true  → OpenAI GPT-4o           │    │
+│  │ (SSE-Streaming) │ │  false → Ollama llama3.1:8b      │    │
+│  └─────────────────┘ └──────────────┬────────────────┬─┘    │
 │                                    │                │       │
 │                          ┌─────────▼──┐    ┌───────▼──┐    │
 │                          │ OpenAI API │    │  Ollama  │    │
@@ -38,8 +38,8 @@
 │                                                             │
 │  ┌──────────────────┐   ┌────────────────────────────────┐  │
 │  │ Session-Store    │   │ MariaDB Pool (Port 3306)       │  │
-│  │ In-Memory        │   │ E:\MariaDB\data                │  │
-│  │ max. 40 Messages │   │ Datenbank: ella                │  │
+│  │ MariaDB-backed   │◄──│ E:\MariaDB\data                │  │
+│  │ max. 40 Messages │   │ sessions + session_messages    │  │
 │  │ user+assistant   │   │                                │  │
 │  └──────────────────┘   └────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
@@ -58,13 +58,13 @@
 
 ## Chat-Flow — Detail
 
-Der zentrale Ablauf für jede Nutzeranfrage:
+Der zentrale Ablauf für jede Nutzeranfrage (gilt für `/api/chat` und `/api/chat/stream`):
 
 ```text
-1. POST /api/chat  { sessionId, message }
+1. POST /api/chat/stream  { sessionId, message }
    │
-2. Session laden
-   │  sessionStore.get(sessionId)
+2. Session laden (MariaDB)
+   │  await sessionStore.get(sessionId)
    │  → [ {role:"user", content:"..."}, {role:"assistant", content:"..."}, ... ]
    │
 3. Neue User-Message anhängen
@@ -77,57 +77,55 @@ Der zentrale Ablauf für jede Nutzeranfrage:
    │
    │  ┌─ Iteration ─────────────────────────────────────────┐
    │  │                                                      │
-   │  │  LLM-Request mit:                                   │
+   │  │  LLM-Stream mit:                                    │
    │  │    - messages (gesamter Verlauf)                    │
    │  │    - TOOL_DEFINITIONS (Whitelist als Schema)        │
    │  │                                                      │
-   │  │  LLM-Antwort enthält tool_calls?                    │
-   │  │    Nein → weiter zu Schritt 6 (fertig)              │
-   │  │    Ja  → für jeden tool_call:                       │
-   │  │            toolExecutor.execute(name, params)       │
-   │  │              → Whitelist-Check (unknown → Error)    │
-   │  │              → Tool-Funktion ausführen              │
-   │  │              → Ergebnis als tool-Message anhängen   │
-   │  │          → Nächste Iteration                        │
+   │  │  Chunks ankommen?                                   │
+   │  │    text → SSE-Event {type:"chunk"} ans Frontend     │
+   │  │    tool_calls → SSE-Event {type:"tool"} + ausführen │
+   │  │                                                      │
+   │  │  Stream done, tool_calls vorhanden?                 │
+   │  │    Ja  → Nächste Iteration                          │
+   │  │    Nein → Schritt 6 (fertig)                        │
    │  └──────────────────────────────────────────────────────┘
    │
-6. Session speichern
-   │  sessionStore.set(sessionId, messages)
+6. Session speichern (MariaDB)
+   │  await sessionStore.set(sessionId, messages)
    │  → filtert tool-Nachrichten heraus
-   │  → begrenzt auf 40 Einträge (FIFO)
+   │  → DELETE + Re-Insert, max. 40 Einträge
    │
-7. Response ans Frontend
-   { reply: "...", sessionId: "..." }
+7. SSE-Event {type:"done"} ans Frontend
 ```
 
 ---
 
 ## Ports
 
-| Service | Port | Hinweis |
-| --- | --- | --- |
-| Frontend (Vite Dev) | 5173 | Proxy leitet `/api/*` nach 3002 weiter |
-| Backend (Express) | 3002 | Port 3001 von Docker Desktop belegt |
-| MariaDB | 3306 | Standard-Port, Windows-Dienst |
-| Ollama | 11434 | Standard-Port, läuft als Tray-App |
+| Service             | Port  | Hinweis                                |
+| ------------------- | ----- | -------------------------------------- |
+| Frontend (Vite Dev) | 5173  | Proxy leitet `/api/*` nach 3002 weiter |
+| Backend (Express)   | 3002  | Port 3001 von Docker Desktop belegt    |
+| MariaDB             | 3306  | Standard-Port, Windows-Dienst          |
+| Ollama              | 11434 | Standard-Port, läuft als Tray-App      |
 
 ---
 
 ## Stack
 
-| Schicht | Technologie | Version | Warum |
-| --- | --- | --- | --- |
-| Frontend | React | 18 | Stable, breites Ökosystem |
-| Frontend Build | Vite | 5 | Schnell, guter Proxy, kein CRA |
-| Frontend Routing | React Router | 6 | Standard für React SPAs |
-| Desktop-Shell | Electron | 33 | Natives Fenster, Tray, GlobalShortcut |
-| Desktop Build | esbuild | — | Zuverlässiges Externalisieren von `electron` |
-| Backend Runtime | Node.js | 24 | LTS, async-first |
-| Backend Framework | Express | 4 | Minimal, explizit, keine Magie |
-| Sprache | TypeScript | 5 | Typsicherheit über alle Schichten |
-| Datenbank | MariaDB | 12.2.2 | Drop-in für MySQL, OS, auf E: |
-| LLM lokal | Ollama + llama3.1:8b | — | Kostenlos, offline, GPU-fähig |
-| LLM cloud | OpenAI GPT-4o | — | Beste Qualität, API-Key optional |
+| Schicht           | Technologie          | Version | Warum                                        |
+| ----------------- | -------------------- | ------- | -------------------------------------------- |
+| Frontend          | React                | 18      | Stable, breites Ökosystem                    |
+| Frontend Build    | Vite                 | 5       | Schnell, guter Proxy, kein CRA               |
+| Frontend Routing  | React Router         | 6       | Standard für React SPAs                      |
+| Desktop-Shell     | Electron             | 33      | Natives Fenster, Tray, GlobalShortcut        |
+| Desktop Build     | esbuild              | —       | Zuverlässiges Externalisieren von `electron` |
+| Backend Runtime   | Node.js              | 24      | LTS, async-first                             |
+| Backend Framework | Express              | 4       | Minimal, explizit, keine Magie               |
+| Sprache           | TypeScript           | 5       | Typsicherheit über alle Schichten            |
+| Datenbank         | MariaDB              | 12.2.2  | Drop-in für MySQL, OS, auf E:                |
+| LLM lokal         | Ollama + llama3.1:8b | —       | Kostenlos, offline, GPU-fähig                |
+| LLM cloud         | OpenAI GPT-4o        | —       | Beste Qualität, API-Key optional             |
 
 ---
 
