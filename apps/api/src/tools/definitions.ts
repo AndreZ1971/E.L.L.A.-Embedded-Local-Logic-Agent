@@ -111,6 +111,25 @@ const MEMORY_TOOLS: OllamaTool[] = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "list_memories",
+      description:
+        "Listet gespeicherte Erinnerungen aus dem Langzeitgedächtnis auf. Nutze dies wenn der Nutzer fragt was E.L.L.A. über ihn weiß, oder um IDs für forget() zu finden.",
+      parameters: {
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+            description:
+              'Optional: Filter nach Typ — "user", "system" oder "note". Weglassen für alle.',
+          },
+        },
+        required: [],
+      },
+    },
+  },
 ];
 
 const HOMEWORK_TOOL: OllamaTool = {

@@ -496,6 +496,31 @@ const Chat: React.FC = () => {
       >
         <h2 style={{ margin: 0 }}>Chat</h2>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button
+            onClick={() => {
+              const next = !ttsEnabled;
+              setTtsEnabled(next);
+              ttsEnabledRef.current = next;
+              if (!next) window.speechSynthesis.cancel();
+              fetch(`${API}/api/settings`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ttsEnabled: next }),
+              }).catch(() => {});
+            }}
+            title={ttsEnabled ? "Sprachausgabe aus" : "Sprachausgabe ein"}
+            style={{
+              padding: "4px 10px",
+              borderRadius: 4,
+              fontSize: "0.85rem",
+              background: ttsEnabled ? "#1e1b4b" : "transparent",
+              border: ttsEnabled ? "1px solid #7c6af7" : "1px solid #2d3148",
+              color: ttsEnabled ? "#a5b4fc" : "#64748b",
+              cursor: "pointer",
+            }}
+          >
+            {ttsEnabled ? "🔊" : "🔇"}
+          </button>
           {homeworkConfigured && (
             <button
               onClick={() =>

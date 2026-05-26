@@ -41,6 +41,10 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "get_disk_usage", label: "Festplattennutzung abrufen" },
   { name: "clean_temp", label: "Temp-Dateien bereinigen" },
   { name: "empty_recycle_bin", label: "Papierkorb leeren" },
+  { name: "remember", label: "Erinnerungen speichern" },
+  { name: "forget", label: "Erinnerungen löschen" },
+  { name: "list_memories", label: "Erinnerungen auflisten" },
+  { name: "homework_mode", label: "Hausaufgaben-Modus steuern" },
 ];
 
 const input: React.CSSProperties = {

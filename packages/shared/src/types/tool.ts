@@ -3,8 +3,8 @@ export type ToolName =
   | "get_disk_usage"
   | "clean_temp"
   | "empty_recycle_bin"
-  | "list_running_processes"
   | "load_setup"
+  | "list_memories"
   | "homework_mode"
   | "remember"
   | "forget";

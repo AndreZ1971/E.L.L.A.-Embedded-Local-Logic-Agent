@@ -7,6 +7,33 @@ CREATE DATABASE IF NOT EXISTS ella
 
 USE ella;
 
+CREATE TABLE IF NOT EXISTS sessions (
+  id         VARCHAR(255) PRIMARY KEY,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS session_messages (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  session_id VARCHAR(255) NOT NULL,
+  role       ENUM('user', 'assistant') NOT NULL,
+  content    TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS memories (
+  id         INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  type       ENUM('user', 'system', 'note') NOT NULL,
+  content    TEXT NOT NULL,
+  embedding  MEDIUMTEXT NOT NULL,
+  source     VARCHAR(255),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_memories_type ON memories (type);
+CREATE INDEX IF NOT EXISTS idx_session_messages_session ON session_messages (session_id);
+
 CREATE TABLE rules (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   name       VARCHAR(255) NOT NULL,

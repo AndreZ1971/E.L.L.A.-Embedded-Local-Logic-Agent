@@ -12,7 +12,13 @@ import {
   activateHomeworkMode,
   deactivateHomeworkMode,
 } from "../services/homework.js";
-import { remember, forgetById, trackToolUsage } from "../services/memory.js";
+import {
+  remember,
+  forgetById,
+  listMemories,
+  trackToolUsage,
+} from "../services/memory.js";
+import { pool } from "../config/database.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -28,7 +34,7 @@ const DANGEROUS_LABELS: Partial<Record<ToolName, string>> = {
 async function openAppWithSettings(
   args: Record<string, unknown>,
 ): Promise<ToolResult> {
-  const { apps } = getSettings();
+  const { apps, homeworkMode } = getSettings();
   const name = ((args.name as string) ?? "").toLowerCase();
   const entry = apps.find((a) => a.name.toLowerCase() === name);
   if (!entry) {
@@ -45,6 +51,15 @@ async function openAppWithSettings(
     return Promise.resolve({
       success: false,
       error: `'${name}' ist verboten.`,
+    });
+  }
+  if (
+    homeworkMode.active &&
+    !homeworkMode.apps.map((a) => a.toLowerCase()).includes(name)
+  ) {
+    return Promise.resolve({
+      success: false,
+      error: `Hausaufgaben-Modus aktiv — '${name}' ist nicht erlaubt.`,
     });
   }
   const result = await openApp({ name }, { [name]: entry.command });
@@ -137,6 +152,12 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       (a.content as string) ?? "",
     ),
   forget: (a) => forgetById(Number(a.id)),
+  list_memories: async (a) => {
+    const rows = await listMemories(
+      a.type as "user" | "system" | "note" | undefined,
+    );
+    return { success: true, output: rows };
+  },
 };
 
 export const toolExecutor = {
@@ -163,6 +184,27 @@ export const toolExecutor = {
       }
     }
 
-    return handler(call.args);
+    const start = Date.now();
+    const result = await handler(call.args);
+    const duration = Date.now() - start;
+
+    setImmediate(() => {
+      pool
+        .execute(
+          `INSERT INTO tool_executions (tool_name, args, result, success, error, executed_at)
+           VALUES (?, ?, ?, ?, ?, NOW())`,
+          [
+            name,
+            JSON.stringify(call.args),
+            JSON.stringify(result.output ?? null),
+            result.success ? 1 : 0,
+            result.error ?? null,
+          ],
+        )
+        .catch(() => {});
+    });
+
+    void duration;
+    return result;
   },
 };

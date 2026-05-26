@@ -76,10 +76,12 @@ chatRouter.post("/", async (req, res, next) => {
 
       for (const call of assistantMsg.tool_calls) {
         const toolName = call.function.name as ToolName;
-        const result = await toolExecutor.execute({
-          tool: toolName,
-          args: call.function.arguments,
-        });
+        // Non-Streaming hat keine SSE — gefährliche Tools werden hier blockiert
+        const onConfirm = async () => false;
+        const result = await toolExecutor.execute(
+          { tool: toolName, args: call.function.arguments },
+          onConfirm,
+        );
 
         messages.push({
           role: "tool",

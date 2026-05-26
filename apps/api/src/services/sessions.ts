@@ -1,11 +1,10 @@
 import { pool } from "../config/database.js";
+import { getSettings } from "./settings.js";
 
 export interface HistoryMessage {
   role: "user" | "assistant";
   content: string;
 }
-
-const MAX_HISTORY = 40;
 
 export const sessionStore = {
   get: async (id: string): Promise<HistoryMessage[]> => {
@@ -20,7 +19,7 @@ export const sessionStore = {
   set: async (id: string, messages: HistoryMessage[]): Promise<void> => {
     const clean = messages
       .filter((m) => m.role === "user" || m.role === "assistant")
-      .slice(-MAX_HISTORY);
+      .slice(-getSettings().sessionLimit);
 
     await pool.execute("DELETE FROM session_messages WHERE session_id = ?", [
       id,

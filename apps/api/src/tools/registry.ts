@@ -9,6 +9,7 @@ const ENABLED_TOOLS = new Set<ToolName>([
   "homework_mode",
   "remember",
   "forget",
+  "list_memories",
 ]);
 
 export const toolRegistry = {
