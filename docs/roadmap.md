@@ -25,6 +25,7 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 | Setup-Shortcuts             | v0.1.1  | load_setup-Tool, open[] + close[], dynamische Tool-Definitionen |
 | Hausaufgaben-Modus          | v0.1.2  | PIN-Kiosk: aktivieren ohne PIN, deaktivieren mit PIN, SHA-256   |
 | ML-Gedächtnisebene          | v0.1.3  | nomic-embed-text, Cosinus-Suche, auto Extraktion, 3 Typen       |
+| GPU-Beschleunigung          | v0.1.4  | GTX 1060, CUDA 13.0, 14.6 t/s, Modell vollständig im VRAM       |
 
 ---
 
@@ -241,27 +242,13 @@ Hintergrund-Worker (alle 5 Min.)
 
 ---
 
-### GPU-Beschleunigung für Ollama
+### ~~GPU-Beschleunigung für Ollama~~ ✓ v0.1.4
 
-**Was:** Ollama nutzt die RTX 2080 (8 GB VRAM) für Inferenz statt der CPU.
+**Was:** Ollama nutzt die GTX 1060 (6 GB VRAM) für Inferenz.
 
-**Aktueller Stand:** GPU-Beschleunigung ist möglich aber nicht aktiv. llama3.1:8b benötigt ~5 GB VRAM — passt in die 8 GB.
+**Gemessen:** 14.6 tokens/sec, Modell belegt 5.8 GB VRAM — läuft vollständig auf GPU.
 
-**Setup:**
-
-```powershell
-# CUDA-Toolkit installieren (falls nicht vorhanden)
-# Ollama erkennt CUDA automatisch wenn Treiber korrekt sind
-
-# Test ob GPU genutzt wird:
-ollama run llama3.1:8b "Hallo"
-# → Logs zeigen ob CUDA oder CPU
-
-# GPU-Speicher in Ollama-Logs prüfen:
-# "llm server loaded in X.XXs" mit GPU-Angabe
-```
-
-**Erwarteter Speedup:** 5-15 Sek. (CPU) → 0.5-2 Sek. (GPU) für eine typische Antwort.
+**Setup:** `OLLAMA_MODELS=E:\Ollama` (User-Scope), Ollama erkennt CUDA 13.0 automatisch.
 
 ---
 
