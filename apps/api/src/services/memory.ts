@@ -1,5 +1,6 @@
 import { pool } from "../config/database.js";
 import { env } from "../config/env.js";
+import { getSettings } from "./settings.js";
 import type { ToolResult } from "@ella/shared";
 
 const EMBED_MODEL = "nomic-embed-text";
@@ -99,7 +100,7 @@ Assistent: ${assistantMsg}`;
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "llama3.1:8b",
+          model: getSettings().ollamaModel,
           prompt,
           stream: false,
           options: { temperature: 0.1, num_predict: 60 },

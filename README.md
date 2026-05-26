@@ -4,7 +4,7 @@ Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automat
 
 ---
 
-## Aktueller Stand — v0.1.3 (25.05.2026)
+## Aktueller Stand — v0.1.6 (26.05.2026)
 
 | Komponente                         | Status                                                             |
 | ---------------------------------- | ------------------------------------------------------------------ |
@@ -12,7 +12,7 @@ Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automat
 | Frontend (Production Build)        | `apps/web/dist/` — Electron lädt direkt                            |
 | Chat + Tool-Loop + SSE-Streaming   | Funktionsfähig (OpenAI + Ollama)                                   |
 | Session-Persistenz                 | MariaDB — Verlauf überlebt Neustart                                |
-| Ollama (`llama3.1:8b`, Port 11434) | Läuft auf E:\Ollama                                                |
+| Ollama (`llama3.1:8b`, Port 11434) | GPU-Inferenz GTX 1060, 14.6 t/s, 5.8 GB VRAM aktiv                |
 | MariaDB 12.2.2 (Port 3306)         | Windows-Dienst, Autostart aktiviert                                |
 | OpenAI GPT-4o                      | Key via Settings-UI oder `.env` konfigurierbar                     |
 | Electron Desktop-App               | Frameless, Tray, Autostart                                         |
@@ -20,6 +20,7 @@ Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automat
 | Settings (4 Tabs)                  | LLM · Tools · Setups · Programme                                   |
 | Programme-Verwaltung               | System-Scan, Checkbox-Liste erlaubt/verboten                       |
 | Spracheingabe                      | 3 Modi: Aus / Manuell / Wakeword "ella"                            |
+| Sprachausgabe (TTS)                | `speechSynthesis`, Stimme einstellbar, MD-Stripping, Header-Toggle |
 | Tool-Bestätigung                   | Gefährliche Tools pausieren via SSE, Nutzer bestätigt im Chat      |
 | Setup-Shortcuts                    | Konfigurierbare App-Sets öffnen und schließen per Sprachbefehl     |
 | Hausaufgaben-Modus                 | PIN-gesicherter Kiosk-Modus — aktivieren ohne PIN, sperren mit PIN |

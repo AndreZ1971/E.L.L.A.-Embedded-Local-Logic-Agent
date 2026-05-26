@@ -47,7 +47,7 @@ export async function activateHomeworkMode(): Promise<ToolResult> {
     const entry = s.apps.find(
       (a) => a.name.toLowerCase() === appName.toLowerCase(),
     );
-    if (entry) {
+    if (entry?.allowed) {
       try {
         await openApp({ name: appName }, { [appName]: entry.command });
         opened++;

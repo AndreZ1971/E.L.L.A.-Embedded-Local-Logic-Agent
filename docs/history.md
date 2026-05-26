@@ -4,6 +4,111 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v0.1.6 — 26.05.2026 — Code-Analyse Bug-Fixes
+
+**Ziel:** Systematische Code-Analyse aller Backend-Services. Fünf Bugs gefunden und behoben.
+
+---
+
+### Bug 1 — `loadSetup` ignorierte Hausaufgaben-Modus
+
+**Problem:** `loadSetup` öffnete Apps aus einem Setup ohne zu prüfen ob `homeworkMode.active` gesetzt ist — dieselbe Klasse wie der bereits behobene `open_app`-Bug. Ein Kind konnte über "Lade Freizeit-Setup" gesperrte Programme starten.
+
+**Fix:** `homeworkMode` aus `getSettings()` destrukturiert, Check identisch zu `openAppWithSettings` in die App-Map-Funktion eingefügt.
+
+---
+
+### Bug 2 — `extractAndRemember` hardcodiertes Modell
+
+**Problem:** Die Hintergrund-Extraktion in `memory.ts` rief Ollama immer mit `model: "llama3.1:8b"` auf — ignorierte die konfigurierte `ollamaModel`-Einstellung. Bei Modellwechsel über Settings sprach nur die Chat-Logik das neue Modell an, die Gedächtnis-Extraktion blieb auf dem alten.
+
+**Fix:** `getSettings` importiert, `model: getSettings().ollamaModel` statt Hardcode.
+
+---
+
+### Bug 3 — OpenAI sendete leeres `tools: []`
+
+**Problem:** Wenn keine Tools aktiviert waren, sendete `openai.ts` `tools: []` an die OpenAI API. OpenAI lehnt leere Tool-Arrays mit HTTP 400 ab — Ollama machte das bereits korrekt (kein `tools`-Feld wenn leer).
+
+**Fix:** Beide Paths (non-streaming `chat` und `chatStream`) nutzen jetzt `...(tools.length > 0 && { tools: ... })` — das Feld wird nur gesetzt wenn tatsächlich Tools existieren.
+
+---
+
+### Bug 4 — `activateHomeworkMode` ignorierte `allowed`-Flag
+
+**Problem:** `activateHomeworkMode` öffnete Apps aus `homeworkMode.apps` ohne zu prüfen ob `allowed: true`. Eine App die explizit auf verboten gesetzt wurde konnte trotzdem durch den Hausaufgaben-Modus-Start geöffnet werden.
+
+**Fix:** `if (entry)` zu `if (entry?.allowed)` geändert.
+
+---
+
+### Bug 5 — Toter Code `void duration`
+
+**Problem:** In `executor.ts` wurde `Date.now()` vor und nach der Tool-Ausführung gemessen, die `duration` aber sofort mit `void duration` verworfen — kein Logging, kein Nutzen. Der `void`-Ausdruck war nur da um den Lint-Fehler "unused variable" zu unterdrücken.
+
+**Fix:** `const start`, `const duration` und `void duration` vollständig entfernt.
+
+---
+
+## v0.1.5 — 26.05.2026 — Bug-Sprint (10 Fixes)
+
+**Ziel:** Systematische Behebung von 10 bekannten Bugs bevor Phase 3 beginnt.
+
+---
+
+### Behobene Bugs
+
+1. **\[Kritisch\] TS** — `list_memories` Handler gab falschen Typ zurück → in `{ success: true, output: rows }` gewrappt
+2. **\[Kritisch\] Logik** — `open_app` prüfte `homeworkMode` nicht → Check auf `homeworkMode.active` eingefügt
+3. **\[Mittel\] Tools** — `list_memories` fehlte in Tool-Definitionen → zu `MEMORY_TOOLS` in `definitions.ts` hinzugefügt
+4. **\[Mittel\] Registry** — `load_setup` fehlte in `ENABLED_TOOLS` → zu `registry.ts` hinzugefügt
+5. **\[Mittel\] Typen** — `list_memories` fehlte in `ToolName` Union → zu `packages/shared` hinzugefügt
+6. **\[Mittel\] Logik** — `sessionLimit` hardcodiert auf 40 → liest jetzt `getSettings().sessionLimit`
+7. **\[Mittel\] Safety** — Non-Streaming Path führte gefährliche Tools ohne Bestätigung aus → `onConfirm = async () => false` als Fallback
+8. **\[Niedrig\] TTS** — `ttsVoiceRef` nach `speak()` deklariert (stale Ref) → Reihenfolge getauscht
+9. **\[Niedrig\] Settings** — `ttsEnabled`/`ttsVoice` wurden nicht persistiert → Route-Handler aktualisiert
+10. **\[Niedrig\] Schema** — `sessions`, `session_messages`, `memories` fehlten in `schema.sql` → Tabellen nachgetragen
+
+---
+
+## v0.1.4 — 26.05.2026 — GPU-Beschleunigung + Sprachausgabe (TTS)
+
+**Ziel:** Ollama nutzt die dedizierte GPU für schnellere Inferenz. E.L.L.A. spricht Antworten laut aus.
+
+---
+
+### GPU-Beschleunigung
+
+**Ausgangsproblem:** `ollama list` zeigte keine Modelle obwohl das Modell (4.7 GB) bereits auf E: lag. Ollama suchte unter `C:\Users\JannR\.ollama\models` (leer).
+
+**Ursache:** `OLLAMA_MODELS`-Umgebungsvariable war nicht gesetzt. Ollama hatte das Modell in `E:\Ollama\blobs` ohne passende Manifests.
+
+**Fix:** `OLLAMA_MODELS=E:\Ollama` im User-Scope gesetzt, Ollama neugestartet — Manifests wurden aus den vorhandenen Blobs rekonstruiert.
+
+**Gemessene Performance:** 14.6 tokens/sec, VRAM-Auslastung 5.8 von 6.0 GB — Modell läuft vollständig auf der GPU (GTX 1060 6GB, CUDA 13.0). CPU-Referenz wäre 3–5 t/s.
+
+**Warum VRAM nicht dauerhaft belegt:** Ollama lädt das Modell erst beim ersten Inferenz-Request in den VRAM und gibt ihn nach `OLLAMA_KEEP_ALIVE` (Standard: 5 Min. Inaktivität) wieder frei. Zwischen Gesprächen ist der VRAM frei für andere Anwendungen.
+
+---
+
+### Sprachausgabe (TTS)
+
+**Entscheidung:** `window.speechSynthesis` (Web Speech API im Chromium-Renderer) statt separatem TTS-Service.
+
+**Warum kein externen TTS-Dienst:** `speechSynthesis` ist im Electron-Renderer direkt verfügbar, keine Latenz durch Netzwerkanfragen, vollständig offline. Windows-Stimmen (z.B. Microsoft Hedda) sind für deutsche Texte brauchbar.
+
+**Implementierung:**
+
+- Markdown-Stripping vor dem Sprechen: Überschriften (`#`), Betonungen (`*`, `_`, `` ` ``, `~`), Links (`[text](url)` → `text`)
+- Beim Start jeder neuen Nutzer-Sendung: `speechSynthesis.cancel()` um laufende Ausgabe zu unterbrechen
+- `onvoiceschanged`-Event für asynchrones Voice-Loading (Chromium gibt auf erstem `getVoices()`-Aufruf leeres Array zurück)
+- Sprachauswahl und Ein/Aus-Toggle persistent in `settings.json` gespeichert
+- Schnell-Toggle im Chat-Header (🔊/🔇) — speichert sofort ans Backend
+
+**Warum Ref statt State für TTS-Flag:** Der `speak()`-Callback wird in `sendText` aufgerufen, das selbst als `useCallback` mit Dependencies registriert ist. Ein direkter State-Zugriff würde stale Closures produzieren — `useRef` gibt immer den aktuellen Wert ohne Re-Render-Abhängigkeit.
+
+---
+
 ## v0.1.3 — 25.05.2026 — ML-Gedächtnisebene
 
 **Ziel:** E.L.L.A. baut ein persönliches Langzeitgedächtnis auf — automatisch durch Beobachtung, explizit durch Nutzerbefehl. Jedes Gespräch wird relevanter als das vorherige.
@@ -79,7 +184,7 @@ Drei Speichertypen:
 
 ### Ablauf pro Chat-Request
 
-```
+```text
 User-Nachricht eingetroffen
   → recall(message)        — Top-5 relevante Erinnerungen laden
   → buildSystemPrompt(…)   — Memories in System-Prompt einbetten
@@ -140,7 +245,7 @@ User-Nachricht eingetroffen
 
 ### LLM-Tool — `homework_mode`
 
-```
+```typescript
 homework_mode(action: "activate" | "deactivate", pin?: string)
 ```
 
@@ -233,7 +338,7 @@ LLM ruft clean_temp auf
 
 **Dynamische Tool-Definitionen:** `buildToolDefinitions(setups)` generiert das `load_setup`-Tool nur wenn Setups existieren und bettet die Setup-Namen in die Beschreibung ein:
 
-```
+```text
 "Startet alle Apps eines definierten Setups. Verfügbare Setups: "arbeit", "freizeit"."
 ```
 
@@ -697,7 +802,7 @@ Der `openaiClient` konvertiert beim Empfang in das interne Format. Der Tool-Loop
 
 **Provider-Status-Endpunkt:**
 
-```
+```text
 GET /api/chat/provider
 → { "provider": "openai", "model": "gpt-4o" }
 → { "provider": "ollama", "model": "llama3.1:8b" }

@@ -78,7 +78,7 @@ function killProcess(command: string): void {
 }
 
 async function loadSetup(args: Record<string, unknown>): Promise<ToolResult> {
-  const { setups, apps } = getSettings();
+  const { setups, apps, homeworkMode } = getSettings();
   const name = ((args.name as string) ?? "").toLowerCase();
   const setup = setups.find((s) => s.name.toLowerCase() === name);
 
@@ -107,6 +107,11 @@ async function loadSetup(args: Record<string, unknown>): Promise<ToolResult> {
         (a) => a.name.toLowerCase() === appName.toLowerCase(),
       );
       if (!entry?.allowed) return Promise.resolve(null);
+      if (
+        homeworkMode.active &&
+        !homeworkMode.apps.map((a) => a.toLowerCase()).includes(appName.toLowerCase())
+      )
+        return Promise.resolve(null);
       return openApp({ name: appName }, { [appName]: entry.command });
     }),
   );
@@ -184,9 +189,7 @@ export const toolExecutor = {
       }
     }
 
-    const start = Date.now();
     const result = await handler(call.args);
-    const duration = Date.now() - start;
 
     setImmediate(() => {
       pool
@@ -204,7 +207,6 @@ export const toolExecutor = {
         .catch(() => {});
     });
 
-    void duration;
     return result;
   },
 };

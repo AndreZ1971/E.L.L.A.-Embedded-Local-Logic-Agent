@@ -68,7 +68,9 @@ export const openaiClient = {
       body: JSON.stringify({
         model: "gpt-4o",
         messages: buildOpenAIMessages(messages, memories),
-        tools: tools.map((t) => ({ type: "function", function: t.function })),
+        ...(tools.length > 0 && {
+          tools: tools.map((t) => ({ type: "function", function: t.function })),
+        }),
       }),
     });
 
@@ -116,7 +118,9 @@ export const openaiClient = {
         model: "gpt-4o",
         stream: true,
         messages: buildOpenAIMessages(messages, memories),
-        tools: tools.map((t) => ({ type: "function", function: t.function })),
+        ...(tools.length > 0 && {
+          tools: tools.map((t) => ({ type: "function", function: t.function })),
+        }),
       }),
     });
 
