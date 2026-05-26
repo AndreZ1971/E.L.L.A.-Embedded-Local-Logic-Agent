@@ -97,6 +97,15 @@ export async function loadSettings(): Promise<void> {
         ...parsed.homeworkMode,
       };
     }
+    // Migrate enabledTools: add any new default tools missing from old settings files
+    if (Array.isArray(parsed.enabledTools)) {
+      const missing = DEFAULT_SETTINGS.enabledTools.filter(
+        (t) => !(parsed.enabledTools as string[]).includes(t),
+      );
+      if (missing.length > 0) {
+        parsed.enabledTools = [...parsed.enabledTools, ...missing];
+      }
+    }
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults
