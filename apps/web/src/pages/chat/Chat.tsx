@@ -95,6 +95,35 @@ const Chat: React.FC = () => {
   const [pinError, setPinError] = useState("");
   const [pinBusy, setPinBusy] = useState(false);
 
+  /* TTS state */
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const ttsEnabledRef = useRef(false);
+  const ttsVoiceRef = useRef("");
+  useEffect(() => {
+    ttsEnabledRef.current = ttsEnabled;
+  }, [ttsEnabled]);
+
+  const speak = useCallback((text: string) => {
+    if (!ttsEnabledRef.current) return;
+    window.speechSynthesis.cancel();
+    const clean = text
+      .replace(/#{1,6}\s?/g, "")
+      .replace(/[*_`~]/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .trim();
+    if (!clean) return;
+    const utt = new SpeechSynthesisUtterance(clean);
+    utt.lang = "de-DE";
+    const voices = window.speechSynthesis.getVoices();
+    const saved = ttsVoiceRef.current;
+    const match =
+      voices.find((v) => v.name === saved) ??
+      voices.find((v) => v.lang.startsWith("de"));
+    if (match) utt.voice = match;
+    utt.rate = 1.05;
+    window.speechSynthesis.speak(utt);
+  }, []);
+
   /* Voice state */
   const [voiceMode, setVoiceMode] = useState<VoiceMode>("off");
   const [voicePhase, setVoicePhase] = useState<VoicePhase>("idle");
@@ -126,69 +155,74 @@ const Chat: React.FC = () => {
   }, [messages, streaming, loading]);
 
   /* ── sendText ── */
-  const sendText = useCallback(async (text: string) => {
-    if (!text || loadingRef.current) return;
-    setMessages((p) => [...p, { role: "user", content: text }]);
-    setInput("");
-    setLoading(true);
-    setError("");
-    setStreaming("");
-    setToolStatus("");
-
-    try {
-      const res = await fetch(`${API}/api/chat/stream`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, sessionId: SESSION_ID }),
-      });
-      if (!res.ok) {
-        const err = (await res.json()) as { error?: string };
-        throw new Error(err.error ?? `HTTP ${res.status}`);
-      }
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let full = "";
-      outer: while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const raw = line.slice(6).trim();
-          if (!raw) continue;
-          const ev = JSON.parse(raw) as StreamEvent;
-          if (ev.type === "chunk") {
-            full += ev.text;
-            setStreaming(full);
-            setToolStatus("");
-          } else if (ev.type === "tool") {
-            setToolStatus(TOOL_LABELS[ev.name] ?? ev.name);
-          } else if (ev.type === "confirm") {
-            setToolStatus("");
-            setConfirms((p) => [
-              ...p,
-              { id: ev.id, tool: ev.tool, label: ev.label },
-            ]);
-          } else if (ev.type === "done") {
-            setMessages((p) => [...p, { role: "assistant", content: full }]);
-            setStreaming("");
-            setToolStatus("");
-            setConfirms([]);
-            break outer;
-          } else if (ev.type === "error") throw new Error(ev.message);
-        }
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler");
+  const sendText = useCallback(
+    async (text: string) => {
+      if (!text || loadingRef.current) return;
+      window.speechSynthesis.cancel();
+      setMessages((p) => [...p, { role: "user", content: text }]);
+      setInput("");
+      setLoading(true);
+      setError("");
       setStreaming("");
       setToolStatus("");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+
+      try {
+        const res = await fetch(`${API}/api/chat/stream`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text, sessionId: SESSION_ID }),
+        });
+        if (!res.ok) {
+          const err = (await res.json()) as { error?: string };
+          throw new Error(err.error ?? `HTTP ${res.status}`);
+        }
+        const reader = res.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let full = "";
+        outer: while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const raw = line.slice(6).trim();
+            if (!raw) continue;
+            const ev = JSON.parse(raw) as StreamEvent;
+            if (ev.type === "chunk") {
+              full += ev.text;
+              setStreaming(full);
+              setToolStatus("");
+            } else if (ev.type === "tool") {
+              setToolStatus(TOOL_LABELS[ev.name] ?? ev.name);
+            } else if (ev.type === "confirm") {
+              setToolStatus("");
+              setConfirms((p) => [
+                ...p,
+                { id: ev.id, tool: ev.tool, label: ev.label },
+              ]);
+            } else if (ev.type === "done") {
+              setMessages((p) => [...p, { role: "assistant", content: full }]);
+              setStreaming("");
+              setToolStatus("");
+              setConfirms([]);
+              speak(full);
+              break outer;
+            } else if (ev.type === "error") throw new Error(ev.message);
+          }
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Unbekannter Fehler");
+        setStreaming("");
+        setToolStatus("");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [speak],
+  );
 
   useEffect(() => {
     sendFnRef.current = sendText;
@@ -348,6 +382,8 @@ const Chat: React.FC = () => {
     Promise.all([
       fetch(`${API}/api/settings`).then((r) => r.json()) as Promise<{
         voiceMode?: VoiceMode;
+        ttsEnabled?: boolean;
+        ttsVoice?: string;
       }>,
       fetch(`${API}/api/homework/status`).then((r) => r.json()) as Promise<{
         active: boolean;
@@ -359,6 +395,9 @@ const Chat: React.FC = () => {
         voiceModeRef.current = m;
         setVoiceMode(m);
         if (m === "wakeword") setTimeout(() => startWakeRef.current(), 500);
+        ttsEnabledRef.current = s.ttsEnabled ?? false;
+        setTtsEnabled(s.ttsEnabled ?? false);
+        ttsVoiceRef.current = s.ttsVoice ?? "";
         setHomeworkActive(h.active);
         setHomeworkConfigured(h.configured);
       })

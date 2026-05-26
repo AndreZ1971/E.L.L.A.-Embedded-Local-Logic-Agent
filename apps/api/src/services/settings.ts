@@ -31,6 +31,8 @@ export interface Settings {
   voiceMode: "off" | "manual" | "wakeword";
   setups: Setup[];
   homeworkMode: HomeworkModeConfig;
+  ttsEnabled: boolean;
+  ttsVoice: string;
 }
 
 const SETTINGS_PATH = path.join(
@@ -52,6 +54,8 @@ export const DEFAULT_SETTINGS: Settings = {
   voiceMode: "off",
   setups: [],
   homeworkMode: { pinHash: "", apps: [], active: false },
+  ttsEnabled: false,
+  ttsVoice: "",
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },

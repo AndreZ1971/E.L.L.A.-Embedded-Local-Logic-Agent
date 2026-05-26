@@ -26,6 +26,7 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 | Hausaufgaben-Modus          | v0.1.2  | PIN-Kiosk: aktivieren ohne PIN, deaktivieren mit PIN, SHA-256   |
 | ML-Gedächtnisebene          | v0.1.3  | nomic-embed-text, Cosinus-Suche, auto Extraktion, 3 Typen       |
 | GPU-Beschleunigung          | v0.1.4  | GTX 1060, CUDA 13.0, 14.6 t/s, Modell vollständig im VRAM       |
+| Sprachausgabe (TTS)         | v0.1.4  | window.speechSynthesis, Stimme einstellbar, MD-Stripping        |
 
 ---
 

@@ -32,6 +32,8 @@ interface Settings {
   voiceMode: "off" | "manual" | "wakeword";
   setups: Setup[];
   homeworkMode: HomeworkModeConfig;
+  ttsEnabled: boolean;
+  ttsVoice: string;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -88,6 +90,16 @@ const Settings: React.FC = () => {
   const [scanning, setScanning] = useState(false);
   const [filter, setFilter] = useState("");
   const [selectedSetupId, setSelectedSetupId] = useState<string | null>(null);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    const load = () => setVoices(window.speechSynthesis.getVoices());
+    load();
+    window.speechSynthesis.onvoiceschanged = load;
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
 
   // Hausaufgaben-Modus PIN-Formular
   const [pinCurrent, setPinCurrent] = useState("");
@@ -413,6 +425,54 @@ const Settings: React.FC = () => {
               >
                 Key entfernen
               </button>
+            )}
+          </Section>
+
+          <Section title="Sprachausgabe (TTS)">
+            <label style={{ ...rowLabel, marginBottom: 14 }}>
+              <input
+                type="checkbox"
+                checked={settings.ttsEnabled ?? false}
+                onChange={(e) => patch({ ttsEnabled: e.target.checked })}
+                style={{ accentColor: "#7c6af7", width: 15, height: 15 }}
+              />
+              <span
+                style={{ color: settings.ttsEnabled ? "#e2e8f0" : "#94a3b8" }}
+              >
+                E.L.L.A. spricht Antworten vor
+              </span>
+            </label>
+            {voices.length > 0 && (
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.8rem",
+                    color: "#64748b",
+                    marginBottom: 6,
+                  }}
+                >
+                  Stimme
+                </div>
+                <select
+                  value={settings.ttsVoice ?? ""}
+                  onChange={(e) => patch({ ttsVoice: e.target.value })}
+                  disabled={!settings.ttsEnabled}
+                  style={{
+                    ...input,
+                    width: "100%",
+                    opacity: settings.ttsEnabled ? 1 : 0.4,
+                  }}
+                >
+                  <option value="">
+                    — Automatisch (erste deutsche Stimme) —
+                  </option>
+                  {voices.map((v) => (
+                    <option key={v.name} value={v.name}>
+                      {v.name} ({v.lang})
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
           </Section>
         </>
