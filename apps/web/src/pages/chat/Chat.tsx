@@ -53,16 +53,9 @@ interface Message {
   role: "user" | "assistant";
   content: string;
 }
-interface ConfirmRequest {
-  id: string;
-  tool: string;
-  label: string;
-}
-
 type StreamEvent =
   | { type: "chunk"; text: string }
   | { type: "tool"; name: string }
-  | { type: "confirm"; id: string; tool: string; label: string }
   | { type: "done" }
   | { type: "error"; message: string };
 
@@ -84,7 +77,6 @@ const Chat: React.FC = () => {
   const [toolStatus, setToolStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [confirms, setConfirms] = useState<ConfirmRequest[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   /* Hausaufgaben-Modus */
@@ -197,17 +189,10 @@ const Chat: React.FC = () => {
               setToolStatus("");
             } else if (ev.type === "tool") {
               setToolStatus(TOOL_LABELS[ev.name] ?? ev.name);
-            } else if (ev.type === "confirm") {
-              setToolStatus("");
-              setConfirms((p) => [
-                ...p,
-                { id: ev.id, tool: ev.tool, label: ev.label },
-              ]);
             } else if (ev.type === "done") {
               setMessages((p) => [...p, { role: "assistant", content: full }]);
               setStreaming("");
               setToolStatus("");
-              setConfirms([]);
               speak(full);
               break outer;
             } else if (ev.type === "error") throw new Error(ev.message);
@@ -228,14 +213,6 @@ const Chat: React.FC = () => {
     sendFnRef.current = sendText;
   }, [sendText]);
   const send = useCallback(() => sendText(input.trim()), [input, sendText]);
-
-  /* ── Tool-Bestätigung ── */
-  const resolveConfirm = useCallback(async (id: string, approved: boolean) => {
-    setConfirms((p) => p.filter((c) => c.id !== id));
-    await fetch(`${API}/api/approvals/${id}/${approved ? "confirm" : "deny"}`, {
-      method: "POST",
-    });
-  }, []);
 
   /* ── Voice helpers ── */
   const setPhase = useCallback((p: VoicePhase) => {
@@ -744,68 +721,6 @@ const Chat: React.FC = () => {
           </div>
         )}
 
-        {/* Bestätigungs-Cards */}
-        {confirms.map((c) => (
-          <div
-            key={c.id}
-            style={{
-              alignSelf: "flex-start",
-              background: "#1a1d27",
-              border: "1px solid #7c6af7",
-              borderRadius: 8,
-              padding: "14px 16px",
-              maxWidth: "75%",
-            }}
-          >
-            <div
-              style={{ fontSize: "0.8rem", color: "#94a3b8", marginBottom: 8 }}
-            >
-              <span style={{ color: "#7c6af7" }}>⚙</span> E.L.L.A. möchte
-              ausführen:
-            </div>
-            <div
-              style={{
-                fontSize: "0.9rem",
-                color: "#e2e8f0",
-                marginBottom: 12,
-                fontWeight: 500,
-              }}
-            >
-              {c.label}
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                onClick={() => resolveConfirm(c.id, true)}
-                style={{
-                  padding: "6px 16px",
-                  borderRadius: 5,
-                  border: "none",
-                  background: "#22c55e",
-                  color: "#0f1117",
-                  cursor: "pointer",
-                  fontSize: "0.85rem",
-                  fontWeight: 600,
-                }}
-              >
-                Bestätigen
-              </button>
-              <button
-                onClick={() => resolveConfirm(c.id, false)}
-                style={{
-                  padding: "6px 16px",
-                  borderRadius: 5,
-                  border: "1px solid #7f1d1d",
-                  background: "transparent",
-                  color: "#f87171",
-                  cursor: "pointer",
-                  fontSize: "0.85rem",
-                }}
-              >
-                Ablehnen
-              </button>
-            </div>
-          </div>
-        ))}
         {streaming && (
           <div
             style={{

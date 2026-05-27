@@ -22,6 +22,17 @@ interface HomeworkModeConfig {
   active: boolean;
 }
 
+interface Rule {
+  id: number;
+  name: string;
+  tool_name: string;
+  trigger: string;
+  action: "allow" | "deny";
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 interface Settings {
   provider: "auto" | "openai" | "ollama";
   ollamaModel: string;
@@ -83,7 +94,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   </div>
 );
 
-type Tab = "llm" | "tools" | "programme" | "setups" | "modus";
+type Tab = "llm" | "tools" | "programme" | "setups" | "modus" | "regeln";
 
 const Settings: React.FC = () => {
   const [tab, setTab] = useState<Tab>("llm");
@@ -95,6 +106,14 @@ const Settings: React.FC = () => {
   const [filter, setFilter] = useState("");
   const [selectedSetupId, setSelectedSetupId] = useState<string | null>(null);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [rules, setRules] = useState<Rule[]>([]);
+  const [newRule, setNewRule] = useState<{
+    name: string;
+    tool_name: string;
+    trigger: string;
+    action: "allow" | "deny";
+  }>({ name: "", tool_name: "*", trigger: "always", action: "allow" });
+  const [ruleSaving, setRuleSaving] = useState(false);
 
   useEffect(() => {
     const load = () => setVoices(window.speechSynthesis.getVoices());
@@ -114,15 +133,24 @@ const Settings: React.FC = () => {
     null,
   );
 
+  const loadRules = async () => {
+    const data = (await fetch(`${API}/api/rules`).then((r) =>
+      r.json(),
+    )) as Rule[];
+    setRules(data);
+  };
+
   useEffect(() => {
     Promise.all([
       fetch(`${API}/api/settings`).then((r) => r.json()) as Promise<Settings>,
       fetch(`${API}/api/settings/models`).then((r) => r.json()) as Promise<{
         models: string[];
       }>,
-    ]).then(([s, m]) => {
+      fetch(`${API}/api/rules`).then((r) => r.json()) as Promise<Rule[]>,
+    ]).then(([s, m, r]) => {
       setSettings(s);
       setModels(m.models);
+      setRules(r);
     });
   }, []);
 
@@ -259,6 +287,39 @@ const Settings: React.FC = () => {
     }
   };
 
+  const toggleRuleEnabled = async (id: number) => {
+    await fetch(`${API}/api/rules/${id}/toggle`, { method: "PATCH" });
+    setRules((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)),
+    );
+  };
+
+  const deleteRule = async (id: number) => {
+    await fetch(`${API}/api/rules/${id}`, { method: "DELETE" });
+    setRules((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const addRule = async () => {
+    if (!newRule.name.trim()) return;
+    setRuleSaving(true);
+    try {
+      await fetch(`${API}/api/rules`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newRule),
+      });
+      setNewRule({
+        name: "",
+        tool_name: "*",
+        trigger: "always",
+        action: "allow",
+      });
+      await loadRules();
+    } finally {
+      setRuleSaving(false);
+    }
+  };
+
   const save = async () => {
     if (!settings) return;
     setSaving(true);
@@ -294,6 +355,7 @@ const Settings: React.FC = () => {
     setups: `Setups (${(settings.setups ?? []).length})`,
     programme: `Programme (${allowedCount})`,
     modus: settings.homeworkMode?.active ? "🔒 Modus" : "Modus",
+    regeln: `Regeln (${rules.length})`,
   };
 
   const rowLabel: React.CSSProperties = {
@@ -326,28 +388,28 @@ const Settings: React.FC = () => {
           flexShrink: 0,
         }}
       >
-        {(["llm", "tools", "setups", "programme", "modus"] as Tab[]).map(
-          (t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              style={{
-                padding: "8px 18px",
-                background: "transparent",
-                border: "none",
-                borderBottom:
-                  tab === t ? "2px solid #7c6af7" : "2px solid transparent",
-                color: tab === t ? "#e2e8f0" : "#64748b",
-                cursor: "pointer",
-                fontSize: "0.9rem",
-                fontWeight: tab === t ? 600 : 400,
-                marginBottom: -1,
-              }}
-            >
-              {TAB_LABELS[t]}
-            </button>
-          ),
-        )}
+        {(
+          ["llm", "tools", "setups", "programme", "modus", "regeln"] as Tab[]
+        ).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              padding: "8px 18px",
+              background: "transparent",
+              border: "none",
+              borderBottom:
+                tab === t ? "2px solid #7c6af7" : "2px solid transparent",
+              color: tab === t ? "#e2e8f0" : "#64748b",
+              cursor: "pointer",
+              fontSize: "0.9rem",
+              fontWeight: tab === t ? 600 : 400,
+              marginBottom: -1,
+            }}
+          >
+            {TAB_LABELS[t]}
+          </button>
+        ))}
       </div>
 
       {/* ── Tab: LLM ─────────────────────────────────────────── */}
@@ -1120,6 +1182,206 @@ const Settings: React.FC = () => {
               })}
             </div>
           </Section>
+        </div>
+      )}
+
+      {/* ── Tab: Regeln ──────────────────────────────────────── */}
+      {tab === "regeln" && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 14,
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          {/* Neue Regel */}
+          <Section title="Neue Regel">
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <input
+                value={newRule.name}
+                onChange={(e) =>
+                  setNewRule((r) => ({ ...r, name: e.target.value }))
+                }
+                placeholder="Name der Regel"
+                style={{ ...input, width: "100%" }}
+              />
+              <div style={{ display: "flex", gap: 8 }}>
+                <select
+                  value={newRule.tool_name}
+                  onChange={(e) =>
+                    setNewRule((r) => ({ ...r, tool_name: e.target.value }))
+                  }
+                  style={{ ...input, flex: 1 }}
+                >
+                  <option value="*">* (alle Tools)</option>
+                  {ALL_TOOLS.map((t) => (
+                    <option key={t.name} value={t.name}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={newRule.action}
+                  onChange={(e) =>
+                    setNewRule((r) => ({
+                      ...r,
+                      action: e.target.value as "allow" | "deny",
+                    }))
+                  }
+                  style={{
+                    ...input,
+                    width: 100,
+                    color: newRule.action === "allow" ? "#4ade80" : "#f87171",
+                  }}
+                >
+                  <option value="allow">allow</option>
+                  <option value="deny">deny</option>
+                </select>
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  value={newRule.trigger}
+                  onChange={(e) =>
+                    setNewRule((r) => ({ ...r, trigger: e.target.value }))
+                  }
+                  placeholder="Bedingung: always · hour > 18 · disk_C > 90"
+                  style={{ ...input, flex: 1 }}
+                />
+                <button
+                  onClick={addRule}
+                  disabled={ruleSaving || !newRule.name.trim()}
+                  style={{
+                    padding: "8px 18px",
+                    borderRadius: 6,
+                    background:
+                      ruleSaving || !newRule.name.trim()
+                        ? "#2d3148"
+                        : "#7c6af7",
+                    color: "#fff",
+                    border: "none",
+                    cursor:
+                      ruleSaving || !newRule.name.trim()
+                        ? "not-allowed"
+                        : "pointer",
+                    fontSize: "0.85rem",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {ruleSaving ? "…" : "+ Hinzufügen"}
+                </button>
+              </div>
+            </div>
+          </Section>
+
+          {/* Regeln-Liste */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              background: "#1a1d27",
+              border: "1px solid #2d3148",
+              borderRadius: 8,
+            }}
+          >
+            {rules.length === 0 && (
+              <div
+                style={{
+                  padding: 20,
+                  color: "#64748b",
+                  fontSize: "0.85rem",
+                  textAlign: "center",
+                }}
+              >
+                Noch keine Regeln. Ohne Erlaubnis-Regel sind alle Tools
+                gesperrt.
+              </div>
+            )}
+            {rules.map((rule) => (
+              <div
+                key={rule.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "9px 14px",
+                  borderBottom: "1px solid #1e2133",
+                  opacity: rule.enabled ? 1 : 0.45,
+                }}
+              >
+                {/* Toggle */}
+                <input
+                  type="checkbox"
+                  checked={rule.enabled}
+                  onChange={() => toggleRuleEnabled(rule.id)}
+                  style={{
+                    accentColor: "#7c6af7",
+                    width: 15,
+                    height: 15,
+                    flexShrink: 0,
+                    cursor: "pointer",
+                  }}
+                />
+                {/* Action badge */}
+                <span
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    padding: "2px 7px",
+                    borderRadius: 4,
+                    background: rule.action === "allow" ? "#14532d" : "#7f1d1d",
+                    color: rule.action === "allow" ? "#4ade80" : "#f87171",
+                    flexShrink: 0,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {rule.action}
+                </span>
+                {/* Name */}
+                <span
+                  style={{
+                    flex: 1,
+                    fontSize: "0.875rem",
+                    color: "#e2e8f0",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {rule.name}
+                </span>
+                {/* Tool + Trigger */}
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#64748b",
+                    fontFamily: "monospace",
+                    flexShrink: 0,
+                  }}
+                >
+                  {rule.tool_name} · {rule.trigger}
+                </span>
+                {/* Delete */}
+                <button
+                  onClick={() => deleteRule(rule.id)}
+                  style={{
+                    padding: "3px 8px",
+                    borderRadius: 4,
+                    background: "transparent",
+                    border: "1px solid #7f1d1d",
+                    color: "#f87171",
+                    cursor: "pointer",
+                    fontSize: "0.75rem",
+                    flexShrink: 0,
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

@@ -4,7 +4,6 @@ import { openaiClient } from "../services/openai.js";
 import { toolExecutor } from "../tools/executor.js";
 import { buildToolDefinitions } from "../tools/definitions.js";
 import { sessionStore } from "../services/sessions.js";
-import { requestApproval } from "../services/approvals.js";
 import { env } from "../config/env.js";
 import { getSettings } from "../services/settings.js";
 import { recall, extractAndRemember } from "../services/memory.js";
@@ -52,7 +51,6 @@ chatRouter.post("/", async (req, res, next) => {
     history.push({ role: "user", content: message });
 
     const memories = await recall(message);
-
     const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
       history.map((m) => ({ ...m, id: "", createdAt: "" })),
     );
@@ -71,18 +69,13 @@ chatRouter.post("/", async (req, res, next) => {
         break;
       }
 
-      // Tool-Calls ausführen
       messages.push(assistantMsg);
 
       for (const call of assistantMsg.tool_calls) {
-        const toolName = call.function.name as ToolName;
-        // Non-Streaming hat keine SSE — gefährliche Tools werden hier blockiert
-        const onConfirm = async () => false;
-        const result = await toolExecutor.execute(
-          { tool: toolName, args: call.function.arguments },
-          onConfirm,
-        );
-
+        const result = await toolExecutor.execute({
+          tool: call.function.name as ToolName,
+          args: call.function.arguments,
+        });
         messages.push({
           role: "tool",
           tool_call_id: call.id,
@@ -91,9 +84,7 @@ chatRouter.post("/", async (req, res, next) => {
       }
     }
 
-    if (!finalReply) {
-      finalReply = "Ich konnte keine Antwort generieren.";
-    }
+    if (!finalReply) finalReply = "Ich konnte keine Antwort generieren.";
 
     history.push({ role: "assistant", content: finalReply });
     await sessionStore.set(sessionId, history);
@@ -135,7 +126,6 @@ chatRouter.post("/stream", async (req, res) => {
   history.push({ role: "user", content: message });
 
   const memories = await recall(message);
-
   const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
     history.map((m) => ({ ...m, id: "", createdAt: "" })),
   );
@@ -174,17 +164,10 @@ chatRouter.post("/stream", async (req, res) => {
 
       for (const call of roundToolCalls) {
         emit({ type: "tool", name: call.function.name });
-        const onConfirm = async (id: string, tool: string, label: string) => {
-          emit({ type: "confirm", id, tool, label });
-          return requestApproval(id);
-        };
-        const result = await toolExecutor.execute(
-          {
-            tool: call.function.name as ToolName,
-            args: call.function.arguments,
-          },
-          onConfirm,
-        );
+        const result = await toolExecutor.execute({
+          tool: call.function.name as ToolName,
+          args: call.function.arguments,
+        });
         messages.push({
           role: "tool",
           tool_call_id: call.id,
@@ -213,7 +196,6 @@ chatRouter.post("/stream", async (req, res) => {
   res.end();
 });
 
-// Provider-Status
 chatRouter.get("/provider", (_req, res) => {
   const p = resolveProvider();
   const s = getSettings();
@@ -223,13 +205,11 @@ chatRouter.get("/provider", (_req, res) => {
   });
 });
 
-// Verlauf abrufen
 chatRouter.get("/history/:sessionId", async (req, res) => {
   const history = await sessionStore.get(req.params.sessionId);
   res.json({ messages: history, sessionId: req.params.sessionId });
 });
 
-// Verlauf löschen
 chatRouter.delete("/history/:sessionId", async (req, res) => {
   await sessionStore.clear(req.params.sessionId);
   res.json({ ok: true });

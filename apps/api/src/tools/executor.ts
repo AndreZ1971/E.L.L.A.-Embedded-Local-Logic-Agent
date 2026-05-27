@@ -18,18 +18,11 @@ import {
   listMemories,
   trackToolUsage,
 } from "../services/memory.js";
+import { evaluateRules } from "../services/rules.js";
 import { pool } from "../config/database.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
-type ConfirmFn = (id: string, tool: string, label: string) => Promise<boolean>;
-
-const DANGEROUS = new Set<ToolName>(["clean_temp", "empty_recycle_bin"]);
-
-const DANGEROUS_LABELS: Partial<Record<ToolName, string>> = {
-  clean_temp: "Temporäre Dateien löschen",
-  empty_recycle_bin: "Papierkorb leeren",
-};
 
 async function openAppWithSettings(
   args: Record<string, unknown>,
@@ -42,25 +35,22 @@ async function openAppWithSettings(
       .filter((a) => a.allowed)
       .map((a) => a.name)
       .join(", ");
-    return Promise.resolve({
+    return {
       success: false,
       error: `Unbekannte App: '${name}'. Erlaubt: ${known || "keine"}`,
-    });
+    };
   }
   if (!entry.allowed) {
-    return Promise.resolve({
-      success: false,
-      error: `'${name}' ist verboten.`,
-    });
+    return { success: false, error: `'${name}' ist verboten.` };
   }
   if (
     homeworkMode.active &&
     !homeworkMode.apps.map((a) => a.toLowerCase()).includes(name)
   ) {
-    return Promise.resolve({
+    return {
       success: false,
       error: `Hausaufgaben-Modus aktiv — '${name}' ist nicht erlaubt.`,
-    });
+    };
   }
   const result = await openApp({ name }, { [name]: entry.command });
   if (result.success) trackToolUsage("open_app", name);
@@ -90,26 +80,24 @@ async function loadSetup(args: Record<string, unknown>): Promise<ToolResult> {
     };
   }
 
-  // Apps schließen
-  const toClose = setup.close ?? [];
-  for (const appName of toClose) {
+  for (const appName of setup.close ?? []) {
     const entry = apps.find(
       (a) => a.name.toLowerCase() === appName.toLowerCase(),
     );
     if (entry) killProcess(entry.command);
   }
 
-  // Apps öffnen
-  const toOpen = setup.open ?? [];
   const results = await Promise.allSettled(
-    toOpen.map((appName) => {
+    (setup.open ?? []).map((appName) => {
       const entry = apps.find(
         (a) => a.name.toLowerCase() === appName.toLowerCase(),
       );
       if (!entry?.allowed) return Promise.resolve(null);
       if (
         homeworkMode.active &&
-        !homeworkMode.apps.map((a) => a.toLowerCase()).includes(appName.toLowerCase())
+        !homeworkMode.apps
+          .map((a) => a.toLowerCase())
+          .includes(appName.toLowerCase())
       )
         return Promise.resolve(null);
       return openApp({ name: appName }, { [appName]: entry.command });
@@ -122,7 +110,8 @@ async function loadSetup(args: Record<string, unknown>): Promise<ToolResult> {
 
   const parts: string[] = [];
   if (opened > 0) parts.push(`${opened} gestartet`);
-  if (toClose.length > 0) parts.push(`${toClose.length} geschlossen`);
+  if ((setup.close ?? []).length > 0)
+    parts.push(`${setup.close.length} geschlossen`);
 
   trackToolUsage("load_setup", setup.name);
   return {
@@ -166,27 +155,30 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
 };
 
 export const toolExecutor = {
-  execute: async (
-    call: ToolCall,
-    onConfirm?: ConfirmFn,
-  ): Promise<ToolResult> => {
+  execute: async (call: ToolCall): Promise<ToolResult> => {
     const name = call.tool;
 
     if (!toolRegistry.isEnabled(name)) {
       return { success: false, error: `Tool '${name}' is not enabled.` };
     }
+
+    const decision = await evaluateRules(name);
+    if (decision === "deny") {
+      return {
+        success: false,
+        error: `Direktive verweigert '${name}'. Diese Aktion ist dauerhaft gesperrt.`,
+      };
+    }
+    if (decision === "no_match") {
+      return {
+        success: false,
+        error: `Keine Erlaubnis-Regel für '${name}'. Erstelle eine Regel unter Einstellungen → Regeln.`,
+      };
+    }
+
     const handler = HANDLERS[name];
     if (!handler) {
       return { success: false, error: `Tool '${name}' has no handler.` };
-    }
-
-    if (DANGEROUS.has(name) && onConfirm) {
-      const id = crypto.randomUUID();
-      const label = DANGEROUS_LABELS[name] ?? name;
-      const approved = await onConfirm(id, name, label);
-      if (!approved) {
-        return { success: false, error: "Vom Benutzer abgelehnt." };
-      }
     }
 
     const result = await handler(call.args);

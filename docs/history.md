@@ -4,6 +4,88 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v0.3.0 — 27.05.2026 — Rule Engine + Oberste Direktive
+
+**Ziel:** Approval-System durch eine regelbasierte Ausführungskontrolle ersetzen. Jede Tool-Ausführung wird gegen konfigurierbare Regeln geprüft — kein Tool läuft ohne explizite Erlaubnis.
+
+---
+
+### Architektur-Entscheidung: Regeln statt Freigabe-Pause
+
+**Problem:** Das bisherige Approval-System pausierte den SSE-Stream und wartete auf Nutzer-Klick im Chat. Das war fragil (Stream-Timeout bei Inaktivität), schlecht erweiterbar und erzeugte UI-Schulden (Bestätigungs-Cards im Chat).
+
+**Lösung:** Synchrone Regel-Evaluierung vor jeder Tool-Ausführung. Reihenfolge: `DIRECTIVE_DENY` (hardcodiert, unveränderlich) → `deny`-Regeln → `allow`-Regeln → `no_match` → abgelehnt mit Erklärung.
+
+**Warum Default-Deny:** Ohne passende Erlaubnis-Regel wird kein Tool ausgeführt. Bei Neuinstallation gibt es 7 Default-Regeln (per `INSERT IGNORE`). `clean_temp` und `empty_recycle_bin` haben bewusst keine Default-Regel — der Nutzer muss sie explizit freischalten.
+
+---
+
+### Oberste Direktive
+
+**Was:** `DIRECTIVE_DENY` in `executor.ts` ist ein hardcodiertes `Set<ToolName>` — niemals in der DB, niemals konfigurierbar. Aktuell leer, Architektur etabliert für zukünftige unumkehrbare Sperren.
+
+**Warum hardcodiert:** Regeln in der DB können gelöscht werden. Die Direktive nicht. Das ist der Unterschied zwischen "Nutzer-Präferenz" und "System-Invariante".
+
+---
+
+### Neue Dateien
+
+**`apps/api/src/services/rules.ts`:** CRUD + `evaluateRules(toolName)`. Trigger-Parser unterstützt `always`, `hour > N`, `hour < N`, `disk_X > N` (via `wmic`). SQL-Reihenfolge via `FIELD(action, 'deny', 'allow')` — deny-Regeln gewinnen immer.
+
+**`apps/api/src/routes/rules.ts`:** REST-Endpunkte `GET/POST /api/rules`, `PUT/DELETE/PATCH /:id` und `PATCH /:id/toggle`.
+
+---
+
+### Entfernte Komponenten
+
+- `apps/api/src/services/approvals.ts` — gelöscht
+- `apps/api/src/routes/approvals.ts` — gelöscht
+- `approvals`-Tabelle aus `schema.sql` entfernt
+- `ConfirmRequest`-Interface, `confirms`-State, Bestätigungs-Cards-JSX aus `Chat.tsx` entfernt
+- `confirm`-Event-Typ aus `StreamEvent`-Union entfernt
+
+---
+
+### Settings: Regeln-Tab
+
+Neuer Tab in Settings.tsx mit vollständiger Regel-Verwaltung: Neue Regel anlegen (Name, Tool, Trigger, allow/deny), bestehende Regeln aktivieren/deaktivieren per Toggle, löschen. Rules werden direkt via API gespeichert — kein globaler "Speichern"-Button nötig.
+
+---
+
+## v0.2.0 — 27.05.2026 — Stability Sprint
+
+**Ziel:** Schemaevolution sauber automatisieren, Neuinstallation ohne manuelle DB-Schritte ermöglichen, `list_running_processes` endgültig entfernen.
+
+---
+
+### Idempotentes Schema
+
+Alle `CREATE TABLE`-Statements in `schema.sql` verwenden `IF NOT EXISTS`. Das Schema kann beliebig oft ausgeführt werden ohne Fehler. Vorher: einmaliger Setup-Schritt per Hand. Jetzt: läuft bei jedem API-Start sicher durch.
+
+---
+
+### Auto-Migration beim Start
+
+**`apps/api/src/config/migrate.ts`:** Liest `schema.sql`, führt jeden Statement aus, ignoriert "already exists"- und "Duplicate entry"-Fehler, wirft bei echten Fehlern. Startup-Sequenz in `index.ts`: `loadSettings().then(runMigrations).then(() => app.listen(...))`.
+
+**Seed-Regeln per `INSERT IGNORE`:** 7 Default-Allow-Regeln mit festen IDs (1–7). `INSERT IGNORE` ist idempotent — bei Neuinstallation werden sie angelegt, bei bestehendem System übersprungen. `clean_temp` und `empty_recycle_bin` bewusst ohne Default-Regel.
+
+---
+
+### `list_running_processes` entfernt
+
+Das Tool war nie implementiert (kein Handler, keine Definition). Als Platzhalter für Phase 3 (Proaktives Monitoring) vorgesehen. Sauber aus `ToolName`, `enabledTools`-Migration und allen Typen entfernt — kein toter Code bleibt zurück.
+
+---
+
+## v0.1.7 — 27.05.2026 — enabledTools Migration Fix
+
+**Problem:** Nach dem Upgrade auf v0.1.5/v0.1.6 fehlten `remember`, `forget`, `homework_mode` in `enabledTools` — `loadSettings()` migrierte sie nicht. Diese Tools waren im Code vorhanden, aber das LLM konnte sie nicht aufrufen weil sie nicht in der enabled-Liste standen.
+
+**Fix:** Migration in `loadSettings()` ergänzt: alle bekannten Tools werden geprüft, fehlende werden zur Liste hinzugefügt und persistent gespeichert.
+
+---
+
 ## v0.1.6 — 26.05.2026 — Code-Analyse Bug-Fixes
 
 **Ziel:** Systematische Code-Analyse aller Backend-Services. Fünf Bugs gefunden und behoben.
