@@ -4,6 +4,42 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v0.4.1 — 27.05.2026 — Onboarding & Erster Start
+
+**Ziel:** E.L.L.A. lernt das System beim ersten Start kennen und beginnt den Dialog.
+
+---
+
+### First-Run-Erkennung
+
+`onboardingComplete: boolean` in Settings (Default: `false`). `App.tsx` prüft beim Start via `GET /api/onboarding/status` — ist der Wert `false`, wird sofort nach `/onboarding` umgeleitet. Die Onboarding-Seite rendert ohne Sidebar als Vollbild-Overlay. Nach Abschluss navigiert sie nach `/chat`.
+
+**Warum Client-seitig geprüft:** Der Status liegt in `settings.json` — kein separater DB-State nötig. API-Fehler beim Check → Onboarding wird übersprungen, App startet normal.
+
+---
+
+### System-Scan (`services/systemScan.ts`)
+
+PowerShell-Scan via `wmic`: CPU-Name, GPU-Name (VideoController), Computername. RAM aus Node.js `os.totalmem()`. Alle vier Werte werden als `system`-Memories gespeichert. Scan läuft nur einmal beim Onboarding — danach greift `get_system_info` auf die gespeicherten Memories zurück.
+
+---
+
+### Onboarding-Flow (3 Schritte)
+
+- **Schritt 1:** Willkommen mit Computername, "System kennenlernen"-Button startet Scan
+- **Schritt 2:** Scan-Ergebnis (CPU/GPU/RAM) + Namens-Eingabe ("Wie darf ich dich nennen?")
+- **Schritt 3:** Bestätigung + "Los geht's →"-Button → `POST /api/onboarding/complete`
+
+"Überspringen" auf jedem Schritt sichtbar — Onboarding blockiert nie.
+
+---
+
+### `get_system_info` Tool
+
+Neues Tool in `ToolName`, `definitions.ts`, `executor.ts`. Gibt live-gescannte Hardware + alle gespeicherten `system`-Memories zurück. Default-Allow-Regel (ID 8) per `INSERT IGNORE` in der Migration.
+
+---
+
 ## v0.4.0 — 27.05.2026 — Proaktives Monitoring
 
 **Ziel:** E.L.L.A. beobachtet das System im Hintergrund und meldet Probleme ohne auf einen Chat-Befehl zu warten.

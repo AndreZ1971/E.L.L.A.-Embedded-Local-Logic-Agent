@@ -132,6 +132,19 @@ const MEMORY_TOOLS: OllamaTool[] = [
   },
 ];
 
+const SYSTEM_INFO_TOOL: OllamaTool = {
+  type: "function",
+  function: {
+    name: "get_system_info",
+    description:
+      "Gibt gespeicherte Informationen über diesen Computer zurück — CPU, GPU, RAM, Computername. Nutze dies wenn der Nutzer nach seinem System fragt.",
+    parameters: {
+      type: "object",
+      properties: {},
+    },
+  },
+};
+
 const HOMEWORK_TOOL: OllamaTool = {
   type: "function",
   function: {
@@ -158,7 +171,12 @@ const HOMEWORK_TOOL: OllamaTool = {
 };
 
 export function buildToolDefinitions(setups: Setup[]): OllamaTool[] {
-  const defs = [...TOOL_DEFINITIONS, ...MEMORY_TOOLS, HOMEWORK_TOOL];
+  const defs = [
+    ...TOOL_DEFINITIONS,
+    ...MEMORY_TOOLS,
+    HOMEWORK_TOOL,
+    SYSTEM_INFO_TOOL,
+  ];
 
   if (setups.length > 0) {
     const names = setups.map((s) => `"${s.name.toLowerCase()}"`).join(", ");

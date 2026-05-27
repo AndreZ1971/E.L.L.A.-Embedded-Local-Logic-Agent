@@ -7,7 +7,8 @@ export type ToolName =
   | "list_memories"
   | "homework_mode"
   | "remember"
-  | "forget";
+  | "forget"
+  | "get_system_info";
 
 export interface ToolCall {
   tool: ToolName;

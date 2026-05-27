@@ -59,7 +59,8 @@ export async function runMigrations(): Promise<void> {
       (4, 'Erinnerungen löschen erlaubt',   'forget',         'always', 'allow', TRUE),
       (5, 'Erinnerungen auflisten erlaubt', 'list_memories',  'always', 'allow', TRUE),
       (6, 'Hausaufgaben-Modus erlaubt',     'homework_mode',  'always', 'allow', TRUE),
-      (7, 'Setup laden erlaubt',            'load_setup',     'always', 'allow', TRUE)
+      (7, 'Setup laden erlaubt',            'load_setup',        'always', 'allow', TRUE),
+      (8, 'Systeminfo erlaubt',             'get_system_info',   'always', 'allow', TRUE)
   `);
   // clean_temp + empty_recycle_bin intentionally ohne Default-Regel — Nutzer muss explizit erlauben
 }

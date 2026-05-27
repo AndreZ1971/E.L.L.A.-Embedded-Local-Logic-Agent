@@ -33,6 +33,7 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 | Stability Sprint            | v0.2.0  | Schema IF NOT EXISTS, Auto-Migration, list_running_processes weg |
 | Rule Engine + Direktive     | v0.3.0  | Default-deny, Regeln-CRUD, Direktive hardcodiert, Regeln-Tab     |
 | Proaktives Monitoring       | v0.4.0  | Background-Worker, EventBus, SSE-Push, Dashboard-Feed, Toasts    |
+| Onboarding & Erster Start   | v0.4.1  | System-Scan, 3-Schritte-Flow, get_system_info Tool, App-Routing  |
 
 ---
 

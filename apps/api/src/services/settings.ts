@@ -33,6 +33,7 @@ export interface Settings {
   homeworkMode: HomeworkModeConfig;
   ttsEnabled: boolean;
   ttsVoice: string;
+  onboardingComplete: boolean;
 }
 
 const SETTINGS_PATH = path.join(
@@ -52,6 +53,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "forget",
     "list_memories",
     "homework_mode",
+    "get_system_info",
   ],
   sessionLimit: 40,
   openaiApiKey: "",
@@ -60,6 +62,7 @@ export const DEFAULT_SETTINGS: Settings = {
   homeworkMode: { pinHash: "", apps: [], active: false },
   ttsEnabled: false,
   ttsVoice: "",
+  onboardingComplete: false,
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },

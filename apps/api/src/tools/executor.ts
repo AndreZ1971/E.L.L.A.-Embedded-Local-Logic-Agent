@@ -19,6 +19,7 @@ import {
   trackToolUsage,
 } from "../services/memory.js";
 import { evaluateRules } from "../services/rules.js";
+import { scanHardware } from "../services/systemScan.js";
 import { pool } from "../config/database.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
@@ -151,6 +152,20 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       a.type as "user" | "system" | "note" | undefined,
     );
     return { success: true, output: rows };
+  },
+  get_system_info: async () => {
+    const hw = scanHardware();
+    const systemMemories = await listMemories("system");
+    return {
+      success: true,
+      output: {
+        computerName: hw.computerName,
+        cpu: hw.cpu,
+        gpu: hw.gpu,
+        ram: hw.ramLabel,
+        memories: systemMemories,
+      },
+    };
   },
 };
 
