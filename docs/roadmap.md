@@ -32,6 +32,7 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 | enabledTools Migration Fix  | v0.1.7  | remember/forget/homework_mode in enabledTools nachgezogen        |
 | Stability Sprint            | v0.2.0  | Schema IF NOT EXISTS, Auto-Migration, list_running_processes weg |
 | Rule Engine + Direktive     | v0.3.0  | Default-deny, Regeln-CRUD, Direktive hardcodiert, Regeln-Tab     |
+| Proaktives Monitoring       | v0.4.0  | Background-Worker, EventBus, SSE-Push, Dashboard-Feed, Toasts    |
 
 ---
 

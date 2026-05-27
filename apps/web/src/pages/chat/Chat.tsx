@@ -87,6 +87,11 @@ const Chat: React.FC = () => {
   const [pinError, setPinError] = useState("");
   const [pinBusy, setPinBusy] = useState(false);
 
+  /* Alert-Toasts vom Worker */
+  const [toasts, setToasts] = useState<
+    { id: number; message: string; severity: "warning" | "error" }[]
+  >([]);
+
   /* TTS state */
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const ttsEnabledRef = useRef(false);
@@ -131,6 +136,29 @@ const Chat: React.FC = () => {
   useEffect(() => {
     loadingRef.current = loading;
   }, [loading]);
+
+  /* ── Worker-Events (Alerts) ── */
+  useEffect(() => {
+    const es = new EventSource(`${API}/api/events/stream`);
+    es.onmessage = (e: MessageEvent<string>) => {
+      const ev = JSON.parse(e.data) as {
+        type: string;
+        payload: Record<string, unknown>;
+        id?: number;
+      };
+      if (ev.type !== "alert") return;
+      const id = Date.now();
+      const severity =
+        (ev.payload.severity as "warning" | "error") ?? "warning";
+      const message = (ev.payload.message as string) ?? "System-Alert";
+      setToasts((prev) => [...prev, { id, message, severity }]);
+      setTimeout(
+        () => setToasts((prev) => prev.filter((t) => t.id !== id)),
+        8000,
+      );
+    };
+    return () => es.close();
+  }, []);
 
   /* ── History ── */
   useEffect(() => {
@@ -885,6 +913,42 @@ const Chat: React.FC = () => {
           Senden
         </button>
       </div>
+
+      {/* Alert-Toasts vom Worker */}
+      {toasts.length > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            zIndex: 1000,
+            pointerEvents: "none",
+          }}
+        >
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              style={{
+                padding: "10px 16px",
+                borderRadius: 8,
+                fontSize: "0.85rem",
+                background: t.severity === "error" ? "#431407" : "#422006",
+                border: `1px solid ${t.severity === "error" ? "#c2410c" : "#d97706"}`,
+                color: t.severity === "error" ? "#fdba74" : "#fde68a",
+                maxWidth: 320,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                pointerEvents: "auto",
+              }}
+            >
+              {t.severity === "error" ? "⚠ " : "● "}
+              {t.message}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

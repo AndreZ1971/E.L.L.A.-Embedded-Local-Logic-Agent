@@ -4,6 +4,59 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v0.4.0 — 27.05.2026 — Proaktives Monitoring
+
+**Ziel:** E.L.L.A. beobachtet das System im Hintergrund und meldet Probleme ohne auf einen Chat-Befehl zu warten.
+
+---
+
+### Architektur-Entscheidung: EventBus + SSE statt Polling
+
+**Problem:** Dashboard und Chat haben bisher manuell Daten abgerufen (30s-Intervall). Proaktive Alerts waren nicht möglich — der Worker muss das Frontend pushen, nicht umgekehrt.
+
+**Lösung:** Zentraler `EventBus` (Node.js `EventEmitter`) als interner Broadcast-Kanal. Worker schreibt Events in DB und pusht gleichzeitig auf den Bus. SSE-Endpoint leitet Bus-Events direkt an verbundene HTTP-Clients weiter. Ein Client-Connect reicht für echte Live-Daten.
+
+**Warum EventEmitter statt DB-Polling:** DB-Polling im Frontend hätte Latenz + Last erzeugt. EventEmitter ist synchron-im-Prozess, null Overhead, keine Rennbedingungen.
+
+---
+
+### Background-Worker (`services/worker.ts`)
+
+Läuft alle 60 Sekunden (konfigurierbar via `WORKER_INTERVAL_MS`). Sammelt:
+
+- **Disk C:, E:, Z:** via `wmic` — schreibt `disk`-Event pro Laufwerk
+- **RAM:** via Node.js `os` Modul — schreibt `ram`-Event
+- **Ollama:** HTTP-Ping mit 3s-Timeout — schreibt `ollama`-Event
+
+Zusätzliche Alert-Logik:
+
+- Disk-Belegung ≥ `DISK_ALERT_THRESHOLD` (Standard 85%) → `alert`-Event mit `severity: "warning"`
+- Ollama-Ausfall (erster Tick nach OK) → `alert`-Event mit `severity: "error"`
+- `ollamaWasDown`-Flag verhindert Alert-Spam bei dauerhaftem Ausfall
+
+Erster Tick läuft sofort beim Start (`tick()` vor `setInterval`).
+
+---
+
+### SSE-Infrastruktur (`services/eventBus.ts`, `routes/events.ts`)
+
+`eventBus` ist ein singleton `EventEmitter`. Worker-Seite: `eventBus.emit(EVENT_SYSTEM, event)`. Client-Seite: `eventBus.on(EVENT_SYSTEM, send)` im SSE-Handler, `eventBus.off()` bei Client-Disconnect.
+
+Zwei Endpunkte:
+
+- `GET /api/events/stream` — SSE-Stream (live, unbegrenzt offen)
+- `GET /api/events/recent` — letzte 50 Events aus DB (für initiales Laden)
+
+---
+
+### Frontend-Integration
+
+**Dashboard:** Lädt beim Mount die letzten 20 Events per `GET /api/events/recent`, abonniert dann den SSE-Stream. Bei `disk`- oder `ollama`-Events wird automatisch `load()` getriggert — Disk-Balken und Status-Karten aktualisieren sich live. Live-Feed zeigt Typ, Wert und Uhrzeit aller Worker-Events.
+
+**Chat:** Abonniert SSE-Stream, filtert auf `type === "alert"`. Alert-Toasts erscheinen unten rechts als fixed-position Overlay, verschwinden nach 8 Sekunden automatisch. Toasts blockieren keine Eingabe (`pointer-events` auf Einzel-Toast beschränkt).
+
+---
+
 ## v0.3.0 — 27.05.2026 — Rule Engine + Oberste Direktive
 
 **Ziel:** Approval-System durch eine regelbasierte Ausführungskontrolle ersetzen. Jede Tool-Ausführung wird gegen konfigurierbare Regeln geprüft — kein Tool läuft ohne explizite Erlaubnis.

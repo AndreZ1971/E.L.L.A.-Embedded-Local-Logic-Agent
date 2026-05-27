@@ -3,6 +3,13 @@ import React, { useState, useEffect, useCallback } from "react";
 const API = import.meta.env.VITE_API_BASE ?? "";
 const REFRESH_MS = 30_000;
 
+interface WorkerEvent {
+  id: number;
+  type: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
 interface SystemStatus {
   ollama: { ok: boolean; url: string };
   db: { ok: boolean };
@@ -139,6 +146,7 @@ const Dashboard: React.FC = () => {
   const [provider, setProvider] = useState<ProviderData | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<WorkerEvent[]>([]);
 
   const load = useCallback(async () => {
     try {
@@ -168,6 +176,31 @@ const Dashboard: React.FC = () => {
     load();
     const id = setInterval(load, REFRESH_MS);
     return () => clearInterval(id);
+  }, [load]);
+
+  /* SSE: empfängt Worker-Events live + lädt initiale Historie */
+  useEffect(() => {
+    fetch(`${API}/api/events/recent`)
+      .then((r) => r.json())
+      .then((rows: WorkerEvent[]) => setEvents(rows.slice(0, 20)))
+      .catch(() => {});
+
+    const es = new EventSource(`${API}/api/events/stream`);
+    es.onmessage = (e: MessageEvent<string>) => {
+      const ev = JSON.parse(e.data) as WorkerEvent;
+      setEvents((prev) => [ev, ...prev].slice(0, 20));
+
+      if (ev.type === "disk") {
+        const d = ev.payload as { drive: string; usedPct: number };
+        if (d.drive === "C" || d.drive === "E" || d.drive === "Z") {
+          load();
+        }
+      }
+      if (ev.type === "ollama") {
+        load();
+      }
+    };
+    return () => es.close();
   }, [load]);
 
   return (
@@ -303,6 +336,68 @@ const Dashboard: React.FC = () => {
             ) : (
               <div style={{ color: "#64748b", fontSize: "0.85rem" }}>
                 Keine Daten
+              </div>
+            )}
+          </Card>
+
+          {/* System-Event-Feed */}
+          <Card title="System-Events (Live)">
+            {events.length === 0 ? (
+              <div style={{ color: "#475569", fontSize: "0.82rem" }}>
+                Warte auf ersten Worker-Tick…
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                  maxHeight: 240,
+                  overflowY: "auto",
+                }}
+              >
+                {events.map((ev) => {
+                  const isAlert = ev.type === "alert";
+                  const severity = ev.payload.severity as string | undefined;
+                  const color = isAlert
+                    ? severity === "error"
+                      ? "#f87171"
+                      : "#fbbf24"
+                    : "#64748b";
+                  const time = new Date(ev.created_at).toLocaleTimeString(
+                    "de-DE",
+                  );
+                  let summary = ev.type;
+                  if (ev.type === "disk") {
+                    const p = ev.payload as {
+                      drive: string;
+                      usedPct: number;
+                    };
+                    summary = `disk ${p.drive}: ${p.usedPct}%`;
+                  } else if (ev.type === "ram") {
+                    summary = `ram: ${ev.payload.usedPct as number}%`;
+                  } else if (ev.type === "ollama") {
+                    summary = `ollama: ${ev.payload.ok ? "ok" : "down"}`;
+                  } else if (ev.type === "alert") {
+                    summary = (ev.payload.message as string) ?? "alert";
+                  }
+                  return (
+                    <div
+                      key={ev.id}
+                      style={{
+                        display: "flex",
+                        gap: 10,
+                        fontSize: "0.8rem",
+                        alignItems: "baseline",
+                      }}
+                    >
+                      <span style={{ color: "#475569", flexShrink: 0 }}>
+                        {time}
+                      </span>
+                      <span style={{ color }}>{summary}</span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </Card>

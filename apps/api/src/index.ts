@@ -6,10 +6,12 @@ import { systemRouter } from "./routes/system.js";
 import { settingsRouter } from "./routes/settings.js";
 import { rulesRouter } from "./routes/rules.js";
 import { homeworkRouter } from "./routes/homework.js";
+import { eventsRouter } from "./routes/events.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { env } from "./config/env.js";
 import { loadSettings } from "./services/settings.js";
 import { runMigrations } from "./config/migrate.js";
+import { worker } from "./services/worker.js";
 
 const app = express();
 
@@ -34,6 +36,7 @@ app.use("/api/tools", toolsRouter);
 app.use("/api/system", systemRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/rules", rulesRouter);
+app.use("/api/events", eventsRouter);
 app.use("/api/homework", homeworkRouter);
 
 app.use(errorHandler);
@@ -43,5 +46,6 @@ loadSettings()
   .then(() => {
     app.listen(env.port, () => {
       console.log(`E.L.L.A. API  →  http://localhost:${env.port}`);
+      worker.start();
     });
   });
