@@ -1,5 +1,5 @@
 -- E.L.L.A. Database Schema
--- MariaDB
+-- MariaDB — idempotent, alle Statements IF NOT EXISTS
 
 CREATE DATABASE IF NOT EXISTS ella
   CHARACTER SET utf8mb4
@@ -34,27 +34,21 @@ CREATE TABLE IF NOT EXISTS memories (
 CREATE INDEX IF NOT EXISTS idx_memories_type ON memories (type);
 CREATE INDEX IF NOT EXISTS idx_session_messages_session ON session_messages (session_id);
 
-CREATE TABLE rules (
+-- tool_name: '*' = gilt für alle Tools, sonst spezifischer Tool-Name
+-- trigger:   'always' | 'disk_c > 85' | 'hour > 22' | 'hour < 8'
+-- action:    Evaluation-Reihenfolge: deny-Regeln werden vor allow-Regeln geprüft
+CREATE TABLE IF NOT EXISTS rules (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   name       VARCHAR(255) NOT NULL,
-  `trigger`  TEXT         NOT NULL,
-  action     JSON         NOT NULL,
+  tool_name  VARCHAR(100) NOT NULL DEFAULT '*',
+  `trigger`  VARCHAR(255) NOT NULL DEFAULT 'always',
+  action     ENUM('allow', 'deny') NOT NULL DEFAULT 'allow',
   enabled    BOOLEAN      NOT NULL DEFAULT TRUE,
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE approvals (
-  id          INT AUTO_INCREMENT PRIMARY KEY,
-  tool_name   VARCHAR(100) NOT NULL,
-  args        JSON         NOT NULL,
-  status      ENUM('pending', 'approved', 'denied') NOT NULL DEFAULT 'pending',
-  reason      TEXT,
-  created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  resolved_at DATETIME
-);
-
-CREATE TABLE tool_executions (
+CREATE TABLE IF NOT EXISTS tool_executions (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   tool_name   VARCHAR(100) NOT NULL,
   args        JSON         NOT NULL,
@@ -64,14 +58,14 @@ CREATE TABLE tool_executions (
   executed_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE system_events (
+CREATE TABLE IF NOT EXISTS system_events (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   type       VARCHAR(100) NOT NULL,
   payload    JSON,
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE settings (
+CREATE TABLE IF NOT EXISTS settings (
   key_name   VARCHAR(255) PRIMARY KEY,
   value      TEXT         NOT NULL,
   updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

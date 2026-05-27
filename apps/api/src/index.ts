@@ -9,6 +9,7 @@ import { homeworkRouter } from "./routes/homework.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { env } from "./config/env.js";
 import { loadSettings } from "./services/settings.js";
+import { runMigrations } from "./config/migrate.js";
 
 const app = express();
 
@@ -37,8 +38,10 @@ app.use("/api/homework", homeworkRouter);
 
 app.use(errorHandler);
 
-loadSettings().then(() => {
-  app.listen(env.port, () => {
-    console.log(`E.L.L.A. API  →  http://localhost:${env.port}`);
+loadSettings()
+  .then(runMigrations)
+  .then(() => {
+    app.listen(env.port, () => {
+      console.log(`E.L.L.A. API  →  http://localhost:${env.port}`);
+    });
   });
-});
