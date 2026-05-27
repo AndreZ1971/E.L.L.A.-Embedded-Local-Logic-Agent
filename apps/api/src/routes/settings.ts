@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { getSettings, saveSettings, MASKED } from "../services/settings.js";
+import {
+  getSettings,
+  saveSettings,
+  MASKED,
+  DEFAULT_SETTINGS,
+} from "../services/settings.js";
 import { env } from "../config/env.js";
 
 export const settingsRouter = Router();
@@ -66,6 +71,28 @@ settingsRouter.put("/", async (req, res, next) => {
     }
 
     await saveSettings(patch);
+    res.json(publicSettings());
+  } catch (e) {
+    next(e);
+  }
+});
+
+settingsRouter.post("/emergency-reset", async (_req, res, next) => {
+  try {
+    const current = getSettings();
+    await saveSettings({
+      provider: DEFAULT_SETTINGS.provider,
+      ollamaModel: DEFAULT_SETTINGS.ollamaModel,
+      enabledTools: DEFAULT_SETTINGS.enabledTools,
+      voiceMode: DEFAULT_SETTINGS.voiceMode,
+      ttsEnabled: DEFAULT_SETTINGS.ttsEnabled,
+      sessionLimit: DEFAULT_SETTINGS.sessionLimit,
+      emergencyResetAt: new Date().toISOString(),
+      // Behalte: apps, setups, homeworkMode, openaiApiKey, onboardingComplete
+      apps: current.apps,
+      setups: current.setups,
+      homeworkMode: current.homeworkMode,
+    });
     res.json(publicSettings());
   } catch (e) {
     next(e);

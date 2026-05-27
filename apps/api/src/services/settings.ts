@@ -34,6 +34,7 @@ export interface Settings {
   ttsEnabled: boolean;
   ttsVoice: string;
   onboardingComplete: boolean;
+  emergencyResetAt: string | null;
 }
 
 const SETTINGS_PATH = path.join(
@@ -54,6 +55,10 @@ export const DEFAULT_SETTINGS: Settings = {
     "list_memories",
     "homework_mode",
     "get_system_info",
+    "create_setup",
+    "update_setting",
+    "create_rule",
+    "free_ram",
   ],
   sessionLimit: 40,
   openaiApiKey: "",
@@ -63,6 +68,7 @@ export const DEFAULT_SETTINGS: Settings = {
   ttsEnabled: false,
   ttsVoice: "",
   onboardingComplete: false,
+  emergencyResetAt: null,
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },

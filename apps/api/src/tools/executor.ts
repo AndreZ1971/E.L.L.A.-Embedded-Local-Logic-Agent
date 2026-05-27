@@ -7,7 +7,8 @@ import {
 import { execSync } from "child_process";
 import * as path from "path";
 import { toolRegistry } from "./registry.js";
-import { getSettings } from "../services/settings.js";
+import { getSettings, saveSettings } from "../services/settings.js";
+import { createRule as createRuleInDb } from "../services/rules.js";
 import {
   activateHomeworkMode,
   deactivateHomeworkMode,
@@ -19,6 +20,7 @@ import {
   trackToolUsage,
 } from "../services/memory.js";
 import { evaluateRules } from "../services/rules.js";
+import os from "os";
 import { scanHardware } from "../services/systemScan.js";
 import { pool } from "../config/database.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
@@ -165,6 +167,108 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         ram: hw.ramLabel,
         memories: systemMemories,
       },
+    };
+  },
+
+  create_setup: async (args) => {
+    const { setups } = getSettings();
+    const name = ((args.name as string) ?? "").trim();
+    if (!name) return { success: false, error: "Name darf nicht leer sein." };
+    const open = Array.isArray(args.open) ? (args.open as string[]) : [];
+    const close = Array.isArray(args.close) ? (args.close as string[]) : [];
+    const id = crypto.randomUUID();
+    await saveSettings({ setups: [...setups, { id, name, open, close }] });
+    trackToolUsage("create_setup", name);
+    return {
+      success: true,
+      output: `Setup "${name}" angelegt — ${open.length} App(s) öffnen, ${close.length} App(s) schließen.`,
+    };
+  },
+
+  update_setting: async (args) => {
+    const key = (args.key as string) ?? "";
+    const value = args.value;
+
+    const BLOCKED = new Set([
+      "pinHash",
+      "homeworkMode",
+      "openaiApiKey",
+      "onboardingComplete",
+      "emergencyResetAt",
+      "apps",
+    ]);
+    const ALLOWED = new Set([
+      "provider",
+      "ollamaModel",
+      "voiceMode",
+      "sessionLimit",
+      "ttsEnabled",
+      "ttsVoice",
+    ]);
+
+    if (BLOCKED.has(key)) {
+      return {
+        success: false,
+        error: `Einstellung "${key}" ist gesperrt und kann nicht per Gespräch geändert werden.`,
+      };
+    }
+    if (!ALLOWED.has(key)) {
+      return {
+        success: false,
+        error: `Unbekannte Einstellung "${key}". Erlaubt: ${[...ALLOWED].join(", ")}.`,
+      };
+    }
+
+    await saveSettings({ [key]: value } as never);
+    trackToolUsage("update_setting", key);
+    return {
+      success: true,
+      output: `Einstellung "${key}" auf "${value}" gesetzt.`,
+    };
+  },
+
+  create_rule: async (args) => {
+    const name = ((args.name as string) ?? "").trim();
+    const toolName = ((args.tool_name as string) ?? "*").trim();
+    const trigger = ((args.trigger as string) ?? "always").trim();
+    const action = (args.action as "allow" | "deny") ?? "allow";
+
+    if (!name) return { success: false, error: "Name darf nicht leer sein." };
+    if (action !== "allow" && action !== "deny") {
+      return { success: false, error: 'action muss "allow" oder "deny" sein.' };
+    }
+
+    const id = await createRuleInDb({
+      name,
+      tool_name: toolName,
+      trigger,
+      action,
+      enabled: true,
+    });
+    trackToolUsage("create_rule", name);
+    return {
+      success: true,
+      output: `Regel "${name}" angelegt (ID ${id}): ${action} für ${toolName} wenn ${trigger}.`,
+    };
+  },
+
+  free_ram: async () => {
+    const before = os.freemem();
+    const total = os.totalmem();
+    try {
+      execSync(
+        `powershell -NoProfile -Command "[System.GC]::Collect(); [System.GC]::WaitForPendingFinalizers(); [System.GC]::Collect()"`,
+        { stdio: "ignore", timeout: 8000 },
+      );
+    } catch {
+      // GC-Aufruf ist best-effort
+    }
+    const after = os.freemem();
+    const freed = Math.max(0, after - before);
+    const fmt = (b: number) => `${(b / 1024 ** 3).toFixed(1)} GB`;
+    return {
+      success: true,
+      output: `RAM: ${fmt(after)} frei von ${fmt(total)}${freed > 10 * 1024 * 1024 ? ` (${fmt(freed)} freigegeben)` : ""}.`,
     };
   },
 };

@@ -34,6 +34,7 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 | Rule Engine + Direktive     | v0.3.0  | Default-deny, Regeln-CRUD, Direktive hardcodiert, Regeln-Tab     |
 | Proaktives Monitoring       | v0.4.0  | Background-Worker, EventBus, SSE-Push, Dashboard-Feed, Toasts    |
 | Onboarding & Erster Start   | v0.4.1  | System-Scan, 3-Schritte-Flow, get_system_info Tool, App-Routing  |
+| Gesprächskonfiguration      | v0.5.0  | create_setup/update_setting/create_rule/free_ram + Notschalter   |
 
 ---
 

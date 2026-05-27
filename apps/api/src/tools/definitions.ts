@@ -132,6 +132,106 @@ const MEMORY_TOOLS: OllamaTool[] = [
   },
 ];
 
+const CONVERSATION_TOOLS: OllamaTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "create_setup",
+      description:
+        "Legt ein neues App-Setup an. Nutze dies wenn der Nutzer sagt er möchte ein Setup erstellen oder eine Gruppe von Apps gemeinsam starten können.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: 'Name des Setups, z.B. "Arbeit" oder "Gaming"',
+          },
+          open: {
+            type: "array",
+            items: { type: "string" },
+            description:
+              "Liste der App-Namen die beim Setup geöffnet werden sollen",
+          },
+          close: {
+            type: "array",
+            items: { type: "string" },
+            description:
+              "Liste der App-Namen die beim Setup geschlossen werden sollen",
+          },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_setting",
+      description:
+        "Ändert eine Einstellung von E.L.L.A. Nur erlaubte Felder können geändert werden. Gesperrt sind: API-Keys, PIN, Hausaufgaben-Modus-Status.",
+      parameters: {
+        type: "object",
+        properties: {
+          key: {
+            type: "string",
+            description:
+              "Name der Einstellung: provider, ollamaModel, voiceMode, sessionLimit, ttsEnabled, ttsVoice",
+          },
+          value: {
+            type: "string",
+            description: "Neuer Wert der Einstellung",
+          },
+        },
+        required: ["key", "value"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_rule",
+      description:
+        "Legt eine neue Erlaubnis- oder Verbots-Regel für ein Tool an. Nutze dies wenn der Nutzer ein Tool freischalten oder sperren möchte.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "Beschreibender Name der Regel",
+          },
+          tool_name: {
+            type: "string",
+            description:
+              'Tool-Name auf den die Regel zutrifft, oder "*" für alle Tools',
+          },
+          trigger: {
+            type: "string",
+            description:
+              'Wann gilt die Regel: "always", "hour > 22", "disk_c > 85"',
+          },
+          action: {
+            type: "string",
+            description: '"allow" um zu erlauben, "deny" um zu sperren',
+          },
+        },
+        required: ["name", "tool_name", "action"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "free_ram",
+      description:
+        "Gibt ungenutzten Arbeitsspeicher frei und zeigt die aktuelle RAM-Belegung. Nicht destruktiv.",
+      parameters: {
+        type: "object",
+        properties: {},
+      },
+    },
+  },
+];
+
 const SYSTEM_INFO_TOOL: OllamaTool = {
   type: "function",
   function: {
@@ -176,6 +276,7 @@ export function buildToolDefinitions(setups: Setup[]): OllamaTool[] {
     ...MEMORY_TOOLS,
     HOMEWORK_TOOL,
     SYSTEM_INFO_TOOL,
+    ...CONVERSATION_TOOLS,
   ];
 
   if (setups.length > 0) {

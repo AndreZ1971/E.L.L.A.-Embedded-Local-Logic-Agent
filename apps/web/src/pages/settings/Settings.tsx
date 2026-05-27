@@ -45,6 +45,8 @@ interface Settings {
   homeworkMode: HomeworkModeConfig;
   ttsEnabled: boolean;
   ttsVoice: string;
+  onboardingComplete: boolean;
+  emergencyResetAt: string | null;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -320,6 +322,29 @@ const Settings: React.FC = () => {
     }
   };
 
+  const [resetting, setResetting] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
+
+  const emergencyReset = async () => {
+    if (
+      !window.confirm(
+        "Notschalter: Alle KI-Einstellungen auf sichere Defaults zurücksetzen?\n\nApps, Setups, PIN und Regeln bleiben erhalten.",
+      )
+    )
+      return;
+    setResetting(true);
+    try {
+      const data = (await fetch(`${API}/api/settings/emergency-reset`, {
+        method: "POST",
+      }).then((r) => r.json())) as Settings;
+      setSettings(data);
+      setResetDone(true);
+      setTimeout(() => setResetDone(false), 4000);
+    } finally {
+      setResetting(false);
+    }
+  };
+
   const save = async () => {
     if (!settings) return;
     setSaving(true);
@@ -377,7 +402,51 @@ const Settings: React.FC = () => {
         height: "100%",
       }}
     >
-      <h2 style={{ margin: 0 }}>Einstellungen</h2>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2 style={{ margin: 0 }}>Einstellungen</h2>
+        <button
+          onClick={emergencyReset}
+          disabled={resetting}
+          title="Setzt KI-Einstellungen auf sichere Defaults zurück"
+          style={{
+            padding: "6px 14px",
+            borderRadius: 6,
+            background: "transparent",
+            border: "1px solid #7f1d1d",
+            color: resetDone ? "#4ade80" : "#f87171",
+            cursor: resetting ? "not-allowed" : "pointer",
+            fontSize: "0.8rem",
+            fontWeight: 600,
+          }}
+        >
+          {resetting ? "…" : resetDone ? "✓ Zurückgesetzt" : "Notschalter"}
+        </button>
+      </div>
+
+      {/* Banner wenn Notschalter aktiv war */}
+      {settings.emergencyResetAt && (
+        <div
+          style={{
+            background: "#2d1a1a",
+            border: "1px solid #7f1d1d",
+            borderRadius: 8,
+            padding: "8px 14px",
+            fontSize: "0.82rem",
+            color: "#fca5a5",
+            flexShrink: 0,
+          }}
+        >
+          Notschalter aktiviert am{" "}
+          {new Date(settings.emergencyResetAt).toLocaleString("de-DE")} —
+          Einstellungen wurden auf sichere Defaults zurückgesetzt.
+        </div>
+      )}
 
       {/* Tab-Bar */}
       <div

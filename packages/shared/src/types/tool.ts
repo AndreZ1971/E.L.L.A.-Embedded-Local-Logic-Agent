@@ -8,7 +8,11 @@ export type ToolName =
   | "homework_mode"
   | "remember"
   | "forget"
-  | "get_system_info";
+  | "get_system_info"
+  | "create_setup"
+  | "update_setting"
+  | "create_rule"
+  | "free_ram";
 
 export interface ToolCall {
   tool: ToolName;

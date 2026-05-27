@@ -4,6 +4,43 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v0.5.0 — 27.05.2026 — Gesprächskonfiguration
+
+**Ziel:** E.L.L.A. kann sich selbst über das Gespräch konfigurieren — Setups anlegen, Einstellungen ändern, neue Regeln erstellen, RAM freigeben. Außerdem: Notschalter der alle KI-Einstellungen sicher zurücksetzt.
+
+---
+
+### Vier neue Conversation-Tools
+
+**`create_setup`** — Der Nutzer kann per Sprache oder Text ein neues Setup definieren: "Lege ein Setup 'Abend' an, das Netflix und Spotify öffnet und Chrome schließt." Das Tool prüft den Namen auf Leerstring, generiert eine UUID als ID und speichert das Setup per `saveSettings`. Default-Allow-Regel ID 9 (INSERT IGNORE).
+
+**`update_setting`** — Ändert eine Einstellung direkt im Gespräch: "Wechsle auf den Ollama-Provider" oder "Setze das Session-Limit auf 60". Zwei Sicherheitsebenen: ein `ALLOWED`-Set (nur `provider`, `ollamaModel`, `voiceMode`, `sessionLimit`, `ttsEnabled`, `ttsVoice`) und ein `BLOCKED`-Set (alles sicherheitsrelevante). Zahlen- und Boolean-Werte werden aus dem String-Parameter konvertiert. Default-Allow-Regel ID 10.
+
+**`create_rule`** — Legt eine neue Rule-Engine-Regel an: "Erlaube clean_temp wenn die Uhrzeit nach 22 Uhr ist." Parameter: name, tool_name, trigger (default "always"), action (allow/deny). Ruft `createRuleInDb()` aus `services/rules.ts` auf. Default-Allow-Regel ID 11.
+
+**`free_ram`** — Gibt RAM frei via PowerShell `[System.GC]::Collect()`. Misst `os.freemem()` vor und nach der Aktion und meldet die Differenz in MB. Default-Allow-Regel ID 12.
+
+---
+
+### Notschalter (Emergency Reset)
+
+Neuer Endpoint `POST /api/settings/emergency-reset`. Setzt zurück: `provider`, `ollamaModel`, `enabledTools`, `voiceMode`, `ttsEnabled`, `sessionLimit`. Setzt `emergencyResetAt` auf aktuellen Timestamp (ISO 8601). Erhält: `apps`, `setups`, `homeworkMode`, `openaiApiKey`, `onboardingComplete`.
+
+**Warum bewusst kein vollständiger Reset:** Apps und Setups konfiguriert der Nutzer manuell — das geht nicht durch einen Klick verloren. PIN und Hausaufgaben-Modus-Apps betreffen Kindersicherung. Nur die KI-Konfiguration (Provider, Modell, Tools) wird zurückgesetzt — das sind die Felder die durch experimentelle Selbstkonfiguration in einen unbrauchbaren Zustand geraten können.
+
+**Settings-UI:** Button "Notschalter" im Settings-Header. Klick zeigt Bestätigungsdialog. Nach Erfolg erscheint ein gelber Banner mit Timestamp bis zum nächsten Speichern.
+
+---
+
+### Technische Details
+
+- `update_setting`-Tool-Parameter `value` hat `type: "string"` — das LLM konvertiert zu String, der Handler konvertiert zurück
+- `CONVERSATION_TOOLS` + `SYSTEM_INFO_TOOL` in `buildToolDefinitions` integriert
+- `OllamaTool.parameters.properties` um `items?: { type: string }` erweitert (Array-Parameter für `create_setup`)
+- Alle vier Tools in `ToolName`-Union in `packages/shared`
+
+---
+
 ## v0.4.1 — 27.05.2026 — Onboarding & Erster Start
 
 **Ziel:** E.L.L.A. lernt das System beim ersten Start kennen und beginnt den Dialog.
