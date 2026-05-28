@@ -7,7 +7,8 @@
     "build:main": "node build-main.mjs",
     "dev": "node build-main.mjs && electron .",
     "build": "node build-main.mjs",
-    "dist": "node build-main.mjs && electron-builder --win nsis"
+    "dist": "node build-main.mjs && electron-builder --win nsis",
+    "postinstall": "node -e \"const fs=require('fs'),p=require('path'),c=process.cwd();const l=p.join(c,'node_modules','electron'),t=p.join(c,'..','..','node_modules','electron');if(!fs.existsSync(t))process.exit(0);try{fs.rmSync(l,{recursive:true,force:true})}catch(e){}try{fs.symlinkSync(t,l,'junction');console.log('electron junction OK')}catch(e){console.warn('junction failed:',e.message)}\""
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

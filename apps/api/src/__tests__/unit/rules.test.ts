@@ -12,7 +12,8 @@ vi.mock("../../config/database.js", () => ({
 }));
 
 import { pool } from "../../config/database.js";
-const mockExecute = vi.mocked(pool.execute);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockExecute = vi.mocked(pool.execute) as ReturnType<typeof vi.fn>;
 
 describe("evaluateRules", () => {
   beforeEach(() => mockExecute.mockReset());

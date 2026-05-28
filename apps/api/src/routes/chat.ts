@@ -35,7 +35,7 @@ const DANGEROUS_TOOLS = new Map<string, string>([
 interface PendingConfirmation {
   tool: string;
   callId: string;
-  args: unknown;
+  args: Record<string, unknown>;
   messages: OllamaMessage[];
   sessionId: string;
   expireAt: number;
@@ -193,7 +193,8 @@ chatRouter.post("/stream", async (req, res) => {
         pendingConfirmations.set(sessionId, {
           tool: dangerousCall.function.name,
           callId: dangerousCall.id ?? "",
-          args: dangerousCall.function.arguments,
+          args:
+            (dangerousCall.function.arguments as Record<string, unknown>) ?? {},
           messages: [...messages],
           sessionId,
           expireAt: Date.now() + 5 * 60 * 1000,

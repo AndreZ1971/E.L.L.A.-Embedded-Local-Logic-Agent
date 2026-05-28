@@ -366,8 +366,8 @@ const Settings: React.FC = () => {
     );
   }
 
-  const allowedCount = settings.apps.filter((a) => a.allowed).length;
-  const filteredApps = settings.apps.filter(
+  const allowedCount = (settings.apps ?? []).filter((a) => a.allowed).length;
+  const filteredApps = (settings.apps ?? []).filter(
     (a) =>
       !filter ||
       a.name.toLowerCase().includes(filter.toLowerCase()) ||
@@ -838,14 +838,14 @@ const Settings: React.FC = () => {
                         {
                           key: "open" as const,
                           label: "Öffnen",
-                          apps: settings.apps.filter((a) => a.allowed),
+                          apps: (settings.apps ?? []).filter((a) => a.allowed),
                           emptyHint: 'Erst unter "Programme" Apps erlauben.',
                           color: "#7c6af7",
                         },
                         {
                           key: "close" as const,
                           label: "Schließen",
-                          apps: settings.apps,
+                          apps: settings.apps ?? [],
                           emptyHint: "Keine Programme bekannt.",
                           color: "#f87171",
                         },
