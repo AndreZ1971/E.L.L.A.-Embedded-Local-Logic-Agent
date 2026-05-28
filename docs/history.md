@@ -4,6 +4,60 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v1.0.0-rc — 28.05.2026 — Installer & Deployment
+
+**Ziel:** E.L.L.A. wird installierbar. NSIS-Installer für Windows, EULA-Einblendung beim ersten Start, automatische Abhängigkeitsprüfung vor dem ersten Chat.
+
+---
+
+### EULA-Screen (`pages/eula/Eula.tsx`)
+
+**Was:** Vollbild-Seite beim allerersten Start. Fünf Punkte: Lokal-Prinzip, OpenAI-Hinweis, Systemzugriff, Unveränderliche Grenze (ungelesene Mails), Verantwortung. Checkbox + "Bestätigen und weiter →"-Button.
+
+**Gate-Logik in `App.tsx`:** `GET /api/settings` beim Mount liest `eulaAccepted`. Solange `false` → hard redirect nach `/eula` egal welche Route aufgerufen wird. Kein Umgehen durch direkte URL-Eingabe möglich.
+
+**Persistenz:** `PUT /api/settings { eulaAccepted: true }` → `settings.json`. Der Wert wird einmalig geschrieben und nie mehr zurückgesetzt (auch nicht durch Emergency-Reset).
+
+**API-Fehler-Fallback:** Wenn die API beim Start nicht erreichbar ist, setzt `App.tsx` beide Flags auf `true` — die App startet normal. Das verhindert dass ein API-Fehler die App dauerhaft blockiert.
+
+---
+
+### Setup-Screen (`pages/setup/Setup.tsx`)
+
+**Was:** Nach der EULA wird einmalig geprüft ob alle Abhängigkeiten vorhanden sind. Drei Checks: MariaDB (implizit OK wenn API läuft), Ollama (HTTP-Ping auf `/api/tags`), nomic-embed-text (Modell-Name in der Liste).
+
+**`GET /api/setup/status`:** 3-Sekunden-Timeout via `AbortController`. Gibt `{ ollama, nomic, mariadb: true, allOk }` zurück.
+
+**nomic-Pull via SSE:** "Jetzt herunterladen"-Button → `POST /api/setup/pull-nomic` → Backend spawnt `ollama pull nomic-embed-text` → stdout/stderr werden zeilenweise als `{ text: "..." }` SSE-Events gestreamt → Frontend zeigt scrollbares Monospace-Log. Bei Abschluss: `{ done: true, success: boolean }`. Bei Client-Disconnect wird der `ollama`-Prozess gekillt.
+
+**"Trotzdem fortfahren →":** Der Button ist immer aktiv — Setup blockiert nie. Der Nutzer kann das Embedding-Modell später herunterladen wenn er Offline-Gedächtnis nicht sofort braucht.
+
+**Weiterleitung nach Setup:** `GET /api/onboarding/status` → bei `complete: true` direkt zum Chat, sonst zum Onboarding. Trennt Setup-Logik sauber vom Onboarding-Flow.
+
+---
+
+### Routing-Überarbeitung (`App.tsx`)
+
+**Vollbild-Modus:** EULA, Setup und Onboarding rendern ohne Sidebar. Prüfung via `isFullscreen`-Flag (`path === "/eula" || "/setup" || "/onboarding"`). Vermeidet ein Layout-Flash wenn der Nutzer noch nicht im "normalen" Modus ist.
+
+**Vereinfachter Boot-Check:** Statt zwei separater Fetches (`/api/settings` + `/api/onboarding/status`) wird nur noch `GET /api/settings` beim Mount aufgerufen — liefert `eulaAccepted` und `onboardingComplete` in einem Aufruf.
+
+---
+
+### electron-builder NSIS-Konfiguration (`apps/desktop/package.json`)
+
+**Was:** `electron-builder --win nsis` erzeugt einen Windows-Installer (`dist-installer/`).
+
+**`asar: false`:** Der App-Code wird nicht in ein `.asar`-Archiv gepackt. Notwendig weil `extraResources` die API- und Web-Builds neben `app/` legt und der Main-Prozess diese via `path.join(app.getAppPath(), "../api")` referenziert — diese relative Navigation funktioniert nur bei ungepacker Verzeichnisstruktur.
+
+**`extraResources`-Pfade:** Werden relativ zu `apps/desktop/` aufgelöst (`../../apps/api/dist` → Repo-Root). Im installierten Paket landen sie unter `resources/api/dist` und `resources/web/dist`. Passt zur Path-Berechnung in `main.ts`.
+
+**NSIS-Optionen:** `oneClick: false` (kein Einzel-Klick-Install), `allowToChangeInstallationDirectory: true`, Desktop- und Start-Menü-Shortcuts, `deleteAppDataOnUninstall: false` (Nutzer-Daten bleiben beim Deinstallieren erhalten — `settings.json`, Erinnerungen, Sitzungen).
+
+**`dist`-Script:** `"dist": "node build-main.mjs && electron-builder --win nsis"` — baut Main-Prozess vor dem Packaging.
+
+---
+
 ## v0.6.0 — 28.05.2026 — Mail & Kalender
 
 **Ziel:** E.L.L.A. bekommt Zugriff auf lokale Mail- und Kalenderdaten. Nur lokal. Nur im Dialog.

@@ -6,36 +6,37 @@ Dieses Dokument beschreibt geplante Features mit Begründung, Abhängigkeiten un
 
 ## Abgeschlossen
 
-| Feature                     | Version | Beschreibung                                                                     |
-| --------------------------- | ------- | -------------------------------------------------------------------------------- |
-| Chat end-to-end             | v0.0.3  | OpenAI + Ollama, Tool-Loop mit bis zu 5 Runden                                   |
-| Tool-Call-Fix               | v0.0.3  | `tool_call_id` korrekt weitergegeben, kein 400-Fehler mehr                       |
-| Electron Desktop-App        | v0.0.3  | Natives Fenster, Minimize-to-Tray (Dev-Modus lauffähig)                          |
-| SSE-Streaming               | v0.0.4  | Text erscheint live während LLM antwortet, Tool-Status-Anzeige                   |
-| MariaDB Session-Persistenz  | v0.0.4  | Verlauf in DB, überlebt API-Neustart, wird beim Start geladen                    |
-| Frameless Window + Titlebar | v0.0.5  | Eigenes Fenster ohne Browserchrome, violet Titelleiste, IPC                      |
-| Production Build            | v0.0.5  | Vite baut nach dist/, Electron lädt ohne Dev-Server                              |
-| API als Child-Prozess       | v0.0.5  | Electron startet/stoppt API automatisch, wartet auf Port 3002                    |
-| Autostart                   | v0.0.5  | app.setLoginItemSettings, Toggle im Tray-Menü, MariaDB auto                      |
-| Dashboard                   | v0.1.0  | Status-Karten (LLM, Ollama, DB) + Disk-Balken, Auto-Refresh                      |
-| Settings-Seite              | v0.1.0  | Provider, Modell, Tools, Session-Limit, OpenAI API-Key                           |
-| Programme-Verwaltung        | v0.1.0  | System-Scan (Start-Menü), Checkbox-Liste erlaubt/verboten                        |
-| Spracheingabe               | v0.1.1  | 3 Modi: Aus / Manuell / Wakeword "ella", submit/cancel-Wörter                    |
-| Tool-Bestätigung            | v0.1.1  | SSE-Pause für clean_temp / empty_recycle_bin, Card im Chat                       |
-| Setup-Shortcuts             | v0.1.1  | load_setup-Tool, open[] + close[], dynamische Tool-Definitionen                  |
-| Hausaufgaben-Modus          | v0.1.2  | PIN-Kiosk: aktivieren ohne PIN, deaktivieren mit PIN, SHA-256                    |
-| ML-Gedächtnisebene          | v0.1.3  | nomic-embed-text, Cosinus-Suche, auto Extraktion, 3 Typen                        |
-| GPU-Beschleunigung          | v0.1.4  | GTX 1060, CUDA 13.0, 14.6 t/s, Modell vollständig im VRAM                        |
-| Sprachausgabe (TTS)         | v0.1.4  | window.speechSynthesis, Stimme einstellbar, MD-Stripping                         |
-| Bug-Sprint (10 Fixes)       | v0.1.5  | TS-Fehler, Tool-Registry, Settings-Persistenz, DB-Schema                         |
-| Code-Analyse Bug-Fixes      | v0.1.6  | HomeworkMode in loadSetup, Modell-Config, OpenAI tools[], fixes                  |
-| enabledTools Migration Fix  | v0.1.7  | remember/forget/homework_mode in enabledTools nachgezogen                        |
-| Stability Sprint            | v0.2.0  | Schema IF NOT EXISTS, Auto-Migration, list_running_processes weg                 |
-| Rule Engine + Direktive     | v0.3.0  | Default-deny, Regeln-CRUD, Direktive hardcodiert, Regeln-Tab                     |
-| Proaktives Monitoring       | v0.4.0  | Background-Worker, EventBus, SSE-Push, Dashboard-Feed, Toasts                    |
-| Onboarding & Erster Start   | v0.4.1  | System-Scan, 3-Schritte-Flow, get_system_info Tool, App-Routing                  |
-| Gesprächskonfiguration      | v0.5.0  | create_setup/update_setting/create_rule/free_ram + Notschalter                   |
-| Mail & Kalender             | v0.6.0  | read_emails/mark_email/read_calendar/create_appointment, Direktive unread-delete |
+| Feature                     | Version   | Beschreibung                                                                     |
+| --------------------------- | --------- | -------------------------------------------------------------------------------- |
+| Chat end-to-end             | v0.0.3    | OpenAI + Ollama, Tool-Loop mit bis zu 5 Runden                                   |
+| Tool-Call-Fix               | v0.0.3    | `tool_call_id` korrekt weitergegeben, kein 400-Fehler mehr                       |
+| Electron Desktop-App        | v0.0.3    | Natives Fenster, Minimize-to-Tray (Dev-Modus lauffähig)                          |
+| SSE-Streaming               | v0.0.4    | Text erscheint live während LLM antwortet, Tool-Status-Anzeige                   |
+| MariaDB Session-Persistenz  | v0.0.4    | Verlauf in DB, überlebt API-Neustart, wird beim Start geladen                    |
+| Frameless Window + Titlebar | v0.0.5    | Eigenes Fenster ohne Browserchrome, violet Titelleiste, IPC                      |
+| Production Build            | v0.0.5    | Vite baut nach dist/, Electron lädt ohne Dev-Server                              |
+| API als Child-Prozess       | v0.0.5    | Electron startet/stoppt API automatisch, wartet auf Port 3002                    |
+| Autostart                   | v0.0.5    | app.setLoginItemSettings, Toggle im Tray-Menü, MariaDB auto                      |
+| Dashboard                   | v0.1.0    | Status-Karten (LLM, Ollama, DB) + Disk-Balken, Auto-Refresh                      |
+| Settings-Seite              | v0.1.0    | Provider, Modell, Tools, Session-Limit, OpenAI API-Key                           |
+| Programme-Verwaltung        | v0.1.0    | System-Scan (Start-Menü), Checkbox-Liste erlaubt/verboten                        |
+| Spracheingabe               | v0.1.1    | 3 Modi: Aus / Manuell / Wakeword "ella", submit/cancel-Wörter                    |
+| Tool-Bestätigung            | v0.1.1    | SSE-Pause für clean_temp / empty_recycle_bin, Card im Chat                       |
+| Setup-Shortcuts             | v0.1.1    | load_setup-Tool, open[] + close[], dynamische Tool-Definitionen                  |
+| Hausaufgaben-Modus          | v0.1.2    | PIN-Kiosk: aktivieren ohne PIN, deaktivieren mit PIN, SHA-256                    |
+| ML-Gedächtnisebene          | v0.1.3    | nomic-embed-text, Cosinus-Suche, auto Extraktion, 3 Typen                        |
+| GPU-Beschleunigung          | v0.1.4    | GTX 1060, CUDA 13.0, 14.6 t/s, Modell vollständig im VRAM                        |
+| Sprachausgabe (TTS)         | v0.1.4    | window.speechSynthesis, Stimme einstellbar, MD-Stripping                         |
+| Bug-Sprint (10 Fixes)       | v0.1.5    | TS-Fehler, Tool-Registry, Settings-Persistenz, DB-Schema                         |
+| Code-Analyse Bug-Fixes      | v0.1.6    | HomeworkMode in loadSetup, Modell-Config, OpenAI tools[], fixes                  |
+| enabledTools Migration Fix  | v0.1.7    | remember/forget/homework_mode in enabledTools nachgezogen                        |
+| Stability Sprint            | v0.2.0    | Schema IF NOT EXISTS, Auto-Migration, list_running_processes weg                 |
+| Rule Engine + Direktive     | v0.3.0    | Default-deny, Regeln-CRUD, Direktive hardcodiert, Regeln-Tab                     |
+| Proaktives Monitoring       | v0.4.0    | Background-Worker, EventBus, SSE-Push, Dashboard-Feed, Toasts                    |
+| Onboarding & Erster Start   | v0.4.1    | System-Scan, 3-Schritte-Flow, get_system_info Tool, App-Routing                  |
+| Gesprächskonfiguration      | v0.5.0    | create_setup/update_setting/create_rule/free_ram + Notschalter                   |
+| Mail & Kalender             | v0.6.0    | read_emails/mark_email/read_calendar/create_appointment, Direktive unread-delete |
+| Installer & Deployment      | v1.0.0-rc | EULA-Screen, Setup-Check, nomic-Pull-SSE, electron-builder NSIS-Installer        |
 
 ---
 

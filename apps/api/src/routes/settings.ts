@@ -35,6 +35,7 @@ settingsRouter.put("/", async (req, res, next) => {
       homeworkMode,
       ttsEnabled,
       ttsVoice,
+      eulaAccepted,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -47,6 +48,7 @@ settingsRouter.put("/", async (req, res, next) => {
       homeworkMode?: { apps?: string[] };
       ttsEnabled?: boolean;
       ttsVoice?: string;
+      eulaAccepted?: boolean;
     };
 
     const patch: Parameters<typeof saveSettings>[0] = {
@@ -59,6 +61,7 @@ settingsRouter.put("/", async (req, res, next) => {
       setups,
       ttsEnabled,
       ttsVoice,
+      eulaAccepted,
     };
 
     // Only allow updating homeworkMode.apps — never overwrite pinHash or active

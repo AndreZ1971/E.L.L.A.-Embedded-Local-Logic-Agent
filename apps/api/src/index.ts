@@ -8,6 +8,7 @@ import { rulesRouter } from "./routes/rules.js";
 import { homeworkRouter } from "./routes/homework.js";
 import { eventsRouter } from "./routes/events.js";
 import { onboardingRouter } from "./routes/onboarding.js";
+import { setupRouter } from "./routes/setup.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { env } from "./config/env.js";
 import { loadSettings } from "./services/settings.js";
@@ -39,6 +40,7 @@ app.use("/api/settings", settingsRouter);
 app.use("/api/rules", rulesRouter);
 app.use("/api/events", eventsRouter);
 app.use("/api/onboarding", onboardingRouter);
+app.use("/api/setup", setupRouter);
 app.use("/api/homework", homeworkRouter);
 
 app.use(errorHandler);

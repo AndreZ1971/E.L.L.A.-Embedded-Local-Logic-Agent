@@ -12,41 +12,64 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Chat from "./pages/chat/Chat";
 import Settings from "./pages/settings/Settings";
 import Onboarding from "./pages/onboarding/Onboarding";
+import Eula from "./pages/eula/Eula";
+import Setup from "./pages/setup/Setup";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
 
+interface BootStatus {
+  eulaAccepted: boolean;
+  onboardingComplete: boolean;
+}
+
 function AppShell() {
   const location = useLocation();
-  const [checked, setChecked] = useState(false);
-  const [onboardingComplete, setOnboardingComplete] = useState(true);
+  const [boot, setBoot] = useState<BootStatus | null>(null);
 
   useEffect(() => {
-    fetch(`${API}/api/onboarding/status`)
+    fetch(`${API}/api/settings`)
       .then((r) => r.json())
-      .then((d: { complete: boolean }) => {
-        setOnboardingComplete(d.complete);
+      .then((d: Partial<BootStatus>) => {
+        setBoot({
+          eulaAccepted: d.eulaAccepted ?? false,
+          onboardingComplete: d.onboardingComplete ?? false,
+        });
       })
       .catch(() => {
-        // API nicht erreichbar — Onboarding überspringen
-      })
-      .finally(() => setChecked(true));
+        // API nicht erreichbar — App normal starten
+        setBoot({ eulaAccepted: true, onboardingComplete: true });
+      });
   }, []);
 
-  if (!checked) return null;
+  if (boot === null) return null;
 
-  const isOnboarding = location.pathname === "/onboarding";
+  const path = location.pathname;
+  const isFullscreen =
+    path === "/eula" || path === "/setup" || path === "/onboarding";
 
-  if (!onboardingComplete && !isOnboarding) {
-    return <Navigate to="/onboarding" replace />;
+  // EULA hard gate
+  if (!boot.eulaAccepted && path !== "/eula") {
+    return <Navigate to="/eula" replace />;
   }
 
-  if (isOnboarding) {
+  // After EULA: setup + onboarding flow handled by the pages themselves
+  if (isFullscreen) {
     return (
       <>
         <TitleBar />
-        <Onboarding />
+        <Routes>
+          <Route path="/eula" element={<Eula />} />
+          <Route path="/setup" element={<Setup />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="*" element={<Navigate to="/eula" replace />} />
+        </Routes>
       </>
     );
+  }
+
+  // Onboarding gate (after EULA accepted)
+  if (!boot.onboardingComplete && path !== "/onboarding") {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return (

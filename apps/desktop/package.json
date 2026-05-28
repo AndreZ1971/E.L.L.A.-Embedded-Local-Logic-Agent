@@ -1,20 +1,77 @@
 {
   "name": "@ella/desktop",
-  "version": "0.0.2",
+  "version": "1.0.0-rc",
   "private": true,
   "main": "dist/main/index.js",
   "scripts": {
     "build:main": "node build-main.mjs",
-    "dev":        "node build-main.mjs && electron .",
-    "build":      "node build-main.mjs"
+    "dev": "node build-main.mjs && electron .",
+    "build": "node build-main.mjs",
+    "dist": "node build-main.mjs && electron-builder --win nsis"
   },
   "devDependencies": {
-    "@types/node":    "^22.0.0",
-    "electron":       "^33.0.0",
-    "electron-vite":  "^5.0.0",
-    "typescript":     "^5.6.0"
+    "@types/node": "^22.0.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-vite": "^5.0.0",
+    "typescript": "^5.6.0"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0"
+  },
+  "build": {
+    "appId": "de.ella.app",
+    "productName": "E.L.L.A.",
+    "asar": false,
+    "directories": {
+      "output": "dist-installer"
+    },
+    "files": [
+      "dist/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../../apps/api/dist",
+        "to": "api/dist",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../../apps/api/node_modules",
+        "to": "api/node_modules",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../../apps/web/dist",
+        "to": "web/dist",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "E.L.L.A.",
+      "uninstallDisplayName": "E.L.L.A. — Embedded Local Logic Agent",
+      "deleteAppDataOnUninstall": false,
+      "include": null
+    }
   }
 }
