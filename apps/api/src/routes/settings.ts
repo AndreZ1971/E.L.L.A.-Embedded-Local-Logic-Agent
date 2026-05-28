@@ -91,10 +91,11 @@ settingsRouter.post("/emergency-reset", async (_req, res, next) => {
       ttsEnabled: DEFAULT_SETTINGS.ttsEnabled,
       sessionLimit: DEFAULT_SETTINGS.sessionLimit,
       emergencyResetAt: new Date().toISOString(),
-      // Behalte: apps, setups, homeworkMode, openaiApiKey, onboardingComplete
+      // Behalte: apps, setups, openaiApiKey, onboardingComplete
+      // HomeworkMode: Apps behalten, aber PIN + aktiv-Flag zurücksetzen (Eltern-Override ohne PIN)
       apps: current.apps,
       setups: current.setups,
-      homeworkMode: current.homeworkMode,
+      homeworkMode: { ...current.homeworkMode, active: false, pinHash: "" },
     });
     res.json(publicSettings());
   } catch (e) {

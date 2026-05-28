@@ -14,6 +14,8 @@ interface DiskMetric {
   totalBytes: number;
 }
 
+// WMIC ist seit Windows 11 22H2 deprecated. Fallback:
+//   Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='${drive}:'" | Select FreeSpace,Size
 function getDiskMetric(drive: string): DiskMetric | null {
   try {
     const out = execSync(

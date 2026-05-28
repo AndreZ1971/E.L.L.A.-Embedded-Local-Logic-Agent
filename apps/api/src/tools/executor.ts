@@ -152,7 +152,15 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       (a.type as "user" | "system" | "note") ?? "note",
       (a.content as string) ?? "",
     ),
-  forget: (a) => forgetById(Number(a.id)),
+  forget: (a) => {
+    if (a.id === undefined || a.id === null || a.id === "") {
+      return Promise.resolve({
+        success: false,
+        error: "ID fehlt. Nutze list_memories um IDs zu sehen.",
+      });
+    }
+    return forgetById(Number(a.id));
+  },
   list_memories: async (a) => {
     const rows = await listMemories(
       a.type as "user" | "system" | "note" | undefined,

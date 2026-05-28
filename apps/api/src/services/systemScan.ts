@@ -2,6 +2,11 @@ import { execSync } from "child_process";
 import os from "os";
 import { remember } from "./memory.js";
 
+// WMIC ist seit Windows 11 22H2 deprecated. Fallback wenn wmic nicht verfügbar:
+//   wmic cpu get name                          → Get-CimInstance Win32_Processor -Property Name
+//   wmic computersystem get name               → Get-CimInstance Win32_ComputerSystem -Property Name
+//   wmic path win32_videocontroller get caption → Get-CimInstance Win32_VideoController -Property Caption
+// Umbau erfolgt wenn erste 22H2-Produktivmeldung eingeht — WMIC läuft noch überall.
 function wmic(query: string): string {
   try {
     const out = execSync(`wmic ${query} /format:value`, {
