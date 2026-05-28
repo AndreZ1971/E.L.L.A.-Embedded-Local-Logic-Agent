@@ -1,0 +1,110 @@
+name: Tests
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  unit:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: EllaRoot2026
+          MARIADB_DATABASE: ella
+          MARIADB_USER: ella
+          MARIADB_PASSWORD: ella_dev_2026
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared packages
+        run: |
+          npm run build --workspace=packages/shared
+          npm run build --workspace=packages/agent-tools
+
+      - name: Run API unit tests
+        run: npm run test --workspace=apps/api
+        env:
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_NAME: ella
+          DB_USER: ella
+          DB_PASSWORD: ella_dev_2026
+          OLLAMA_BASE_URL: http://localhost:11434
+          NODE_ENV: test
+
+      - name: Run Web unit tests
+        run: npm run test --workspace=apps/web
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: unit
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: EllaRoot2026
+          MARIADB_DATABASE: ella
+          MARIADB_USER: ella
+          MARIADB_PASSWORD: ella_dev_2026
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared packages
+        run: |
+          npm run build --workspace=packages/shared
+          npm run build --workspace=packages/agent-tools
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run E2E tests
+        run: npm run test:e2e -- --project=web-chromium
+        env:
+          CI: true
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_NAME: ella
+          DB_USER: ella
+          DB_PASSWORD: ella_dev_2026
+          OLLAMA_BASE_URL: http://localhost:11434
+          NODE_ENV: test

@@ -8,7 +8,7 @@ const RECALL_LIMIT = 5;
 const MIN_SCORE = 0.3;
 const LOAD_LIMIT = 500; // max memories loaded for cosine search
 
-function cosine(a: number[], b: number[]): number {
+export function cosine(a: number[], b: number[]): number {
   let dot = 0,
     na = 0,
     nb = 0;
@@ -150,6 +150,12 @@ export async function listMemories(
 }
 
 export async function forgetById(id: number): Promise<ToolResult> {
+  if (!Number.isFinite(id) || id <= 0) {
+    return {
+      success: false,
+      error: "Ungültige ID. Nutze list_memories um IDs zu sehen.",
+    };
+  }
   await pool.execute("DELETE FROM memories WHERE id = ?", [id]);
   return { success: true, output: `Erinnerung ${id} gelöscht.` };
 }

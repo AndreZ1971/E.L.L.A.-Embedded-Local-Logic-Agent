@@ -18,7 +18,7 @@ export interface Rule {
 // Unveränderliche Direktive — nie in DB, nie konfigurierbar.
 // Diese Tools darf E.L.L.A. grundsätzlich nicht ausführen, unabhängig von Regeln.
 // Erweiterbar wenn neue destruktive Tool-Kategorien entstehen.
-const DIRECTIVE_DENY = new Set<string>([
+export const DIRECTIVE_DENY = new Set<string>([
   // Platzhalter für zukünftige destruktive Tools (z.B. delete_files, run_script)
   // clean_temp und empty_recycle_bin sind NICHT hier — sie sind regelgesteuert
 ]);

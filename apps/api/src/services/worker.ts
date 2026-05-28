@@ -22,7 +22,7 @@ interface DiskMetric {
 
 // WMIC ist seit Windows 11 22H2 deprecated. Fallback:
 //   Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='${drive}:'" | Select FreeSpace,Size
-function getDiskMetric(drive: string): DiskMetric | null {
+export function getDiskMetric(drive: string): DiskMetric | null {
   try {
     const out = execSync(
       `wmic logicaldisk where "DeviceID='${drive}:'" get FreeSpace,Size /format:csv`,
@@ -69,6 +69,21 @@ function getLogicalDrives(): string[] {
 }
 
 // ── PnP ───────────────────────────────────────────────────────────────────────
+
+export function computePnPDelta(
+  current: Map<string, PnPDevice>,
+  last: Map<string, PnPDevice>,
+): { connected: PnPDevice[]; disconnected: PnPDevice[] } {
+  const connected: PnPDevice[] = [];
+  const disconnected: PnPDevice[] = [];
+  for (const [id, device] of current) {
+    if (!last.has(id)) connected.push(device);
+  }
+  for (const [id, device] of last) {
+    if (!current.has(id)) disconnected.push(device);
+  }
+  return { connected, disconnected };
+}
 
 export interface PnPDevice {
   instanceId: string;

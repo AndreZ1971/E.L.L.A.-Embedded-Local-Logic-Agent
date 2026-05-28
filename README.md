@@ -1,5 +1,7 @@
 # E.L.L.A. — Embedded Local Logic Agent
 
+![Tests](https://github.com/AndreZ1971/E.L.L.A/actions/workflows/test.yml/badge.svg)
+
 Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automatisierung — vollständig offline via Ollama, optional mit OpenAI GPT-4o.
 
 **Version:** v2.0.0 · Windows 10/11 (x64)
