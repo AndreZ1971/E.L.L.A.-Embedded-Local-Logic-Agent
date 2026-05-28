@@ -4,7 +4,10 @@ import {
   cleanTemp,
   emptyRecycleBin,
 } from "@ella/agent-tools";
-import { execSync } from "child_process";
+import { execSync, exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 import * as path from "path";
 import { getSettings, saveSettings } from "../services/settings.js";
 import { createRule as createRuleInDb } from "../services/rules.js";
@@ -415,7 +418,7 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
   },
 
   list_connections: async () => {
-    const connections = getTcpConnections();
+    const connections = await getTcpConnections();
     trackToolUsage("list_connections", `${connections.length} Verbindungen`);
     return {
       success: true,
@@ -428,97 +431,83 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     const ramFree = os.freemem();
     const ramTotal = os.totalmem();
 
-    // Sync: drives
-    let drives: Array<{
-      drive: string;
-      usedPct: number;
-      freeGB: string;
-      totalGB: string;
-    }> = [];
-    try {
-      const out = execSync(
-        "wmic logicaldisk get DeviceID,DriveType,FreeSpace,Size /format:csv",
-        { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8" },
-      );
-      for (const line of out.trim().split("\n")) {
-        const cols = line.split(",");
-        if (cols.length < 5) continue;
-        const driveType = cols[2].trim();
-        if (driveType !== "2" && driveType !== "3") continue;
-        const letter = cols[1].replace(":", "").trim().toUpperCase();
-        const free = Number(cols[3]);
-        const total = Number(cols[4]);
-        if (!total || letter.length !== 1) continue;
-        drives.push({
-          drive: letter,
-          usedPct: Math.round(((total - free) / total) * 100),
-          freeGB: (free / 1024 ** 3).toFixed(1) + " GB",
-          totalGB: (total / 1024 ** 3).toFixed(1) + " GB",
-        });
-      }
-    } catch {
-      /* ignore */
-    }
+    const tempScript =
+      "$s=(Get-ChildItem $env:TEMP -Recurse -Depth 3 -ErrorAction SilentlyContinue|Measure-Object -Property Length -Sum).Sum; [math]::Round($s/1MB,1)";
+    const tempEncoded = Buffer.from(tempScript, "utf16le").toString("base64");
 
-    // Sync: last boot
-    let boot: { bootTime: string; uptimeHours: number } | null = null;
-    try {
-      const out = execSync("wmic os get LastBootUpTime /format:value", {
-        stdio: ["ignore", "pipe", "ignore"],
-        encoding: "utf-8",
-      });
-      const match = out.match(/LastBootUpTime=(\d{14})/);
-      if (match) {
+    const [
+      drivesResult,
+      bootResult,
+      tempResult,
+      connResult,
+      ollamaResult,
+      alertsResult,
+    ] = await Promise.allSettled([
+      execAsync(
+        "wmic logicaldisk get DeviceID,DriveType,FreeSpace,Size /format:csv",
+        { timeout: 5000 },
+      ).then(({ stdout }) => {
+        const result: Array<{
+          drive: string;
+          usedPct: number;
+          freeGB: string;
+          totalGB: string;
+        }> = [];
+        for (const line of stdout.trim().split("\n")) {
+          const cols = line.split(",");
+          if (cols.length < 5) continue;
+          const driveType = cols[2].trim();
+          if (driveType !== "2" && driveType !== "3") continue;
+          const letter = cols[1].replace(":", "").trim().toUpperCase();
+          const free = Number(cols[3]);
+          const total = Number(cols[4]);
+          if (!total || letter.length !== 1) continue;
+          result.push({
+            drive: letter,
+            usedPct: Math.round(((total - free) / total) * 100),
+            freeGB: (free / 1024 ** 3).toFixed(1) + " GB",
+            totalGB: (total / 1024 ** 3).toFixed(1) + " GB",
+          });
+        }
+        return result;
+      }),
+
+      execAsync("wmic os get LastBootUpTime /format:value", {
+        timeout: 5000,
+      }).then(({ stdout }) => {
+        const match = stdout.match(/LastBootUpTime=(\d{14})/);
+        if (!match) return null;
         const dt = match[1];
         const bootDate = new Date(
           `${dt.slice(0, 4)}-${dt.slice(4, 6)}-${dt.slice(6, 8)}T` +
             `${dt.slice(8, 10)}:${dt.slice(10, 12)}:${dt.slice(12, 14)}`,
         );
-        boot = {
+        return {
           bootTime: bootDate.toISOString(),
           uptimeHours: Math.floor(
             (Date.now() - bootDate.getTime()) / 3_600_000,
           ),
         };
-      }
-    } catch {
-      /* ignore */
-    }
+      }),
 
-    // Sync: temp folder size estimate
-    let tempSizeMB = "unbekannt";
-    try {
-      const script =
-        "$s=(Get-ChildItem $env:TEMP -Recurse -ErrorAction SilentlyContinue|Measure-Object -Property Length -Sum).Sum; [math]::Round($s/1MB,1)";
-      const encoded = Buffer.from(script, "utf16le").toString("base64");
-      const out = execSync(
-        `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
-        {
-          stdio: ["ignore", "pipe", "ignore"],
-          encoding: "utf-8",
-          timeout: 10000,
-        },
-      );
-      tempSizeMB = (out.trim() || "0") + " MB";
-    } catch {
-      /* ignore */
-    }
+      execAsync(
+        `powershell -NoProfile -NonInteractive -EncodedCommand ${tempEncoded}`,
+        { timeout: 12000 },
+      ).then(({ stdout }) => (stdout.trim() || "0") + " MB"),
 
-    // Sync: active connections
-    const conns = getTcpConnections();
-    const network = {
-      listening: conns.filter((c) => String(c.state).includes("isten")).length,
-      established: conns.filter((c) => String(c.state).includes("stablish"))
-        .length,
-    };
+      getTcpConnections().then((conns) => ({
+        listening: conns.filter((c) => String(c.state).includes("isten"))
+          .length,
+        established: conns.filter((c) => String(c.state).includes("stablish"))
+          .length,
+      })),
 
-    // Async: Ollama + DB alerts in parallel
-    const [ollamaResult, alertsResult] = await Promise.allSettled([
       fetch(`${env.ollamaBaseUrl}/api/tags`, {
         signal: AbortSignal.timeout(3000),
       })
         .then((r) => r.ok)
         .catch(() => false),
+
       pool
         .execute<
           any[]
@@ -543,14 +532,15 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
           freeGB: (ramFree / 1024 ** 3).toFixed(1) + " GB",
           totalGB: (ramTotal / 1024 ** 3).toFixed(1) + " GB",
         },
-        drives,
+        drives: drivesResult.status === "fulfilled" ? drivesResult.value : [],
         ollama:
           ollamaResult.status === "fulfilled" ? ollamaResult.value : false,
         alerts24h:
           alertsResult.status === "fulfilled" ? alertsResult.value : [],
-        network,
-        boot,
-        tempSizeMB,
+        network: connResult.status === "fulfilled" ? connResult.value : null,
+        boot: bootResult.status === "fulfilled" ? bootResult.value : null,
+        tempSizeMB:
+          tempResult.status === "fulfilled" ? tempResult.value : "unbekannt",
       },
     };
   },

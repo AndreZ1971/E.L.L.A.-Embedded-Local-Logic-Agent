@@ -1,5 +1,8 @@
 import os from "os";
-import { execSync } from "child_process";
+import { execSync, exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 import { pool } from "../config/database.js";
 import { env } from "../config/env.js";
 import { eventBus, EVENT_SYSTEM, type SystemEvent } from "./eventBus.js";
@@ -136,7 +139,7 @@ export interface TcpConnection {
   processName: string;
 }
 
-export function getTcpConnections(): TcpConnection[] {
+export async function getTcpConnections(): Promise<TcpConnection[]> {
   try {
     const script =
       "$procs = @{}; Get-Process | ForEach-Object { $procs[$_.Id] = $_.ProcessName }; " +
@@ -145,15 +148,11 @@ export function getTcpConnections(): TcpConnection[] {
       "ForEach-Object { $_ | Add-Member -NotePropertyName ProcessName -NotePropertyValue ($procs[$_.OwningProcess] ?? 'Unknown') -Force; $_ } | " +
       "ConvertTo-Json -Compress";
     const encoded = Buffer.from(script, "utf16le").toString("base64");
-    const out = execSync(
+    const { stdout } = await execAsync(
       `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
-      {
-        stdio: ["ignore", "pipe", "ignore"],
-        encoding: "utf-8",
-        timeout: 10000,
-      },
+      { timeout: 10000 },
     );
-    const raw = out.trim();
+    const raw = stdout.trim();
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     const items = Array.isArray(parsed) ? parsed : [parsed];
