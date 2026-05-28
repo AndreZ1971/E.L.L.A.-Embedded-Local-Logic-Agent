@@ -25,6 +25,20 @@ let apiProcess: ChildProcess | null = null;
 
 // ── API-Spawn ─────────────────────────────────────────────────────────────────
 
+function freePort(port: number): Promise<void> {
+  return new Promise((resolve) => {
+    const cmd =
+      `Get-NetTCPConnection -LocalPort ${port} -State Listen ` +
+      `-ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | ` +
+      `ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }`;
+    exec(
+      `powershell -NoProfile -NonInteractive -Command "${cmd}"`,
+      { timeout: 5000 },
+      () => resolve(),
+    );
+  });
+}
+
 function startApi(): void {
   const apiDir = path.join(app.getAppPath(), "../api");
   console.log("[ELLA] Starte API in:", apiDir);
@@ -267,6 +281,7 @@ app.whenReady().then(async () => {
   );
 
   if (!isDev) {
+    await freePort(API_PORT);
     startApi();
     try {
       console.log(`[ELLA] Warte auf API :${API_PORT}…`);

@@ -29,7 +29,13 @@ eventsRouter.get("/recent", async (_req, res, next) => {
     const [rows] = await pool.execute<any[]>(
       "SELECT id, type, payload, created_at FROM system_events ORDER BY id DESC LIMIT 50",
     );
-    res.json(rows);
+    res.json(
+      rows.map((r) => ({
+        ...r,
+        payload:
+          typeof r.payload === "string" ? JSON.parse(r.payload) : r.payload,
+      })),
+    );
   } catch (err) {
     next(err);
   }
