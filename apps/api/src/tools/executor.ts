@@ -21,6 +21,7 @@ import {
 import { evaluateRules } from "../services/rules.js";
 import os from "os";
 import { scanHardware } from "../services/systemScan.js";
+import { getPnPSnapshot } from "../services/worker.js";
 import { readEmails, markEmail as markEmailService } from "../services/mail.js";
 import {
   readCalendar,
@@ -365,6 +366,37 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     return {
       success: true,
       output: `Termin "${subject}" am ${start} bis ${end} angelegt${location ? ` in ${location}` : ""}.`,
+    };
+  },
+
+  list_devices: async () => {
+    const snapshot = getPnPSnapshot();
+    const devices = [...snapshot.values()];
+    let drives: string[] = [];
+    try {
+      const { execSync } = await import("child_process");
+      const out = execSync(
+        "wmic logicaldisk get DeviceID,DriveType /format:csv",
+        {
+          stdio: ["ignore", "pipe", "ignore"],
+          encoding: "utf-8",
+        },
+      );
+      for (const line of out.trim().split("\n")) {
+        const cols = line.split(",");
+        if (cols.length < 3) continue;
+        const type = cols[2].trim();
+        if (type !== "2" && type !== "3") continue;
+        const letter = cols[1].replace(":", "").trim().toUpperCase();
+        if (letter.length === 1) drives.push(letter);
+      }
+    } catch {
+      drives = ["C"];
+    }
+    trackToolUsage("list_devices", `${devices.length} Geräte`);
+    return {
+      success: true,
+      output: { deviceCount: devices.length, devices, drives },
     };
   },
 

@@ -146,16 +146,45 @@ const Chat: React.FC = () => {
         payload: Record<string, unknown>;
         id?: number;
       };
-      if (ev.type !== "alert") return;
-      const id = Date.now();
-      const severity =
-        (ev.payload.severity as "warning" | "error") ?? "warning";
-      const message = (ev.payload.message as string) ?? "System-Alert";
-      setToasts((prev) => [...prev, { id, message, severity }]);
-      setTimeout(
-        () => setToasts((prev) => prev.filter((t) => t.id !== id)),
-        8000,
-      );
+      const toastId = Date.now();
+      if (ev.type === "alert") {
+        const severity =
+          (ev.payload.severity as "warning" | "error") ?? "warning";
+        const message = (ev.payload.message as string) ?? "System-Alert";
+        setToasts((prev) => [...prev, { id: toastId, message, severity }]);
+        setTimeout(
+          () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
+          8000,
+        );
+      } else if (ev.type === "device_connected") {
+        const name = (ev.payload.name as string) ?? "Gerät";
+        setToasts((prev) => [
+          ...prev,
+          {
+            id: toastId,
+            message: `Gerät verbunden: ${name}`,
+            severity: "warning" as const,
+          },
+        ]);
+        setTimeout(
+          () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
+          6000,
+        );
+      } else if (ev.type === "device_disconnected") {
+        const name = (ev.payload.name as string) ?? "Gerät";
+        setToasts((prev) => [
+          ...prev,
+          {
+            id: toastId,
+            message: `Gerät getrennt: ${name}`,
+            severity: "warning" as const,
+          },
+        ]);
+        setTimeout(
+          () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
+          6000,
+        );
+      }
     };
     return () => es.close();
   }, []);

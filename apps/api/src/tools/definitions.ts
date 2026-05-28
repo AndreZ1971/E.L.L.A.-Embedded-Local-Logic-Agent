@@ -321,6 +321,21 @@ const MAIL_TOOLS: OllamaTool[] = [
   },
 ];
 
+const HARDWARE_TOOLS: OllamaTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "list_devices",
+      description:
+        "Listet alle aktuell angeschlossenen Hardware-Geräte auf (USB, Kameras, Festplatten) sowie alle erkannten Laufwerke. Nutze dies wenn der Nutzer fragt welche Geräte verbunden sind.",
+      parameters: {
+        type: "object",
+        properties: {},
+      },
+    },
+  },
+];
+
 const SYSTEM_INFO_TOOL: OllamaTool = {
   type: "function",
   function: {
@@ -365,6 +380,7 @@ export function buildToolDefinitions(setups: Setup[]): OllamaTool[] {
     ...MEMORY_TOOLS,
     HOMEWORK_TOOL,
     SYSTEM_INFO_TOOL,
+    ...HARDWARE_TOOLS,
     ...CONVERSATION_TOOLS,
     ...MAIL_TOOLS,
   ];

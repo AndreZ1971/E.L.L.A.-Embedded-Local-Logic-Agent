@@ -64,6 +64,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "mark_email",
     "read_calendar",
     "create_appointment",
+    "list_devices",
   ],
   sessionLimit: 40,
   openaiApiKey: "",

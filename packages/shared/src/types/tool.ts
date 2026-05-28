@@ -16,7 +16,8 @@ export type ToolName =
   | "read_emails"
   | "mark_email"
   | "read_calendar"
-  | "create_appointment";
+  | "create_appointment"
+  | "list_devices";
 
 export interface ToolCall {
   tool: ToolName;
