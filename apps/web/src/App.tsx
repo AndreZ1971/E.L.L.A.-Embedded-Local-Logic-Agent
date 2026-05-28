@@ -47,8 +47,8 @@ function AppShell() {
   const isFullscreen =
     path === "/eula" || path === "/setup" || path === "/onboarding";
 
-  // EULA hard gate
-  if (!boot.eulaAccepted && path !== "/eula") {
+  // EULA hard gate — nicht für fullscreen-Seiten (verwalten ihren eigenen Flow)
+  if (!boot.eulaAccepted && !isFullscreen) {
     return <Navigate to="/eula" replace />;
   }
 

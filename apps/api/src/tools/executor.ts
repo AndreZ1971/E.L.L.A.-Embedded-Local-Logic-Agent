@@ -6,7 +6,6 @@ import {
 } from "@ella/agent-tools";
 import { execSync } from "child_process";
 import * as path from "path";
-import { toolRegistry } from "./registry.js";
 import { getSettings, saveSettings } from "../services/settings.js";
 import { createRule as createRuleInDb } from "../services/rules.js";
 import {
@@ -299,7 +298,9 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     if (result.directive) {
       return {
         success: false,
-        error: `Direktive: ${result.error}`,
+        error:
+          result.error ??
+          "Direktive: Ungelesene Mails dürfen nicht gelöscht werden.",
       };
     }
     if (!result.success) {
@@ -384,8 +385,9 @@ export const toolExecutor = {
   execute: async (call: ToolCall): Promise<ToolResult> => {
     const name = call.tool;
 
-    if (!toolRegistry.isEnabled(name)) {
-      return { success: false, error: `Tool '${name}' is not enabled.` };
+    const { enabledTools } = getSettings();
+    if (!enabledTools.includes(name)) {
+      return { success: false, error: `Tool '${name}' ist nicht aktiviert.` };
     }
 
     const decision = await evaluateRules(name);

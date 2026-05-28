@@ -31,8 +31,8 @@ $o = New-Object -ComObject Outlook.Application
 $ns = $o.GetNamespace('MAPI')
 $cal = $ns.GetDefaultFolder(9)
 $items = $cal.Items
-$items.Sort('[Start]')
 $items.IncludeRecurrences = $true
+$items.Sort('[Start]')
 $start = (Get-Date).Date
 $end = $start.AddDays(${days})
 $fmt = 'MM/dd/yyyy HH:mm'
