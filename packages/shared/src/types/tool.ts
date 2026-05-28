@@ -19,7 +19,8 @@ export type ToolName =
   | "create_appointment"
   | "list_devices"
   | "scan_network"
-  | "list_connections";
+  | "list_connections"
+  | "get_system_status";
 
 export interface ToolCall {
   tool: ToolName;

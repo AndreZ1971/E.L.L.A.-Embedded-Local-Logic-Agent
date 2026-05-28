@@ -360,6 +360,19 @@ const HARDWARE_TOOLS: OllamaTool[] = [
   },
 ];
 
+const SYSTEM_STATUS_TOOL: OllamaTool = {
+  type: "function",
+  function: {
+    name: "get_system_status",
+    description:
+      "Rundum-Diagnose: liefert in einem Aufruf alle Laufwerke mit Belegung, RAM-Stand, Ollama-Status, aktive Netzwerkverbindungen, letzten Boot-Zeitpunkt, Temp-Ordner-Größe und alle Alerts der letzten 24 h. Nutze dies wenn der Nutzer fragt ob alles okay ist oder einen Überblick über das System möchte.",
+    parameters: {
+      type: "object",
+      properties: {},
+    },
+  },
+};
+
 const SYSTEM_INFO_TOOL: OllamaTool = {
   type: "function",
   function: {
@@ -404,6 +417,7 @@ export function buildToolDefinitions(setups: Setup[]): OllamaTool[] {
     ...MEMORY_TOOLS,
     HOMEWORK_TOOL,
     SYSTEM_INFO_TOOL,
+    SYSTEM_STATUS_TOOL,
     ...HARDWARE_TOOLS,
     ...CONVERSATION_TOOLS,
     ...MAIL_TOOLS,

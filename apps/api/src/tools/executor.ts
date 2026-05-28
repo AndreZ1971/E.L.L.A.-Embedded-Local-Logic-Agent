@@ -32,6 +32,7 @@ import {
   createAppointment as createOutlookAppointment,
 } from "../services/calendar.js";
 import { pool } from "../config/database.js";
+import { env } from "../config/env.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -419,6 +420,138 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     return {
       success: true,
       output: { connectionCount: connections.length, connections },
+    };
+  },
+
+  get_system_status: async () => {
+    const hw = scanHardware();
+    const ramFree = os.freemem();
+    const ramTotal = os.totalmem();
+
+    // Sync: drives
+    let drives: Array<{
+      drive: string;
+      usedPct: number;
+      freeGB: string;
+      totalGB: string;
+    }> = [];
+    try {
+      const out = execSync(
+        "wmic logicaldisk get DeviceID,DriveType,FreeSpace,Size /format:csv",
+        { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8" },
+      );
+      for (const line of out.trim().split("\n")) {
+        const cols = line.split(",");
+        if (cols.length < 5) continue;
+        const driveType = cols[2].trim();
+        if (driveType !== "2" && driveType !== "3") continue;
+        const letter = cols[1].replace(":", "").trim().toUpperCase();
+        const free = Number(cols[3]);
+        const total = Number(cols[4]);
+        if (!total || letter.length !== 1) continue;
+        drives.push({
+          drive: letter,
+          usedPct: Math.round(((total - free) / total) * 100),
+          freeGB: (free / 1024 ** 3).toFixed(1) + " GB",
+          totalGB: (total / 1024 ** 3).toFixed(1) + " GB",
+        });
+      }
+    } catch {
+      /* ignore */
+    }
+
+    // Sync: last boot
+    let boot: { bootTime: string; uptimeHours: number } | null = null;
+    try {
+      const out = execSync("wmic os get LastBootUpTime /format:value", {
+        stdio: ["ignore", "pipe", "ignore"],
+        encoding: "utf-8",
+      });
+      const match = out.match(/LastBootUpTime=(\d{14})/);
+      if (match) {
+        const dt = match[1];
+        const bootDate = new Date(
+          `${dt.slice(0, 4)}-${dt.slice(4, 6)}-${dt.slice(6, 8)}T` +
+            `${dt.slice(8, 10)}:${dt.slice(10, 12)}:${dt.slice(12, 14)}`,
+        );
+        boot = {
+          bootTime: bootDate.toISOString(),
+          uptimeHours: Math.floor(
+            (Date.now() - bootDate.getTime()) / 3_600_000,
+          ),
+        };
+      }
+    } catch {
+      /* ignore */
+    }
+
+    // Sync: temp folder size estimate
+    let tempSizeMB = "unbekannt";
+    try {
+      const script =
+        "$s=(Get-ChildItem $env:TEMP -Recurse -ErrorAction SilentlyContinue|Measure-Object -Property Length -Sum).Sum; [math]::Round($s/1MB,1)";
+      const encoded = Buffer.from(script, "utf16le").toString("base64");
+      const out = execSync(
+        `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+        {
+          stdio: ["ignore", "pipe", "ignore"],
+          encoding: "utf-8",
+          timeout: 10000,
+        },
+      );
+      tempSizeMB = (out.trim() || "0") + " MB";
+    } catch {
+      /* ignore */
+    }
+
+    // Sync: active connections
+    const conns = getTcpConnections();
+    const network = {
+      listening: conns.filter((c) => String(c.state).includes("isten")).length,
+      established: conns.filter((c) => String(c.state).includes("stablish"))
+        .length,
+    };
+
+    // Async: Ollama + DB alerts in parallel
+    const [ollamaResult, alertsResult] = await Promise.allSettled([
+      fetch(`${env.ollamaBaseUrl}/api/tags`, {
+        signal: AbortSignal.timeout(3000),
+      })
+        .then((r) => r.ok)
+        .catch(() => false),
+      pool
+        .execute<
+          any[]
+        >("SELECT payload, created_at FROM system_events WHERE type = 'alert' AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) ORDER BY created_at DESC LIMIT 20")
+        .then(([rows]) =>
+          rows.map((r) => ({
+            ...(JSON.parse(r.payload as string) as Record<string, unknown>),
+            time: r.created_at,
+          })),
+        ),
+    ]);
+
+    trackToolUsage("get_system_status", "full-scan");
+    return {
+      success: true,
+      output: {
+        computer: hw.computerName,
+        cpu: hw.cpu,
+        gpu: hw.gpu,
+        ram: {
+          usedPct: Math.round(((ramTotal - ramFree) / ramTotal) * 100),
+          freeGB: (ramFree / 1024 ** 3).toFixed(1) + " GB",
+          totalGB: (ramTotal / 1024 ** 3).toFixed(1) + " GB",
+        },
+        drives,
+        ollama:
+          ollamaResult.status === "fulfilled" ? ollamaResult.value : false,
+        alerts24h:
+          alertsResult.status === "fulfilled" ? alertsResult.value : [],
+        network,
+        boot,
+        tempSizeMB,
+      },
     };
   },
 

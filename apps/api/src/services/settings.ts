@@ -67,6 +67,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "list_devices",
     "scan_network",
     "list_connections",
+    "get_system_status",
   ],
   sessionLimit: 40,
   openaiApiKey: "",

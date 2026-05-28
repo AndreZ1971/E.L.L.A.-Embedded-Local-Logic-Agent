@@ -71,7 +71,8 @@ export async function runMigrations(): Promise<void> {
       (16, 'Termin erstellen erlaubt',       'create_appointment',  'always', 'allow', TRUE),
       (17, 'Geräteliste erlaubt',            'list_devices',        'always', 'allow', TRUE),
       (18, 'Netzwerk scannen erlaubt',       'scan_network',        'always', 'allow', TRUE),
-      (19, 'Verbindungen auflisten erlaubt', 'list_connections',    'always', 'allow', TRUE)
+      (19, 'Verbindungen auflisten erlaubt', 'list_connections',    'always', 'allow', TRUE),
+      (20, 'System-Status erlaubt',          'get_system_status',   'always', 'allow', TRUE)
   `);
   // clean_temp + empty_recycle_bin intentionally ohne Default-Regel — Nutzer muss explizit erlauben
 }
