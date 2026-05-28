@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ella-directive/core": "file:../../../ella-directive/packages/core",
     "@ella/agent-tools": "*",
     "@ella/shared": "*",
     "dotenv": "^16.4.0",

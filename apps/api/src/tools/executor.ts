@@ -37,6 +37,35 @@ import {
 import { pool } from "../config/database.js";
 import { env } from "../config/env.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
+import { DirectiveLayer } from "@ella-directive/core";
+
+const directive = new DirectiveLayer();
+
+// Harm tools — unconditionally denied, regardless of rule engine
+directive.registerHarmTool("clean_temp");
+directive.registerHarmTool("empty_recycle_bin");
+directive.registerHarmTool("free_ram");
+
+// All explicitly permitted tools
+directive.registerAllowedTool("open_app");
+directive.registerAllowedTool("get_disk_usage");
+directive.registerAllowedTool("load_setup");
+directive.registerAllowedTool("homework_mode");
+directive.registerAllowedTool("remember");
+directive.registerAllowedTool("forget");
+directive.registerAllowedTool("list_memories");
+directive.registerAllowedTool("get_system_info");
+directive.registerAllowedTool("create_setup");
+directive.registerAllowedTool("update_setting");
+directive.registerAllowedTool("create_rule");
+directive.registerAllowedTool("read_emails");
+directive.registerAllowedTool("mark_email");
+directive.registerAllowedTool("read_calendar");
+directive.registerAllowedTool("create_appointment");
+directive.registerAllowedTool("list_devices");
+directive.registerAllowedTool("scan_network");
+directive.registerAllowedTool("list_connections");
+directive.registerAllowedTool("get_system_status");
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
 
@@ -578,11 +607,18 @@ export const toolExecutor = {
       return { success: false, error: `Tool '${name}' ist nicht aktiviert.` };
     }
 
+    if (directive.check(name) === "deny") {
+      return {
+        success: false,
+        error: `Direktive verweigert '${name}'. Diese Aktion ist dauerhaft gesperrt.`,
+      };
+    }
+
     const decision = await evaluateRules(name);
     if (decision === "deny") {
       return {
         success: false,
-        error: `Direktive verweigert '${name}'. Diese Aktion ist dauerhaft gesperrt.`,
+        error: `Regel verweigert '${name}'.`,
       };
     }
     if (decision === "no_match") {
