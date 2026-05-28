@@ -1,0 +1,58 @@
+import { pipeline, env as xenv } from "@xenova/transformers";
+import * as fs from "fs/promises";
+import * as os from "os";
+import * as path from "path";
+
+// Modell lokal im API-Verzeichnis cachen statt im globalen HuggingFace-Pfad
+xenv.cacheDir = "./whisper-cache";
+
+type ASRPipeline = Awaited<ReturnType<typeof pipeline>>;
+
+let _pipe: ASRPipeline | null = null;
+let _loading: Promise<ASRPipeline> | null = null;
+
+const MODEL = "Xenova/whisper-tiny";
+
+export async function getWhisperPipeline(): Promise<ASRPipeline> {
+  if (_pipe) return _pipe;
+  if (_loading) return _loading;
+
+  _loading = pipeline("automatic-speech-recognition", MODEL, {
+    progress_callback: (p: { status: string; progress?: number }) => {
+      if (p.status === "downloading") {
+        const pct = Math.round(p.progress ?? 0);
+        process.stdout.write(`\r[WHISPER] Lade Modell: ${pct}%   `);
+      } else if (p.status === "done") {
+        process.stdout.write("\n[WHISPER] Modell bereit.\n");
+      }
+    },
+  }).then((p) => {
+    _pipe = p;
+    _loading = null;
+    return p;
+  });
+
+  return _loading;
+}
+
+export async function transcribe(audioBuffer: Buffer): Promise<string> {
+  const pipe = await getWhisperPipeline();
+
+  // Buffer in Temp-Datei schreiben — Pipeline erwartet Dateipfad
+  const tmpPath = path.join(os.tmpdir(), `ella-audio-${Date.now()}.webm`);
+  try {
+    await fs.writeFile(tmpPath, audioBuffer);
+    const result = (await (pipe as (a: string, o: unknown) => Promise<unknown>)(
+      tmpPath,
+      { language: "german", task: "transcribe" },
+    )) as { text: string } | Array<{ text: string }>;
+    const text = Array.isArray(result) ? result[0]?.text : result.text;
+    return (text ?? "").trim();
+  } finally {
+    await fs.unlink(tmpPath).catch(() => {});
+  }
+}
+
+export function isWhisperReady(): boolean {
+  return _pipe !== null;
+}

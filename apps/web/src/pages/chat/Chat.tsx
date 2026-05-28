@@ -1,52 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 
-/* ── SpeechRecognition types (not in default TS lib) ─────────────────── */
-interface SrAlt {
-  transcript: string;
-  confidence: number;
-}
-interface SrRes {
-  isFinal: boolean;
-  readonly length: number;
-  [i: number]: SrAlt;
-}
-interface SrList {
-  readonly length: number;
-  [i: number]: SrRes;
-}
-interface SrEvent extends Event {
-  readonly resultIndex: number;
-  readonly results: SrList;
-}
-interface Recog extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onresult: ((ev: SrEvent) => void) | null;
-  onend: (() => void) | null;
-  onerror: ((ev: { error: string }) => void) | null;
-}
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => Recog;
-    webkitSpeechRecognition?: new () => Recog;
-  }
-}
-
 type VoiceMode = "off" | "manual" | "wakeword";
-type VoicePhase = "idle" | "wake" | "listen";
-
-const SUBMIT_RE =
-  /\b(ausf[uü]hren|los|mach es(?: bitte)?|mache es(?: bitte)?|abschicken|sende)\b/i;
-const CANCEL_RE = /\b(abbrechen|stopp?|vergiss es)\b/i;
-
-function mkRecog(): Recog | null {
-  const C = window.SpeechRecognition ?? window.webkitSpeechRecognition;
-  return C ? new C() : null;
-}
 
 /* ── Message + stream types ──────────────────────────────────────────── */
 interface Message {
@@ -131,21 +85,12 @@ const Chat: React.FC = () => {
     window.speechSynthesis.speak(utt);
   }, []);
 
-  /* Voice state */
+  /* Voice state — Whisper (lokal, kein Google) */
   const [voiceMode, setVoiceMode] = useState<VoiceMode>("off");
-  const [voicePhase, setVoicePhase] = useState<VoicePhase>("idle");
-  const voiceModeRef = useRef<VoiceMode>("off");
-  const voicePhaseRef = useRef<VoicePhase>("idle");
-  const wakeRef = useRef<Recog | null>(null);
-  const cmdRef = useRef<Recog | null>(null);
-  const loadingRef = useRef(false);
-  const startWakeRef = useRef<() => void>(() => {});
-  const startCmdRef = useRef<() => void>(() => {});
-  const sendFnRef = useRef<(t: string) => void>(() => {});
-
-  useEffect(() => {
-    loadingRef.current = loading;
-  }, [loading]);
+  const [micActive, setMicActive] = useState(false);
+  const [micStatus, setMicStatus] = useState("");
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   /* ── Worker-Events (Alerts) ── */
   useEffect(() => {
@@ -230,7 +175,7 @@ const Chat: React.FC = () => {
   /* ── sendText ── */
   const sendText = useCallback(
     async (text: string) => {
-      if (!text || loadingRef.current) return;
+      if (!text || loading) return;
       window.speechSynthesis.cancel();
       setMessages((p) => [...p, { role: "user", content: text }]);
       setInput("");
@@ -297,9 +242,6 @@ const Chat: React.FC = () => {
     [speak],
   );
 
-  useEffect(() => {
-    sendFnRef.current = sendText;
-  }, [sendText]);
   const send = useCallback(() => sendText(input.trim()), [input, sendText]);
 
   const confirmAction = useCallback(
@@ -329,152 +271,53 @@ const Chat: React.FC = () => {
     confirmActionRef.current = confirmAction;
   }, [confirmAction]);
 
-  /* ── Voice helpers ── */
-  const setPhase = useCallback((p: VoicePhase) => {
-    voicePhaseRef.current = p;
-    setVoicePhase(p);
+  /* ── Whisper-basierte Spracheingabe ── */
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        setMicStatus("Transkription…");
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const form = new FormData();
+        form.append("audio", blob, "recording.webm");
+        try {
+          const r = await fetch(`${API}/api/speech/transcribe`, {
+            method: "POST",
+            body: form,
+          });
+          const { text } = (await r.json()) as { text: string };
+          if (text) setInput(text);
+        } catch {
+          /* Fehler still ignorieren */
+        }
+        setMicStatus("");
+        setMicActive(false);
+      };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setMicActive(true);
+      setMicStatus("Aufnahme…");
+    } catch {
+      setMicStatus("Mikrofon nicht verfügbar");
+      setTimeout(() => setMicStatus(""), 3000);
+    }
   }, []);
 
-  const stopAll = useCallback(() => {
-    try {
-      wakeRef.current?.abort();
-    } catch {}
-    try {
-      cmdRef.current?.abort();
-    } catch {}
-    wakeRef.current = null;
-    cmdRef.current = null;
-    setPhase("idle");
-  }, [setPhase]);
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    mediaRecorderRef.current = null;
+  }, []);
 
-  const startWake = useCallback(() => {
-    try {
-      wakeRef.current?.abort();
-    } catch {}
-    try {
-      cmdRef.current?.abort();
-    } catch {}
-    wakeRef.current = null;
-    cmdRef.current = null;
-
-    const r = mkRecog();
-    if (!r) return;
-    r.continuous = true;
-    r.interimResults = false;
-    r.lang = "de-DE";
-    wakeRef.current = r;
-    setPhase("wake");
-
-    r.onresult = (ev) => {
-      for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        if (ev.results[i][0].transcript.toLowerCase().includes("ella")) {
-          r.abort();
-          wakeRef.current = null;
-          startCmdRef.current();
-          return;
-        }
-      }
-    };
-    r.onerror = () => {};
-    r.onend = () => {
-      if (
-        voiceModeRef.current === "wakeword" &&
-        voicePhaseRef.current === "wake"
-      ) {
-        setTimeout(() => startWakeRef.current(), 250);
-      }
-    };
-    try {
-      r.start();
-    } catch {}
-  }, [setPhase]);
-
-  const startCmd = useCallback(() => {
-    try {
-      cmdRef.current?.abort();
-    } catch {}
-    const r = mkRecog();
-    if (!r) return;
-    r.continuous = true;
-    r.interimResults = true;
-    r.lang = "de-DE";
-    cmdRef.current = r;
-    setPhase("listen");
-
-    r.onresult = (ev) => {
-      let allFinals = "";
-      let interim = "";
-      let latestFinal = "";
-      for (let i = 0; i < ev.results.length; i++) {
-        const t = ev.results[i][0].transcript;
-        if (ev.results[i].isFinal) allFinals += t;
-        else interim += t;
-      }
-      for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        if (ev.results[i].isFinal) latestFinal = ev.results[i][0].transcript;
-      }
-
-      setInput(allFinals + interim);
-      if (!latestFinal) return;
-
-      if (SUBMIT_RE.test(latestFinal)) {
-        r.abort();
-        cmdRef.current = null;
-        setInput("");
-        setPhase("idle");
-        if (pendingConfirmRef.current) {
-          confirmActionRef.current(true);
-        } else {
-          const cmd = allFinals.replace(SUBMIT_RE, "").trim();
-          if (cmd) sendFnRef.current(cmd);
-        }
-        if (voiceModeRef.current === "wakeword")
-          setTimeout(() => startWakeRef.current(), 400);
-        return;
-      }
-      if (CANCEL_RE.test(latestFinal)) {
-        r.abort();
-        cmdRef.current = null;
-        setInput("");
-        setPhase("idle");
-        if (pendingConfirmRef.current) {
-          confirmActionRef.current(false);
-        }
-        if (voiceModeRef.current === "wakeword")
-          setTimeout(() => startWakeRef.current(), 400);
-      }
-    };
-
-    r.onerror = (ev) => {
-      if (ev.error === "no-speech") return;
-      r.abort();
-      cmdRef.current = null;
-      setInput("");
-      if (voiceModeRef.current === "wakeword") {
-        setTimeout(() => startWakeRef.current(), 400);
-      } else {
-        setPhase("idle");
-      }
-    };
-
-    r.onend = () => {
-      if (
-        voicePhaseRef.current === "listen" &&
-        voiceModeRef.current === "manual"
-      ) {
-        setPhase("idle");
-      }
-    };
-
-    try {
-      r.start();
-    } catch {}
-  }, [setPhase]);
-
-  useEffect(() => {
-    startWakeRef.current = startWake;
-    startCmdRef.current = startCmd;
-  }, [startWake, startCmd]);
+  const toggleMic = useCallback(() => {
+    if (micActive) stopRecording();
+    else startRecording();
+  }, [micActive, startRecording, stopRecording]);
 
   /* Load voiceMode + homework status on mount */
   useEffect(() => {
@@ -490,10 +333,7 @@ const Chat: React.FC = () => {
       }>,
     ])
       .then(([s, h]) => {
-        const m = s.voiceMode ?? "off";
-        voiceModeRef.current = m;
-        setVoiceMode(m);
-        if (m === "wakeword") setTimeout(() => startWakeRef.current(), 500);
+        setVoiceMode(s.voiceMode ?? "off");
         ttsEnabledRef.current = s.ttsEnabled ?? false;
         setTtsEnabled(s.ttsEnabled ?? false);
         ttsVoiceRef.current = s.ttsVoice ?? "";
@@ -501,8 +341,7 @@ const Chat: React.FC = () => {
         setHomeworkConfigured(h.configured);
       })
       .catch(() => {});
-    return () => stopAll();
-  }, [stopAll]);
+  }, []);
 
   const activateHomework = useCallback(async () => {
     const r = await fetch(`${API}/api/homework/activate`, { method: "POST" });
@@ -536,22 +375,6 @@ const Chat: React.FC = () => {
     }
   }, [pinInput]);
 
-  /* Manual mic toggle */
-  const toggleMic = useCallback(() => {
-    if (voicePhaseRef.current === "listen") stopAll();
-    else startCmdRef.current();
-  }, [stopAll]);
-
-  /* Cancel command in wakeword mode */
-  const cancelCmd = useCallback(() => {
-    try {
-      cmdRef.current?.abort();
-    } catch {}
-    cmdRef.current = null;
-    setInput("");
-    setTimeout(() => startWakeRef.current(), 300);
-  }, []);
-
   const clearHistory = async () => {
     await fetch(`${API}/api/chat/history/${SESSION_ID}`, { method: "DELETE" });
     setMessages([]);
@@ -560,21 +383,7 @@ const Chat: React.FC = () => {
     setError("");
   };
 
-  /* ── Mic button props ── */
-  const micIcon =
-    voicePhase === "listen" ? "◉" : voicePhase === "wake" ? "◎" : "○";
-  const micClick =
-    voiceMode === "manual"
-      ? toggleMic
-      : voicePhase === "listen"
-        ? cancelCmd
-        : undefined;
-  const micTitle =
-    voicePhase === "listen"
-      ? "Aufnahme abbrechen"
-      : voicePhase === "wake"
-        ? "Warte auf Aktivierungswort…"
-        : "Mikrofon starten";
+  const showMic = voiceMode !== "off";
 
   return (
     <div
@@ -909,15 +718,15 @@ const Chat: React.FC = () => {
         @keyframes pulse  { 0%,100%{opacity:0.4} 50%{opacity:1} }
       `}</style>
 
-      {/* Wake-word status indicator */}
-      {voiceMode !== "off" && voicePhase !== "idle" && (
+      {/* Mic-Status */}
+      {micStatus && (
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: 6,
             fontSize: "0.78rem",
-            color: voicePhase === "listen" ? "#7c6af7" : "#64748b",
+            color: micActive ? "#7c6af7" : "#94a3b8",
           }}
         >
           <span
@@ -926,15 +735,11 @@ const Chat: React.FC = () => {
               height: 6,
               borderRadius: "50%",
               display: "inline-block",
-              background: voicePhase === "listen" ? "#7c6af7" : "#64748b",
+              background: micActive ? "#7c6af7" : "#94a3b8",
               animation: "pulse 1.5s ease-in-out infinite",
             }}
           />
-          {voicePhase === "wake" && 'Warte auf "ella"…'}
-          {voicePhase === "listen" &&
-            (voiceMode === "wakeword"
-              ? 'Spreche deinen Befehl, dann "ausführen" oder "los".'
-              : "Höre zu…")}
+          {micStatus}
         </div>
       )}
 
@@ -1005,19 +810,14 @@ const Chat: React.FC = () => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
           placeholder={
-            voicePhase === "listen"
-              ? "Spreche deinen Befehl…"
-              : "Anweisung eingeben…"
+            micActive ? "Spreche deinen Befehl…" : "Anweisung eingeben…"
           }
           disabled={loading || !!pendingConfirm}
           style={{
             flex: 1,
             padding: "10px 14px",
             borderRadius: 6,
-            border:
-              voicePhase === "listen"
-                ? "1px solid #7c6af7"
-                : "1px solid #2d3148",
+            border: micActive ? "1px solid #7c6af7" : "1px solid #2d3148",
             background: "#1a1d27",
             color: "#e2e8f0",
             fontSize: "0.9rem",
@@ -1026,29 +826,24 @@ const Chat: React.FC = () => {
             transition: "border-color 0.2s",
           }}
         />
-        {voiceMode !== "off" && (
+        {showMic && (
           <button
-            onClick={micClick}
-            title={micTitle}
+            onClick={toggleMic}
+            title={micActive ? "Aufnahme stoppen" : "Mikrofon starten"}
             style={{
               padding: "10px 14px",
               borderRadius: 6,
               minWidth: 42,
-              background: voicePhase === "listen" ? "#7c6af7" : "#1a1d27",
-              border: voicePhase === "listen" ? "none" : "1px solid #2d3148",
-              color:
-                voicePhase === "listen"
-                  ? "#fff"
-                  : voicePhase === "wake"
-                    ? "#475569"
-                    : "#64748b",
-              cursor: micClick ? "pointer" : "default",
+              background: micActive ? "#7c6af7" : "#1a1d27",
+              border: micActive ? "none" : "1px solid #2d3148",
+              color: micActive ? "#fff" : "#64748b",
+              cursor: "pointer",
               fontSize: "1rem",
               lineHeight: 1,
               transition: "background 0.2s, color 0.2s",
             }}
           >
-            {micIcon}
+            {micActive ? "◉" : "○"}
           </button>
         )}
         <button
