@@ -1,9 +1,36 @@
+import { DirectiveLayer } from "@ella-directive/core";
 import {
   openApp,
   getDiskUsage,
   cleanTemp,
   emptyRecycleBin,
 } from "@ella/agent-tools";
+
+const directive = new DirectiveLayer();
+
+directive.registerHarmTool("clean_temp");
+directive.registerHarmTool("empty_recycle_bin");
+directive.registerHarmTool("free_ram");
+
+directive.registerAllowedTool("open_app");
+directive.registerAllowedTool("get_disk_usage");
+directive.registerAllowedTool("get_system_info");
+directive.registerAllowedTool("get_system_status");
+directive.registerAllowedTool("read_emails");
+directive.registerAllowedTool("mark_email");
+directive.registerAllowedTool("read_calendar");
+directive.registerAllowedTool("create_appointment");
+directive.registerAllowedTool("remember");
+directive.registerAllowedTool("forget");
+directive.registerAllowedTool("list_memories");
+directive.registerAllowedTool("load_setup");
+directive.registerAllowedTool("homework_mode");
+directive.registerAllowedTool("create_setup");
+directive.registerAllowedTool("update_setting");
+directive.registerAllowedTool("create_rule");
+directive.registerAllowedTool("list_devices");
+directive.registerAllowedTool("scan_network");
+directive.registerAllowedTool("list_connections");
 import { execSync, exec } from "child_process";
 import { promisify } from "util";
 
@@ -572,6 +599,13 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
 export const toolExecutor = {
   execute: async (call: ToolCall): Promise<ToolResult> => {
     const name = call.tool;
+
+    if (directive.check(name) === "deny") {
+      return {
+        success: false,
+        error: `Direktive verweigert '${name}'. Diese Aktion ist dauerhaft gesperrt.`,
+      };
+    }
 
     const { enabledTools } = getSettings();
     if (!enabledTools.includes(name)) {
