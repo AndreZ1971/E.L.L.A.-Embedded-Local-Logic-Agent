@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   evaluateRules,
+  DIRECTIVE_DENY,
   createRule,
   updateRule,
   deleteRule,
@@ -13,6 +14,19 @@ vi.mock("../../config/database.js", () => ({
 
 import { pool } from "../../config/database.js";
 const mockExecute = vi.mocked(pool.execute);
+
+describe("DIRECTIVE_DENY", () => {
+  afterEach(() => {
+    DIRECTIVE_DENY.delete("__test_blocked__");
+  });
+
+  it("returns deny without DB call for tool in directive set", async () => {
+    DIRECTIVE_DENY.add("__test_blocked__");
+    const result = await evaluateRules("__test_blocked__" as any);
+    expect(result).toBe("deny");
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+});
 
 describe("evaluateRules", () => {
   beforeEach(() => mockExecute.mockReset());

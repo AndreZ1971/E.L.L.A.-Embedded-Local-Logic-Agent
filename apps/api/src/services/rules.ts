@@ -15,6 +15,14 @@ export interface Rule {
   updated_at: string;
 }
 
+// Unveränderliche Direktive — nie in DB, nie konfigurierbar.
+// Diese Tools darf E.L.L.A. grundsätzlich nicht ausführen, unabhängig von Regeln.
+// Erweiterbar wenn neue destruktive Tool-Kategorien entstehen.
+export const DIRECTIVE_DENY = new Set<string>([
+  // Platzhalter für zukünftige destruktive Tools (z.B. delete_files, run_script)
+  // clean_temp und empty_recycle_bin sind NICHT hier — sie sind regelgesteuert
+]);
+
 function diskUsagePercent(drive: string): number {
   try {
     // TODO: Get-CimInstance Fallback für Windows 11 22H2+
@@ -54,6 +62,8 @@ async function evalTrigger(trigger: string): Promise<boolean> {
 // Evaluation-Reihenfolge: deny-Regeln zuerst (FIELD-Sortierung), dann allow.
 // Erste passende Regel gewinnt.
 export async function evaluateRules(toolName: ToolName): Promise<RuleDecision> {
+  if (DIRECTIVE_DENY.has(toolName)) return "deny";
+
   const [rows] = await pool.execute<any[]>(
     `SELECT tool_name, \`trigger\`, action
      FROM rules

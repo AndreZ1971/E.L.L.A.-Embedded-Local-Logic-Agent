@@ -1,14 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@ella-directive/core", () => ({
-  DirectiveLayer: vi.fn().mockImplementation(() => ({
-    registerHarmTool: vi.fn(),
-    registerExfiltrationTool: vi.fn(),
-    registerAllowedTool: vi.fn(),
-    check: vi.fn().mockReturnValue("allow"),
-  })),
-}));
-
 vi.mock("@ella/agent-tools", () => ({
   openApp: vi.fn(),
   getDiskUsage: vi
@@ -41,6 +32,7 @@ vi.mock("../../services/settings.js", () => ({
 vi.mock("../../services/rules.js", () => ({
   evaluateRules: vi.fn().mockResolvedValue("allow"),
   createRule: vi.fn(),
+  DIRECTIVE_DENY: new Set<string>(),
 }));
 vi.mock("../../services/homework.js", () => ({
   activateHomeworkMode: vi.fn(),
