@@ -42,7 +42,7 @@ export default function Eula() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ eulaAccepted: true }),
       });
-      setBoot((prev) => ({ ...prev!, eulaAccepted: true }));
+      setBoot((prev) => (prev ? { ...prev, eulaAccepted: true } : prev));
       navigate("/onboarding");
     } catch {
       setSaving(false);

@@ -18,10 +18,28 @@ const SESSION_ID = "default";
 const API = import.meta.env.VITE_API_BASE ?? "";
 
 const TOOL_LABELS: Record<string, string> = {
-  get_disk_usage: "Festplattennutzung abrufen",
   open_app: "App öffnen",
+  get_disk_usage: "Festplattennutzung abrufen",
   clean_temp: "Temp-Dateien bereinigen",
   empty_recycle_bin: "Papierkorb leeren",
+  remember: "Erinnerung speichern",
+  forget: "Erinnerung löschen",
+  list_memories: "Erinnerungen auflisten",
+  homework_mode: "Hausaufgaben-Modus",
+  get_system_info: "Systeminfo abrufen",
+  create_setup: "Setup anlegen",
+  update_setting: "Einstellung ändern",
+  create_rule: "Regel erstellen",
+  free_ram: "RAM freigeben",
+  read_emails: "E-Mails lesen",
+  mark_email: "E-Mail markieren",
+  read_calendar: "Kalender lesen",
+  create_appointment: "Termin erstellen",
+  list_devices: "Geräte auflisten",
+  scan_network: "Netzwerk scannen",
+  list_connections: "Verbindungen auflisten",
+  get_system_status: "System-Status abrufen",
+  load_setup: "Setup laden",
 };
 
 /* ── Component ───────────────────────────────────────────────────────── */
@@ -208,7 +226,12 @@ const Chat: React.FC = () => {
             if (!line.startsWith("data: ")) continue;
             const raw = line.slice(6).trim();
             if (!raw) continue;
-            const ev = JSON.parse(raw) as StreamEvent;
+            let ev: StreamEvent;
+            try {
+              ev = JSON.parse(raw) as StreamEvent;
+            } catch {
+              continue;
+            }
             if (ev.type === "chunk") {
               full += ev.text;
               setStreaming(full);

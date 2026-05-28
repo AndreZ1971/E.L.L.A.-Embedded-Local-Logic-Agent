@@ -187,7 +187,12 @@ const Dashboard: React.FC = () => {
 
     const es = new EventSource(`${API}/api/events/stream`);
     es.onmessage = (e: MessageEvent<string>) => {
-      const ev = JSON.parse(e.data) as WorkerEvent;
+      let ev: WorkerEvent;
+      try {
+        ev = JSON.parse(e.data) as WorkerEvent;
+      } catch {
+        return;
+      }
       setEvents((prev) => [ev, ...prev].slice(0, 20));
 
       if (ev.type === "disk") {

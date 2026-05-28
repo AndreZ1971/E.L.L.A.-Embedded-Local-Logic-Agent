@@ -16,7 +16,9 @@ const Onboarding: React.FC = () => {
     })
       .catch(() => {})
       .finally(() => {
-        setBoot((prev) => ({ ...prev!, onboardingComplete: true }));
+        setBoot((prev) =>
+          prev ? { ...prev, onboardingComplete: true } : prev,
+        );
         navigate("/chat", { replace: true });
       });
   }, [navigate, setBoot]);

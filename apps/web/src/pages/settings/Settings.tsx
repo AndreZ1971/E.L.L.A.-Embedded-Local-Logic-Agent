@@ -157,15 +157,19 @@ const Settings: React.FC = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/api/settings`).then((r) => r.json()) as Promise<Settings>,
-      fetch(`${API}/api/settings/models`).then((r) => r.json()) as Promise<{
-        models: string[];
-      }>,
-      fetch(`${API}/api/rules`).then((r) => r.json()) as Promise<Rule[]>,
+      fetch(`${API}/api/settings`)
+        .then((r) => r.json())
+        .catch(() => null) as Promise<Settings | null>,
+      fetch(`${API}/api/settings/models`)
+        .then((r) => r.json())
+        .catch(() => ({ models: [] })) as Promise<{ models: string[] }>,
+      fetch(`${API}/api/rules`)
+        .then((r) => r.json())
+        .catch(() => []) as Promise<Rule[]>,
     ]).then(([s, m, r]) => {
-      setSettings(s);
-      setModels(m.models);
-      setRules(r);
+      if (s) setSettings(s);
+      setModels(m.models ?? []);
+      setRules(Array.isArray(r) ? r : []);
     });
   }, []);
 
