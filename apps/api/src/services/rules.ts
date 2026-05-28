@@ -59,8 +59,14 @@ async function evalTrigger(trigger: string): Promise<boolean> {
   return false;
 }
 
-// Evaluation-Reihenfolge: deny-Regeln zuerst (FIELD-Sortierung), dann allow.
-// Erste passende Regel gewinnt.
+// Evaluation-Reihenfolge:
+//   1. DIRECTIVE_DENY — sofort deny, kein Override möglich
+//   2. Explizite deny-Regeln aus DB — deny
+//   3. Explizite allow-Regeln aus DB — allow
+//   4. Kein Match — allow (Default-Allow)
+//
+// Die Directive prüft zusätzlich VOR dieser Funktion in executor.ts.
+// Was die Directive erlaubt, darf die Rule Engine per Default durchlassen.
 export async function evaluateRules(toolName: ToolName): Promise<RuleDecision> {
   if (DIRECTIVE_DENY.has(toolName)) return "deny";
 
@@ -78,7 +84,9 @@ export async function evaluateRules(toolName: ToolName): Promise<RuleDecision> {
     }
   }
 
-  return "no_match";
+  // Kein explizites deny gefunden — Default-Allow
+  // Die Directive ist die einzige harte Grenze
+  return "allow";
 }
 
 export async function listRules(): Promise<Rule[]> {

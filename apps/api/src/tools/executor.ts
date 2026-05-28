@@ -575,26 +575,30 @@ export const toolExecutor = {
 
     const { enabledTools } = getSettings();
     if (!enabledTools.includes(name)) {
-      return { success: false, error: `Tool '${name}' ist nicht aktiviert.` };
+      return {
+        success: false,
+        error: `Das kann ich gerade nicht — diese Funktion ist deaktiviert.`,
+      };
     }
 
     const decision = await evaluateRules(name);
     if (decision === "deny") {
       return {
         success: false,
-        error: `Direktive verweigert '${name}'. Diese Aktion ist dauerhaft gesperrt.`,
+        error: `Das darf ich nicht tun — diese Aktion ist grundsätzlich nicht erlaubt.`,
       };
     }
     if (decision === "no_match") {
+      // Fallback — tritt nach Default-Allow in evaluateRules nicht mehr auf
       return {
         success: false,
-        error: `Keine Erlaubnis-Regel für '${name}'. Erstelle eine Regel unter Einstellungen → Regeln.`,
+        error: `Das konnte ich leider nicht ausführen.`,
       };
     }
 
     const handler = HANDLERS[name];
     if (!handler) {
-      return { success: false, error: `Tool '${name}' has no handler.` };
+      return { success: false, error: `Diese Funktion kenne ich noch nicht.` };
     }
 
     const result = await handler(call.args);

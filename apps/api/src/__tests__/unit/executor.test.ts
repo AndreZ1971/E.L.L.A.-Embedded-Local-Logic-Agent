@@ -99,7 +99,7 @@ describe("toolExecutor", () => {
       args: {},
     });
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/nicht aktiviert/);
+    expect(result.error).toMatch(/deaktiviert/);
   });
 
   it("returns deny error when evaluateRules returns deny", async () => {
@@ -109,17 +109,17 @@ describe("toolExecutor", () => {
       args: {},
     });
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/Direktive/);
+    expect(result.error).toMatch(/grundsätzlich nicht erlaubt/);
   });
 
-  it("returns no-permission error when evaluateRules returns no_match", async () => {
+  it("returns fallback error when evaluateRules returns no_match", async () => {
     vi.mocked(evaluateRules).mockResolvedValue("no_match");
     const result = await toolExecutor.execute({
       tool: "get_disk_usage",
       args: {},
     });
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/Keine Erlaubnis-Regel/);
+    expect(result.error).toMatch(/leider nicht ausführen/);
   });
 
   it("calls handler and returns result when tool is allowed", async () => {

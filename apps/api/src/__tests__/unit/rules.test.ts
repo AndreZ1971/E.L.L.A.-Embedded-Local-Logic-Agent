@@ -31,9 +31,9 @@ describe("DIRECTIVE_DENY", () => {
 describe("evaluateRules", () => {
   beforeEach(() => mockExecute.mockReset());
 
-  it("returns no_match when rule list is empty", async () => {
+  it("returns allow when rule list is empty (Default-Allow)", async () => {
     mockExecute.mockResolvedValue([[], []]);
-    expect(await evaluateRules("get_disk_usage")).toBe("no_match");
+    expect(await evaluateRules("get_disk_usage")).toBe("allow");
   });
 
   it("returns allow for wildcard always-allow rule", async () => {
@@ -55,12 +55,12 @@ describe("evaluateRules", () => {
     expect(await evaluateRules("clean_temp")).toBe("deny");
   });
 
-  it("skips rule for a different tool_name", async () => {
+  it("skips rule for a different tool_name and falls back to allow", async () => {
     mockExecute.mockResolvedValue([
       [{ tool_name: "open_app", trigger: "always", action: "deny" }],
       [],
     ]);
-    expect(await evaluateRules("clean_temp")).toBe("no_match");
+    expect(await evaluateRules("clean_temp")).toBe("allow");
   });
 
   it("evaluates hour > N as true when current hour is past threshold", async () => {
@@ -74,14 +74,14 @@ describe("evaluateRules", () => {
     vi.useRealTimers();
   });
 
-  it("evaluates hour > N as false when current hour is before threshold", async () => {
+  it("evaluates hour > N as false when current hour is before threshold — falls back to allow", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2025-01-01T10:00:00"));
     mockExecute.mockResolvedValue([
       [{ tool_name: "*", trigger: "hour > 12", action: "allow" }],
       [],
     ]);
-    expect(await evaluateRules("clean_temp")).toBe("no_match");
+    expect(await evaluateRules("clean_temp")).toBe("allow");
     vi.useRealTimers();
   });
 
