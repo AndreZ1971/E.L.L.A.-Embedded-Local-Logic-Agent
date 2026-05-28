@@ -18,7 +18,7 @@ function resolveProvider(): "openai" | "ollama" {
 
 function activeToolDefs() {
   const { enabledTools, setups } = getSettings();
-  return buildToolDefinitions(setups).filter(
+  return buildToolDefinitions(setups ?? []).filter(
     (t) =>
       enabledTools.includes(t.function.name) ||
       t.function.name === "load_setup",
@@ -137,22 +137,22 @@ chatRouter.post("/stream", async (req, res) => {
 
   const emit = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
-  const useOpenAI = resolveProvider() === "openai";
-  const activeModel = model ?? getSettings().ollamaModel ?? env.ollamaModel;
-  const tools = activeToolDefs();
-  const history = await sessionStore.get(sessionId);
-  history.push({ role: "user", content: message });
-
-  const memories = await recall(message);
-  const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
-    history.map((m) => ({ ...m, id: "", createdAt: "" })),
-  );
-
-  let finalReply = "";
-  let pendingConfirmSent = false;
-  const MAX_ROUNDS = 5;
-
   try {
+    const useOpenAI = resolveProvider() === "openai";
+    const activeModel = model ?? getSettings().ollamaModel ?? env.ollamaModel;
+    const tools = activeToolDefs();
+    const history = await sessionStore.get(sessionId);
+    history.push({ role: "user", content: message });
+
+    const memories = await recall(message);
+    const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
+      history.map((m) => ({ ...m, id: "", createdAt: "" })),
+    );
+
+    let finalReply = "";
+    let pendingConfirmSent = false;
+    const MAX_ROUNDS = 5;
+
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const stream = useOpenAI
         ? openaiClient.chatStream(messages, tools, memories)

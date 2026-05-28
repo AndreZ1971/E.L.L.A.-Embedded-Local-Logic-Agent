@@ -1,7 +1,11 @@
 import { pipeline, env as xenv } from "@xenova/transformers";
+import { exec } from "child_process";
+import { promisify } from "util";
 import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
+
+const execAsync = promisify(exec);
 
 // Modell lokal im API-Verzeichnis cachen statt im globalen HuggingFace-Pfad
 xenv.cacheDir = "./whisper-cache";
@@ -38,18 +42,33 @@ export async function getWhisperPipeline(): Promise<ASRPipeline> {
 export async function transcribe(audioBuffer: Buffer): Promise<string> {
   const pipe = await getWhisperPipeline();
 
-  // Buffer in Temp-Datei schreiben — Pipeline erwartet Dateipfad
-  const tmpPath = path.join(os.tmpdir(), `ella-audio-${Date.now()}.webm`);
+  // Node.js hat kein AudioContext — Audio via ffmpeg zu raw PCM f32le @ 16kHz dekodieren
+  const tmpInput = path.join(os.tmpdir(), `ella-audio-${Date.now()}.webm`);
   try {
-    await fs.writeFile(tmpPath, audioBuffer);
-    const result = (await (pipe as (a: string, o: unknown) => Promise<unknown>)(
-      tmpPath,
-      { language: "german", task: "transcribe" },
-    )) as { text: string } | Array<{ text: string }>;
+    await fs.writeFile(tmpInput, audioBuffer);
+
+    const { stdout: pcm } = await execAsync(
+      `ffmpeg -y -i "${tmpInput}" -ar 16000 -ac 1 -f f32le -`,
+      { encoding: "buffer", maxBuffer: 10 * 1024 * 1024, timeout: 15000 },
+    );
+
+    const audioData = new Float32Array(
+      pcm.buffer,
+      pcm.byteOffset,
+      pcm.byteLength / Float32Array.BYTES_PER_ELEMENT,
+    );
+
+    const result = (await (
+      pipe as (a: Float32Array, o: unknown) => Promise<unknown>
+    )(audioData, {
+      language: "german",
+      task: "transcribe",
+    })) as { text: string } | Array<{ text: string }>;
+
     const text = Array.isArray(result) ? result[0]?.text : result.text;
     return (text ?? "").trim();
   } finally {
-    await fs.unlink(tmpPath).catch(() => {});
+    await fs.unlink(tmpInput).catch(() => {});
   }
 }
 

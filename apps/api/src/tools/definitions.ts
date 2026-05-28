@@ -411,7 +411,7 @@ const HOMEWORK_TOOL: OllamaTool = {
   },
 };
 
-export function buildToolDefinitions(setups: Setup[]): OllamaTool[] {
+export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
   const defs = [
     ...TOOL_DEFINITIONS,
     ...MEMORY_TOOLS,
