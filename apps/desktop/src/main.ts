@@ -8,7 +8,7 @@ import {
   session,
 } from "electron";
 import type { Event as ElectronEvent } from "electron";
-import { spawn } from "child_process";
+import { spawn, exec } from "child_process";
 import type { ChildProcess } from "child_process";
 import * as net from "net";
 import { deflateSync } from "zlib";
