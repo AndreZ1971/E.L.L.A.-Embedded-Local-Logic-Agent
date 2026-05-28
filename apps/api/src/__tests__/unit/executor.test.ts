@@ -32,14 +32,7 @@ vi.mock("../../services/settings.js", () => ({
 vi.mock("../../services/rules.js", () => ({
   evaluateRules: vi.fn().mockResolvedValue("allow"),
   createRule: vi.fn(),
-}));
-vi.mock("@ella-directive/core", () => ({
-  DirectiveLayer: vi.fn().mockImplementation(() => ({
-    check: vi.fn().mockReturnValue("allow"),
-    registerHarmTool: vi.fn(),
-    registerExfiltrationTool: vi.fn(),
-    registerAllowedTool: vi.fn(),
-  })),
+  DIRECTIVE_DENY: new Set<string>(),
 }));
 vi.mock("../../services/homework.js", () => ({
   activateHomeworkMode: vi.fn(),
@@ -109,18 +102,6 @@ describe("toolExecutor", () => {
     expect(result.error).toMatch(/nicht aktiviert/);
   });
 
-  it("returns deny error when directive.check denies tool", async () => {
-    const { DirectiveLayer } = await import("@ella-directive/core");
-    const instance = vi.mocked(DirectiveLayer).mock.results[0]?.value as any;
-    instance.check.mockReturnValueOnce("deny");
-    const result = await toolExecutor.execute({
-      tool: "get_disk_usage",
-      args: {},
-    });
-    expect(result.success).toBe(false);
-    expect(result.error).toMatch(/Direktive/);
-  });
-
   it("returns deny error when evaluateRules returns deny", async () => {
     vi.mocked(evaluateRules).mockResolvedValue("deny");
     const result = await toolExecutor.execute({
@@ -128,7 +109,7 @@ describe("toolExecutor", () => {
       args: {},
     });
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/Regel/);
+    expect(result.error).toMatch(/Direktive/);
   });
 
   it("returns no-permission error when evaluateRules returns no_match", async () => {
