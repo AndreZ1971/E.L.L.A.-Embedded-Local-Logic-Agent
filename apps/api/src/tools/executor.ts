@@ -21,7 +21,11 @@ import {
 import { evaluateRules } from "../services/rules.js";
 import os from "os";
 import { scanHardware } from "../services/systemScan.js";
-import { getPnPSnapshot } from "../services/worker.js";
+import {
+  getPnPSnapshot,
+  getArpSnapshot,
+  getTcpConnections,
+} from "../services/worker.js";
 import { readEmails, markEmail as markEmailService } from "../services/mail.js";
 import {
   readCalendar,
@@ -397,6 +401,24 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     return {
       success: true,
       output: { deviceCount: devices.length, devices, drives },
+    };
+  },
+
+  scan_network: async () => {
+    const entries = getArpSnapshot();
+    trackToolUsage("scan_network", `${entries.length} Geräte`);
+    return {
+      success: true,
+      output: { deviceCount: entries.length, devices: entries },
+    };
+  },
+
+  list_connections: async () => {
+    const connections = getTcpConnections();
+    trackToolUsage("list_connections", `${connections.length} Verbindungen`);
+    return {
+      success: true,
+      output: { connectionCount: connections.length, connections },
     };
   },
 

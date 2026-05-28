@@ -102,6 +102,142 @@ export function getPnPSnapshot(): Map<string, PnPDevice> {
   return map;
 }
 
+// ── Network ───────────────────────────────────────────────────────────────────
+
+export interface ArpEntry {
+  ip: string;
+  mac: string;
+}
+
+export function getArpSnapshot(): ArpEntry[] {
+  const entries: ArpEntry[] = [];
+  try {
+    const out = execSync("arp -a", {
+      stdio: ["ignore", "pipe", "ignore"],
+      encoding: "utf-8",
+    });
+    for (const line of out.split("\n")) {
+      const m = line.match(/^\s+(\d+\.\d+\.\d+\.\d+)\s+([\w-]+)\s+dynamic/i);
+      if (m) entries.push({ ip: m[1], mac: m[2].toLowerCase() });
+    }
+  } catch {
+    // network unavailable
+  }
+  return entries;
+}
+
+export interface TcpConnection {
+  localAddress: string;
+  localPort: number;
+  remoteAddress: string;
+  remotePort: number;
+  state: string;
+  pid: number;
+  processName: string;
+}
+
+export function getTcpConnections(): TcpConnection[] {
+  try {
+    const script =
+      "$procs = @{}; Get-Process | ForEach-Object { $procs[$_.Id] = $_.ProcessName }; " +
+      "Get-NetTCPConnection -State Listen,Established | " +
+      "Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess | " +
+      "ForEach-Object { $_ | Add-Member -NotePropertyName ProcessName -NotePropertyValue ($procs[$_.OwningProcess] ?? 'Unknown') -Force; $_ } | " +
+      "ConvertTo-Json -Compress";
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    const out = execSync(
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      {
+        stdio: ["ignore", "pipe", "ignore"],
+        encoding: "utf-8",
+        timeout: 10000,
+      },
+    );
+    const raw = out.trim();
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    return (items as Array<Record<string, unknown>>).map((item) => ({
+      localAddress: (item["LocalAddress"] as string) ?? "",
+      localPort: Number(item["LocalPort"]) || 0,
+      remoteAddress: (item["RemoteAddress"] as string) ?? "",
+      remotePort: Number(item["RemotePort"]) || 0,
+      state: (item["State"] as string) ?? "",
+      pid: Number(item["OwningProcess"]) || 0,
+      processName: (item["ProcessName"] as string) ?? "Unknown",
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function getListeningPorts(): Set<number> {
+  try {
+    const script =
+      "Get-NetTCPConnection -State Listen | Select-Object -ExpandProperty LocalPort | Sort-Object -Unique | ConvertTo-Json -Compress";
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    const out = execSync(
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8", timeout: 8000 },
+    );
+    const raw = out.trim();
+    if (!raw) return new Set();
+    const parsed: unknown = JSON.parse(raw);
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    return new Set(items.filter((p) => typeof p === "number") as number[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function checkFirewallDisabled(): string[] {
+  try {
+    const script =
+      "Get-NetFirewallProfile | Where-Object { -not $_.Enabled } | Select-Object -ExpandProperty Name | ConvertTo-Json -Compress";
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    const out = execSync(
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8", timeout: 8000 },
+    );
+    const raw = out.trim();
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as string[]) : [parsed as string];
+  } catch {
+    return [];
+  }
+}
+
+function checkOpenWifi(): boolean {
+  try {
+    const out = execSync("netsh wlan show interfaces", {
+      stdio: ["ignore", "pipe", "ignore"],
+      encoding: "utf-8",
+    });
+    const authLine = out
+      .split("\n")
+      .find((l) => l.toLowerCase().includes("authentication"));
+    return !!authLine && authLine.toLowerCase().includes(": open");
+  } catch {
+    return false;
+  }
+}
+
+function getDnsServers(): string {
+  try {
+    const script =
+      "Get-DnsClientServerAddress -AddressFamily IPv4 | Select-Object -ExpandProperty ServerAddresses | Where-Object { $_ } | Sort-Object -Unique | ConvertTo-Json -Compress";
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    const out = execSync(
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8", timeout: 8000 },
+    );
+    return out.trim();
+  } catch {
+    return "";
+  }
+}
+
 // ── Misc ──────────────────────────────────────────────────────────────────────
 
 async function checkOllama(): Promise<boolean> {
@@ -144,6 +280,13 @@ let timer: ReturnType<typeof setInterval> | null = null;
 let ollamaWasDown = false;
 let lastDevices: Map<string, PnPDevice> = new Map();
 let devicesInitialized = false;
+let lastArpIps: Set<string> = new Set();
+let arpInitialized = false;
+let lastListeningPorts: Set<number> = new Set();
+let portsInitialized = false;
+let lastDnsServers = "";
+let disabledFirewallProfiles: Set<string> = new Set();
+let openWifiAlerted = false;
 
 async function tick() {
   const now = new Date().toISOString();
@@ -260,6 +403,118 @@ async function tick() {
 
     lastDevices = currentDevices;
   }
+
+  // ── Network ────────────────────────────────────────────────────
+  const arpEntries = getArpSnapshot();
+  const currentArpIps = new Set(arpEntries.map((e) => e.ip));
+
+  if (!arpInitialized) {
+    lastArpIps = currentArpIps;
+    arpInitialized = true;
+  } else {
+    for (const entry of arpEntries) {
+      if (!lastArpIps.has(entry.ip)) {
+        const evId = await writeEvent("network_device_connected", {
+          ip: entry.ip,
+          mac: entry.mac,
+        });
+        emit({
+          id: evId,
+          type: "network_device_connected",
+          payload: { ip: entry.ip, mac: entry.mac },
+          created_at: now,
+        });
+        remember(
+          "system",
+          `Netzwerkgerät erkannt: ${entry.ip} (${entry.mac})`,
+        ).catch(() => {});
+      }
+    }
+    lastArpIps = currentArpIps;
+  }
+
+  const currentPorts = getListeningPorts();
+  if (!portsInitialized) {
+    lastListeningPorts = currentPorts;
+    portsInitialized = true;
+  } else {
+    for (const port of currentPorts) {
+      if (!lastListeningPorts.has(port)) {
+        const alertId = await writeEvent("alert", {
+          severity: "warning",
+          message: `Neuer lauschender Port geöffnet: ${port}`,
+          port,
+        });
+        emit({
+          id: alertId,
+          type: "alert",
+          payload: {
+            severity: "warning",
+            message: `Neuer lauschender Port geöffnet: ${port}`,
+          },
+          created_at: now,
+        });
+      }
+    }
+    lastListeningPorts = currentPorts;
+  }
+
+  const nowDisabled = new Set(checkFirewallDisabled());
+  for (const profile of nowDisabled) {
+    if (!disabledFirewallProfiles.has(profile)) {
+      const alertId = await writeEvent("alert", {
+        severity: "error",
+        message: `Firewall deaktiviert: ${profile}`,
+        profile,
+      });
+      emit({
+        id: alertId,
+        type: "alert",
+        payload: {
+          severity: "error",
+          message: `Firewall deaktiviert: ${profile}`,
+        },
+        created_at: now,
+      });
+    }
+  }
+  disabledFirewallProfiles = nowDisabled;
+
+  const wifiOpen = checkOpenWifi();
+  if (wifiOpen && !openWifiAlerted) {
+    const alertId = await writeEvent("alert", {
+      severity: "warning",
+      message: "Offenes WLAN ohne Verschlüsselung erkannt",
+    });
+    emit({
+      id: alertId,
+      type: "alert",
+      payload: {
+        severity: "warning",
+        message: "Offenes WLAN ohne Verschlüsselung erkannt",
+      },
+      created_at: now,
+    });
+  }
+  openWifiAlerted = wifiOpen;
+
+  const currentDns = getDnsServers();
+  if (lastDnsServers && currentDns && currentDns !== lastDnsServers) {
+    const alertId = await writeEvent("alert", {
+      severity: "warning",
+      message: "DNS-Server haben sich geändert",
+    });
+    emit({
+      id: alertId,
+      type: "alert",
+      payload: {
+        severity: "warning",
+        message: "DNS-Server haben sich geändert",
+      },
+      created_at: now,
+    });
+  }
+  if (currentDns) lastDnsServers = currentDns;
 }
 
 export const worker = {

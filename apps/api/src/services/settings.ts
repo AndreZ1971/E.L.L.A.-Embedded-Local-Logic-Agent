@@ -65,6 +65,8 @@ export const DEFAULT_SETTINGS: Settings = {
     "read_calendar",
     "create_appointment",
     "list_devices",
+    "scan_network",
+    "list_connections",
   ],
   sessionLimit: 40,
   openaiApiKey: "",

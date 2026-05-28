@@ -184,6 +184,20 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           6000,
         );
+      } else if (ev.type === "network_device_connected") {
+        const ip = (ev.payload.ip as string) ?? "";
+        setToasts((prev) => [
+          ...prev,
+          {
+            id: toastId,
+            message: `Neues Gerät im Netzwerk: ${ip}`,
+            severity: "warning" as const,
+          },
+        ]);
+        setTimeout(
+          () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
+          6000,
+        );
       }
     };
     return () => es.close();

@@ -325,6 +325,30 @@ const HARDWARE_TOOLS: OllamaTool[] = [
   {
     type: "function",
     function: {
+      name: "scan_network",
+      description:
+        "Scannt das lokale Netzwerk per ARP und listet alle aktiven Geräte mit IP- und MAC-Adresse. Nützlich um zu sehen wer im Heimnetz aktiv ist.",
+      parameters: {
+        type: "object",
+        properties: {},
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_connections",
+      description:
+        "Zeigt alle aktiven TCP-Verbindungen und lauschenden Ports inkl. zugehörigem Prozessnamen. Hilfreich um unbekannte Netzwerkaktivität zu erkennen.",
+      parameters: {
+        type: "object",
+        properties: {},
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "list_devices",
       description:
         "Listet alle aktuell angeschlossenen Hardware-Geräte auf (USB, Kameras, Festplatten) sowie alle erkannten Laufwerke. Nutze dies wenn der Nutzer fragt welche Geräte verbunden sind.",
