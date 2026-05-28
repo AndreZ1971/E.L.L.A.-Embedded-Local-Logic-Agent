@@ -58,6 +58,19 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "forget", label: "Erinnerungen löschen" },
   { name: "list_memories", label: "Erinnerungen auflisten" },
   { name: "homework_mode", label: "Hausaufgaben-Modus steuern" },
+  { name: "get_system_info", label: "Systeminfo abrufen" },
+  { name: "create_setup", label: "Setup anlegen" },
+  { name: "update_setting", label: "Einstellung ändern" },
+  { name: "create_rule", label: "Regel erstellen" },
+  { name: "free_ram", label: "RAM freigeben" },
+  { name: "read_emails", label: "E-Mails lesen" },
+  { name: "mark_email", label: "E-Mail markieren" },
+  { name: "read_calendar", label: "Kalender lesen" },
+  { name: "create_appointment", label: "Termin erstellen" },
+  { name: "list_devices", label: "Geräte auflisten" },
+  { name: "scan_network", label: "Netzwerk scannen" },
+  { name: "list_connections", label: "Verbindungen auflisten" },
+  { name: "get_system_status", label: "System-Status abrufen" },
 ];
 
 const input: React.CSSProperties = {
@@ -161,7 +174,7 @@ const Settings: React.FC = () => {
 
   const toggleTool = (name: string) => {
     if (!settings) return;
-    const has = settings.enabledTools.includes(name);
+    const has = (settings.enabledTools ?? []).includes(name);
     patch({
       enabledTools: has
         ? settings.enabledTools.filter((t) => t !== name)
@@ -622,14 +635,14 @@ const Settings: React.FC = () => {
                 key={t.name}
                 style={{
                   ...rowLabel,
-                  color: settings.enabledTools.includes(t.name)
+                  color: (settings.enabledTools ?? []).includes(t.name)
                     ? "#e2e8f0"
                     : "#94a3b8",
                 }}
               >
                 <input
                   type="checkbox"
-                  checked={settings.enabledTools.includes(t.name)}
+                  checked={(settings.enabledTools ?? []).includes(t.name)}
                   onChange={() => toggleTool(t.name)}
                   style={{ accentColor: "#7c6af7", width: 15, height: 15 }}
                 />

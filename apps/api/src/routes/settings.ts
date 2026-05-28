@@ -51,7 +51,7 @@ settingsRouter.put("/", async (req, res, next) => {
       eulaAccepted?: boolean;
     };
 
-    const patch: Parameters<typeof saveSettings>[0] = {
+    const raw = {
       provider,
       ollamaModel,
       enabledTools,
@@ -63,6 +63,10 @@ settingsRouter.put("/", async (req, res, next) => {
       ttsVoice,
       eulaAccepted,
     };
+    // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
+    const patch = Object.fromEntries(
+      Object.entries(raw).filter(([, v]) => v !== undefined),
+    ) as Parameters<typeof saveSettings>[0];
 
     // Only allow updating homeworkMode.apps — never overwrite pinHash or active
     if (homeworkMode?.apps !== undefined) {
