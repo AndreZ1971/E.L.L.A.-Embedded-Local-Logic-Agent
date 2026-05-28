@@ -49,6 +49,12 @@ export async function runMigrations(): Promise<void> {
   await exec(
     "ALTER TABLE rules MODIFY COLUMN `trigger` VARCHAR(255) NOT NULL DEFAULT 'always'",
   );
+  // Fix: action-Spalte auf ENUM zurücksetzen (war durch Migration auf longtext gerutscht)
+  // DROP CONSTRAINT zuerst — sonst blockiert der CHECK die MODIFY
+  await exec("ALTER TABLE rules DROP CONSTRAINT IF EXISTS `rules.action`");
+  await exec(
+    "ALTER TABLE rules MODIFY COLUMN action ENUM('allow','deny') NOT NULL DEFAULT 'allow'",
+  );
 
   // Standard-Erlaubnis-Regeln für sichere Tools (INSERT IGNORE = überspringen wenn ID schon existiert)
   await exec(`
