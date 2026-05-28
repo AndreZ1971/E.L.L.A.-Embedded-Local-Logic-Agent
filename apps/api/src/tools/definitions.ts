@@ -232,6 +232,95 @@ const CONVERSATION_TOOLS: OllamaTool[] = [
   },
 ];
 
+const MAIL_TOOLS: OllamaTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "read_emails",
+      description:
+        "Ruft ungelesene E-Mails ab (Outlook oder Thunderbird). Gibt Betreff, Absender, Vorschau, ID und Quelle zurück.",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "string",
+            description: "Maximale Anzahl Mails (Standard: 10, max: 20)",
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "mark_email",
+      description:
+        'Markiert eine E-Mail aus read_emails. Aktionen: "read" (als gelesen), "spam" (in Junk), "archive" (archivieren), "delete" (nur für bereits gelesene Mails — Direktive verbietet Löschen ungelesener Mails). Nur für Outlook-Mails (source: "outlook").',
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description:
+              'EntryID der Mail aus read_emails (source muss "outlook" sein)',
+          },
+          action: {
+            type: "string",
+            description: '"read", "spam", "archive" oder "delete"',
+          },
+        },
+        required: ["id", "action"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "read_calendar",
+      description:
+        "Liest Termine aus dem Outlook-Kalender. Standard: heute und morgen.",
+      parameters: {
+        type: "object",
+        properties: {
+          days: {
+            type: "string",
+            description: "Anzahl Tage ab heute (Standard: 2, max: 14)",
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_appointment",
+      description: "Legt einen neuen Termin im Outlook-Kalender an.",
+      parameters: {
+        type: "object",
+        properties: {
+          subject: {
+            type: "string",
+            description: "Titel des Termins",
+          },
+          start: {
+            type: "string",
+            description: 'Startzeit im Format "2026-05-28 14:00"',
+          },
+          end: {
+            type: "string",
+            description: 'Endzeit im Format "2026-05-28 15:00"',
+          },
+          location: {
+            type: "string",
+            description: "Ort (optional)",
+          },
+        },
+        required: ["subject", "start", "end"],
+      },
+    },
+  },
+];
+
 const SYSTEM_INFO_TOOL: OllamaTool = {
   type: "function",
   function: {
@@ -277,6 +366,7 @@ export function buildToolDefinitions(setups: Setup[]): OllamaTool[] {
     HOMEWORK_TOOL,
     SYSTEM_INFO_TOOL,
     ...CONVERSATION_TOOLS,
+    ...MAIL_TOOLS,
   ];
 
   if (setups.length > 0) {

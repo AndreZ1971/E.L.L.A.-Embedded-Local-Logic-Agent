@@ -22,6 +22,11 @@ import {
 import { evaluateRules } from "../services/rules.js";
 import os from "os";
 import { scanHardware } from "../services/systemScan.js";
+import { readEmails, markEmail as markEmailService } from "../services/mail.js";
+import {
+  readCalendar,
+  createAppointment as createOutlookAppointment,
+} from "../services/calendar.js";
 import { pool } from "../config/database.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
@@ -249,6 +254,108 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     return {
       success: true,
       output: `Regel "${name}" angelegt (ID ${id}): ${action} für ${toolName} wenn ${trigger}.`,
+    };
+  },
+
+  read_emails: async (args) => {
+    const limit = Math.min(20, Math.max(1, Number(args["limit"]) || 10));
+    const result = readEmails(limit);
+    if (result.source === "none") {
+      return { success: false, error: result.error };
+    }
+    trackToolUsage("read_emails", result.source);
+    return {
+      success: true,
+      output: {
+        source: result.source,
+        count: result.items.length,
+        mails: result.items,
+      },
+    };
+  },
+
+  mark_email: async (args) => {
+    const id = ((args["id"] as string) ?? "").trim();
+    const action = ((args["action"] as string) ?? "").trim();
+
+    if (!id) return { success: false, error: "ID fehlt." };
+    const validActions = ["read", "spam", "archive", "delete"] as const;
+    if (!(validActions as readonly string[]).includes(action)) {
+      return {
+        success: false,
+        error: `Ungültige Aktion "${action}". Erlaubt: ${validActions.join(", ")}.`,
+      };
+    }
+
+    let result: { success: boolean; directive?: boolean; error?: string };
+    try {
+      result = markEmailService(id, action as (typeof validActions)[number]);
+    } catch (err) {
+      return {
+        success: false,
+        error: `Outlook nicht verfügbar: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+    if (result.directive) {
+      return {
+        success: false,
+        error: `Direktive: ${result.error}`,
+      };
+    }
+    if (!result.success) {
+      return { success: false, error: result.error };
+    }
+    trackToolUsage("mark_email", action);
+    return { success: true, output: `Mail als "${action}" markiert.` };
+  },
+
+  read_calendar: async (args) => {
+    const days = Math.min(14, Math.max(1, Number(args["days"]) || 2));
+    try {
+      const events = readCalendar(days);
+      trackToolUsage("read_calendar", `${days} Tage`);
+      return { success: true, output: { days, count: events.length, events } };
+    } catch (err) {
+      return {
+        success: false,
+        error: `Kalender nicht verfügbar (Outlook benötigt): ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  },
+
+  create_appointment: async (args) => {
+    const subject = ((args["subject"] as string) ?? "").trim();
+    const start = ((args["start"] as string) ?? "").trim();
+    const end = ((args["end"] as string) ?? "").trim();
+    const location = ((args["location"] as string) ?? "").trim();
+
+    if (!subject) return { success: false, error: "Betreff fehlt." };
+    if (!start) return { success: false, error: "Startzeit fehlt." };
+    if (!end) return { success: false, error: "Endzeit fehlt." };
+
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    if (isNaN(startDate.getTime())) {
+      return { success: false, error: `Ungültiges Startdatum: "${start}".` };
+    }
+    if (isNaN(endDate.getTime())) {
+      return { success: false, error: `Ungültiges Enddatum: "${end}".` };
+    }
+    if (endDate <= startDate) {
+      return {
+        success: false,
+        error: "Endzeit muss nach der Startzeit liegen.",
+      };
+    }
+
+    const result = createOutlookAppointment(subject, start, end, location);
+    if (!result.success) {
+      return { success: false, error: result.error };
+    }
+    trackToolUsage("create_appointment", subject);
+    return {
+      success: true,
+      output: `Termin "${subject}" am ${start} bis ${end} angelegt${location ? ` in ${location}` : ""}.`,
     };
   },
 

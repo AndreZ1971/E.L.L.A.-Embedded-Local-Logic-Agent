@@ -12,7 +12,11 @@ export type ToolName =
   | "create_setup"
   | "update_setting"
   | "create_rule"
-  | "free_ram";
+  | "free_ram"
+  | "read_emails"
+  | "mark_email"
+  | "read_calendar"
+  | "create_appointment";
 
 export interface ToolCall {
   tool: ToolName;

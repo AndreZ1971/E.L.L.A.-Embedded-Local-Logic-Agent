@@ -4,6 +4,58 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v0.6.0 — 28.05.2026 — Mail & Kalender
+
+**Ziel:** E.L.L.A. bekommt Zugriff auf lokale Mail- und Kalenderdaten. Nur lokal. Nur im Dialog.
+
+---
+
+### Mail-Integration (`services/mail.ts`)
+
+**Outlook via COM-Automation:** PowerShell `New-Object -ComObject Outlook.Application` — kein npm-Package, kein externer Dienst. `Items.Sort('[ReceivedTime]', $true)` stellt sicher dass die neuesten Mails zuerst kommen. Timeout 15 Sekunden, da Outlook beim ersten Zugriff kalt startet.
+
+**Thunderbird als readonly-Fallback:** Findet Profile unter `%APPDATA%\Thunderbird\Profiles`, sucht rekursiv nach `Inbox`-Dateien (mbox-Format, max 5 MB vom Ende jeder Datei — neue Nachrichten werden ans Ende angehängt). Liest `X-Mozilla-Status`-Header: Bit 0 = gelesen (0x0001), Bit 3 = gelöscht (0x0008). MIME-Encoded-Words (`=?UTF-8?B?...?=`) werden dekodiert.
+
+**Fallback-Kaskade:** Outlook verfügbar → Outlook. Thunderbird-Profile vorhanden → Thunderbird. Beides fehlt → klare Fehlermeldung.
+
+**`markEmail(id, action)`:** Nur Outlook (COM-Schreibzugriff). Actions: `read` (UnRead=false), `spam` (Junk-Ordner 23), `archive` (Archiv-Ordner 46, Fallback: Gelöschte Elemente 3), `delete`. Direktive-Check direkt im PowerShell-Script: ungelesene Mail + action=delete → JSON-Flag `directive:true` zurück, kein Löschen.
+
+---
+
+### Direktive — Ungelesene Mails löschen: NIEMALS
+
+Die Direktive wird auf zwei Ebenen durchgesetzt:
+
+1. **PowerShell-Script:** prüft `$item.UnRead` bevor delete ausgeführt wird, gibt `{"directive":true}` zurück
+2. **executor.ts `mark_email`-Handler:** prüft `result.directive` und gibt Fehler mit "Direktive:"-Präfix zurück — unterscheidbar von normalen Fehlern
+
+Keine Regel kann dies überschreiben — die Prüfung liegt vor der Rule-Engine.
+
+---
+
+### Kalender-Integration (`services/calendar.ts`)
+
+**Outlook COM:** `GetDefaultFolder(9)` = Kalender. `IncludeRecurrences = $true` + `Restrict()`-Filter für zeitbasierte Abfragen — sonst liefert wiederkehrende Termine nur den ersten Eintrag.
+
+**`readCalendar(days)`:** Termine der nächsten N Tage (Standard: 2 = heute + morgen), Datumsfilter über Outlook-DASL-Syntax `[Start] >= 'MM/dd/yyyy HH:mm'`.
+
+**`createAppointment(subject, start, end, location?)`:** `CreateItem(1)` = olAppointmentItem. `[DateTime]::Parse()` in PowerShell für flexible Datums-Eingabe des LLMs.
+
+---
+
+### Vier neue Tools
+
+| Tool                 | Direktive               | Seed-Regel |
+| -------------------- | ----------------------- | ---------- |
+| `read_emails`        | —                       | ID 13      |
+| `mark_email`         | delete_unread = NIEMALS | ID 14      |
+| `read_calendar`      | —                       | ID 15      |
+| `create_appointment` | —                       | ID 16      |
+
+**ML-Learning:** `trackToolUsage` nach jedem erfolgreichen Tool-Call — E.L.L.A. lernt welche Mail-/Kalender-Aktionen häufig genutzt werden.
+
+---
+
 ## v0.5.0 — 27.05.2026 — Gesprächskonfiguration
 
 **Ziel:** E.L.L.A. kann sich selbst über das Gespräch konfigurieren — Setups anlegen, Einstellungen ändern, neue Regeln erstellen, RAM freigeben. Außerdem: Notschalter der alle KI-Einstellungen sicher zurücksetzt.

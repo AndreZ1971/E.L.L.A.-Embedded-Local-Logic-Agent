@@ -64,7 +64,11 @@ export async function runMigrations(): Promise<void> {
       (9,  'Setup erstellen erlaubt',        'create_setup',     'always', 'allow', TRUE),
       (10, 'Einstellung ändern erlaubt',     'update_setting',   'always', 'allow', TRUE),
       (11, 'Regel erstellen erlaubt',        'create_rule',      'always', 'allow', TRUE),
-      (12, 'RAM freigeben erlaubt',          'free_ram',         'always', 'allow', TRUE)
+      (12, 'RAM freigeben erlaubt',          'free_ram',            'always', 'allow', TRUE),
+      (13, 'E-Mails lesen erlaubt',          'read_emails',         'always', 'allow', TRUE),
+      (14, 'E-Mail markieren erlaubt',       'mark_email',          'always', 'allow', TRUE),
+      (15, 'Kalender lesen erlaubt',         'read_calendar',       'always', 'allow', TRUE),
+      (16, 'Termin erstellen erlaubt',       'create_appointment',  'always', 'allow', TRUE)
   `);
   // clean_temp + empty_recycle_bin intentionally ohne Default-Regel — Nutzer muss explizit erlauben
 }
