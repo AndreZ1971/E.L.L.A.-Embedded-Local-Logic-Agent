@@ -1,9 +1,9 @@
-# Datenbank
+# Datenbank — v1.0.0
 
-**System:** MariaDB 12.2.2  
-**Datenbankname:** `ella`  
-**Host:** `localhost:3306`  
-**Datenpfad:** `E:\MariaDB\data`  
+**System:** MariaDB 12.2.2
+**Datenbankname:** `ella`
+**Host:** `localhost:3306`
+**Datenpfad:** `E:\MariaDB\data`
 **Binaries:** `E:\MariaDB\server\bin\`
 
 ---
@@ -14,8 +14,6 @@ Die API verbindet sich über einen Connection-Pool (`mysql2/promise`):
 
 ```typescript
 // apps/api/src/config/database.ts
-import mysql from 'mysql2/promise';
-
 export const pool = mysql.createPool({
   host: env.dbHost,
   port: env.dbPort,
@@ -24,238 +22,243 @@ export const pool = mysql.createPool({
   password: env.dbPassword,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0,
 });
 ```
-
-**Warum Pool statt Einzelverbindung:** Ein Pool hält mehrere Verbindungen offen und verteilt parallele Anfragen. Bei Express mit async Request-Handling können mehrere Requests gleichzeitig DB-Abfragen machen — ohne Pool würden sie auf eine einzige Verbindung warten.
 
 ---
 
 ## Nutzer und Berechtigungen
 
-| User | Host | Datenbank | Rechte |
-| --- | --- | --- | --- |
-| `root` | `localhost` | alle | Alle (Admin) |
-| `ella` | `localhost` | `ella.*` | ALL PRIVILEGES |
+| User   | Host        | Datenbank | Rechte         |
+| ------ | ----------- | --------- | -------------- |
+| `root` | `localhost` | alle      | Alle (Admin)   |
+| `ella` | `localhost` | `ella.*`  | ALL PRIVILEGES |
 
-**`root`-Passwort:** `EllaRoot2026` (nur für DB-Administration, nie in Code)  
-**`ella`-Passwort:** `ella_dev_2026` (steht in `apps/api/.env`, nicht in Git)
+**Passwörter** stehen ausschließlich in `apps/api/.env` — nie im Code oder Git.
 
 ```sql
-CREATE USER 'ella'@'localhost' IDENTIFIED BY 'ella_dev_2026';
+CREATE USER 'ella'@'localhost' IDENTIFIED BY '<passwort>';
 GRANT ALL PRIVILEGES ON ella.* TO 'ella'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
 ---
 
-## Schema — Tabellen
+## Schema-Migration
 
-Das vollständige Schema liegt in `database/schema.sql`. Alle Tabellen verwenden `InnoDB` (Transaktionen, Foreign Keys) und `utf8mb4` (voller Unicode inkl. Emoji).
+Das Schema wird bei jedem API-Start automatisch ausgeführt (`runMigrations()` in `apps/api/src/config/migrate.ts`). Alle Statements nutzen `IF NOT EXISTS` bzw. `INSERT IGNORE` — vollständig idempotent. Manuell anwenden:
+
+```powershell
+"E:\MariaDB\server\bin\mysql.exe" -u root -p ella < database/schema.sql
+```
 
 ---
 
-### `rules` — Automatisierungsregeln
+## Tabellen
 
-Definiert Wenn-Dann-Regeln: Wenn ein bestimmtes Systemereignis eintritt, führe eine Aktion aus.
+### `sessions` — Gesprächssitzungen
 
 ```sql
-CREATE TABLE rules (
-  id           INT AUTO_INCREMENT PRIMARY KEY,
-  name         VARCHAR(255) NOT NULL,
-  `trigger`    VARCHAR(255) NOT NULL,   -- Backticks: trigger ist reserviertes Keyword
-  action       VARCHAR(255) NOT NULL,
-  parameters   JSON,
-  is_active    BOOLEAN DEFAULT TRUE,
-  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS sessions (
+  id         VARCHAR(255) PRIMARY KEY,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 ```
 
-| Spalte | Typ | Beschreibung |
-| --- | --- | --- |
-| `name` | VARCHAR(255) | Menschenlesbarer Name der Regel |
-| `` `trigger` `` | VARCHAR(255) | Auslösebedingung (z.B. `disk_usage_high`) |
-| `action` | VARCHAR(255) | Auszuführendes Tool (muss in Registry stehen) |
-| `parameters` | JSON | Parameter für das Tool als JSON-Objekt |
-| `is_active` | BOOLEAN | Regel kann deaktiviert werden ohne sie zu löschen |
-
-**Wichtig:** `` `trigger` `` muss mit Backticks geschrieben werden — `trigger` ist ein reserviertes SQL-Keyword für `CREATE TRIGGER`-Statements. MariaDB würde ohne Escaping einen Syntaxfehler werfen.
+| Spalte       | Typ          | Beschreibung                                |
+| ------------ | ------------ | ------------------------------------------- |
+| `id`         | VARCHAR(255) | Session-ID (UUID, vom Frontend generiert)   |
+| `updated_at` | DATETIME     | Letzte Aktivität — automatisch aktualisiert |
 
 ---
 
-### `approvals` — Freigabe-Queue
-
-Gefährliche Tool-Ausführungen landen hier zur manuellen Bestätigung bevor sie ausgeführt werden. (Implementierung: Phase 2)
+### `session_messages` — Gesprächsverlauf
 
 ```sql
-CREATE TABLE approvals (
-  id           INT AUTO_INCREMENT PRIMARY KEY,
-  tool_name    VARCHAR(255) NOT NULL,
-  parameters   JSON,
-  status       ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
-  requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  resolved_at  TIMESTAMP NULL,
-  resolved_by  VARCHAR(255)
+CREATE TABLE IF NOT EXISTS session_messages (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  session_id VARCHAR(255) NOT NULL,
+  role       ENUM('user', 'assistant') NOT NULL,
+  content    TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
 ```
 
-| Spalte | Typ | Beschreibung |
-| --- | --- | --- |
-| `tool_name` | VARCHAR(255) | Name des Tools das Freigabe braucht |
-| `parameters` | JSON | Parameter mit denen es aufgerufen werden soll |
-| `status` | ENUM | `pending` → wartet, `approved` → bestätigt, `rejected` → abgelehnt |
-| `requested_at` | TIMESTAMP | Wann die Anfrage erstellt wurde |
-| `resolved_at` | TIMESTAMP | Wann entschieden wurde (NULL wenn noch offen) |
-| `resolved_by` | VARCHAR | Wer entschieden hat (für zukünftige Multi-User-Szenarien) |
+| Spalte    | Typ  | Beschreibung                                                     |
+| --------- | ---- | ---------------------------------------------------------------- |
+| `role`    | ENUM | Nur `user` und `assistant` — `tool`-Nachrichten werden gefiltert |
+| `content` | TEXT | Nachrichteninhalt im Klartext                                    |
 
-**Geplante Nutzung:** `clean_temp` und `empty_recycle_bin` werden in Phase 2 eine Freigabe verlangen. Das LLM erzeugt den Tool-Call, der Executor legt einen `pending`-Eintrag an und wartet. Das Frontend zeigt die Anfrage an, der Nutzer bestätigt oder lehnt ab.
+**Strategie:** Bei `sessionStore.set()` wird die Session vollständig gelöscht und neu geschrieben (DELETE + Re-INSERT). Max. 40 Nachrichten pro Session. `tool`-Nachrichten werden herausgefiltert — sie sind nur während eines laufenden Requests gültig.
+
+---
+
+### `memories` — Vektor-Gedächtnis
+
+```sql
+CREATE TABLE IF NOT EXISTS memories (
+  id         INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  type       ENUM('user', 'system', 'note') NOT NULL,
+  content    TEXT NOT NULL,
+  embedding  MEDIUMTEXT NOT NULL,
+  source     VARCHAR(255),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_memories_type ON memories (type);
+```
+
+| Spalte      | Typ          | Beschreibung                                                                     |
+| ----------- | ------------ | -------------------------------------------------------------------------------- |
+| `type`      | ENUM         | `user` (Fakten über Nutzer), `system` (Tool-Nutzung), `note` (explizite Notizen) |
+| `content`   | TEXT         | Originaltext der Erinnerung                                                      |
+| `embedding` | MEDIUMTEXT   | JSON-Array mit 768 Float-Werten (nomic-embed-text)                               |
+| `source`    | VARCHAR(255) | Woher die Erinnerung stammt (optional)                                           |
+
+**Recall:** Die letzten 500 Einträge werden geladen, Cosinus-Ähnlichkeit in Node.js berechnet, alles unter 0.3 gefiltert, Top-5 zurückgegeben.
+
+---
+
+### `rules` — Erlaubnis-/Verbots-Regeln
+
+```sql
+CREATE TABLE IF NOT EXISTS rules (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(255) NOT NULL,
+  tool_name  VARCHAR(100) NOT NULL DEFAULT '*',
+  `trigger`  VARCHAR(255) NOT NULL DEFAULT 'always',
+  action     ENUM('allow', 'deny') NOT NULL DEFAULT 'allow',
+  enabled    BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+| Spalte          | Typ          | Beschreibung                                              |
+| --------------- | ------------ | --------------------------------------------------------- |
+| `tool_name`     | VARCHAR(100) | `*` = gilt für alle Tools, sonst spezifischer Name        |
+| `` `trigger` `` | VARCHAR(255) | `always` · `hour > 22` · `disk_c > 85`                    |
+| `action`        | ENUM         | `allow` oder `deny` — Deny gewinnt immer (SQL-Sortierung) |
+| `enabled`       | BOOLEAN      | Deaktivieren ohne Löschen                                 |
+
+**Hinweis:** `` `trigger` `` muss mit Backticks geschrieben werden — `trigger` ist ein reserviertes SQL-Keyword.
+
+**Default-Regeln (IDs 1–16):** Per `INSERT IGNORE` beim Start eingespielt. `clean_temp` und `empty_recycle_bin` haben bewusst keine Default-Regel — müssen explizit freigeschaltet werden.
 
 ---
 
 ### `tool_executions` — Audit-Log
 
-Jede Tool-Ausführung wird hier protokolliert — unabhängig davon ob sie erfolgreich war.
-
 ```sql
-CREATE TABLE tool_executions (
-  id           INT AUTO_INCREMENT PRIMARY KEY,
-  tool_name    VARCHAR(255) NOT NULL,
-  parameters   JSON,
-  result       JSON,
-  status       ENUM('success', 'error') NOT NULL,
-  error_message TEXT,
-  duration_ms  INT,
-  executed_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  session_id   VARCHAR(255)
+CREATE TABLE IF NOT EXISTS tool_executions (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  tool_name   VARCHAR(100) NOT NULL,
+  args        JSON         NOT NULL,
+  result      JSON,
+  success     BOOLEAN      NOT NULL,
+  error       TEXT,
+  executed_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
-| Spalte | Typ | Beschreibung |
-| --- | --- | --- |
-| `tool_name` | VARCHAR(255) | Welches Tool wurde aufgerufen |
-| `parameters` | JSON | Mit welchen Parametern |
-| `result` | JSON | Was das Tool zurückgegeben hat |
-| `status` | ENUM | `success` oder `error` |
-| `error_message` | TEXT | Fehlermeldung wenn `status = 'error'` |
-| `duration_ms` | INT | Ausführungszeit in Millisekunden |
-| `session_id` | VARCHAR | Welcher Chat-Session gehörte das zu |
+| Spalte    | Typ     | Beschreibung                                  |
+| --------- | ------- | --------------------------------------------- |
+| `args`    | JSON    | Parameter mit denen das Tool aufgerufen wurde |
+| `result`  | JSON    | Rückgabewert (`output`-Feld des ToolResult)   |
+| `success` | BOOLEAN | Erfolgreich oder Fehler                       |
+| `error`   | TEXT    | Fehlermeldung bei `success = false`           |
 
-**Zweck:** Vollständige Nachvollziehbarkeit — wann wurde was ausgeführt, mit welchen Parametern, was kam raus. Besonders wichtig für destruktive Tools (`clean_temp`, `empty_recycle_bin`).
+Jeder `toolExecutor.execute()`-Aufruf schreibt via `setImmediate` einen Eintrag — fire-and-forget, blockiert keine Antwort.
 
 ---
 
-### `system_events` — Systemereignisse
-
-Append-only Eventlog für Systemzustände. Keine Updates, keine Deletes — nur Inserts.
+### `system_events` — Worker-Eventlog
 
 ```sql
-CREATE TABLE system_events (
-  id           INT AUTO_INCREMENT PRIMARY KEY,
-  event_type   VARCHAR(255) NOT NULL,
-  payload      JSON,
-  severity     ENUM('info', 'warning', 'error') DEFAULT 'info',
-  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS system_events (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  type       VARCHAR(100) NOT NULL,
+  payload    JSON,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
-| Spalte | Typ | Beschreibung |
-| --- | --- | --- |
-| `event_type` | VARCHAR(255) | Art des Ereignisses (z.B. `disk_usage_high`, `api_started`) |
-| `payload` | JSON | Ereignis-Daten (z.B. `{ "drive": "C", "used_pct": 95 }`) |
-| `severity` | ENUM | `info`, `warning`, `error` |
+| Spalte    | Typ          | Beschreibung                                            |
+| --------- | ------------ | ------------------------------------------------------- |
+| `type`    | VARCHAR(100) | `disk`, `ram`, `ollama`, `alert`                        |
+| `payload` | JSON         | Ereignis-Daten (z.B. `{ "drive": "C", "usedPct": 62 }`) |
 
-**Append-only:** Systemereignisse werden niemals verändert oder gelöscht. Der gesamte Verlauf bleibt erhalten. Das ist bewusste Design-Entscheidung — ein Event das passiert ist, ist passiert.
-
-**Geplante Nutzung (Phase 2):** Hintergrund-Prozess überwacht Disk-Usage, RAM, etc. und schreibt Events. Diese triggern dann Regeln aus der `rules`-Tabelle.
+Append-only — kein UPDATE, kein DELETE. Der Background-Worker schreibt alle 60 s. `GET /api/events/recent` liefert die letzten 50 Einträge.
 
 ---
 
-### `settings` — Schlüssel-Wert-Konfiguration
-
-Persistente Konfigurationspaare die über das Dashboard geändert werden können.
+### `settings` — Key-Value-Store (Reserviert)
 
 ```sql
-CREATE TABLE settings (
-  id           INT AUTO_INCREMENT PRIMARY KEY,
-  key_name     VARCHAR(255) UNIQUE NOT NULL,
-  value        TEXT,
-  description  TEXT,
-  updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS settings (
+  key_name   VARCHAR(255) PRIMARY KEY,
+  value      TEXT         NOT NULL,
+  updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 ```
 
-| Spalte | Typ | Beschreibung |
-| --- | --- | --- |
-| `key_name` | VARCHAR(255) UNIQUE | Einzigartiger Schlüsselname |
-| `value` | TEXT | Wert (JSON-String für komplexe Werte) |
-| `description` | TEXT | Beschreibung für die Settings-UI |
-
-**Geplante Nutzung (Phase 2):** Active LLM Provider, Modell-Auswahl, aktivierte/deaktivierte Tools — alles konfigurierbar über die Settings-Seite ohne `.env`-Änderung und API-Neustart.
-
----
-
-## Schema vollständig anwenden
-
-```bash
-# MariaDB CLI (Admin-User)
-"E:\MariaDB\server\bin\mysql.exe" -u root -p ella < database/schema.sql
-```
-
-Oder per Client (TablePlus, DBeaver, HeidiSQL):
-
-```
-Host:     localhost
-Port:     3306
-User:     ella
-Password: ella_dev_2026
-Database: ella
-```
+Aktuell nicht aktiv genutzt — E.L.L.A. speichert Einstellungen in `apps/api/settings.json` (einfachere Migration, kein Schema-Lock-in). Die Tabelle bleibt im Schema für zukünftige Nutzung reserviert.
 
 ---
 
 ## Nützliche Admin-Befehle
 
 ```sql
--- Aktive Verbindungen anzeigen
+-- Aktive Verbindungen
 SHOW PROCESSLIST;
 
--- Tabellen-Größen in ella
-SELECT
-  table_name,
-  ROUND(data_length / 1024, 2) AS data_kb,
-  ROUND(index_length / 1024, 2) AS index_kb
+-- Tabellen-Größen
+SELECT table_name,
+       ROUND(data_length / 1024, 2) AS data_kb,
+       ROUND(index_length / 1024, 2) AS index_kb
 FROM information_schema.tables
 WHERE table_schema = 'ella';
 
--- Alle Tool-Ausführungen der letzten Stunde
-SELECT tool_name, status, duration_ms, executed_at
+-- Tool-Ausführungen der letzten Stunde
+SELECT tool_name, success, error, executed_at
 FROM tool_executions
 WHERE executed_at > NOW() - INTERVAL 1 HOUR
 ORDER BY executed_at DESC;
 
--- Offene Freigaben
-SELECT id, tool_name, parameters, requested_at
-FROM approvals
-WHERE status = 'pending'
-ORDER BY requested_at ASC;
+-- Aktive Erlaubnis-Regeln
+SELECT id, name, tool_name, `trigger`, action
+FROM rules
+WHERE enabled = 1
+ORDER BY action DESC, id;
+
+-- Letzte Erinnerungen
+SELECT id, type, content, created_at
+FROM memories
+ORDER BY created_at DESC
+LIMIT 20;
+
+-- Sessions mit Nachrichtenanzahl
+SELECT s.id, COUNT(m.id) AS messages, s.updated_at
+FROM sessions s
+LEFT JOIN session_messages m ON m.session_id = s.id
+GROUP BY s.id
+ORDER BY s.updated_at DESC;
 ```
 
 ---
 
 ## Windows-Dienst
 
-MariaDB läuft als Windows-Dienst (`MariaDB`):
-
 ```powershell
-# Status prüfen
+# Status
 Get-Service MariaDB
 
 # Starten / Stoppen (Admin)
 net start MariaDB
 net stop MariaDB
 
-# Autostart (ist standardmäßig aktiviert)
+# Autostart sicherstellen
 Set-Service -Name MariaDB -StartupType Automatic
 ```

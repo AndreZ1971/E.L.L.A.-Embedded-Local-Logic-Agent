@@ -1,153 +1,232 @@
-# Architektur
+# Architektur — v1.0.0
 
 ---
 
 ## Systemübersicht
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  Electron (apps/desktop)                                    │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  main.ts — startet API, wartet auf :3002            │   │
-│  │  Lädt apps/web/dist/index.html (Production Build)   │   │
-│  │  Tray-Icon: Autostart-Toggle, Beenden               │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  React Frontend (HashRouter, file:// Protokoll)             │
-│  HTTP → http://localhost:3002 (absolut, kein Proxy)         │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ HTTP
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│  apps/api  (Express, Port 3002)                             │
-│                                                             │
-│  ┌─────────────────┐ ┌─────────────────────────────────┐    │
-│  │ POST /api/chat  │ │ Provider-Auswahl                │    │
-│  │ POST /api/chat/ │►│  openaiClient.isAvailable()      │    │
-│  │       stream    │ │  true  → OpenAI GPT-4o           │    │
-│  │ (SSE-Streaming) │ │  false → Ollama llama3.1:8b      │    │
-│  └─────────────────┘ └──────────────┬────────────────┬─┘    │
-│                                    │                │       │
-│                          ┌─────────▼──┐    ┌───────▼──┐    │
-│                          │ OpenAI API │    │  Ollama  │    │
-│                          │ (extern)   │    │ (lokal)  │    │
-│                          └─────────┬──┘    └───────┬──┘    │
-│                                    └───────┬────────┘       │
-│                                            │                │
-│  ┌─────────────────────────────────────────▼────────────┐   │
-│  │ Tool-Loop (max. 5 Runden)                            │   │
-│  │  LLM antwortet mit tool_call                        │   │
-│  │    → toolExecutor.execute()  [Whitelist-Check]      │   │
-│  │      → Tool-Ergebnis zurück ans LLM                 │   │
-│  │        → Nächste Runde oder finale Antwort          │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  ┌──────────────────┐   ┌────────────────────────────────┐  │
-│  │ Session-Store    │   │ MariaDB Pool (Port 3306)       │  │
-│  │ MariaDB-backed   │◄──│ E:\MariaDB\data                │  │
-│  │ max. 40 Messages │   │ sessions + session_messages    │  │
-│  │ user+assistant   │   │                                │  │
-│  └──────────────────┘   └────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                                    │
-              ┌─────────────────────┴───────────────────┐
-              │                                         │
-    ┌─────────▼─────────┐                   ┌──────────▼──────────┐
-    │  api.openai.com   │                   │  Ollama             │
-    │  GPT-4o           │                   │  Port 11434         │
-    │  (kostenpflichtig)│                   │  llama3.1:8b        │
-    └───────────────────┘                   │  E:\Ollama\models   │
-                                            └─────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│  Electron (apps/desktop)                                         │
+│                                                                  │
+│  main.ts                                                         │
+│    ├─ spawnt API als Child-Prozess (node resources/api/dist/...) │
+│    ├─ wartet via net.connect(:3002) bis API bereit               │
+│    ├─ lädt resources/web/dist/index.html via loadFile()          │
+│    ├─ Mikrofon-Berechtigung via setPermissionRequestHandler      │
+│    └─ Tray-Icon: Minimize-to-Tray, Autostart-Toggle, Beenden    │
+│                                                                  │
+│  React Frontend (HashRouter, file:// Protokoll)                  │
+│    Boot-Flow: EULA → Setup-Check → Onboarding → App             │
+│    HTTP → http://localhost:3002 (absolut, kein Proxy)            │
+└─────────────────────────────┬────────────────────────────────────┘
+                              │ HTTP / SSE
+                              ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  apps/api  (Express, Port 3002)                                  │
+│                                                                  │
+│  ┌─────────────────────┐   ┌────────────────────────────────┐   │
+│  │  /api/chat/stream   │   │  Provider-Auswahl              │   │
+│  │  POST               │──►│  setting: auto / openai /      │   │
+│  │  SSE-Streaming      │   │  ollama                        │   │
+│  │  Tool-Loop ≤5 Rdn.  │   │  auto → OpenAI wenn Key gesetzt│   │
+│  └─────────────────────┘   └───────────────┬────────────────┘   │
+│                                            │                    │
+│                             ┌──────────────┴──────────────┐     │
+│                             │                             │     │
+│                    ┌────────▼───────┐          ┌──────────▼──┐  │
+│                    │  OpenAI GPT-4o │          │  Ollama     │  │
+│                    │  (extern)      │          │  :11434     │  │
+│                    └────────────────┘          └─────────────┘  │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  Tool-Loop                                              │    │
+│  │   1. recall(message)         — Gedächtnis laden         │    │
+│  │   2. LLM-Stream              — mit Memories + Tools     │    │
+│  │   3. evaluateRules(toolName) — Rule-Engine-Check        │    │
+│  │   4. handler(args)           — Tool ausführen           │    │
+│  │   5. extractAndRemember()    — fire-and-forget          │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│  ┌─────────────────────┐   ┌────────────────────────────────┐   │
+│  │  Background-Worker  │   │  MariaDB Pool (Port 3306)      │   │
+│  │  alle 60s: Disk,    │──►│  sessions + session_messages   │   │
+│  │  RAM, Ollama-Ping   │   │  memories (Vektor-Embeddings)  │   │
+│  │  EventBus-Push      │   │  rules + tool_executions       │   │
+│  └─────────────────────┘   │  system_events                 │   │
+│                            └────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Boot-Flow (Frontend)
+
+```text
+App.tsx Mount
+  └─ GET /api/settings → { eulaAccepted, onboardingComplete }
+
+  eulaAccepted = false?
+    └─ Fullscreen: /eula  →  Nutzer akzeptiert
+       └─ PUT /api/settings { eulaAccepted: true }
+          └─ navigate("/setup")
+
+  /setup: Dependency-Check
+    └─ GET /api/setup/status → { ollama, nomic, mariadb, allOk }
+       ├─ nomic fehlt + ollama OK → SSE-Pull (POST /api/setup/pull-nomic)
+       └─ Weiter-Button → GET /api/onboarding/status
+
+  onboardingComplete = false?
+    └─ Fullscreen: /onboarding  →  System-Scan, Name eingeben
+       └─ POST /api/onboarding/complete
+          └─ navigate("/chat")
+
+  Normaler App-Modus: Sidebar + Chat / Dashboard / Settings
 ```
 
 ---
 
 ## Chat-Flow — Detail
 
-Der zentrale Ablauf für jede Nutzeranfrage (gilt für `/api/chat` und `/api/chat/stream`):
+```text
+POST /api/chat/stream  { sessionId, message }
+  │
+  ├─ await sessionStore.get(sessionId)        — Session aus MariaDB
+  ├─ messages.push({ role: "user", ... })
+  ├─ await recall(message)                    — Top-5 Memories via Cosinus-Suche
+  │
+  └─ Tool-Loop (max. 5 Runden)
+       │
+       ├─ LLM-Stream (Ollama / OpenAI)
+       │    Chunks  → SSE { type:"chunk", text }
+       │    Done    → tool_calls? Nein → fertig
+       │
+       ├─ für jeden tool_call:
+       │    ├─ SSE { type:"tool", name }
+       │    ├─ evaluateRules(name)
+       │    │    DIRECTIVE_DENY → Error (hardcodiert)
+       │    │    deny-Regel     → Error
+       │    │    allow-Regel    → ausführen
+       │    │    no_match       → Error (Default-Deny)
+       │    └─ handler(args) → ToolResult
+       │
+       └─ Nächste Runde mit Tool-Ergebnissen im Context
+  │
+  ├─ SSE { type:"done" }
+  ├─ sessionStore.set(sessionId, messages)    — Nur user+assistant, max. 40
+  └─ extractAndRemember()                     — fire-and-forget, async
+```
+
+---
+
+## Rule-Engine
 
 ```text
-1. POST /api/chat/stream  { sessionId, message }
-   │
-2. Session laden (MariaDB)
-   │  await sessionStore.get(sessionId)
-   │  → [ {role:"user", content:"..."}, {role:"assistant", content:"..."}, ... ]
-   │
-3. Neue User-Message anhängen
-   │  messages.push({ role: "user", content: message })
-   │
-4. Provider-Auswahl
-   │  openaiClient.isAvailable()  →  true / false
-   │
-5. Tool-Loop (max. 5 Iterationen)
-   │
-   │  ┌─ Iteration ─────────────────────────────────────────┐
-   │  │                                                      │
-   │  │  LLM-Stream mit:                                    │
-   │  │    - messages (gesamter Verlauf)                    │
-   │  │    - TOOL_DEFINITIONS (Whitelist als Schema)        │
-   │  │                                                      │
-   │  │  Chunks ankommen?                                   │
-   │  │    text → SSE-Event {type:"chunk"} ans Frontend     │
-   │  │    tool_calls → SSE-Event {type:"tool"} + ausführen │
-   │  │                                                      │
-   │  │  Stream done, tool_calls vorhanden?                 │
-   │  │    Ja  → Nächste Iteration                          │
-   │  │    Nein → Schritt 6 (fertig)                        │
-   │  └──────────────────────────────────────────────────────┘
-   │
-6. Session speichern (MariaDB)
-   │  await sessionStore.set(sessionId, messages)
-   │  → filtert tool-Nachrichten heraus
-   │  → DELETE + Re-Insert, max. 40 Einträge
-   │
-7. SSE-Event {type:"done"} ans Frontend
+evaluateRules(toolName)
+  │
+  1. DIRECTIVE_DENY (hardcoded Set in executor.ts)
+  │    — niemals in DB, niemals konfigurierbar
+  │    — aktuell: ungelesene Mails löschen (enforced via mail.ts)
+  │
+  2. DB-Abfrage: SELECT … WHERE enabled=1 ORDER BY FIELD(action,'deny','allow')
+  │    — Deny-Regeln gewinnen immer (SQL-Reihenfolge)
+  │    — Trigger-Auswertung: 'always', 'hour > N', 'disk_c > N'
+  │
+  3. Erste match: return 'deny' | 'allow'
+  │
+  4. Kein Match: return 'no_match' → Error im Executor
+
+Default-Regeln (INSERT IGNORE, IDs 1–16):
+  Sicher:   open_app, get_disk_usage, remember, forget, list_memories,
+            homework_mode, load_setup, get_system_info, create_setup,
+            update_setting, create_rule, free_ram,
+            read_emails, mark_email, read_calendar, create_appointment
+  Gesperrt: clean_temp, empty_recycle_bin  (explizit freischalten)
+```
+
+---
+
+## Gedächtnis-System
+
+```text
+remember(type, content)
+  └─ POST /api/embed (Ollama, nomic-embed-text)
+     → 768-dimensionaler Vektor
+     └─ INSERT INTO memories (type, content, embedding)
+
+recall(query)
+  └─ embed(query) → Vektor
+     └─ SELECT last 500 FROM memories
+        └─ Cosinus-Ähnlichkeit (in-process, 10 Zeilen TS)
+           └─ filter ≥ 0.3, Top-5 zurück
+
+Typen:
+  user   — Fakten über den Nutzer (automatisch + explizit)
+  system — App/Tool-Nutzungsverhalten (nach open_app, load_setup)
+  note   — Explizite Notizen ("Merk dir…")
 ```
 
 ---
 
 ## API-Endpunkte
 
-| Route                   | Methode      | Funktion                                 |
-| ----------------------- | ------------ | ---------------------------------------- |
-| `/api/chat/stream`      | POST         | SSE-Streaming, Tool-Loop                 |
-| `/api/chat/provider`    | GET          | Aktiver Provider + Modell                |
-| `/api/chat/history/:id` | GET / DELETE | Session laden / löschen                  |
-| `/api/system/status`    | GET          | Ollama + MariaDB Erreichbarkeit          |
-| `/api/system/disk`      | GET          | Disk-Usage C:, E:, Z:                    |
-| `/api/system/programs`  | GET          | Installierte Programme (Start-Menü-Scan) |
-| `/api/settings`         | GET / PUT    | Einstellungen lesen / schreiben          |
-| `/api/settings/models`  | GET          | Verfügbare Ollama-Modelle                |
-| `/api/tools`            | GET          | Registrierte Tool-Definitionen           |
+| Route                           | Methode      | Funktion                               |
+| ------------------------------- | ------------ | -------------------------------------- |
+| `/api/chat/stream`              | POST         | SSE-Streaming, Tool-Loop               |
+| `/api/chat`                     | POST         | Sync-Chat (non-streaming)              |
+| `/api/chat/provider`            | GET          | Aktiver Provider + Modell              |
+| `/api/chat/history/:id`         | GET / DELETE | Session laden / löschen                |
+| `/api/settings`                 | GET / PUT    | Einstellungen lesen / schreiben        |
+| `/api/settings/models`          | GET          | Verfügbare Ollama-Modelle              |
+| `/api/settings/emergency-reset` | POST         | KI-Einstellungen zurücksetzen          |
+| `/api/rules`                    | GET / POST   | Regeln auflisten / anlegen             |
+| `/api/rules/:id`                | PUT / DELETE | Regel bearbeiten / löschen             |
+| `/api/rules/:id/toggle`         | PATCH        | Regel aktivieren / deaktivieren        |
+| `/api/tools`                    | GET          | Aktivierte Tools (aus Settings)        |
+| `/api/tools/execute`            | POST         | Tool direkt ausführen                  |
+| `/api/system/status`            | GET          | Ollama + MariaDB Erreichbarkeit        |
+| `/api/system/disk`              | GET          | Disk-Usage C:, E:, Z:                  |
+| `/api/system/programs`          | GET          | Installierte Programme (Start-Menü)    |
+| `/api/events/stream`            | GET          | SSE-Push vom Background-Worker         |
+| `/api/events/recent`            | GET          | Letzte 50 System-Events                |
+| `/api/homework/status`          | GET          | Hausaufgaben-Modus Status              |
+| `/api/homework/activate`        | POST         | Modus aktivieren (kein PIN)            |
+| `/api/homework/deactivate`      | POST         | Modus deaktivieren (PIN)               |
+| `/api/homework/config`          | PUT          | PIN + App-Liste konfigurieren          |
+| `/api/onboarding/status`        | GET          | Onboarding-Status + Computername       |
+| `/api/onboarding/scan`          | POST         | Hardware-Scan starten                  |
+| `/api/onboarding/complete`      | POST         | Onboarding abschließen                 |
+| `/api/setup/status`             | GET          | Dependency-Check (Ollama, nomic, DB)   |
+| `/api/setup/pull-nomic`         | POST         | nomic-embed-text via SSE herunterladen |
 
 ---
 
 ## Ports
 
-| Service             | Port  | Hinweis                                     |
-| ------------------- | ----- | ------------------------------------------- |
-| Frontend (Vite Dev) | 5173  | Nur Dev-Modus — Production lädt via file:// |
-| Backend (Express)   | 3002  | Port 3001 von Docker Desktop belegt         |
-| MariaDB             | 3306  | Standard-Port, Windows-Dienst               |
-| Ollama              | 11434 | Standard-Port, läuft als Tray-App           |
+| Service             | Port  | Hinweis                                  |
+| ------------------- | ----- | ---------------------------------------- |
+| Frontend (Vite Dev) | 5173  | Nur Dev-Modus — Production via `file://` |
+| Backend (Express)   | 3002  | Port 3001 von Docker Desktop belegt      |
+| MariaDB             | 3306  | Windows-Dienst, E:\MariaDB\data          |
+| Ollama              | 11434 | Standard-Port, läuft als Tray-App        |
 
 ---
 
 ## Stack
 
-| Schicht           | Technologie          | Version | Warum                                        |
-| ----------------- | -------------------- | ------- | -------------------------------------------- |
-| Frontend          | React                | 18      | Stable, breites Ökosystem                    |
-| Frontend Build    | Vite                 | 5       | Schnell, guter Proxy, kein CRA               |
-| Frontend Routing  | React Router         | 6       | HashRouter für file://-Kompatibilität        |
-| Desktop-Shell     | Electron             | 33      | Natives Fenster, Tray, Autostart, Child-Proc |
-| Desktop Build     | esbuild              | —       | Zuverlässiges Externalisieren von `electron` |
-| Backend Runtime   | Node.js              | 24      | LTS, async-first                             |
-| Backend Framework | Express              | 4       | Minimal, explizit, keine Magie               |
-| Sprache           | TypeScript           | 5       | Typsicherheit über alle Schichten            |
-| Datenbank         | MariaDB              | 12.2.2  | Drop-in für MySQL, OS, auf E:                |
-| LLM lokal         | Ollama + llama3.1:8b | —       | Kostenlos, offline, GPU-fähig                |
-| LLM cloud         | OpenAI GPT-4o        | —       | Beste Qualität, API-Key optional             |
+| Schicht           | Technologie          | Version | Warum                                                          |
+| ----------------- | -------------------- | ------- | -------------------------------------------------------------- |
+| Frontend          | React                | 18      | Stable, breites Ökosystem                                      |
+| Frontend Build    | Vite                 | 5       | Schnell, HMR < 50 ms                                           |
+| Frontend Routing  | React Router         | 6       | HashRouter für `file://`-Kompatibilität                        |
+| Desktop-Shell     | Electron             | 33      | Natives Fenster, Tray, Autostart, Child-Proc                   |
+| Desktop Build     | esbuild              | —       | Externalisiert `electron` korrekt (electron-vite tut es nicht) |
+| Desktop Installer | electron-builder     | 24      | NSIS für Windows x64                                           |
+| Backend           | Node.js + Express    | 20 / 4  | Minimal, explizit, async-first                                 |
+| Sprache           | TypeScript           | 5       | Typsicherheit über alle Schichten, strict mode                 |
+| Datenbank         | MariaDB              | 12.2.2  | Drop-in für MySQL, Open Source, auf E:                         |
+| LLM lokal         | Ollama + llama3.1:8b | —       | Kostenlos, offline, GPU-fähig                                  |
+| Embeddings        | nomic-embed-text     | —       | 768-dim, via Ollama, lokal                                     |
+| LLM cloud         | OpenAI GPT-4o        | —       | Optional, beste Qualität                                       |
 
 ---
 
@@ -157,107 +236,111 @@ Der zentrale Ablauf für jede Nutzeranfrage (gilt für `/api/chat` und `/api/cha
 z:\repos\E.L.L.A\
 │
 ├─ apps/
-│  │
 │  ├─ api/                          — Express Backend (@ella/api)
-│  │  ├─ src/
-│  │  │  ├─ config/
-│  │  │  │  ├─ env.ts               — Alle Umgebungsvariablen (einzige Quelle)
-│  │  │  │  └─ database.ts          — MariaDB Connection Pool
-│  │  │  ├─ middleware/
-│  │  │  │  └─ errorHandler.ts      — Zentraler Fehler-Handler (Express)
-│  │  │  ├─ routes/
-│  │  │  │  ├─ chat.ts              — POST /api/chat + Hilfrouten, Tool-Loop
-│  │  │  │  └─ tools.ts             — GET /api/tools (Registry-Listing)
-│  │  │  ├─ services/
-│  │  │  │  ├─ ollama.ts            — OllamaClient (REST-Wrapper)
-│  │  │  │  ├─ openai.ts            — OpenAIClient (REST-Wrapper)
-│  │  │  │  └─ sessions.ts          — In-Memory Session-Store
-│  │  │  └─ tools/
-│  │  │     ├─ definitions.ts       — Tool-Schemas für LLM (Ollama-Format)
-│  │  │     ├─ executor.ts          — Whitelist-Check + Tool-Dispatch
-│  │  │     └─ registry.ts          — Registrierte Tool-Implementierungen
-│  │  ├─ .env                       — Lokale Konfiguration (nicht in Git)
-│  │  ├─ package.json
-│  │  └─ tsconfig.json
+│  │  └─ src/
+│  │     ├─ config/
+│  │     │  ├─ env.ts               — Umgebungsvariablen (einzige Quelle)
+│  │     │  ├─ database.ts          — MariaDB Connection-Pool
+│  │     │  └─ migrate.ts           — Schema + Seed-Regeln beim Start
+│  │     ├─ middleware/
+│  │     │  └─ errorHandler.ts      — Zentraler Fehler-Handler
+│  │     ├─ routes/
+│  │     │  ├─ chat.ts              — Chat + Tool-Loop
+│  │     │  ├─ events.ts            — SSE-Push + recent Events
+│  │     │  ├─ homework.ts          — Hausaufgaben-Modus REST
+│  │     │  ├─ onboarding.ts        — Onboarding-Flow REST
+│  │     │  ├─ rules.ts             — Rule-Engine CRUD
+│  │     │  ├─ settings.ts          — Settings CRUD + Emergency-Reset
+│  │     │  ├─ setup.ts             — Dependency-Check + nomic-Pull-SSE
+│  │     │  ├─ system.ts            — Status + Disk + Programme
+│  │     │  └─ tools.ts             — Tool-Listing + direktes Execute
+│  │     ├─ services/
+│  │     │  ├─ calendar.ts          — Outlook-Kalender via COM
+│  │     │  ├─ eventBus.ts          — Singleton EventEmitter (Worker→SSE)
+│  │     │  ├─ homework.ts          — Aktivieren/Deaktivieren, SHA-256-PIN
+│  │     │  ├─ mail.ts              — Outlook COM + Thunderbird mbox
+│  │     │  ├─ memory.ts            — Embeddings, recall(), extractAndRemember()
+│  │     │  ├─ ollama.ts            — OllamaClient (chat, stream, embed)
+│  │     │  ├─ openai.ts            — OpenAIClient (chat, stream)
+│  │     │  ├─ rules.ts             — evaluateRules(), CRUD-Helpers
+│  │     │  ├─ sessions.ts          — MariaDB-backed Session-Store
+│  │     │  ├─ settings.ts          — settings.json lesen/schreiben
+│  │     │  ├─ systemScan.ts        — wmic: CPU/GPU/RAM/Computername
+│  │     │  └─ worker.ts            — Background-Worker (Disk/RAM/Ollama)
+│  │     └─ tools/
+│  │        ├─ definitions.ts       — Tool-Schemas für LLM (18 Tools)
+│  │        ├─ executor.ts          — Settings-Check + Rule-Check + Dispatch
+│  │        └─ registry.ts          — Legacy (listEnabled via settings)
 │  │
 │  ├─ desktop/                      — Electron Desktop-App (@ella/desktop)
 │  │  ├─ src/
-│  │  │  ├─ main.ts                 — BrowserWindow, Tray, Single-Instance-Lock
-│  │  │  └─ preload.ts              — IPC-Bridge (Platzhalter für Sprachsteuerung)
-│  │  ├─ build-main.mjs             — esbuild-Script (externalisiert electron korrekt)
-│  │  ├─ package.json
-│  │  └─ tsconfig.json
+│  │  │  ├─ main.ts                 — BrowserWindow, Tray, Child-Proc, IPC
+│  │  │  └─ preload.ts              — IPC-Bridge
+│  │  ├─ build-main.mjs             — esbuild-Script
+│  │  └─ package.json               — electron-builder NSIS-Config
+│  │
+│  ├─ landing/                      — Statische Landingpage
+│  │  └─ index.html                 — HTML/CSS, Lemon-Squeezy-Checkout
 │  │
 │  └─ web/                          — React Frontend (@ella/web)
-│     ├─ src/
-│     │  ├─ pages/
-│     │  │  ├─ chat/                — Chat-Interface mit Verlaufsanzeige
-│     │  │  ├─ dashboard/           — Systemübersicht (Stub — Phase 2)
-│     │  │  └─ settings/            — Konfiguration (Stub — Phase 2)
-│     │  ├─ App.tsx                 — Router-Konfiguration + Layout
-│     │  ├─ App.css                 — Globale Styles
-│     │  ├─ main.tsx                — React-Einstiegspunkt
-│     │  └─ vite-env.d.ts           — Vite TypeScript-Typen (CSS, import.meta)
-│     ├─ index.html
-│     ├─ package.json
-│     ├─ tsconfig.json
-│     └─ vite.config.ts
+│     └─ src/
+│        ├─ components/
+│        │  └─ TitleBar.tsx         — Frameless Window Titelleiste (IPC)
+│        ├─ pages/
+│        │  ├─ chat/                — Chat-Interface, SSE-Streaming, TTS
+│        │  ├─ dashboard/           — Live-Feed, Disk-Balken, SSE-Alerts
+│        │  ├─ eula/                — EULA-Gate (Vollbild)
+│        │  ├─ onboarding/          — System-Scan, Name, 3 Schritte
+│        │  ├─ settings/            — 5 Tabs: LLM/Tools/Setups/Programme/Modus
+│        │  └─ setup/               — Dependency-Check, nomic-Pull-SSE
+│        └─ App.tsx                 — Boot-Flow, EULA/Onboarding-Routing
 │
 ├─ packages/
-│  │
 │  ├─ shared/                       — Gemeinsame Typen (@ella/shared)
-│  │  └─ src/
-│  │     └─ types.ts                — Message, ToolCall, ToolResult, ToolName
-│  │
-│  └─ agent-tools/                  — Windows-Tool-Implementierungen (@ella/agent-tools)
-│     └─ src/
-│        ├─ open-app.ts
-│        ├─ get-disk-usage.ts
-│        ├─ clean-temp.ts
-│        └─ empty-recycle-bin.ts
+│  │  └─ src/types/tool.ts          — ToolName (18), ToolCall, ToolResult
+│  └─ agent-tools/                  — Windows-System-Tools (@ella/agent-tools)
+│     └─ src/                       — open-app, get-disk-usage, clean-temp, empty-recycle-bin
 │
 ├─ database/
-│  ├─ schema.sql                    — Vollständiges MariaDB-Schema
-│  ├─ migrations/                   — Zukünftige Schema-Änderungen
-│  └─ seeds/                        — Testdaten (leer)
+│  └─ schema.sql                    — Idempotentes Schema (IF NOT EXISTS, INSERT IGNORE)
 │
 ├─ docs/                            — Technische Dokumentation
-│  ├─ architecture.md               — Dieses Dokument
-│  ├─ history.md                    — Entwicklungshistorie mit Begründungen
-│  ├─ database.md                   — Datenbankschema-Dokumentation
-│  ├─ roadmap.md                    — Geplante Features & Prioritäten
-│  └─ hardware.md                   — Hardware-Spezifikation Dante-Home
-│
-├─ logs/                            — Laufzeit-Logs (nicht in Git)
-├─ .env.local                       — Beispiel-Env (API-Keys redacted)
-├─ .gitignore
-├─ package.json                     — Workspace-Root
-├─ tsconfig.base.json               — Gemeinsame TS-Konfiguration
-└─ README.md                        — Kurzübersicht + Schnellstart
+├─ apps/landing/index.html          — Statische Landingpage
+├─ CHANGELOG.md                     — Alle Versionen auf einen Blick
+└─ README.md                        — Voraussetzungen, Schnellstart, Architektur
 ```
 
 ---
 
 ## Sicherheitsprinzip
 
-E.L.L.A. trennt strikt **Verstehen** (LLM) von **Ausführen** (Backend):
+E.L.L.A. trennt **Verstehen** (LLM) von **Ausführen** (Backend) mit zwei unabhängigen Gates:
 
 ```text
 LLM (Ollama / OpenAI)
   │
-  │  Erzeugt strukturierte Tool-Calls
-  │  — kennt keine Shell-Kommandos
-  │  — kann nur explizit definierte Tools benennen
+  │  Erzeugt strukturierten Tool-Call { name, args }
   ▼
-toolExecutor.execute(name, params)
+toolExecutor.execute(name, args)
   │
-  ├─ name in Registry?  Nein → Error, nichts wird ausgeführt
+  ├─ 1. Settings-Check: getSettings().enabledTools.includes(name)?
+  │       Nein → Error, nichts wird ausgeführt
   │
-  └─ Ja → Tool-Funktion mit validierten Parametern
-            — kein freier Shell-Zugriff
-            — kein eval(), kein exec() mit User-Input
+  ├─ 2. Rule-Engine: evaluateRules(name)
+  │       deny         → Error
+  │       no_match     → Error (Default-Deny)
+  │       allow        → weiter
+  │
+  └─ 3. Handler(args)
+          — kein freier Shell-Zugriff
+          — kein eval(), kein exec() mit User-Input
+          — PowerShell via Base64-EncodedCommand (keine Sonderzeichen-Probleme)
 ```
 
-**API-Keys:** Leben ausschließlich im Backend (`.env`). Das Frontend sieht keine Keys, macht keine direkten LLM-Calls, kommuniziert nur mit dem eigenen Backend.
+**Direktive:** Ungelesene Mails löschen ist zweifach gesperrt — PS-Script prüft `$item.UnRead` vor `delete`, Executor prüft `result.directive`. Keine Regel kann das überschreiben.
 
-**Prinzip der minimalen Rechte:** Der Datenbanknutzer `ella` hat nur `ALL PRIVILEGES ON ella.*` — kein Zugriff auf andere Datenbanken, kein `GRANT OPTION`, kein `SUPER`.
+**API-Keys:** Ausschließlich im Backend (`.env`). Frontend sieht `***`, macht keine direkten LLM-Calls.
+
+**PIN:** SHA-256-Hash in `settings.json`, nie im Klartext übertragen.
+
+**DB-Nutzer:** `ella` hat nur `ALL PRIVILEGES ON ella.*` — kein Zugriff auf andere DBs, kein `SUPER`.
