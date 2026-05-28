@@ -25,6 +25,7 @@ export const DIRECTIVE_DENY = new Set<string>([
 
 function diskUsagePercent(drive: string): number {
   try {
+    // TODO: Get-CimInstance Fallback für Windows 11 22H2+
     const out = execSync(
       `wmic logicaldisk where "DeviceID='${drive}:'" get FreeSpace,Size /format:csv`,
       { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8" },

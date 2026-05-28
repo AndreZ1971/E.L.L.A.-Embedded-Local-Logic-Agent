@@ -77,6 +77,32 @@ describe("settings — getSettings / saveSettings round-trip", () => {
   });
 });
 
+describe("emergency-reset — homeworkMode & PIN cleared", () => {
+  it("resets homeworkMode.active and pinHash via saveSettings", async () => {
+    await saveSettings({
+      homeworkMode: { pinHash: "abc123", apps: [], active: true },
+      emergencyResetAt: null,
+    });
+    expect(getSettings().homeworkMode.active).toBe(true);
+    expect(getSettings().homeworkMode.pinHash).toBe("abc123");
+
+    const s = getSettings();
+    await saveSettings({
+      homeworkMode: { ...s.homeworkMode, active: false, pinHash: "" },
+      emergencyResetAt: new Date().toISOString(),
+    });
+
+    expect(getSettings().homeworkMode.active).toBe(false);
+    expect(getSettings().homeworkMode.pinHash).toBe("");
+    expect(getSettings().emergencyResetAt).not.toBeNull();
+
+    await saveSettings({
+      homeworkMode: { pinHash: "", apps: [], active: false },
+      emergencyResetAt: null,
+    });
+  });
+});
+
 describe("pool — direct SQL sanity", () => {
   it("can query system_events table", async () => {
     if (skipDb) return;

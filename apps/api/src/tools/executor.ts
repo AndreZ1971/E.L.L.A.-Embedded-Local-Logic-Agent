@@ -383,6 +383,7 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     let drives: string[] = [];
     try {
       const { execSync } = await import("child_process");
+      // TODO: Get-CimInstance Fallback für Windows 11 22H2+
       const out = execSync(
         "wmic logicaldisk get DeviceID,DriveType /format:csv",
         {
@@ -443,6 +444,7 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       ollamaResult,
       alertsResult,
     ] = await Promise.allSettled([
+      // TODO: Get-CimInstance Fallback für Windows 11 22H2+
       execAsync(
         "wmic logicaldisk get DeviceID,DriveType,FreeSpace,Size /format:csv",
         { timeout: 5000 },
@@ -472,6 +474,7 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         return result;
       }),
 
+      // TODO: Get-CimInstance Win32_OperatingSystem Fallback für Windows 11 22H2+
       execAsync("wmic os get LastBootUpTime /format:value", {
         timeout: 5000,
       }).then(({ stdout }) => {
