@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useBootContext } from "../../App";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
 
@@ -28,6 +29,7 @@ const EULA_POINTS = [
 
 export default function Eula() {
   const navigate = useNavigate();
+  const { setBoot } = useBootContext();
   const [accepted, setAccepted] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -40,7 +42,8 @@ export default function Eula() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ eulaAccepted: true }),
       });
-      navigate("/setup");
+      setBoot((prev) => ({ ...prev!, eulaAccepted: true }));
+      navigate("/onboarding");
     } catch {
       setSaving(false);
     }
