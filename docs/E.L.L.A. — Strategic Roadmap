@@ -1,0 +1,85 @@
+E.L.L.A. — Strategic Roadmap
+Stand: Mai 2026
+Aktuell: v2.3.0 — produktionsreif, lokal, direktive-gesichert
+
+Wo E.L.L.A. heute steht
+E.L.L.A. läuft auf einem i3 12th Gen mit GTX 1060 — Consumer-Hardware unterhalb des Marktdurchschnitts. Das ist kein Zufall. Es ist der Beweis: was auf dieser Hardware läuft, läuft auf jedem modernen Windows-Gerät.
+
+Heute produktiv:
+
+Lokale KI-Inferenz (llama3.1:8b, ~14 t/s on-device)
+
+Systemsteuerung via natürlicher Sprache
+
+Wakeword-Aktivierung ("ella")
+
+Mail & Kalender (Outlook COM)
+
+Proaktives Monitoring — Firewall, DNS, neue Geräte, Speicher
+
+Web-Suche via OpenAI (optional)
+
+Vollständiges Gedächtnissystem (768-dim Embeddings, MariaDB)
+
+The E.L.L.A. Directive — vier unveränderliche Verbote, kryptographisch versiegelbar
+
+v2.x — Polishing (laufend)
+E.L.L.A. wird zur täglichen Gewohnheit.
+
+Feature	Beschreibung
+Onboarding	Name, Directive-Acceptance, Hardware-Scan, Standort
+Multilingual UI	Interface folgt Windows-Systemsprache (DE/EN/FR/ES/...)
+Proaktive Sprache	E.L.L.A. meldet sich bei System-Events ohne Aufforderung
+Standort-Awareness	IP-Geolocation + Memory — Wetter, lokale Infos
+Directive UI	Ablehnungen werden visuell als Directive-Event dargestellt
+wmic → CimInstance	Windows 11 22H2+ Kompatibilität sichergestellt
+v3.0 — Deep Integration
+E.L.L.A. kennt nicht nur das System — sie versteht den Kontext.
+
+Feature	Beschreibung
+Vision	Bildschirminhalt analysieren via lokales Vision-Modell
+Kamera-Integration	Umgebungserkennung — wer ist am Gerät, Gesten
+Erweitertes App-Ökosystem	Browser-Steuerung, Office-Integration via COM
+Profile	Arbeit / Gaming / Privat — E.L.L.A. wechselt Kontext automatisch
+Autorun & Silent Mode	Läuft unsichtbar, meldet sich nur wenn nötig
+Session-Persistenz	Gesprächskontext überlebt Neustarts
+v4.0 — Platform
+The E.L.L.A. Directive als offener Standard. E.L.L.A. als Plattform.
+
+Feature	Beschreibung
+Directive Public Release	ella-directive wird öffentlich — offener Standard für lokale KI-Agenten
+Conformance Badge	Andere Projekte können "Directive-konform" zertifiziert werden
+Plugin API	Drittanbieter können Tools registrieren — unter Directive-Kontrolle
+Hardware Abstraction	Abstraktionsschicht für verschiedene Windows-Geräte (ARM, x64, Copilot+)
+Multilingual UI	i18n-System — Interface in Systemsprache des Nutzers
+Enterprise Edition	Zentrale Policy-Verwaltung, Audit-Export, AD-Integration
+Langfristig — Beyond Desktop
+Die Directive ist nicht auf Desktop-KI beschränkt.
+
+Die architektonischen Prinzipien der E.L.L.A. Directive — Verbote als strukturelle Unmöglichkeit statt interpretierbarer Regeln — sind auf jedes autonome System anwendbar:
+
+Bereich	Anwendung
+Bereich	Anwendung
+Autonome Web-Agenten	Browser-Automatisierung mit Directive-Schutz
+IoT & Smart Home	Gerätesteuerung unter garantierten Grenzen
+Industrieroboter	Physische Systeme mit vertrauenswürdiger Autonomie
+Humanoide Roboter	Die eigentliche Domäne — physische Sicherheit als Architektur
+Was bewusst nicht geplant ist
+Feature	Warum nicht
+Cloud-Hosting	Lokale Ausführung ist Designprinzip — keine Kompromisse
+Multi-User	E.L.L.A. ist ein persönlicher Assistent — ein Nutzer, ein Gerät
+Subscription	Einmalkauf — €99 Consumer, €299 Enterprise. Keine monatlichen Kosten.
+Offene Shell-Befehle	Die Directive verhindert freie Kommandoausführung — by design
+OEM-Integration
+E.L.L.A. ist für OEM-Vorinstallation ausgelegt:
+
+Installer: NSIS-basiert, silent install, kein technisches Setup für den Nutzer
+
+Aktivierungsmodell: Pre-install kostenlos + €99 Aktivierung — oder $2/Gerät OEM-Lizenz
+
+Support: E.L.L.A. ist ihr eigener Support. Kein FAQ nötig. Kein Techniker nötig.
+
+DSGVO/EU AI Act: Keine Daten verlassen das Gerät — Limited Risk, keine Registrierungspflicht
+
+E.L.L.A. ist kein Chatbot der zufällig auf dem Desktop läuft.
+Sie ist ein Assistent der das Gerät kennt, den Nutzer kennt, und weiß was sie niemals tun wird.
