@@ -178,18 +178,18 @@ const Settings: React.FC = () => {
 
   const toggleTool = (name: string) => {
     if (!settings) return;
-    const has = (settings.enabledTools ?? []).includes(name);
+    const cur = settings.enabledTools ?? [];
     patch({
-      enabledTools: has
-        ? settings.enabledTools.filter((t) => t !== name)
-        : [...settings.enabledTools, name],
+      enabledTools: cur.includes(name)
+        ? cur.filter((t) => t !== name)
+        : [...cur, name],
     });
   };
 
   const toggleApp = (name: string) => {
     if (!settings) return;
     patch({
-      apps: settings.apps.map((a) =>
+      apps: (settings.apps ?? []).map((a) =>
         a.name === name ? { ...a, allowed: !a.allowed } : a,
       ),
     });
@@ -205,9 +205,9 @@ const Settings: React.FC = () => {
         programs: { name: string; command: string }[];
       };
       const existing = new Map(
-        settings.apps.map((a) => [a.name.toLowerCase(), a]),
+        (settings.apps ?? []).map((a) => [a.name.toLowerCase(), a]),
       );
-      const merged: AppEntry[] = [...settings.apps];
+      const merged: AppEntry[] = [...(settings.apps ?? [])];
       for (const p of data.programs) {
         if (!existing.has(p.name.toLowerCase())) {
           merged.push({ name: p.name, command: p.command, allowed: false });
@@ -234,14 +234,16 @@ const Settings: React.FC = () => {
 
   const deleteSetup = (id: string) => {
     if (!settings) return;
-    patch({ setups: settings.setups.filter((s) => s.id !== id) });
+    patch({ setups: (settings.setups ?? []).filter((s) => s.id !== id) });
     if (selectedSetupId === id) setSelectedSetupId(null);
   };
 
   const renameSetup = (id: string, name: string) => {
     if (!settings) return;
     patch({
-      setups: settings.setups.map((s) => (s.id === id ? { ...s, name } : s)),
+      setups: (settings.setups ?? []).map((s) =>
+        s.id === id ? { ...s, name } : s,
+      ),
     });
   };
 
@@ -252,7 +254,7 @@ const Settings: React.FC = () => {
   ) => {
     if (!settings) return;
     patch({
-      setups: settings.setups.map((s) => {
+      setups: (settings.setups ?? []).map((s) => {
         if (s.id !== setupId) return s;
         const arr = s[list];
         const has = arr.includes(appName);
@@ -1007,8 +1009,8 @@ const Settings: React.FC = () => {
           </div>
 
           <div style={{ fontSize: "0.78rem", color: "#64748b", flexShrink: 0 }}>
-            {settings.apps.length} bekannt · {allowedCount} erlaubt ·{" "}
-            {settings.apps.length - allowedCount} verboten
+            {(settings.apps ?? []).length} bekannt · {allowedCount} erlaubt ·{" "}
+            {(settings.apps ?? []).length - allowedCount} verboten
           </div>
 
           <div
@@ -1029,7 +1031,7 @@ const Settings: React.FC = () => {
                   textAlign: "center",
                 }}
               >
-                {settings.apps.length === 0
+                {(settings.apps ?? []).length === 0
                   ? '"System scannen" klicken.'
                   : "Keine Treffer."}
               </div>
@@ -1198,14 +1200,14 @@ const Settings: React.FC = () => {
               bekannten Programme werden geschlossen.
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {settings.apps.length === 0 && (
+              {(settings.apps ?? []).length === 0 && (
                 <div
                   style={{ color: "#475569", fontSize: "0.85rem", padding: 8 }}
                 >
                   Erst unter "Programme" Apps eintragen.
                 </div>
               )}
-              {settings.apps.map((a) => {
+              {(settings.apps ?? []).map((a) => {
                 const checked = (settings.homeworkMode?.apps ?? []).includes(
                   a.name,
                 );
