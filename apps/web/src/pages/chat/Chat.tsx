@@ -149,9 +149,11 @@ const Chat: React.FC = () => {
         speakProactive(message);
         (
           window as unknown as {
-            electronAPI?: { notifyAlert?: (m: string) => void };
+            electronAPI?: {
+              notifyAlert?: (m: string, s?: "warning" | "error") => void;
+            };
           }
-        ).electronAPI?.notifyAlert?.(message);
+        ).electronAPI?.notifyAlert?.(message, severity);
       } else if (ev.type === "device_connected") {
         const name = (ev.payload.name as string) ?? "Gerät";
         setToasts((prev) => [
@@ -167,6 +169,16 @@ const Chat: React.FC = () => {
           6000,
         );
         speakProactive(`Neues Gerät verbunden: ${name}`);
+        (
+          window as unknown as {
+            electronAPI?: {
+              notifyDevice?: (m: string, t: string) => void;
+            };
+          }
+        ).electronAPI?.notifyDevice?.(
+          `Neues Gerät verbunden: ${name}`,
+          "connected",
+        );
       } else if (ev.type === "device_disconnected") {
         const name = (ev.payload.name as string) ?? "Gerät";
         setToasts((prev) => [
@@ -182,6 +194,16 @@ const Chat: React.FC = () => {
           6000,
         );
         speakProactive(`Gerät getrennt: ${name}`);
+        (
+          window as unknown as {
+            electronAPI?: {
+              notifyDevice?: (m: string, t: string) => void;
+            };
+          }
+        ).electronAPI?.notifyDevice?.(
+          `Gerät getrennt: ${name}`,
+          "disconnected",
+        );
       } else if (ev.type === "network_device_connected") {
         const ip = (ev.payload.ip as string) ?? "";
         setToasts((prev) => [
@@ -197,6 +219,16 @@ const Chat: React.FC = () => {
           6000,
         );
         speakProactive(`Neues Gerät im Netzwerk erkannt: ${ip}`);
+        (
+          window as unknown as {
+            electronAPI?: {
+              notifyDevice?: (m: string, t: string) => void;
+            };
+          }
+        ).electronAPI?.notifyDevice?.(
+          `Neues Gerät im Netzwerk: ${ip}`,
+          "network",
+        );
       }
     };
     return () => es.close();

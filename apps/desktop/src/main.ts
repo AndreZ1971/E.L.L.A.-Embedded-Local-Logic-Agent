@@ -251,20 +251,57 @@ function showWindow(): void {
 
 // ── IPC ───────────────────────────────────────────────────────────────────────
 
-ipcMain.on("ella:alert", (_event, message: string) => {
-  tray?.setToolTip(`E.L.L.A. — ${message}`);
-  tray?.displayBalloon({
-    title: "E.L.L.A.",
-    content: message,
-    iconType: "warning",
-    noSound: false,
-  });
-  // Reset tooltip after 30s
-  setTimeout(
-    () => tray?.setToolTip("E.L.L.A. — Embedded Local Logic Agent"),
-    30_000,
-  );
-});
+ipcMain.on(
+  "ella:alert",
+  (_event, payload: { message: string; severity: "warning" | "error" }) => {
+    const { message, severity } = payload;
+    const title =
+      severity === "error"
+        ? "E.L.L.A. — Kritischer Fehler"
+        : "E.L.L.A. — Warnung";
+    tray?.setToolTip(`E.L.L.A. — ${message}`);
+    tray?.displayBalloon({
+      title,
+      content: message,
+      iconType: severity === "error" ? "error" : "warning",
+      noSound: severity !== "error",
+    });
+    setTimeout(
+      () => tray?.setToolTip("E.L.L.A. — Embedded Local Logic Agent"),
+      30_000,
+    );
+  },
+);
+
+ipcMain.on(
+  "ella:device",
+  (
+    _event,
+    payload: {
+      message: string;
+      type: "connected" | "disconnected" | "network";
+    },
+  ) => {
+    const { message, type } = payload;
+    const title =
+      type === "connected"
+        ? "E.L.L.A. — Gerät verbunden"
+        : type === "disconnected"
+          ? "E.L.L.A. — Gerät getrennt"
+          : "E.L.L.A. — Netzwerk";
+    tray?.setToolTip(`E.L.L.A. — ${message}`);
+    tray?.displayBalloon({
+      title,
+      content: message,
+      iconType: "info",
+      noSound: true,
+    });
+    setTimeout(
+      () => tray?.setToolTip("E.L.L.A. — Embedded Local Logic Agent"),
+      20_000,
+    );
+  },
+);
 
 function registerIpc(): void {
   ipcMain.on("window:minimize", () => mainWindow?.minimize());

@@ -10,5 +10,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("window:maximized", handler);
     return () => ipcRenderer.removeListener("window:maximized", handler);
   },
-  notifyAlert: (message: string) => ipcRenderer.send("ella:alert", message),
+  notifyAlert: (message: string, severity?: "warning" | "error") =>
+    ipcRenderer.send("ella:alert", {
+      message,
+      severity: severity ?? "warning",
+    }),
+  notifyDevice: (
+    message: string,
+    type: "connected" | "disconnected" | "network",
+  ) => ipcRenderer.send("ella:device", { message, type }),
 });
