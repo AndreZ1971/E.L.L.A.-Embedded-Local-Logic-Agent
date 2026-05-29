@@ -373,6 +373,26 @@ const SYSTEM_STATUS_TOOL: OllamaTool = {
   },
 };
 
+const SEARCH_WEB_TOOL: OllamaTool = {
+  type: "function",
+  function: {
+    name: "search_web",
+    description:
+      "Sucht im Web nach aktuellen Informationen: Wetter, Nachrichten, Preise, Veranstaltungen, Fakten — alles was sich mit gespeichertem Wissen nicht beantworten lässt. Nutze dies für Small Talk über aktuelle Ereignisse oder wenn der Nutzer nach etwas Zeitabhängigem fragt.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            'Suchanfrage auf Deutsch oder Englisch, z.B. "Wetter München heute"',
+        },
+      },
+      required: ["query"],
+    },
+  },
+};
+
 const SYSTEM_INFO_TOOL: OllamaTool = {
   type: "function",
   function: {
@@ -418,6 +438,7 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     HOMEWORK_TOOL,
     SYSTEM_INFO_TOOL,
     SYSTEM_STATUS_TOOL,
+    SEARCH_WEB_TOOL,
     ...HARDWARE_TOOLS,
     ...CONVERSATION_TOOLS,
     ...MAIL_TOOLS,

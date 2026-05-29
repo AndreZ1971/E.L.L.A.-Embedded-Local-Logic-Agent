@@ -36,6 +36,7 @@ import {
 } from "../services/calendar.js";
 import { pool } from "../config/database.js";
 import { env } from "../config/env.js";
+import { openaiClient } from "../services/openai.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -546,6 +547,16 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
           tempResult.status === "fulfilled" ? tempResult.value : "unbekannt",
       },
     };
+  },
+
+  search_web: async (args) => {
+    const query = (args.query as string) ?? "";
+    if (!query.trim()) return { success: false, error: "query fehlt" };
+    if (!openaiClient.isAvailable())
+      return { success: false, error: "OpenAI nicht verfügbar" };
+    trackToolUsage("search_web", query.slice(0, 80));
+    const result = await openaiClient.searchWeb(query);
+    return { success: true, output: result };
   },
 
   free_ram: async () => {

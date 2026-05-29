@@ -51,8 +51,45 @@ function buildOpenAIMessages(
   ];
 }
 
+interface ResponsesOutput {
+  output: Array<{
+    type: string;
+    content?: Array<{ type: string; text: string }>;
+  }>;
+}
+
 export const openaiClient = {
   isAvailable: (): boolean => Boolean(getActiveApiKey(env.openaiApiKey)),
+
+  searchWeb: async (query: string): Promise<string> => {
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getActiveApiKey(env.openaiApiKey)}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        tools: [{ type: "web_search_preview" }],
+        input: query,
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`OpenAI Responses error ${response.status}: ${text}`);
+    }
+
+    const data = (await response.json()) as ResponsesOutput;
+    const text = data.output
+      .filter((o) => o.type === "message")
+      .flatMap((o) => o.content ?? [])
+      .filter((c) => c.type === "output_text")
+      .map((c) => c.text)
+      .join("");
+
+    return text || "Keine Suchergebnisse gefunden.";
+  },
 
   chat: async (
     messages: OllamaMessage[],

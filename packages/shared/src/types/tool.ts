@@ -20,7 +20,8 @@ export type ToolName =
   | "list_devices"
   | "scan_network"
   | "list_connections"
-  | "get_system_status";
+  | "get_system_status"
+  | "search_web";
 
 export interface ToolCall {
   tool: ToolName;
