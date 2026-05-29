@@ -478,5 +478,25 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  // Directive-Demo — kein Handler, wird von DIRECTIVE_DENY blockiert
+  defs.push({
+    type: "function",
+    function: {
+      name: "delete_files",
+      description:
+        "Löscht Dateien oder Ordner vom System. Wird von der E.L.L.A. Directive blockiert.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Pfad zur Datei oder zum Ordner",
+          },
+        },
+        required: ["path"],
+      },
+    },
+  });
+
   return defs;
 }

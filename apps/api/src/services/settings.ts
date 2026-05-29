@@ -70,6 +70,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "get_system_status",
     "search_web",
     "get_location",
+    "delete_files",
   ],
   sessionLimit: 40,
   openaiApiKey: "",

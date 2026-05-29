@@ -19,8 +19,22 @@ export interface Rule {
 // Diese Tools darf E.L.L.A. grundsätzlich nicht ausführen, unabhängig von Regeln.
 // Erweiterbar wenn neue destruktive Tool-Kategorien entstehen.
 export const DIRECTIVE_DENY = new Set<string>([
-  // Platzhalter für zukünftige destruktive Tools (z.B. delete_files, run_script)
-  // clean_temp und empty_recycle_bin sind NICHT hier — sie sind regelgesteuert
+  // Prohibition I — harm: destruktive Systemoperationen
+  "delete_files",
+  "format_drive",
+  "run_script",
+  "registry_edit",
+  "disable_firewall",
+  "uninstall_app",
+  "kill_process",
+  "wipe_disk",
+
+  // Prohibition IV — exfiltrate: Datenweitergabe ohne expliziten Nutzerauftrag
+  "send_data_external",
+  "upload_files",
+  "sync_cloud",
+
+  // clean_temp + empty_recycle_bin sind NICHT hier — sie sind regelgesteuert
 ]);
 
 function diskUsagePercent(drive: string): number {

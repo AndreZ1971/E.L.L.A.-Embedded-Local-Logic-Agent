@@ -73,6 +73,10 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "get_system_status", label: "System-Status abrufen" },
   { name: "search_web", label: "Web-Suche (Small Talk / Wetter)" },
   { name: "get_location", label: "Standort ermitteln (Memory / IP-Geo)" },
+  {
+    name: "delete_files",
+    label: "Dateien löschen (Directive-Demo — immer blockiert)",
+  },
 ];
 
 const input: React.CSSProperties = {

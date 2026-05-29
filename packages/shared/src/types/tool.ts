@@ -22,7 +22,8 @@ export type ToolName =
   | "list_connections"
   | "get_system_status"
   | "search_web"
-  | "get_location";
+  | "get_location"
+  | "delete_files";
 
 export interface ToolCall {
   tool: ToolName;
