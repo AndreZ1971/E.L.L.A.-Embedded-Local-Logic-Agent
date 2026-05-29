@@ -541,13 +541,13 @@ const Settings: React.FC = () => {
 
             <Section title="Ollama-Modell">
               <select
-                value={settings.ollamaModel}
+                value={settings.ollamaModel ?? ""}
                 onChange={(e) => patch({ ollamaModel: e.target.value })}
                 style={{ ...input, width: "100%" }}
               >
                 {models.length === 0 && (
-                  <option value={settings.ollamaModel}>
-                    {settings.ollamaModel}
+                  <option value={settings.ollamaModel ?? ""}>
+                    {settings.ollamaModel ?? ""}
                   </option>
                 )}
                 {models.map((m) => (
@@ -561,7 +561,7 @@ const Settings: React.FC = () => {
             <Section title="OpenAI API-Key">
               <input
                 type="password"
-                value={settings.openaiApiKey}
+                value={settings.openaiApiKey ?? ""}
                 placeholder={
                   settings.openaiApiKey === MASKED
                     ? "gesetzt (ändern zum Überschreiben)"
@@ -678,7 +678,7 @@ const Settings: React.FC = () => {
                   type="number"
                   min={1}
                   max={100}
-                  value={settings.sessionLimit}
+                  value={settings.sessionLimit ?? 40}
                   onChange={(e) =>
                     patch({ sessionLimit: Number(e.target.value) })
                   }
