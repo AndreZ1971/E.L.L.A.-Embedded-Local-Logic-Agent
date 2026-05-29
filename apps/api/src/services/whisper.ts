@@ -4,8 +4,13 @@ import { promisify } from "util";
 import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
+import { createRequire } from "module";
 
 const execAsync = promisify(exec);
+
+// ffmpeg-static liefert ffmpeg.exe gebündelt — kein System-Install nötig
+const _require = createRequire(import.meta.url);
+const ffmpegBin: string = _require("ffmpeg-static");
 
 // Modell lokal im API-Verzeichnis cachen statt im globalen HuggingFace-Pfad
 xenv.cacheDir = "./whisper-cache";
@@ -48,7 +53,7 @@ export async function transcribe(audioBuffer: Buffer): Promise<string> {
     await fs.writeFile(tmpInput, audioBuffer);
 
     const { stdout: pcm } = await execAsync(
-      `ffmpeg -y -i "${tmpInput}" -ar 16000 -ac 1 -f f32le -`,
+      `"${ffmpegBin}" -y -i "${tmpInput}" -ar 16000 -ac 1 -f f32le -`,
       { encoding: "buffer", maxBuffer: 10 * 1024 * 1024, timeout: 15000 },
     );
 
