@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { AudioVAD, encodeWav } from "../../utils/audioVAD.js";
 
 type VoiceMode = "off" | "manual" | "wakeword";
+
+const WAKEWORD_RE = /^e+l+a+[,.\s]*/i;
 
 /* ── Message + stream types ──────────────────────────────────────────── */
 interface Message {
@@ -38,6 +41,7 @@ const TOOL_LABELS: Record<string, string> = {
   scan_network: "Netzwerk scannen",
   list_connections: "Verbindungen auflisten",
   get_system_status: "System-Status abrufen",
+  search_web: "Web-Suche",
   load_setup: "Setup laden",
 };
 
@@ -99,6 +103,9 @@ const Chat: React.FC = () => {
   const [micStatus, setMicStatus] = useState("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const vadRef = useRef<AudioVAD | null>(null);
+  const [wakeListening, setWakeListening] = useState(false);
+  const loadingRef = useRef(false);
 
   /* ── Worker-Events (Alerts) ── */
   useEffect(() => {
@@ -297,6 +304,65 @@ const Chat: React.FC = () => {
     if (micActive) stopRecording();
     else startRecording();
   }, [micActive, startRecording, stopRecording]);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
+
+  /* ── Wakeword-Loop (AudioVAD + Whisper) ── */
+  useEffect(() => {
+    if (voiceMode !== "wakeword") {
+      vadRef.current?.stop();
+      vadRef.current = null;
+      setWakeListening(false);
+      setMicStatus("");
+      return;
+    }
+
+    const vad = new AudioVAD();
+    vadRef.current = vad;
+
+    vad
+      .start({
+        onSpeechStart: () => setMicStatus("Erkenne…"),
+        onSegment: async (audio, sampleRate) => {
+          if (loadingRef.current) {
+            setMicStatus("");
+            return;
+          }
+          const blob = encodeWav(audio, sampleRate);
+          const form = new FormData();
+          form.append("audio", blob, "segment.wav");
+          try {
+            const r = await fetch(`${API}/api/speech/transcribe`, {
+              method: "POST",
+              body: form,
+            });
+            const { text } = (await r.json()) as { text: string };
+            const clean = (text ?? "").trim();
+            if (WAKEWORD_RE.test(clean)) {
+              const command = clean.replace(WAKEWORD_RE, "").trim();
+              if (command) sendText(command);
+            }
+          } catch {
+            /* Segment still ignorieren */
+          } finally {
+            setMicStatus("");
+          }
+        },
+      })
+      .then(() => setWakeListening(true))
+      .catch(() => {
+        setMicStatus("Mikrofon nicht verfügbar");
+        setTimeout(() => setMicStatus(""), 3000);
+      });
+
+    return () => {
+      vad.stop();
+      setWakeListening(false);
+      setMicStatus("");
+    };
+  }, [voiceMode, sendText]);
 
   /* Load voiceMode + homework status on mount */
   useEffect(() => {
@@ -697,15 +763,15 @@ const Chat: React.FC = () => {
         @keyframes pulse  { 0%,100%{opacity:0.4} 50%{opacity:1} }
       `}</style>
 
-      {/* Mic-Status */}
-      {micStatus && (
+      {/* Wakeword-Indikator */}
+      {voiceMode === "wakeword" && wakeListening && !micStatus && (
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: 6,
             fontSize: "0.78rem",
-            color: micActive ? "#7c6af7" : "#94a3b8",
+            color: "#475569",
           }}
         >
           <span
@@ -714,7 +780,32 @@ const Chat: React.FC = () => {
               height: 6,
               borderRadius: "50%",
               display: "inline-block",
-              background: micActive ? "#7c6af7" : "#94a3b8",
+              background: "#475569",
+              animation: "pulse 2.5s ease-in-out infinite",
+            }}
+          />
+          ELLA lauscht…
+        </div>
+      )}
+
+      {/* Mic-Status */}
+      {micStatus && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: "0.78rem",
+            color: "#7c6af7",
+          }}
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              display: "inline-block",
+              background: "#7c6af7",
               animation: "pulse 1.5s ease-in-out infinite",
             }}
           />
