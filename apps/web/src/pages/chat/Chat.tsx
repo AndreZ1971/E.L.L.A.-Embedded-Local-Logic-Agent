@@ -81,6 +81,21 @@ const Chat: React.FC = () => {
     ttsEnabledRef.current = ttsEnabled;
   }, [ttsEnabled]);
 
+  const speakProactive = useCallback((text: string) => {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = "de-DE";
+    const voices = window.speechSynthesis.getVoices();
+    const saved = ttsVoiceRef.current;
+    const match =
+      voices.find((v) => v.name === saved) ??
+      voices.find((v) => v.lang.startsWith("de"));
+    if (match) utt.voice = match;
+    utt.rate = 1.0;
+    utt.volume = 0.9;
+    window.speechSynthesis.speak(utt);
+  }, []);
+
   const speak = useCallback((text: string) => {
     if (!ttsEnabledRef.current) return;
     window.speechSynthesis.cancel();
@@ -131,7 +146,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           8000,
         );
-        speak(message);
+        speakProactive(message);
         (
           window as unknown as {
             electronAPI?: { notifyAlert?: (m: string) => void };
@@ -151,7 +166,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           6000,
         );
-        speak(`Neues Gerät verbunden: ${name}`);
+        speakProactive(`Neues Gerät verbunden: ${name}`);
       } else if (ev.type === "device_disconnected") {
         const name = (ev.payload.name as string) ?? "Gerät";
         setToasts((prev) => [
@@ -166,7 +181,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           6000,
         );
-        speak(`Gerät getrennt: ${name}`);
+        speakProactive(`Gerät getrennt: ${name}`);
       } else if (ev.type === "network_device_connected") {
         const ip = (ev.payload.ip as string) ?? "";
         setToasts((prev) => [
@@ -181,7 +196,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           6000,
         );
-        speak(`Neues Gerät im Netzwerk erkannt: ${ip}`);
+        speakProactive(`Neues Gerät im Netzwerk erkannt: ${ip}`);
       }
     };
     return () => es.close();

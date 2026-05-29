@@ -37,18 +37,23 @@ export const DIRECTIVE_DENY = new Set<string>([
   // clean_temp + empty_recycle_bin sind NICHT hier — sie sind regelgesteuert
 ]);
 
+function psEncode(script: string): string {
+  return Buffer.from(script, "utf16le").toString("base64");
+}
+
 function diskUsagePercent(drive: string): number {
   try {
-    // TODO: Get-CimInstance Fallback für Windows 11 22H2+
+    const script = `Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='${drive}:'" | Select-Object FreeSpace,Size | ConvertTo-Json -Compress`;
     const out = execSync(
-      `wmic logicaldisk where "DeviceID='${drive}:'" get FreeSpace,Size /format:csv`,
-      { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8" },
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${psEncode(script)}`,
+      { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8", timeout: 5000 },
     );
-    const lines = out.trim().split("\n").filter(Boolean);
-    const data = lines[lines.length - 1].split(",");
-    if (data.length < 3) return 0;
-    const free = Number(data[1]);
-    const total = Number(data[2]);
+    const parsed = JSON.parse(out.trim()) as {
+      FreeSpace: number;
+      Size: number;
+    };
+    const free = Number(parsed.FreeSpace);
+    const total = Number(parsed.Size);
     if (!total) return 0;
     return Math.round(((total - free) / total) * 100);
   } catch {

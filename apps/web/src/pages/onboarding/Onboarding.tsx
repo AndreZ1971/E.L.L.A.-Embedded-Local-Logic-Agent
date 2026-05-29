@@ -4,7 +4,14 @@ import { useBootContext } from "../../App";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
 
-type Step = "welcome" | "name" | "directive" | "scan" | "location" | "done";
+type Step =
+  | "welcome"
+  | "name"
+  | "directive"
+  | "scan"
+  | "voice"
+  | "location"
+  | "done";
 
 const DIRECTIVE_PROHIBITIONS = [
   {
@@ -153,6 +160,8 @@ const Onboarding: React.FC = () => {
   const [scanDone, setScanDone] = useState(false);
   const [scanLines, setScanLines] = useState<string[]>([]);
   const locationRef = useRef<HTMLInputElement>(null);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState("");
 
   const runScan = async () => {
     setStep("scan");
@@ -173,7 +182,12 @@ const Onboarding: React.FC = () => {
     await new Promise((r) => setTimeout(r, 600));
     add("Hardware-Profil gespeichert.");
     setScanDone(true);
-    setTimeout(() => setStep("location"), 1200);
+    setTimeout(() => {
+      const v = window.speechSynthesis.getVoices();
+      const deVoices = v.filter((voice) => voice.lang.startsWith("de"));
+      setVoices(deVoices.length > 0 ? deVoices : v.slice(0, 5));
+      setStep("voice");
+    }, 1200);
   };
 
   const complete = async (location?: string) => {
@@ -314,6 +328,81 @@ const Onboarding: React.FC = () => {
                 </div>
               ))}
             </div>
+          </>
+        )}
+
+        {step === "voice" && (
+          <>
+            <div style={{ ...s.name, fontSize: "1.4rem", marginBottom: "4px" }}>
+              Stimme wählen
+            </div>
+            <p style={{ ...s.body, marginBottom: "20px" }}>
+              Mit welcher Stimme soll E.L.L.A. sprechen?
+            </p>
+            {voices.length > 0 ? (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                  marginBottom: "24px",
+                }}
+              >
+                {voices.map((v) => (
+                  <button
+                    key={v.name}
+                    onClick={() => {
+                      setSelectedVoice(v.name);
+                      window.speechSynthesis.cancel();
+                      const utt = new SpeechSynthesisUtterance(
+                        `Hallo${name.trim() ? ` ${name.trim()}` : ""}. Ich bin E.L.L.A.`,
+                      );
+                      utt.voice = v;
+                      utt.lang = v.lang;
+                      window.speechSynthesis.speak(utt);
+                    }}
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: "8px",
+                      border:
+                        selectedVoice === v.name
+                          ? "1px solid #7c6af7"
+                          : "1px solid #2a2d3e",
+                      background:
+                        selectedVoice === v.name ? "#1e1b4b" : "#0f1117",
+                      color: selectedVoice === v.name ? "#a5b4fc" : "#94a3b8",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    {v.name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p style={{ ...s.body, color: "#475569" }}>
+                Keine Stimmen verfügbar — Standardstimme wird verwendet.
+              </p>
+            )}
+            <button
+              style={{ ...s.btn, marginBottom: "12px" }}
+              onClick={() => {
+                if (selectedVoice) {
+                  fetch(`${API}/api/settings`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      ttsEnabled: true,
+                      ttsVoice: selectedVoice,
+                    }),
+                  }).catch(() => {});
+                }
+                setStep("location");
+              }}
+            >
+              {selectedVoice ? "Stimme übernehmen" : "Überspringen"}
+            </button>
           </>
         )}
 
