@@ -7,8 +7,9 @@ const WAKEWORD_RE = /^e+l+a+[,.\s]*/i;
 
 /* ── Message + stream types ──────────────────────────────────────────── */
 interface Message {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "directive_deny";
   content: string;
+  toolName?: string;
 }
 type StreamEvent =
   | { type: "chunk"; text: string }
@@ -43,6 +44,8 @@ const TOOL_LABELS: Record<string, string> = {
   list_connections: "Verbindungen auflisten",
   get_system_status: "System-Status abrufen",
   search_web: "Web-Suche",
+  get_location: "Standort ermitteln",
+  delete_files: "Dateien löschen",
   load_setup: "Setup laden",
 };
 
@@ -250,6 +253,16 @@ const Chat: React.FC = () => {
             } else if (ev.type === "directive_deny") {
               setDirectiveDeny(ev.tool);
               setToolStatus("");
+              setMessages((p) => [
+                ...p,
+                {
+                  role: "directive_deny",
+                  content:
+                    "Diese Aktion ist durch die E.L.L.A. Directive architektonisch blockiert.",
+                  toolName: ev.tool,
+                },
+              ]);
+              setTimeout(() => setDirectiveDeny(null), 3000);
             } else if (ev.type === "done") {
               setMessages((p) => [...p, { role: "assistant", content: full }]);
               setStreaming("");
@@ -674,24 +687,82 @@ const Chat: React.FC = () => {
             Hallo! Ich bin E.L.L.A. — wie kann ich helfen?
           </div>
         )}
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            style={{
-              alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-              background: m.role === "user" ? "#7c6af7" : "#1a1d27",
-              border: m.role === "assistant" ? "1px solid #2d3148" : "none",
-              padding: "10px 14px",
-              borderRadius: 8,
-              maxWidth: "75%",
-              fontSize: "0.9rem",
-              lineHeight: 1.6,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {m.content}
-          </div>
-        ))}
+        {messages.map((m, i) => {
+          if (m.role === "directive_deny") {
+            return (
+              <div
+                key={i}
+                style={{
+                  alignSelf: "flex-start",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  border: "1px solid #7f1d1d",
+                  borderLeft: "3px solid #ef4444",
+                  background: "#1a0a0a",
+                  maxWidth: "75%",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#ef4444",
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                    }}
+                  >
+                    ⊘ E.L.L.A. DIRECTIVE
+                  </span>
+                  {m.toolName && (
+                    <span
+                      style={{
+                        fontSize: "0.7rem",
+                        background: "#450a0a",
+                        border: "1px solid #7f1d1d",
+                        color: "#fca5a5",
+                        borderRadius: 4,
+                        padding: "1px 6px",
+                        fontFamily: "monospace",
+                      }}
+                    >
+                      {m.toolName}
+                    </span>
+                  )}
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.83rem",
+                    color: "#94a3b8",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {m.content}
+                </div>
+              </div>
+            );
+          }
+          return (
+            <div
+              key={i}
+              style={{
+                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                background: m.role === "user" ? "#7c6af7" : "#1a1d27",
+                border: m.role === "assistant" ? "1px solid #2d3148" : "none",
+                padding: "10px 14px",
+                borderRadius: 8,
+                maxWidth: "75%",
+                fontSize: "0.9rem",
+                lineHeight: 1.6,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {m.content}
+            </div>
+          );
+        })}
         {toolStatus && (
           <div
             style={{
