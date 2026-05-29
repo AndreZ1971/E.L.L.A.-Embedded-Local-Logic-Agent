@@ -6,5 +6,6 @@ logs/*.log
 .env.*.local
 *.tsbuildinfo
 apps/api/settings.json
+apps/api/whisper-cache/
 .claude/
 .vscode/
