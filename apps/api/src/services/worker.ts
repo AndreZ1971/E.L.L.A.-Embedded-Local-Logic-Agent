@@ -20,19 +20,25 @@ interface DiskMetric {
   totalBytes: number;
 }
 
-// WMIC ist seit Windows 11 22H2 deprecated. Fallback:
-//   Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='${drive}:'" | Select FreeSpace,Size
+function psEncode(script: string): string {
+  return Buffer.from(script, "utf16le").toString("base64");
+}
+
+function psSync(script: string): string {
+  return execSync(
+    `powershell -NoProfile -NonInteractive -EncodedCommand ${psEncode(script)}`,
+    { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8", timeout: 8000 },
+  );
+}
+
 export function getDiskMetric(drive: string): DiskMetric | null {
   try {
-    const out = execSync(
-      `wmic logicaldisk where "DeviceID='${drive}:'" get FreeSpace,Size /format:csv`,
-      { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8" },
-    );
-    const lines = out.trim().split("\n").filter(Boolean);
-    const data = lines[lines.length - 1].split(",");
-    if (data.length < 3) return null;
-    const free = Number(data[1]);
-    const total = Number(data[2]);
+    const script = `Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='${drive}:'" | Select-Object FreeSpace,Size | ConvertTo-Json -Compress`;
+    const raw = psSync(script).trim();
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { FreeSpace: number; Size: number };
+    const free = Number(parsed.FreeSpace);
+    const total = Number(parsed.Size);
     if (!total) return null;
     return {
       drive,
@@ -45,23 +51,18 @@ export function getDiskMetric(drive: string): DiskMetric | null {
   }
 }
 
-// Returns drive letters for fixed (DriveType 3) and removable (DriveType 2) disks.
-// WMIC fallback: Get-CimInstance Win32_LogicalDisk | Where { $_.DriveType -in 2,3 } | Select DeviceID
 function getLogicalDrives(): string[] {
   try {
-    const out = execSync(
-      "wmic logicaldisk get DeviceID,DriveType /format:csv",
-      { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8" },
-    );
-    const drives: string[] = [];
-    for (const line of out.trim().split("\n")) {
-      const cols = line.split(",");
-      if (cols.length < 3) continue;
-      const driveType = cols[2].trim();
-      if (driveType !== "2" && driveType !== "3") continue;
-      const letter = cols[1].replace(":", "").trim().toUpperCase();
-      if (letter.length === 1) drives.push(letter);
-    }
+    const script = `Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -in 2,3 } | Select-Object DeviceID | ConvertTo-Json -Compress`;
+    const raw = psSync(script).trim();
+    if (!raw) return ["C"];
+    const parsed = JSON.parse(raw) as
+      | { DeviceID: string }
+      | { DeviceID: string }[];
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    const drives = items
+      .map((i) => i.DeviceID.replace(":", "").trim().toUpperCase())
+      .filter((l) => l.length === 1);
     return drives.length > 0 ? drives : ["C"];
   } catch {
     return ["C"];

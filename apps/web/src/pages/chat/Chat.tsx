@@ -13,6 +13,7 @@ interface Message {
 type StreamEvent =
   | { type: "chunk"; text: string }
   | { type: "tool"; name: string }
+  | { type: "directive_deny"; tool: string }
   | { type: "done" }
   | { type: "error"; message: string };
 
@@ -51,6 +52,7 @@ const Chat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [streaming, setStreaming] = useState("");
   const [toolStatus, setToolStatus] = useState("");
+  const [directiveDeny, setDirectiveDeny] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -126,6 +128,12 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           8000,
         );
+        speak(message);
+        (
+          window as unknown as {
+            electronAPI?: { notifyAlert?: (m: string) => void };
+          }
+        ).electronAPI?.notifyAlert?.(message);
       } else if (ev.type === "device_connected") {
         const name = (ev.payload.name as string) ?? "Gerät";
         setToasts((prev) => [
@@ -140,6 +148,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           6000,
         );
+        speak(`Neues Gerät verbunden: ${name}`);
       } else if (ev.type === "device_disconnected") {
         const name = (ev.payload.name as string) ?? "Gerät";
         setToasts((prev) => [
@@ -154,6 +163,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           6000,
         );
+        speak(`Gerät getrennt: ${name}`);
       } else if (ev.type === "network_device_connected") {
         const ip = (ev.payload.ip as string) ?? "";
         setToasts((prev) => [
@@ -168,6 +178,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           6000,
         );
+        speak(`Neues Gerät im Netzwerk erkannt: ${ip}`);
       }
     };
     return () => es.close();
@@ -233,8 +244,12 @@ const Chat: React.FC = () => {
               full += ev.text;
               setStreaming(full);
               setToolStatus("");
+              setDirectiveDeny(null);
             } else if (ev.type === "tool") {
               setToolStatus(TOOL_LABELS[ev.name] ?? ev.name);
+            } else if (ev.type === "directive_deny") {
+              setDirectiveDeny(ev.tool);
+              setToolStatus("");
             } else if (ev.type === "done") {
               setMessages((p) => [...p, { role: "assistant", content: full }]);
               setStreaming("");
@@ -762,6 +777,35 @@ const Chat: React.FC = () => {
         @keyframes blink  { 0%,100%{opacity:1} 50%{opacity:0} }
         @keyframes pulse  { 0%,100%{opacity:0.4} 50%{opacity:1} }
       `}</style>
+
+      {/* Directive-Denial Badge */}
+      {directiveDeny && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "8px 12px",
+            borderRadius: 6,
+            borderLeft: "3px solid #ef4444",
+            background: "#1a0a0a",
+            fontSize: "0.82rem",
+          }}
+        >
+          <span
+            style={{
+              color: "#ef4444",
+              fontWeight: 600,
+              letterSpacing: "0.05em",
+            }}
+          >
+            E.L.L.A. DIRECTIVE
+          </span>
+          <span style={{ color: "#94a3b8" }}>
+            Diese Aktion ist architektonisch nicht erlaubt.
+          </span>
+        </div>
+      )}
 
       {/* Wakeword-Indikator */}
       {voiceMode === "wakeword" && wakeListening && !micStatus && (

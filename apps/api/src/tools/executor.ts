@@ -383,23 +383,20 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     const devices = [...snapshot.values()];
     let drives: string[] = [];
     try {
-      const { execSync } = await import("child_process");
-      // TODO: Get-CimInstance Fallback für Windows 11 22H2+
-      const out = execSync(
-        "wmic logicaldisk get DeviceID,DriveType /format:csv",
-        {
-          stdio: ["ignore", "pipe", "ignore"],
-          encoding: "utf-8",
-        },
+      const script = `Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -in 2,3 } | Select-Object DeviceID | ConvertTo-Json -Compress`;
+      const encoded = Buffer.from(script, "utf16le").toString("base64");
+      const { stdout } = await execAsync(
+        `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+        { timeout: 8000 },
       );
-      for (const line of out.trim().split("\n")) {
-        const cols = line.split(",");
-        if (cols.length < 3) continue;
-        const type = cols[2].trim();
-        if (type !== "2" && type !== "3") continue;
-        const letter = cols[1].replace(":", "").trim().toUpperCase();
-        if (letter.length === 1) drives.push(letter);
-      }
+      const parsed = JSON.parse(stdout.trim()) as
+        | { DeviceID: string }
+        | { DeviceID: string }[];
+      const items = Array.isArray(parsed) ? parsed : [parsed];
+      drives = items
+        .map((i) => i.DeviceID.replace(":", "").trim().toUpperCase())
+        .filter((l) => l.length === 1);
+      if (!drives.length) drives = ["C"];
     } catch {
       drives = ["C"];
     }
@@ -436,6 +433,8 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     const tempScript =
       "$s=(Get-ChildItem $env:TEMP -Recurse -Depth 3 -ErrorAction SilentlyContinue|Measure-Object -Property Length -Sum).Sum; [math]::Round($s/1MB,1)";
     const tempEncoded = Buffer.from(tempScript, "utf16le").toString("base64");
+    const bootScript = `Get-CimInstance Win32_OperatingSystem | Select-Object LastBootUpTime | ConvertTo-Json -Compress`;
+    const bootEncoded = Buffer.from(bootScript, "utf16le").toString("base64");
 
     const [
       drivesResult,
@@ -445,47 +444,38 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       ollamaResult,
       alertsResult,
     ] = await Promise.allSettled([
-      // TODO: Get-CimInstance Fallback für Windows 11 22H2+
-      execAsync(
-        "wmic logicaldisk get DeviceID,DriveType,FreeSpace,Size /format:csv",
-        { timeout: 5000 },
-      ).then(({ stdout }) => {
-        const result: Array<{
-          drive: string;
-          usedPct: number;
-          freeGB: string;
-          totalGB: string;
-        }> = [];
-        for (const line of stdout.trim().split("\n")) {
-          const cols = line.split(",");
-          if (cols.length < 5) continue;
-          const driveType = cols[2].trim();
-          if (driveType !== "2" && driveType !== "3") continue;
-          const letter = cols[1].replace(":", "").trim().toUpperCase();
-          const free = Number(cols[3]);
-          const total = Number(cols[4]);
-          if (!total || letter.length !== 1) continue;
-          result.push({
-            drive: letter,
-            usedPct: Math.round(((total - free) / total) * 100),
-            freeGB: (free / 1024 ** 3).toFixed(1) + " GB",
-            totalGB: (total / 1024 ** 3).toFixed(1) + " GB",
-          });
-        }
-        return result;
-      }),
-
-      // TODO: Get-CimInstance Win32_OperatingSystem Fallback für Windows 11 22H2+
-      execAsync("wmic os get LastBootUpTime /format:value", {
-        timeout: 5000,
-      }).then(({ stdout }) => {
-        const match = stdout.match(/LastBootUpTime=(\d{14})/);
-        if (!match) return null;
-        const dt = match[1];
-        const bootDate = new Date(
-          `${dt.slice(0, 4)}-${dt.slice(4, 6)}-${dt.slice(6, 8)}T` +
-            `${dt.slice(8, 10)}:${dt.slice(10, 12)}:${dt.slice(12, 14)}`,
+      (async () => {
+        const script = `Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -in 2,3 } | Select-Object DeviceID,FreeSpace,Size | ConvertTo-Json -Compress`;
+        const encoded = Buffer.from(script, "utf16le").toString("base64");
+        const { stdout } = await execAsync(
+          `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+          { timeout: 8000 },
         );
+        const parsed = JSON.parse(stdout.trim()) as
+          | { DeviceID: string; FreeSpace: number; Size: number }
+          | { DeviceID: string; FreeSpace: number; Size: number }[];
+        const items = Array.isArray(parsed) ? parsed : [parsed];
+        return items
+          .filter((i) => i.Size)
+          .map((i) => {
+            const letter = i.DeviceID.replace(":", "").trim().toUpperCase();
+            const free = Number(i.FreeSpace);
+            const total = Number(i.Size);
+            return {
+              drive: letter,
+              usedPct: Math.round(((total - free) / total) * 100),
+              freeGB: (free / 1024 ** 3).toFixed(1) + " GB",
+              totalGB: (total / 1024 ** 3).toFixed(1) + " GB",
+            };
+          });
+      })(),
+
+      execAsync(
+        `powershell -NoProfile -NonInteractive -EncodedCommand ${bootEncoded}`,
+        { timeout: 8000 },
+      ).then(({ stdout }) => {
+        const parsed = JSON.parse(stdout.trim()) as { LastBootUpTime: string };
+        const bootDate = new Date(parsed.LastBootUpTime);
         return {
           bootTime: bootDate.toISOString(),
           uptimeHours: Math.floor(
@@ -596,6 +586,7 @@ export const toolExecutor = {
     if (decision === "deny") {
       return {
         success: false,
+        directive: true,
         error: `Das darf ich nicht tun — diese Aktion ist grundsätzlich nicht erlaubt.`,
       };
     }

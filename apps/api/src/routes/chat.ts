@@ -168,6 +168,9 @@ chatRouter.post("/stream", async (req, res) => {
           tool: call.function.name as ToolName,
           args: call.function.arguments,
         });
+        if (result.directive) {
+          emit({ type: "directive_deny", tool: call.function.name });
+        }
         messages.push({
           role: "tool",
           tool_call_id: call.id,

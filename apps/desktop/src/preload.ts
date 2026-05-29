@@ -10,4 +10,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("window:maximized", handler);
     return () => ipcRenderer.removeListener("window:maximized", handler);
   },
+  notifyAlert: (message: string) => ipcRenderer.send("ella:alert", message),
 });

@@ -251,6 +251,21 @@ function showWindow(): void {
 
 // ── IPC ───────────────────────────────────────────────────────────────────────
 
+ipcMain.on("ella:alert", (_event, message: string) => {
+  tray?.setToolTip(`E.L.L.A. — ${message}`);
+  tray?.displayBalloon({
+    title: "E.L.L.A.",
+    content: message,
+    iconType: "warning",
+    noSound: false,
+  });
+  // Reset tooltip after 30s
+  setTimeout(
+    () => tray?.setToolTip("E.L.L.A. — Embedded Local Logic Agent"),
+    30_000,
+  );
+});
+
 function registerIpc(): void {
   ipcMain.on("window:minimize", () => mainWindow?.minimize());
   ipcMain.on("window:maximize", () => {
