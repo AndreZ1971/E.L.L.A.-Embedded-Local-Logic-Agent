@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v2.3.0**
+**Aktueller Stand: v2.7.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -52,14 +52,14 @@ packages/
 - Outlook COM: Mail lesen/markieren + Kalender lesen/erstellen
 - Thunderbird mbox Fallback für Mail
 - Background Worker: Disk/RAM/Ollama Monitoring, SSE EventBus
-- **Onboarding:** 5-Schritt-Flow — Name, Directive-Acceptance, Hardware-Scan, Standort
+- **Onboarding:** 6-Schritt-Flow — Name, Directive-Acceptance, Hardware-Scan, Stimme wählen, Standort
 - **get_location:** Standort via Memory-first + IP-Geolocation Fallback
 - **Default-Allow:** Rule Engine gibt allow wenn kein explizites deny — Directive ist einzige Grenze
 - Conversational Config: create_setup, update_setting, create_rule
 - Auto-Migration: schema.sql idempotent, 22 Default-Rules
 - **Strategic Roadmap:** [docs/roadmap-strategic.md](docs/roadmap-strategic.md) — Vision v2.x bis Beyond Desktop
 - Setup Router: Ollama-Status, nomic-pull mit SSE-Progress
-- **System Tray:** Tooltip + Balloon bei Alerts, ELLA läuft ambient im Hintergrund
+- **System Tray:** typisierte Balloon-Alerts (warning/error/info) mit Schweregrad-Sound, Gerät-Events als eigener Balloon-Typ
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
 - **63 Tests — alle grün** (Vitest Unit + Integration + Playwright E2E Web + Desktop)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
