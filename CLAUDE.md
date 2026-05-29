@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v2.1.1**
+**Aktueller Stand: v2.3.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -43,7 +43,7 @@ packages/
 - Dual-LLM (Ollama/OpenAI), SSE-Streaming, Tool-Loop max. 5
 - 21 Tools mit Handlern + Audit-Log (`tool_executions`)
 - ML Memory: nomic-embed-text, cosine similarity, 3 Typen (user/system/note)
-- Rule Engine: DIRECTIVE_DENY → Deny Rules → Allow Rules → no_match = deny
+- Rule Engine: Default-Allow → Directive → Deny Rules → Allow Rules → allow
 - **Directive-Denial UI:** roter Badge im Chat bei Regel-Ablehnung
 - Homework Mode: SHA-256 PIN, Whitelist-Enforcement in open_app + loadSetup
 - Voice: Wakeword "ella" (AudioWorkletNode + Whisper lokal), manuell, TTS de-DE
@@ -52,9 +52,12 @@ packages/
 - Outlook COM: Mail lesen/markieren + Kalender lesen/erstellen
 - Thunderbird mbox Fallback für Mail
 - Background Worker: Disk/RAM/Ollama Monitoring, SSE EventBus
-- Onboarding: Hardware-Scan → System Memories
+- **Onboarding:** 5-Schritt-Flow — Name, Directive-Acceptance, Hardware-Scan, Standort
+- **get_location:** Standort via Memory-first + IP-Geolocation Fallback
+- **Default-Allow:** Rule Engine gibt allow wenn kein explizites deny — Directive ist einzige Grenze
 - Conversational Config: create_setup, update_setting, create_rule
-- Auto-Migration: schema.sql idempotent, 21 Default-Rules
+- Auto-Migration: schema.sql idempotent, 22 Default-Rules
+- **Strategic Roadmap:** [docs/roadmap-strategic.md](docs/roadmap-strategic.md) — Vision v2.x bis Beyond Desktop
 - Setup Router: Ollama-Status, nomic-pull mit SSE-Progress
 - **System Tray:** Tooltip + Balloon bei Alerts, ELLA läuft ambient im Hintergrund
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
@@ -92,23 +95,13 @@ packages/
 - LLM synthetisiert → natürliche Sprache je nach Nutzer-Niveau
 - Default-Regel ID 20
 
-### Phase 11b — Confirmation Card
+### ~~Phase 17 — Direktiven-Extraktion~~ — v2.2.0 ✅
 
-- Gefährliche Tools: `clean_temp`, `empty_recycle_bin`, `mark_email`, `create_appointment`, `emergency-reset`
-- `Chat.tsx`: Tool pausieren → Card rendern → Bestätigen/Ablehnen
-- Voice-kompatibel (SUBMIT_RE / CANCEL_RE)
-- Aktiviert die 2 .todo Playwright-Specs
-- **Nach Phase 11b: `git tag v2.1.0`**
-
-### Phase 17 — Direktiven-Extraktion
-
-- Neues privates Repo: `github.com/AndreZabel/ella-directive`
-- Package `@ella-directive/core`: constants.ts (4 Verbote), layer.ts, audit.ts, verify.ts (Platzhalter)
-- ELLA importiert das Package — `DIRECTIVE_DENY` Set wird durch `DirectiveLayer` ersetzt
-- Repo bleibt **privat** bis IP-Schutz geklärt
-- Noch **keine** Verschlüsselung/Versiegelung — kommt ganz am Ende
-- Commit-Messages in diesem Repo: vollständig, begründet, historisch lesbar
-- **Nach Phase 17: `git tag v2.2.0`**
+- Repo: `github.com/AndreZ1971/The-E.L.L.A.-Directive-` (privat, Tag v1.0.0)
+- Package `@ella-directive/core`: constants.ts, layer.ts, audit.ts, verify.ts
+- [docs/directive.md](docs/directive.md) — vollständige Spezifikation der vier Verbote
+- Eigene Lizenz: MIT für Code, DIRECTIVE.LICENSE für die Spezifikation
+- Versiegelung (kryptographisch) folgt nach Produktions-Stabilisierung — v2.x
 
 ---
 
