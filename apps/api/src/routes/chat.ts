@@ -20,28 +20,10 @@ function activeToolDefs() {
   const { enabledTools, setups } = getSettings();
   return buildToolDefinitions(setups ?? []).filter(
     (t) =>
-      enabledTools.includes(t.function.name) ||
+      (enabledTools ?? []).includes(t.function.name) ||
       t.function.name === "load_setup",
   );
 }
-
-const DANGEROUS_TOOLS = new Map<string, string>([
-  ["clean_temp", "Alle temporären Dateien löschen"],
-  ["empty_recycle_bin", "Papierkorb unwiderruflich leeren"],
-  ["mark_email", "E-Mails als gelesen/ungelesen markieren"],
-  ["create_appointment", "Kalendertermin erstellen"],
-]);
-
-interface PendingConfirmation {
-  tool: string;
-  callId: string;
-  args: Record<string, unknown>;
-  messages: OllamaMessage[];
-  sessionId: string;
-  expireAt: number;
-}
-
-const pendingConfirmations = new Map<string, PendingConfirmation>();
 
 export const chatRouter = Router();
 
@@ -150,7 +132,6 @@ chatRouter.post("/stream", async (req, res) => {
     );
 
     let finalReply = "";
-    let pendingConfirmSent = false;
     const MAX_ROUNDS = 5;
 
     for (let round = 0; round < MAX_ROUNDS; round++) {
@@ -175,34 +156,6 @@ chatRouter.post("/stream", async (req, res) => {
         break;
       }
 
-      // Check for dangerous tool before executing anything in this round
-      const dangerousCall = roundToolCalls.find((c) =>
-        DANGEROUS_TOOLS.has(c.function.name),
-      );
-      if (dangerousCall) {
-        messages.push({
-          role: "assistant",
-          content: roundContent,
-          tool_calls: roundToolCalls,
-        });
-        emit({
-          type: "confirm",
-          tool: dangerousCall.function.name,
-          description: DANGEROUS_TOOLS.get(dangerousCall.function.name),
-        });
-        pendingConfirmations.set(sessionId, {
-          tool: dangerousCall.function.name,
-          callId: dangerousCall.id ?? "",
-          args:
-            (dangerousCall.function.arguments as Record<string, unknown>) ?? {},
-          messages: [...messages],
-          sessionId,
-          expireAt: Date.now() + 5 * 60 * 1000,
-        });
-        pendingConfirmSent = true;
-        break;
-      }
-
       messages.push({
         role: "assistant",
         content: roundContent,
@@ -223,16 +176,14 @@ chatRouter.post("/stream", async (req, res) => {
       }
     }
 
-    if (!pendingConfirmSent) {
-      if (!finalReply) {
-        finalReply = "Ich konnte keine Antwort generieren.";
-        emit({ type: "chunk", text: finalReply });
-      }
-      emit({ type: "done" });
-      history.push({ role: "assistant", content: finalReply });
-      await sessionStore.set(sessionId, history);
-      extractAndRemember(message, finalReply, sessionId);
+    if (!finalReply) {
+      finalReply = "Ich konnte keine Antwort generieren.";
+      emit({ type: "chunk", text: finalReply });
     }
+    emit({ type: "done" });
+    history.push({ role: "assistant", content: finalReply });
+    await sessionStore.set(sessionId, history);
+    extractAndRemember(message, finalReply, sessionId);
   } catch (err) {
     emit({
       type: "error",
@@ -241,87 +192,6 @@ chatRouter.post("/stream", async (req, res) => {
   }
 
   res.end();
-});
-
-chatRouter.post("/confirm", async (req, res, next) => {
-  try {
-    const { sessionId = "default", confirmed } = req.body as {
-      sessionId?: string;
-      confirmed: boolean;
-    };
-
-    const pending = pendingConfirmations.get(sessionId);
-    if (!pending || Date.now() > pending.expireAt) {
-      pendingConfirmations.delete(sessionId);
-      res.json({ reply: "Bestätigung abgelaufen oder nicht gefunden." });
-      return;
-    }
-    pendingConfirmations.delete(sessionId);
-
-    const history = await sessionStore.get(sessionId);
-
-    if (!confirmed) {
-      const reply = "Aktion abgebrochen.";
-      history.push({ role: "assistant", content: reply });
-      await sessionStore.set(sessionId, history);
-      res.json({ reply });
-      return;
-    }
-
-    const toolResult = await toolExecutor.execute({
-      tool: pending.tool as ToolName,
-      args: pending.args,
-    });
-
-    const msgs = [...pending.messages];
-    msgs.push({
-      role: "tool",
-      tool_call_id: pending.callId,
-      content: JSON.stringify(toolResult),
-    });
-
-    const useOpenAI = resolveProvider() === "openai";
-    const activeModel = getSettings().ollamaModel ?? env.ollamaModel;
-    const tools = activeToolDefs();
-    let finalReply = "";
-    const MAX_ROUNDS = 5;
-
-    for (let round = 0; round < MAX_ROUNDS; round++) {
-      const response = useOpenAI
-        ? await openaiClient.chat(msgs, tools, [])
-        : await ollamaClient.chat(msgs, tools, activeModel, []);
-      const assistantMsg = response.message;
-
-      if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
-        finalReply = assistantMsg.content;
-        break;
-      }
-
-      msgs.push(assistantMsg);
-
-      for (const call of assistantMsg.tool_calls) {
-        const r = await toolExecutor.execute({
-          tool: call.function.name as ToolName,
-          args: call.function.arguments,
-        });
-        msgs.push({
-          role: "tool",
-          tool_call_id: call.id,
-          content: JSON.stringify(r),
-        });
-      }
-    }
-
-    if (!finalReply) finalReply = "Fertig.";
-
-    history.push({ role: "assistant", content: finalReply });
-    await sessionStore.set(sessionId, history);
-    extractAndRemember("", finalReply, sessionId);
-
-    res.json({ reply: finalReply });
-  } catch (err) {
-    next(err);
-  }
 });
 
 chatRouter.get("/provider", (_req, res) => {

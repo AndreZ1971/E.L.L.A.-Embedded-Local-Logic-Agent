@@ -10,7 +10,6 @@ interface Message {
 type StreamEvent =
   | { type: "chunk"; text: string }
   | { type: "tool"; name: string }
-  | { type: "confirm"; tool: string; description: string }
   | { type: "done" }
   | { type: "error"; message: string };
 
@@ -50,15 +49,6 @@ const Chat: React.FC = () => {
   const [toolStatus, setToolStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [pendingConfirm, setPendingConfirm] = useState<{
-    tool: string;
-    description: string;
-  } | null>(null);
-  const pendingConfirmRef = useRef<{
-    tool: string;
-    description: string;
-  } | null>(null);
-  const confirmActionRef = useRef<(confirmed: boolean) => void>(() => {});
   const bottomRef = useRef<HTMLDivElement>(null);
 
   /* Hausaufgaben-Modus */
@@ -238,13 +228,6 @@ const Chat: React.FC = () => {
               setToolStatus("");
             } else if (ev.type === "tool") {
               setToolStatus(TOOL_LABELS[ev.name] ?? ev.name);
-            } else if (ev.type === "confirm") {
-              setStreaming("");
-              setToolStatus("");
-              const pc = { tool: ev.tool, description: ev.description };
-              pendingConfirmRef.current = pc;
-              setPendingConfirm(pc);
-              break outer;
             } else if (ev.type === "done") {
               setMessages((p) => [...p, { role: "assistant", content: full }]);
               setStreaming("");
@@ -266,33 +249,6 @@ const Chat: React.FC = () => {
   );
 
   const send = useCallback(() => sendText(input.trim()), [input, sendText]);
-
-  const confirmAction = useCallback(
-    async (confirmed: boolean) => {
-      setPendingConfirm(null);
-      pendingConfirmRef.current = null;
-      setLoading(true);
-      try {
-        const r = await fetch(`${API}/api/chat/confirm`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId: SESSION_ID, confirmed }),
-        });
-        const d = (await r.json()) as { reply: string };
-        setMessages((p) => [...p, { role: "assistant", content: d.reply }]);
-        if (confirmed) speak(d.reply);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Fehler bei Bestätigung");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [speak],
-  );
-
-  useEffect(() => {
-    confirmActionRef.current = confirmAction;
-  }, [confirmAction]);
 
   /* ── Whisper-basierte Spracheingabe ── */
   const startRecording = useCallback(async () => {
@@ -766,66 +722,6 @@ const Chat: React.FC = () => {
         </div>
       )}
 
-      {/* Confirmation card */}
-      {pendingConfirm && (
-        <div
-          style={{
-            background: "#1e1425",
-            border: "1px solid #7c3aed",
-            borderRadius: 8,
-            padding: "14px 16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{ fontWeight: 600, fontSize: "0.9rem", color: "#c4b5fd" }}
-          >
-            Aktion bestätigen
-          </div>
-          <div style={{ fontSize: "0.85rem", color: "#94a3b8" }}>
-            <span style={{ color: "#e2e8f0" }}>{pendingConfirm.tool}</span>
-            {" — "}
-            {pendingConfirm.description}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              data-testid="confirm-yes"
-              onClick={() => confirmAction(true)}
-              style={{
-                padding: "7px 18px",
-                borderRadius: 6,
-                border: "none",
-                background: "#7c3aed",
-                color: "#fff",
-                cursor: "pointer",
-                fontSize: "0.85rem",
-                fontWeight: 600,
-              }}
-            >
-              Bestätigen
-            </button>
-            <button
-              data-testid="confirm-no"
-              onClick={() => confirmAction(false)}
-              style={{
-                padding: "7px 18px",
-                borderRadius: 6,
-                border: "1px solid #2d3148",
-                background: "transparent",
-                color: "#64748b",
-                cursor: "pointer",
-                fontSize: "0.85rem",
-              }}
-            >
-              Ablehnen
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Input row */}
       <div style={{ display: "flex", gap: 8 }}>
         <input
@@ -835,7 +731,7 @@ const Chat: React.FC = () => {
           placeholder={
             micActive ? "Spreche deinen Befehl…" : "Anweisung eingeben…"
           }
-          disabled={loading || !!pendingConfirm}
+          disabled={loading}
           style={{
             flex: 1,
             padding: "10px 14px",
@@ -845,7 +741,7 @@ const Chat: React.FC = () => {
             color: "#e2e8f0",
             fontSize: "0.9rem",
             outline: "none",
-            opacity: loading || !!pendingConfirm ? 0.6 : 1,
+            opacity: loading ? 0.6 : 1,
             transition: "border-color 0.2s",
           }}
         />
@@ -871,20 +767,14 @@ const Chat: React.FC = () => {
         )}
         <button
           onClick={send}
-          disabled={loading || !input.trim() || !!pendingConfirm}
+          disabled={loading || !input.trim()}
           style={{
             padding: "10px 20px",
             borderRadius: 6,
-            background:
-              loading || !input.trim() || !!pendingConfirm
-                ? "#4a4670"
-                : "#7c6af7",
+            background: loading || !input.trim() ? "#4a4670" : "#7c6af7",
             color: "#fff",
             border: "none",
-            cursor:
-              loading || !input.trim() || !!pendingConfirm
-                ? "not-allowed"
-                : "pointer",
+            cursor: loading || !input.trim() ? "not-allowed" : "pointer",
             fontSize: "0.9rem",
           }}
         >
