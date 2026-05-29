@@ -7,6 +7,65 @@ import {
   NavLink,
   useLocation,
 } from "react-router-dom";
+
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div
+          style={{
+            padding: 24,
+            color: "#f87171",
+            fontFamily: "monospace",
+            fontSize: "0.85rem",
+            background: "#1a1d27",
+            borderRadius: 8,
+            margin: 16,
+          }}
+        >
+          <strong style={{ display: "block", marginBottom: 8 }}>
+            UI-Fehler — bitte melden:
+          </strong>
+          <pre
+            style={{
+              whiteSpace: "pre-wrap",
+              color: "#fca5a5",
+              marginBottom: 16,
+            }}
+          >
+            {this.state.error.message}
+            {"\n"}
+            {this.state.error.stack}
+          </pre>
+          <button
+            onClick={() => this.setState({ error: null })}
+            style={{
+              padding: "6px 16px",
+              borderRadius: 6,
+              background: "#7c6af7",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Neu laden
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import TitleBar from "./components/TitleBar";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Chat from "./pages/chat/Chat";
@@ -94,16 +153,18 @@ function AppShell() {
             <NavLink to="/settings">Settings</NavLink>
           </nav>
           <main className="ella-main">
-            <Routes>
-              <Route path="/" element={<Navigate to="/chat" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route
-                path="/onboarding"
-                element={<Navigate to="/chat" replace />}
-              />
-            </Routes>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Navigate to="/chat" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route
+                  path="/onboarding"
+                  element={<Navigate to="/chat" replace />}
+                />
+              </Routes>
+            </ErrorBoundary>
           </main>
         </div>
       </div>
