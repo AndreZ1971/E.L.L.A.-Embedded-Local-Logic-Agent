@@ -31,13 +31,12 @@ export async function getWhisperPipeline(): Promise<ASRPipeline> {
       if (p.status === "downloading") {
         const pct = Math.round(p.progress ?? 0);
         process.stdout.write(`\r[WHISPER] Lade Modell: ${pct}%   `);
-      } else if (p.status === "done") {
-        process.stdout.write("\n[WHISPER] Modell bereit.\n");
       }
     },
   }).then((p) => {
     _pipe = p;
     _loading = null;
+    process.stdout.write("\n[WHISPER] Modell bereit.\n");
     return p;
   });
 
