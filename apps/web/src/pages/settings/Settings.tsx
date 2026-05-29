@@ -71,6 +71,7 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "scan_network", label: "Netzwerk scannen" },
   { name: "list_connections", label: "Verbindungen auflisten" },
   { name: "get_system_status", label: "System-Status abrufen" },
+  { name: "search_web", label: "Web-Suche (Small Talk / Wetter)" },
 ];
 
 const input: React.CSSProperties = {
