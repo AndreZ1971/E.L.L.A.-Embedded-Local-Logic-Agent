@@ -465,5 +465,18 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     });
   }
 
+  defs.push({
+    type: "function",
+    function: {
+      name: "get_location",
+      description:
+        "Gibt den aktuellen Standort des Nutzers zurück — Stadt und Land. Nutze dies bevor du Wetter, lokale Nachrichten oder standortbezogene Informationen abrufst. Wenn kein Standort bekannt ist, wird der Nutzer einmalig gefragt.",
+      parameters: {
+        type: "object",
+        properties: {},
+      },
+    },
+  });
+
   return defs;
 }

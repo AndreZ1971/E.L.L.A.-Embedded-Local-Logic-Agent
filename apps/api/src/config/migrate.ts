@@ -86,6 +86,7 @@ export async function runMigrations(): Promise<void> {
     ],
     [20, "System-Status erlaubt", "get_system_status", "always", "allow"],
     [21, "Web-Suche erlaubt", "search_web", "always", "allow"],
+    [22, "Standort ermitteln erlaubt", "get_location", "always", "allow"],
   ] as const;
 
   for (const [id, name, tool_name, trigger, action] of standardTools) {

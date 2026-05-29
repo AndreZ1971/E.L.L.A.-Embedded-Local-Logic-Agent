@@ -539,6 +539,64 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     };
   },
 
+  get_location: async () => {
+    // 1. System-Memory prüfen
+    const memories = await listMemories("system");
+    const locationMemory = (memories as Array<{ content: string }>).find(
+      (m) =>
+        typeof m.content === "string" &&
+        (m.content.toLowerCase().includes("stadt") ||
+          m.content.toLowerCase().includes("wohnort") ||
+          m.content.toLowerCase().includes("location") ||
+          m.content.toLowerCase().includes("city")),
+    );
+    if (locationMemory) {
+      return {
+        success: true,
+        output: { source: "memory", location: locationMemory.content },
+      };
+    }
+
+    // 2. IP-Geolocation Fallback
+    try {
+      const res = await fetch(
+        "http://ip-api.com/json/?fields=city,regionName,country,lat,lon,timezone",
+        { signal: AbortSignal.timeout(5000) },
+      );
+      if (!res.ok) throw new Error("IP-API nicht verfügbar");
+      const geo = (await res.json()) as {
+        city: string;
+        regionName: string;
+        country: string;
+        lat: number;
+        lon: number;
+        timezone: string;
+      };
+      if (!geo.city) throw new Error("Kein Standort gefunden");
+      trackToolUsage("get_location", `${geo.city}, ${geo.country}`);
+      return {
+        success: true,
+        output: {
+          source: "ip_geolocation",
+          city: geo.city,
+          region: geo.regionName,
+          country: geo.country,
+          lat: geo.lat,
+          lon: geo.lon,
+          timezone: geo.timezone,
+          confirm_required: true,
+          confirm_message: `Ich habe deinen Standort als ${geo.city}, ${geo.country} erkannt. Ist das korrekt? Wenn ja, merke ich ihn mir für das nächste Mal.`,
+        },
+      };
+    } catch {
+      return {
+        success: false,
+        error:
+          "Ich konnte deinen Standort nicht bestimmen. In welcher Stadt bist du?",
+      };
+    }
+  },
+
   search_web: async (args) => {
     const query = (args.query as string) ?? "";
     if (!query.trim()) return { success: false, error: "query fehlt" };

@@ -21,7 +21,8 @@ export type ToolName =
   | "scan_network"
   | "list_connections"
   | "get_system_status"
-  | "search_web";
+  | "search_web"
+  | "get_location";
 
 export interface ToolCall {
   tool: ToolName;
