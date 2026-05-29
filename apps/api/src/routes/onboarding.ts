@@ -22,9 +22,15 @@ onboardingRouter.post("/scan", async (_req, res, next) => {
 
 onboardingRouter.post("/complete", async (req, res, next) => {
   try {
-    const { userName } = req.body as { userName?: string };
+    const { userName, location } = req.body as {
+      userName?: string;
+      location?: string;
+    };
     if (userName?.trim()) {
-      await remember("note", `Mein Name ist ${userName.trim()}`);
+      await remember("user", `Mein Name ist ${userName.trim()}`);
+    }
+    if (location?.trim()) {
+      await remember("system", `Wohnort: ${location.trim()}`);
     }
     await saveSettings({ onboardingComplete: true });
     res.json({ ok: true });
