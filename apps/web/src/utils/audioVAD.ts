@@ -1,7 +1,56 @@
-/** Simple energy-based Voice Activity Detector using Web Audio API. */
+/** Energy-based Voice Activity Detector — AudioWorkletNode (no deprecated ScriptProcessorNode). */
 
-const SPEECH_THRESHOLD = 0.015; // RMS threshold to consider as speech
-const SILENCE_FRAMES_TO_END = 18; // ~0.75s silence at 2048/48kHz → segment done
+// AudioWorklet runs in a separate thread; code is loaded via Blob URL.
+const VAD_PROCESSOR_CODE = `
+class VADProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this._buf = [];
+    this._speaking = false;
+    this._silence = 0;
+  }
+
+  process(inputs) {
+    const ch = inputs[0]?.[0];
+    if (!ch) return true;
+
+    // RMS energy
+    let rms = 0;
+    for (let i = 0; i < ch.length; i++) rms += ch[i] * ch[i];
+    rms = Math.sqrt(rms / ch.length);
+
+    // AudioWorklet: 128 samples/frame @ 48 kHz ≈ 2.7 ms/frame
+    // SILENCE_FRAMES = 280 ≈ 750 ms of silence to end a segment
+    const THRESHOLD = 0.015;
+    const SILENCE_FRAMES = 280;
+
+    if (rms > THRESHOLD) {
+      if (!this._speaking) {
+        this._speaking = true;
+        this._silence = 0;
+        this.port.postMessage({ type: 'speechStart' });
+      }
+      this._silence = 0;
+      this._buf.push(ch.slice());
+    } else if (this._speaking) {
+      this._silence++;
+      this._buf.push(ch.slice());
+      if (this._silence >= SILENCE_FRAMES) {
+        const total = this._buf.reduce((s, b) => s + b.length, 0);
+        const out = new Float32Array(total);
+        let off = 0;
+        for (const b of this._buf) { out.set(b, off); off += b.length; }
+        this.port.postMessage({ type: 'segment', audio: out }, [out.buffer]);
+        this._buf = [];
+        this._speaking = false;
+        this._silence = 0;
+      }
+    }
+    return true;
+  }
+}
+registerProcessor('vad-processor', VADProcessor);
+`;
 
 export interface VADCallbacks {
   onSpeechStart?: () => void;
@@ -11,73 +60,50 @@ export interface VADCallbacks {
 export class AudioVAD {
   private ctx: AudioContext | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
-  private processor: ScriptProcessorNode | null = null;
+  private node: AudioWorkletNode | null = null;
   private stream: MediaStream | null = null;
-  private buffer: Float32Array[] = [];
-  private isSpeaking = false;
-  private silenceCount = 0;
+  private workletUrl: string | null = null;
 
   async start(callbacks: VADCallbacks): Promise<void> {
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     this.ctx = new AudioContext();
+
+    const blob = new Blob([VAD_PROCESSOR_CODE], {
+      type: "application/javascript",
+    });
+    this.workletUrl = URL.createObjectURL(blob);
+    await this.ctx.audioWorklet.addModule(this.workletUrl);
+
     this.source = this.ctx.createMediaStreamSource(this.stream);
-    // ScriptProcessorNode is deprecated but AudioWorklet requires more setup
-    this.processor = this.ctx.createScriptProcessor(2048, 1, 1);
+    this.node = new AudioWorkletNode(this.ctx, "vad-processor");
 
-    this.processor.onaudioprocess = (e) => {
-      const data = e.inputBuffer.getChannelData(0);
-      let rms = 0;
-      for (let i = 0; i < data.length; i++) rms += data[i] * data[i];
-      rms = Math.sqrt(rms / data.length);
-
-      if (rms > SPEECH_THRESHOLD) {
-        if (!this.isSpeaking) {
-          this.isSpeaking = true;
-          this.silenceCount = 0;
-          callbacks.onSpeechStart?.();
-        }
-        this.silenceCount = 0;
-        this.buffer.push(new Float32Array(data));
-      } else if (this.isSpeaking) {
-        this.silenceCount++;
-        this.buffer.push(new Float32Array(data));
-
-        if (this.silenceCount >= SILENCE_FRAMES_TO_END) {
-          // Assemble full segment
-          const total = this.buffer.reduce((s, b) => s + b.length, 0);
-          const combined = new Float32Array(total);
-          let offset = 0;
-          for (const chunk of this.buffer) {
-            combined.set(chunk, offset);
-            offset += chunk.length;
-          }
-          const sr = this.ctx!.sampleRate;
-          this.reset();
-          callbacks.onSegment(combined, sr);
-        }
+    this.node.port.onmessage = (
+      e: MessageEvent<{ type: string; audio?: Float32Array }>,
+    ) => {
+      if (e.data.type === "speechStart") {
+        callbacks.onSpeechStart?.();
+      } else if (e.data.type === "segment" && e.data.audio) {
+        callbacks.onSegment(e.data.audio, this.ctx!.sampleRate);
       }
     };
 
-    this.source.connect(this.processor);
-    this.processor.connect(this.ctx.destination);
-  }
-
-  private reset(): void {
-    this.buffer = [];
-    this.isSpeaking = false;
-    this.silenceCount = 0;
+    // Connect to destination (silent — VADProcessor produces no output) so the
+    // audio graph stays active and the worklet keeps processing.
+    this.source.connect(this.node);
+    this.node.connect(this.ctx.destination);
   }
 
   stop(): void {
-    this.processor?.disconnect();
+    this.node?.disconnect();
     this.source?.disconnect();
     this.stream?.getTracks().forEach((t) => t.stop());
     this.ctx?.close().catch(() => {});
+    if (this.workletUrl) URL.revokeObjectURL(this.workletUrl);
     this.ctx = null;
-    this.processor = null;
+    this.node = null;
     this.source = null;
     this.stream = null;
-    this.reset();
+    this.workletUrl = null;
   }
 }
 
