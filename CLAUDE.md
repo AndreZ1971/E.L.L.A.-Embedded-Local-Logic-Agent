@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v2.0.0**
+**Aktueller Stand: v2.1.1**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -41,38 +41,42 @@ packages/
 ## Was läuft (vollständig implementiert)
 
 - Dual-LLM (Ollama/OpenAI), SSE-Streaming, Tool-Loop max. 5
-- 16+ Tools mit Handlern + Audit-Log (`tool_executions`)
+- 21 Tools mit Handlern + Audit-Log (`tool_executions`)
 - ML Memory: nomic-embed-text, cosine similarity, 3 Typen (user/system/note)
 - Rule Engine: DIRECTIVE_DENY → Deny Rules → Allow Rules → no_match = deny
+- **Directive-Denial UI:** roter Badge im Chat bei Regel-Ablehnung
 - Homework Mode: SHA-256 PIN, Whitelist-Enforcement in open_app + loadSetup
-- Voice: Wakeword "ella", manuell, TTS de-DE (Web Speech API)
+- Voice: Wakeword "ella" (AudioWorkletNode + Whisper lokal), manuell, TTS de-DE
+- **Proaktive TTS:** Alert/Device-Events werden automatisch vorgelesen
+- **search_web:** Web-Suche via OpenAI Responses API + web_search_preview
 - Outlook COM: Mail lesen/markieren + Kalender lesen/erstellen
 - Thunderbird mbox Fallback für Mail
 - Background Worker: Disk/RAM/Ollama Monitoring, SSE EventBus
-- Onboarding: WMIC Hardware-Scan → System Memories
+- Onboarding: Hardware-Scan → System Memories
 - Conversational Config: create_setup, update_setting, create_rule
-- Auto-Migration: schema.sql idempotent, 20 Default-Rules
+- Auto-Migration: schema.sql idempotent, 21 Default-Rules
 - Setup Router: Ollama-Status, nomic-pull mit SSE-Progress
-- **62 Tests — alle grün** (Vitest Unit + Integration + Playwright E2E Web + Desktop)
-- **2 .todo Specs:** Confirmation Card — noch nicht implementiert
+- **System Tray:** Tooltip + Balloon bei Alerts, ELLA läuft ambient im Hintergrund
+- **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
+- **63 Tests — alle grün** (Vitest Unit + Integration + Playwright E2E Web + Desktop)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 
 ---
 
 ## Offene Phasen
 
-### Phase 8 — Härtung
+### Phase 8 — Härtung (teilweise offen)
 
 - `executor.ts`: forgetById Guard — `if (!a.id) return { success: false, error: "ID fehlt..." }`
 - Neue Route `POST /api/settings/emergency-reset` — setzt Homework Mode zurück ohne PIN
-- WMIC Fallback-Kommentare für Windows 11 22H2+ (Get-CimInstance)
+- ~~WMIC Fallback~~ — erledigt (Get-CimInstance, alle 5 Stellen)
 
 ### Phase 9 — Hardware-Awareness & PnP
 
-- `getLogicalDrives()` dynamisch — hardcoded `["C","E","Z"]` entfernen
-- PnP Delta-Detection: Webcam, USB, externe Laufwerke (Win32_PnPEntity)
-- Tool `list_devices` + Default-Regel ID 17
-- Frontend: Toast-Notifications bei device_connected/disconnected
+- ~~`getLogicalDrives()` dynamisch~~ — erledigt (Get-CimInstance)
+- PnP Delta-Detection: Webcam, USB, externe Laufwerke (Win32_PnPEntity) ✅ implementiert
+- Tool `list_devices` + Default-Regel ID 17 ✅ implementiert
+- Frontend: Toast-Notifications bei device_connected/disconnected ✅ implementiert
 
 ### Phase 10 — Netzwerk-Monitoring
 
@@ -177,13 +181,11 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
 
-
-
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-05-29T14:28:21.421Z._
+_Last synced: 2026-05-29T19:39:14.976Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).
