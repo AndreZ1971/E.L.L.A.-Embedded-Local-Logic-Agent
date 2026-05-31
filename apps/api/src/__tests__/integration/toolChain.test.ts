@@ -5,6 +5,7 @@ import {
   getSettings,
   saveSettings,
   loadSettings,
+  DEFAULT_SETTINGS,
 } from "../../services/settings.js";
 
 let skipDb = false;
@@ -100,6 +101,58 @@ describe("emergency-reset — homeworkMode & PIN cleared", () => {
       homeworkMode: { pinHash: "", apps: [], active: false },
       emergencyResetAt: null,
     });
+  });
+});
+
+describe("web_search — fetch_url — get_weather Tool-Kette", () => {
+  it("fetch_url blockiert file://-URLs", async () => {
+    if (skipDb) return;
+    const { toolExecutor } = await import("../../tools/executor.js");
+    const result = await toolExecutor.execute({
+      tool: "fetch_url",
+      args: { url: "file:///etc/passwd" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/HTTP\/HTTPS/i);
+  });
+
+  it("fetch_url blockiert ftp://-URLs", async () => {
+    if (skipDb) return;
+    const { toolExecutor } = await import("../../tools/executor.js");
+    const result = await toolExecutor.execute({
+      tool: "fetch_url",
+      args: { url: "ftp://example.com/file.txt" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/HTTP\/HTTPS/i);
+  });
+
+  it("web_search gibt Fehler zurück bei leerer Query", async () => {
+    if (skipDb) return;
+    const { toolExecutor } = await import("../../tools/executor.js");
+    const result = await toolExecutor.execute({
+      tool: "web_search",
+      args: { query: "" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/Suchanfrage fehlt/i);
+  });
+
+  it("get_weather gibt Fehler zurück wenn kein Standort bekannt", async () => {
+    if (skipDb) return;
+    const { toolExecutor } = await import("../../tools/executor.js");
+    const result = await toolExecutor.execute({
+      tool: "get_weather",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/Standort/i);
+  });
+
+  it("DEFAULT_SETTINGS enthält web_search, fetch_url, get_weather", () => {
+    expect(DEFAULT_SETTINGS.enabledTools).toContain("web_search");
+    expect(DEFAULT_SETTINGS.enabledTools).toContain("fetch_url");
+    expect(DEFAULT_SETTINGS.enabledTools).toContain("get_weather");
   });
 });
 

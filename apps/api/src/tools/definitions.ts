@@ -393,6 +393,72 @@ const SEARCH_WEB_TOOL: OllamaTool = {
   },
 };
 
+const WEB_TOOLS: OllamaTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "web_search",
+      description:
+        "Sucht im Web nach aktuellen Informationen. Nutze dies für Echtzeit-Daten, aktuelle Ereignisse, Preise, Nachrichten — alles was sich ändern kann und nicht im Trainingsdata steht. Funktioniert ohne OpenAI.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Die Suchanfrage — so konkret wie möglich",
+          },
+          limit: {
+            type: "string",
+            description: "Anzahl Ergebnisse (Standard: 5, max: 10)",
+          },
+        },
+        required: ["query"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "fetch_url",
+      description:
+        "Ruft den Inhalt einer bestimmten Webseite ab und extrahiert den lesbaren Text. Nutze dies wenn der Nutzer eine konkrete URL nennt oder du nach web_search tiefer in ein Ergebnis einsteigen willst.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: {
+            type: "string",
+            description: "Die vollständige URL der Seite (inkl. https://)",
+          },
+        },
+        required: ["url"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_weather",
+      description:
+        "Gibt die aktuelle Wettervorhersage für einen Ort zurück — heute und die nächsten Tage. Kein API-Key nötig. Wenn kein Ort angegeben wird, nutze den gespeicherten Standort des Nutzers.",
+      parameters: {
+        type: "object",
+        properties: {
+          location: {
+            type: "string",
+            description:
+              "Stadtname, z.B. 'Berlin'. Weglassen wenn gespeicherter Standort genutzt werden soll.",
+          },
+          days: {
+            type: "string",
+            description: "Anzahl Tage (Standard: 3, max: 7)",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+];
+
 const SYSTEM_INFO_TOOL: OllamaTool = {
   type: "function",
   function: {
@@ -439,6 +505,7 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     SYSTEM_INFO_TOOL,
     SYSTEM_STATUS_TOOL,
     SEARCH_WEB_TOOL,
+    ...WEB_TOOLS,
     ...HARDWARE_TOOLS,
     ...CONVERSATION_TOOLS,
     ...MAIL_TOOLS,

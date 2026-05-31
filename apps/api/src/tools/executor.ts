@@ -37,6 +37,11 @@ import {
 import { pool } from "../config/database.js";
 import { env } from "../config/env.js";
 import { openaiClient } from "../services/openai.js";
+import {
+  searchWeb as searchWebDDG,
+  fetchUrl as fetchUrlService,
+} from "../services/webSearch.js";
+import { getWeather } from "../services/weather.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -605,6 +610,91 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     trackToolUsage("search_web", query.slice(0, 80));
     const result = await openaiClient.searchWeb(query);
     return { success: true, output: result };
+  },
+
+  web_search: async (args) => {
+    const query = ((args["query"] as string) ?? "").trim();
+    const limit = Math.min(10, Math.max(1, Number(args["limit"]) || 5));
+    if (!query) return { success: false, error: "Suchanfrage fehlt." };
+    try {
+      const results = await searchWebDDG(query, limit);
+      trackToolUsage("web_search", query.slice(0, 80));
+      return {
+        success: true,
+        output: {
+          query,
+          count: results.length,
+          results,
+          note: results.length === 0 ? "Keine Ergebnisse gefunden." : undefined,
+        },
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: `Web-Suche fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  },
+
+  fetch_url: async (args) => {
+    const url = ((args["url"] as string) ?? "").trim();
+    if (!url) return { success: false, error: "URL fehlt." };
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      return { success: false, error: "Nur HTTP/HTTPS-URLs sind erlaubt." };
+    }
+    try {
+      const content = await fetchUrlService(url);
+      trackToolUsage("fetch_url", url.slice(0, 80));
+      return { success: true, output: { url, content } };
+    } catch (err) {
+      return {
+        success: false,
+        error: `Seite konnte nicht geladen werden: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  },
+
+  get_weather: async (args) => {
+    let location = ((args["location"] as string) ?? "").trim();
+    const days = Math.min(7, Math.max(1, Number(args["days"]) || 3));
+
+    if (!location) {
+      const memories = await listMemories("system");
+      const loc = (memories as Array<{ content: string }>).find((m) =>
+        ["wohnort", "standort", "wohne in", "bin in", "city"].some((kw) =>
+          m.content.toLowerCase().includes(kw),
+        ),
+      );
+      if (loc) {
+        const match =
+          /(?:wohnort|standort)[:\s]+([A-ZÄÖÜ][a-zäöüß\-]+(?:\s+[A-ZÄÖÜ][a-zäöüß\-]+)*)/i.exec(
+            loc.content,
+          ) ??
+          /(?:in|aus)\s+([A-ZÄÖÜ][a-zäöüß\-]+(?:\s+[A-ZÄÖÜ][a-zäöüß\-]+)*)/i.exec(
+            loc.content,
+          );
+        if (match) location = match[1];
+      }
+    }
+
+    if (!location) {
+      return {
+        success: false,
+        error:
+          "Kein Standort angegeben und kein gespeicherter Standort gefunden. Bitte sage mir deinen Ort.",
+      };
+    }
+
+    try {
+      const weather = await getWeather(location, days);
+      trackToolUsage("get_weather", location);
+      return { success: true, output: weather };
+    } catch (err) {
+      return {
+        success: false,
+        error: `Wetter für "${location}" nicht verfügbar: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
   },
 
   free_ram: async () => {

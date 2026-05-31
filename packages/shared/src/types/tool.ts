@@ -23,7 +23,10 @@ export type ToolName =
   | "get_system_status"
   | "search_web"
   | "get_location"
-  | "delete_files";
+  | "delete_files"
+  | "web_search"
+  | "fetch_url"
+  | "get_weather";
 
 export interface ToolCall {
   tool: ToolName;

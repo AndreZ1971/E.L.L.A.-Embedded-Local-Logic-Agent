@@ -77,6 +77,9 @@ const ALL_TOOLS: { name: string; label: string }[] = [
     name: "delete_files",
     label: "Dateien löschen (Directive-Demo — immer blockiert)",
   },
+  { name: "web_search", label: "Web-Suche via DuckDuckGo (kein API-Key)" },
+  { name: "fetch_url", label: "URL-Inhalt abrufen" },
+  { name: "get_weather", label: "Wettervorhersage (Open-Meteo)" },
 ];
 
 const input: React.CSSProperties = {
