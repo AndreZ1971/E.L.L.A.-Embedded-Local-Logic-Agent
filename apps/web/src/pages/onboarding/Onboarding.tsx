@@ -160,7 +160,9 @@ const Onboarding: React.FC = () => {
   const [scanDone, setScanDone] = useState(false);
   const [scanLines, setScanLines] = useState<string[]>([]);
   const locationRef = useRef<HTMLInputElement>(null);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [voices, setVoices] = useState<
+    Array<{ name: string; locale: string; gender: string }>
+  >([]);
   const [selectedVoice, setSelectedVoice] = useState("");
 
   const runScan = async () => {
@@ -183,9 +185,23 @@ const Onboarding: React.FC = () => {
     add("Hardware-Profil gespeichert.");
     setScanDone(true);
     setTimeout(() => {
-      const v = window.speechSynthesis.getVoices();
-      const deVoices = v.filter((voice) => voice.lang.startsWith("de"));
-      setVoices(deVoices.length > 0 ? deVoices : v.slice(0, 5));
+      fetch(`${API}/api/speech/voices`)
+        .then((r) => r.json())
+        .then(
+          (data: {
+            voices: Array<{ name: string; locale: string; gender: string }>;
+          }) => {
+            setVoices(data.voices);
+            if (data.voices.length > 0) setSelectedVoice(data.voices[0].name);
+          },
+        )
+        .catch(() => {
+          setVoices([
+            { name: "de-DE-KatjaNeural", locale: "de-DE", gender: "Female" },
+            { name: "de-DE-ConradNeural", locale: "de-DE", gender: "Male" },
+            { name: "de-DE-AmalaNeural", locale: "de-DE", gender: "Female" },
+          ]);
+        });
       setStep("voice");
     }, 1200);
   };
@@ -353,13 +369,22 @@ const Onboarding: React.FC = () => {
                     key={v.name}
                     onClick={() => {
                       setSelectedVoice(v.name);
-                      window.speechSynthesis.cancel();
-                      const utt = new SpeechSynthesisUtterance(
-                        `Hallo${name.trim() ? ` ${name.trim()}` : ""}. Ich bin E.L.L.A.`,
-                      );
-                      utt.voice = v;
-                      utt.lang = v.lang;
-                      window.speechSynthesis.speak(utt);
+                      fetch(`${API}/api/speech/synthesize`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          text: `Hallo${name.trim() ? ` ${name.trim()}` : ""}. Ich bin E.L.L.A.`,
+                          voice: v.name,
+                        }),
+                      })
+                        .then((r) => r.blob())
+                        .then((blob) => {
+                          const url = URL.createObjectURL(blob);
+                          const audio = new Audio(url);
+                          audio.onended = () => URL.revokeObjectURL(url);
+                          audio.play();
+                        })
+                        .catch(() => {});
                     }}
                     style={{
                       padding: "10px 16px",

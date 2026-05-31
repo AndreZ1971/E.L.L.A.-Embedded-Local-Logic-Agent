@@ -1,0 +1,48 @@
+import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
+
+const DEFAULT_VOICE = "de-DE-KatjaNeural";
+
+let _tts: MsEdgeTTS | null = null;
+
+function getTTS(): MsEdgeTTS {
+  if (!_tts) _tts = new MsEdgeTTS();
+  return _tts;
+}
+
+export interface TTSOptions {
+  voice?: string;
+  rate?: string;
+  pitch?: string;
+}
+
+export async function synthesize(
+  text: string,
+  options: TTSOptions = {},
+): Promise<Buffer> {
+  const tts = getTTS();
+  const voice = options.voice ?? DEFAULT_VOICE;
+
+  await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    const { audioStream } = tts.toStream(text);
+    audioStream.on("data", (chunk: Buffer) => chunks.push(chunk));
+    audioStream.on("end", () => resolve(Buffer.concat(chunks)));
+    audioStream.on("error", reject);
+  });
+}
+
+export async function listVoices(): Promise<
+  Array<{ name: string; locale: string; gender: string }>
+> {
+  const tts = getTTS();
+  const voices = await tts.getVoices();
+  return voices
+    .filter((v) => v.Locale.startsWith("de"))
+    .map((v) => ({
+      name: v.ShortName,
+      locale: v.Locale,
+      gender: v.Gender,
+    }));
+}

@@ -97,26 +97,45 @@ const Chat: React.FC = () => {
     window.speechSynthesis.speak(utt);
   }, []);
 
-  const speak = useCallback((text: string) => {
-    if (!ttsEnabledRef.current) return;
-    window.speechSynthesis.cancel();
-    const clean = text
-      .replace(/#{1,6}\s?/g, "")
-      .replace(/[*_`~]/g, "")
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-      .trim();
-    if (!clean) return;
-    const utt = new SpeechSynthesisUtterance(clean);
-    utt.lang = "de-DE";
-    const voices = window.speechSynthesis.getVoices();
-    const saved = ttsVoiceRef.current;
-    const match =
-      voices.find((v) => v.name === saved) ??
-      voices.find((v) => v.lang.startsWith("de"));
-    if (match) utt.voice = match;
-    utt.rate = 1.05;
-    window.speechSynthesis.speak(utt);
-  }, []);
+  const speakEdge = useCallback(
+    async (text: string) => {
+      const clean = text
+        .replace(/#{1,6}\s?/g, "")
+        .replace(/[*_`~]/g, "")
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+        .trim();
+      if (!clean) return;
+      try {
+        const voice = ttsVoiceRef.current || "de-DE-KatjaNeural";
+        const res = await fetch(`${API}/api/speech/synthesize`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: clean, voice }),
+        });
+        if (!res.ok) throw new Error(`TTS HTTP ${res.status}`);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.onended = () => URL.revokeObjectURL(url);
+        audio.onerror = () => {
+          URL.revokeObjectURL(url);
+          speakProactive(clean);
+        };
+        await audio.play();
+      } catch {
+        speakProactive(clean);
+      }
+    },
+    [speakProactive],
+  );
+
+  const speak = useCallback(
+    (text: string) => {
+      if (!ttsEnabledRef.current) return;
+      speakEdge(text);
+    },
+    [speakEdge],
+  );
 
   /* Voice state — Whisper (lokal, kein Google) */
   const [voiceMode, setVoiceMode] = useState<VoiceMode>("off");
@@ -147,7 +166,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           8000,
         );
-        speakProactive(message);
+        speakEdge(message);
         (
           window as unknown as {
             electronAPI?: {
@@ -169,7 +188,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           6000,
         );
-        speakProactive(`Neues Gerät verbunden: ${name}`);
+        speakEdge(`Neues Gerät verbunden: ${name}`);
         (
           window as unknown as {
             electronAPI?: {
@@ -194,7 +213,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           6000,
         );
-        speakProactive(`Gerät getrennt: ${name}`);
+        speakEdge(`Gerät getrennt: ${name}`);
         (
           window as unknown as {
             electronAPI?: {
@@ -219,7 +238,7 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           6000,
         );
-        speakProactive(`Neues Gerät im Netzwerk erkannt: ${ip}`);
+        speakEdge(`Neues Gerät im Netzwerk erkannt: ${ip}`);
         (
           window as unknown as {
             electronAPI?: {
@@ -238,7 +257,7 @@ const Chat: React.FC = () => {
       window as unknown as {
         electronAPI?: { onSpeak?: (cb: (text: string) => void) => () => void };
       }
-    ).electronAPI?.onSpeak?.((text) => speakProactive(text));
+    ).electronAPI?.onSpeak?.((text) => speakEdge(text));
 
     // Hintergrund-Modus: Wakeword erzwingen wenn Fenster versteckt
     const removeBackground = (
@@ -256,7 +275,7 @@ const Chat: React.FC = () => {
       removeSpeak?.();
       removeBackground?.();
     };
-  }, [speakProactive]);
+  }, [speakEdge]);
 
   /* ── History ── */
   useEffect(() => {
