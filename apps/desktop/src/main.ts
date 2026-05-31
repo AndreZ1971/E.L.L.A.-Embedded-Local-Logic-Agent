@@ -382,6 +382,9 @@ app.whenReady().then(async () => {
       callback(permission === "media");
     },
   );
+  session.defaultSession.setPermissionCheckHandler(
+    (_wc, permission) => permission === "media",
+  );
 
   if (!isDev) {
     await freePort(API_PORT);
