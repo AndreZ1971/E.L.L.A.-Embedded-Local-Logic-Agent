@@ -15,6 +15,7 @@ type StreamEvent =
   | { type: "chunk"; text: string }
   | { type: "tool"; name: string }
   | { type: "directive_deny"; tool: string }
+  | { type: "shutdown"; cmd: string; delay: number }
   | { type: "done" }
   | { type: "error"; message: string };
 
@@ -231,8 +232,31 @@ const Chat: React.FC = () => {
         );
       }
     };
-    return () => es.close();
-  }, []);
+
+    // Begrüßung vom Main-Process
+    const removeSpeak = (
+      window as unknown as {
+        electronAPI?: { onSpeak?: (cb: (text: string) => void) => () => void };
+      }
+    ).electronAPI?.onSpeak?.((text) => speakProactive(text));
+
+    // Hintergrund-Modus: Wakeword erzwingen wenn Fenster versteckt
+    const removeBackground = (
+      window as unknown as {
+        electronAPI?: {
+          onBackground?: (cb: (v: boolean) => void) => () => void;
+        };
+      }
+    ).electronAPI?.onBackground?.((isBackground) => {
+      if (isBackground) setVoiceMode("wakeword");
+    });
+
+    return () => {
+      es.close();
+      removeSpeak?.();
+      removeBackground?.();
+    };
+  }, [speakProactive]);
 
   /* ── History ── */
   useEffect(() => {
@@ -310,6 +334,18 @@ const Chat: React.FC = () => {
                 },
               ]);
               setTimeout(() => setDirectiveDeny(null), 3000);
+            } else if (ev.type === "shutdown") {
+              const { cmd, delay } = ev;
+              setTimeout(
+                () => {
+                  (
+                    window as unknown as {
+                      electronAPI?: { executeShutdown?: (c: string) => void };
+                    }
+                  ).electronAPI?.executeShutdown?.(cmd);
+                },
+                (Number(delay) + 2) * 1000,
+              );
             } else if (ev.type === "done") {
               setMessages((p) => [...p, { role: "assistant", content: full }]);
               setStreaming("");

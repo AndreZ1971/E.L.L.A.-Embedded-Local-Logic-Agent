@@ -171,6 +171,18 @@ chatRouter.post("/stream", async (req, res) => {
         if (result.directive) {
           emit({ type: "directive_deny", tool: call.function.name });
         }
+        if (
+          call.function.name === "shutdown_system" &&
+          result.success &&
+          (result.output as Record<string, unknown>)?.exec_command
+        ) {
+          const out = result.output as Record<string, unknown>;
+          emit({
+            type: "shutdown",
+            cmd: out.exec_command,
+            delay: out.delay_seconds ?? 5,
+          });
+        }
         messages.push({
           role: "tool",
           tool_call_id: call.id,

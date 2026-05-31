@@ -619,6 +619,33 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     }
   },
 
+  shutdown_system: async (args) => {
+    const action = (args.action as string) ?? "shutdown";
+    const delay = Number(args.delay_seconds ?? 5);
+    const commands: Record<string, string> = {
+      shutdown: `shutdown /s /t ${delay}`,
+      restart: `shutdown /r /t ${delay}`,
+      sleep: `rundll32.exe powrprof.dll,SetSuspendState 0,1,0`,
+    };
+    const cmd = commands[action];
+    if (!cmd) return { success: false, error: "Unbekannte Aktion." };
+    const farewells: Record<string, string> = {
+      shutdown: "Bis später.",
+      restart: "Ich starte neu. Gleich bin ich wieder da.",
+      sleep: "Gute Nacht.",
+    };
+    trackToolUsage("shutdown_system", action);
+    return {
+      success: true,
+      output: {
+        action,
+        message: farewells[action],
+        exec_command: cmd,
+        delay_seconds: delay,
+      },
+    };
+  },
+
   get_datetime: async (args) => {
     const tz = ((args.timezone as string) ?? "").trim() || undefined;
     try {

@@ -24,6 +24,7 @@ export type ToolName =
   | "search_web"
   | "get_location"
   | "get_datetime"
+  | "shutdown_system"
   | "delete_files"
   | "web_search"
   | "fetch_url"

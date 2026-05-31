@@ -570,6 +570,31 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  defs.push({
+    type: "function",
+    function: {
+      name: "shutdown_system",
+      description:
+        "Fährt den PC herunter, startet ihn neu oder versetzt ihn in den Schlafmodus. Nur auf explizite Nutzeranfrage verwenden. Sage vorher 'Bis später' oder 'Gute Nacht' in deiner Antwort.",
+      parameters: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            description:
+              "Aktion: 'shutdown' = herunterfahren, 'restart' = neu starten, 'sleep' = Schlafmodus",
+          },
+          delay_seconds: {
+            type: "number",
+            description:
+              "Verzögerung in Sekunden bevor die Aktion ausgeführt wird. Standard: 5",
+          },
+        },
+        required: ["action"],
+      },
+    },
+  });
+
   // Directive-Demo — kein Handler, wird von DIRECTIVE_DENY blockiert
   defs.push({
     type: "function",

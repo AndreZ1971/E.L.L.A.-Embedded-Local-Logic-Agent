@@ -174,15 +174,20 @@ function createWindow(): void {
   );
 
   mainWindow.on("minimize", () => {
-    mainWindow?.hide();
+    // 1x1px statt hide() — Audio-Kontext (Wakeword) bleibt aktiv
+    mainWindow?.setPosition(-9999, -9999);
+    mainWindow?.setSize(1, 1);
     mainWindow?.setSkipTaskbar(true);
+    mainWindow?.webContents.send("ella:background", true);
   });
 
   mainWindow.on("close", (e: ElectronEvent) => {
     if (!isQuitting) {
       e.preventDefault();
-      mainWindow?.hide();
+      mainWindow?.setPosition(-9999, -9999);
+      mainWindow?.setSize(1, 1);
       mainWindow?.setSkipTaskbar(true);
+      mainWindow?.webContents.send("ella:background", true);
     }
   });
 }
@@ -199,6 +204,34 @@ function isAutostartEnabled(): boolean {
 
 function setAutostart(enable: boolean): void {
   app.setLoginItemSettings({ openAtLogin: enable, ...autostartArgs() });
+}
+
+// ── Begrüßung ─────────────────────────────────────────────────────────────────
+
+function greetUser(): void {
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting =
+    hour < 12
+      ? "Guten Morgen"
+      : hour < 18
+        ? "Guten Tag"
+        : hour < 22
+          ? "Guten Abend"
+          : "Gute Nacht";
+  const days = [
+    "Sonntag",
+    "Montag",
+    "Dienstag",
+    "Mittwoch",
+    "Donnerstag",
+    "Freitag",
+    "Samstag",
+  ];
+  const weekday = days[now.getDay()];
+  const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const message = `${greeting}. Es ist ${weekday}, ${timeStr} Uhr. Ich bin bereit.`;
+  mainWindow?.webContents.send("ella:speak", message);
 }
 
 // ── Tray ──────────────────────────────────────────────────────────────────────
@@ -244,9 +277,12 @@ function createTray(): void {
 
 function showWindow(): void {
   if (!mainWindow) return;
+  mainWindow.setSize(1100, 750);
+  mainWindow.center();
   mainWindow.setSkipTaskbar(false);
   mainWindow.show();
   mainWindow.focus();
+  mainWindow.webContents.send("ella:background", false);
 }
 
 // ── IPC ───────────────────────────────────────────────────────────────────────
@@ -303,6 +339,21 @@ ipcMain.on(
   },
 );
 
+ipcMain.on("ella:shutdown", (_event, cmd: string) => {
+  const allowed = [
+    /^shutdown \/s \/t \d+$/,
+    /^shutdown \/r \/t \d+$/,
+    /^rundll32\.exe powrprof\.dll,SetSuspendState 0,1,0$/,
+  ];
+  if (!allowed.some((pattern) => pattern.test(cmd))) {
+    console.error("[ELLA] Ungültiger Shutdown-Befehl abgewiesen:", cmd);
+    return;
+  }
+  exec(cmd, (err) => {
+    if (err) console.error("[ELLA] Shutdown-Fehler:", err);
+  });
+});
+
 function registerIpc(): void {
   ipcMain.on("window:minimize", () => mainWindow?.minimize());
   ipcMain.on("window:maximize", () => {
@@ -347,6 +398,7 @@ app.whenReady().then(async () => {
   registerIpc();
   createWindow();
   createTray();
+  setTimeout(() => greetUser(), 2500);
 });
 
 app.on("window-all-closed", () => {
