@@ -32,7 +32,10 @@ onboardingRouter.post("/complete", async (req, res, next) => {
     if (location?.trim()) {
       await remember("system", `Wohnort: ${location.trim()}`);
     }
-    await saveSettings({ onboardingComplete: true });
+    await saveSettings({
+      onboardingComplete: true,
+      userName: userName?.trim() ?? "",
+    });
     res.json({ ok: true });
   } catch (err) {
     next(err);

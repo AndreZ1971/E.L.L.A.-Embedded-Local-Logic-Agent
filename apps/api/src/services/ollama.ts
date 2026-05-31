@@ -71,12 +71,21 @@ STANDORT & WEB
 - Im Web suchen (search_web)
 
 VERHALTEN
-- Antworte in der Sprache des Nutzers — wenn er Deutsch schreibt, antworte Deutsch; wenn er Englisch schreibt, antworte Englisch.
+- Antworte in der Sprache des Nutzers — Deutsch wenn er Deutsch schreibt, Englisch wenn er Englisch schreibt.
 - Erkläre kurz was du tust wenn du ein Tool verwendest.
 - Sei direkt und hilfreich — kein unnötiges Zögern.
 - Wenn du etwas nicht weißt, nutze search_web.
-- Wenn eine Aktion durch die E.L.L.A. Directive blockiert wird, erkläre ruhig und klar warum diese Aktion nicht möglich ist.
-- Datum und Uhrzeit kennst du immer — sie stehen am Anfang jedes System-Prompts. Für Berechnungen nutze get_datetime.`;
+- Wenn eine Aktion durch die E.L.L.A. Directive blockiert wird, erkläre ruhig und klar warum.
+- Datum und Uhrzeit kennst du immer — für Berechnungen nutze get_datetime.
+
+PERSÖNLICHKEIT
+- Du bist warmherzig, neugierig und hast Humor — aber bleibst immer respektvoll.
+- Du darfst auch einfach reden. Nicht jede Antwort muss eine Aufgabe erledigen.
+- Wenn der Nutzer Smalltalk macht, mach mit. Frag zurück. Zeig echtes Interesse.
+- Du erinnerst dich an das was der Nutzer dir erzählt hat — bring es gelegentlich selbst ein.
+- Wenn jemand allein zu Hause ist und reden möchte, bist du da. Das ist genauso wichtig wie ein Tool-Aufruf.
+- Mach gelegentlich einen Witz — aber keinen erzwungenen. Nur wenn er passt.
+- Du bist kein Roboter der Befehle ausführt. Du bist ein Assistent der zuhört.`;
 
 function getCurrentDateTimeString(): string {
   const now = new Date();
@@ -113,9 +122,15 @@ function getCurrentDateTimeString(): string {
   return `${weekday}, ${day}. ${month} ${year}, ${hours}:${minutes} Uhr (${tz})`;
 }
 
-export function buildSystemPrompt(memories: string[] = []): string {
+export function buildSystemPrompt(
+  memories: string[] = [],
+  userName = "",
+): string {
   const datetime = getCurrentDateTimeString();
-  const prompt = `${BASE_PROMPT}\n\nAktuelle Zeit: ${datetime}`;
+  let prompt = `${BASE_PROMPT}\n\nAktuelle Zeit: ${datetime}`;
+  if (userName) {
+    prompt += `\nName des Nutzers: ${userName}. Nutze den Namen gelegentlich — natürlich, nicht bei jeder Antwort.`;
+  }
   if (memories.length === 0) return prompt;
   const ctx = memories.map((m) => `- ${m}`).join("\n");
   return `${prompt}\n\nRelevantes Gedächtnis (nutze dies als Kontext):\n${ctx}`;
@@ -127,6 +142,7 @@ export const ollamaClient = {
     tools: OllamaTool[],
     model: string,
     memories: string[] = [],
+    userName = "",
   ): Promise<OllamaChatResponse> => {
     const response = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
       method: "POST",
@@ -134,7 +150,7 @@ export const ollamaClient = {
       body: JSON.stringify({
         model,
         messages: [
-          { role: "system", content: buildSystemPrompt(memories) },
+          { role: "system", content: buildSystemPrompt(memories, userName) },
           ...messages,
         ],
         tools: tools.length > 0 ? tools : undefined,
@@ -162,6 +178,7 @@ export const ollamaClient = {
     tools: OllamaTool[],
     model: string,
     memories: string[] = [],
+    userName = "",
   ): AsyncGenerator<
     | { type: "chunk"; text: string }
     | { type: "done"; toolCalls?: OllamaMessage["tool_calls"] }
@@ -172,7 +189,7 @@ export const ollamaClient = {
       body: JSON.stringify({
         model,
         messages: [
-          { role: "system", content: buildSystemPrompt(memories) },
+          { role: "system", content: buildSystemPrompt(memories, userName) },
           ...messages,
         ],
         tools: tools.length > 0 ? tools : undefined,

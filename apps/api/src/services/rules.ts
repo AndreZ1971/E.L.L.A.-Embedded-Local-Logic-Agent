@@ -2,6 +2,47 @@ import { execSync } from "child_process";
 import { pool } from "../config/database.js";
 import type { ToolName } from "@ella/shared";
 
+const HARM_TOOLS = new Set([
+  "delete_files",
+  "format_drive",
+  "run_script",
+  "registry_edit",
+  "disable_firewall",
+  "uninstall_app",
+  "kill_process",
+  "wipe_disk",
+]);
+const EXFIL_TOOLS = new Set([
+  "send_data_external",
+  "upload_files",
+  "sync_cloud",
+]);
+
+function getProhibition(tool: string): string {
+  if (HARM_TOOLS.has(tool)) return "Prohibition I — harm";
+  if (EXFIL_TOOLS.has(tool)) return "Prohibition IV — exfiltrate";
+  return "Unknown";
+}
+
+async function auditDirectiveDeny(tool: string): Promise<void> {
+  const entry = {
+    timestamp: new Date().toISOString(),
+    tool,
+    decision: "deny",
+    prohibition: getProhibition(tool),
+  };
+  console.log(`[DIRECTIVE AUDIT] ${JSON.stringify(entry)}`);
+  try {
+    await pool.execute(
+      `INSERT IGNORE INTO directive_audit (timestamp, tool, decision, prohibition)
+       VALUES (?, ?, ?, ?)`,
+      [entry.timestamp, entry.tool, entry.decision, entry.prohibition],
+    );
+  } catch {
+    // Nicht-kritisch — Konsolen-Log reicht als Fallback
+  }
+}
+
 export type RuleDecision = "allow" | "deny" | "no_match";
 
 export interface Rule {
@@ -87,7 +128,10 @@ async function evalTrigger(trigger: string): Promise<boolean> {
 // Die Directive prüft zusätzlich VOR dieser Funktion in executor.ts.
 // Was die Directive erlaubt, darf die Rule Engine per Default durchlassen.
 export async function evaluateRules(toolName: ToolName): Promise<RuleDecision> {
-  if (DIRECTIVE_DENY.has(toolName)) return "deny";
+  if (DIRECTIVE_DENY.has(toolName)) {
+    auditDirectiveDeny(toolName).catch(() => {});
+    return "deny";
+  }
 
   const [rows] = await pool.execute<any[]>(
     `SELECT tool_name, \`trigger\`, action

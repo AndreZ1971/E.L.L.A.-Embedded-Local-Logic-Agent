@@ -20,11 +20,13 @@ describe("DIRECTIVE_DENY", () => {
     DIRECTIVE_DENY.delete("__test_blocked__");
   });
 
-  it("returns deny without DB call for tool in directive set", async () => {
+  it("returns deny and writes audit log for tool in directive set", async () => {
+    mockExecute.mockResolvedValue([[], []]);
     DIRECTIVE_DENY.add("__test_blocked__");
     const result = await evaluateRules("__test_blocked__" as any);
     expect(result).toBe("deny");
-    expect(mockExecute).not.toHaveBeenCalled();
+    // auditDirectiveDeny writes to directive_audit table — one DB call expected
+    expect(mockExecute).toHaveBeenCalledTimes(1);
   });
 });
 

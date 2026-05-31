@@ -49,10 +49,6 @@ const ALL_TOOLS = new Set<ToolName>([
 export const toolRegistry = {
   isEnabled: (name: ToolName): boolean => ALL_TOOLS.has(name),
   listEnabled: (): ToolName[] => [...ALL_TOOLS],
-  enable: (name: ToolName): void => {
-    ALL_TOOLS.add(name);
-  },
-  disable: (name: ToolName): void => {
-    ALL_TOOLS.delete(name);
-  },
-};
+  // enable/disable absichtlich entfernt — Registry ist zur Laufzeit unveränderlich.
+  // Neue Tools werden nur durch Code-Änderung + Deployment hinzugefügt.
+} as const;

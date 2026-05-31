@@ -35,6 +35,7 @@ export interface Settings {
   ttsVoice: string;
   onboardingComplete: boolean;
   eulaAccepted: boolean;
+  userName: string;
   emergencyResetAt: string | null;
 }
 
@@ -85,6 +86,7 @@ export const DEFAULT_SETTINGS: Settings = {
   ttsVoice: "",
   onboardingComplete: false,
   eulaAccepted: false,
+  userName: "",
   emergencyResetAt: null,
   apps: [
     { name: "vscode", command: "code", allowed: true },

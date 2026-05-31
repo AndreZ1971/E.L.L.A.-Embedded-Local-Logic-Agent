@@ -103,4 +103,16 @@ export async function runMigrations(): Promise<void> {
     `);
   }
   // clean_temp + empty_recycle_bin intentionally ohne Default-Regel — Nutzer muss explizit erlauben
+
+  // Directive Audit-Log Tabelle
+  await exec(`
+    CREATE TABLE IF NOT EXISTS directive_audit (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      timestamp   DATETIME NOT NULL,
+      tool        VARCHAR(100) NOT NULL,
+      decision    ENUM('allow','deny') NOT NULL,
+      prohibition VARCHAR(100),
+      created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
 }

@@ -51,6 +51,7 @@ chatRouter.post("/", async (req, res, next) => {
     history.push({ role: "user", content: message });
 
     const memories = await recall(message);
+    const userName = getSettings().userName?.trim() ?? "";
     const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
       history.map((m) => ({ ...m, id: "", createdAt: "" })),
     );
@@ -60,8 +61,14 @@ chatRouter.post("/", async (req, res, next) => {
 
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const response = useOpenAI
-        ? await openaiClient.chat(messages, tools, memories)
-        : await ollamaClient.chat(messages, tools, activeModel, memories);
+        ? await openaiClient.chat(messages, tools, memories, userName)
+        : await ollamaClient.chat(
+            messages,
+            tools,
+            activeModel,
+            memories,
+            userName,
+          );
       const assistantMsg = response.message;
 
       if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
@@ -127,6 +134,7 @@ chatRouter.post("/stream", async (req, res) => {
     history.push({ role: "user", content: message });
 
     const memories = await recall(message);
+    const userName = getSettings().userName?.trim() ?? "";
     const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
       history.map((m) => ({ ...m, id: "", createdAt: "" })),
     );
@@ -136,8 +144,14 @@ chatRouter.post("/stream", async (req, res) => {
 
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const stream = useOpenAI
-        ? openaiClient.chatStream(messages, tools, memories)
-        : ollamaClient.chatStream(messages, tools, activeModel, memories);
+        ? openaiClient.chatStream(messages, tools, memories, userName)
+        : ollamaClient.chatStream(
+            messages,
+            tools,
+            activeModel,
+            memories,
+            userName,
+          );
 
       let roundContent = "";
       let roundToolCalls: OllamaMessage["tool_calls"] | undefined;
