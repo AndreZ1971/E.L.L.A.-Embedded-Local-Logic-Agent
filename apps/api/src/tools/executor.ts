@@ -544,31 +544,49 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     };
   },
 
-  get_location: async () => {
-    // 1. System-Memory prüfen
+  get_location: async (args) => {
+    const consented = (args.user_consented as boolean) === true;
+
+    // Pfad 1: Memory-First — immer erlaubt, kein externer Request
     const memories = await listMemories("system");
-    const locationMemory = (memories as Array<{ content: string }>).find(
-      (m) =>
-        typeof m.content === "string" &&
-        (m.content.toLowerCase().includes("stadt") ||
-          m.content.toLowerCase().includes("wohnort") ||
-          m.content.toLowerCase().includes("location") ||
-          m.content.toLowerCase().includes("city")),
+    const locationMemory = (memories as Array<{ content: string }>).find((m) =>
+      ["wohnort", "standort", "city", "location"].some((kw) =>
+        m.content.toLowerCase().includes(kw),
+      ),
     );
     if (locationMemory) {
+      const match =
+        /(?:standort|wohnort|city)[:\s]+([A-ZÄÖÜ][a-zäöüß\-]+(?:\s+[A-ZÄÖÜ][a-zäöüß\-]+)*)/i.exec(
+          locationMemory.content,
+        ) ??
+        /(?:in|aus)\s+([A-ZÄÖÜ][a-zäöüß\-]+(?:\s+[A-ZÄÖÜ][a-zäöüß\-]+)*)/i.exec(
+          locationMemory.content,
+        );
+      const city = match ? match[1].trim() : locationMemory.content;
+      trackToolUsage("get_location", city);
       return {
         success: true,
-        output: { source: "memory", location: locationMemory.content },
+        output: { source: "memory", city },
       };
     }
 
-    // 2. IP-Geolocation Fallback
+    // Pfad 2: Kein Memory — erst Zustimmung holen (Prohibition IV)
+    if (!consented) {
+      return {
+        success: false,
+        confirm_required: true,
+        error:
+          "Ich kenne deinen Standort noch nicht. Darf ich ihn einmalig über deine IP-Adresse ermitteln? Die Anfrage geht an ip-api.com und wird danach lokal gespeichert. Antworte mit 'ja' um fortzufahren.",
+      };
+    }
+
+    // Pfad 3: Zustimmung erteilt — IP-Request erlaubt
     try {
       const res = await fetch(
         "http://ip-api.com/json/?fields=city,regionName,country,lat,lon,timezone",
         { signal: AbortSignal.timeout(5000) },
       );
-      if (!res.ok) throw new Error("IP-API nicht verfügbar");
+      if (!res.ok) throw new Error(`ip-api HTTP ${res.status}`);
       const geo = (await res.json()) as {
         city: string;
         regionName: string;
@@ -578,6 +596,7 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         timezone: string;
       };
       if (!geo.city) throw new Error("Kein Standort gefunden");
+      await remember("system", `Standort: ${geo.city}, ${geo.country}`);
       trackToolUsage("get_location", `${geo.city}, ${geo.country}`);
       return {
         success: true,
@@ -589,15 +608,13 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
           lat: geo.lat,
           lon: geo.lon,
           timezone: geo.timezone,
-          confirm_required: true,
-          confirm_message: `Ich habe deinen Standort als ${geo.city}, ${geo.country} erkannt. Ist das korrekt? Wenn ja, merke ich ihn mir für das nächste Mal.`,
+          note: "Standort gespeichert — beim nächsten Mal kein externer Request mehr.",
         },
       };
     } catch {
       return {
         success: false,
-        error:
-          "Ich konnte deinen Standort nicht bestimmen. In welcher Stadt bist du?",
+        error: "Standort nicht ermittelbar. In welcher Stadt bist du?",
       };
     }
   },

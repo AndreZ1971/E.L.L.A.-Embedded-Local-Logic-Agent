@@ -34,6 +34,14 @@ const ALL_TOOLS = new Set<ToolName>([
   "create_appointment",
   // Sonstiges
   "homework_mode",
+  // Web & Standort
+  "search_web",
+  "web_search",
+  "fetch_url",
+  "get_weather",
+  "get_location",
+  // Directive-Demo (blockiert, aber registriert)
+  "delete_files",
 ]);
 
 export const toolRegistry = {

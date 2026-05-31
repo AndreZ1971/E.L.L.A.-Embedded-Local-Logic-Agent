@@ -537,10 +537,16 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     function: {
       name: "get_location",
       description:
-        "Gibt den aktuellen Standort des Nutzers zurück — Stadt und Land. Nutze dies bevor du Wetter, lokale Nachrichten oder standortbezogene Informationen abrufst. Wenn kein Standort bekannt ist, wird der Nutzer einmalig gefragt.",
+        "Gibt den aktuellen Standort des Nutzers zurück — Stadt und Land. Nutze dies bevor du Wetter, lokale Nachrichten oder standortbezogene Informationen abrufst. Wenn kein Standort bekannt ist, erst den Nutzer fragen. Wenn der Nutzer 'ja' sagt, erneut mit user_consented=true aufrufen.",
       parameters: {
         type: "object",
-        properties: {},
+        properties: {
+          user_consented: {
+            type: "boolean",
+            description:
+              "true wenn der Nutzer explizit zugestimmt hat seinen Standort per IP zu ermitteln. Erst true setzen wenn der Nutzer 'ja' oder ähnliches geantwortet hat.",
+          },
+        },
       },
     },
   });

@@ -39,5 +39,6 @@ export interface ToolResult {
   output?: unknown;
   error?: string;
   directive?: boolean;
+  confirm_required?: boolean;
   executedAt?: string;
 }
