@@ -72,7 +72,7 @@
       "shortcutName": "E.L.L.A.",
       "uninstallDisplayName": "E.L.L.A. — Embedded Local Logic Agent",
       "deleteAppDataOnUninstall": false,
-      "include": null
+      "include": "installer.nsh"
     }
   }
 }

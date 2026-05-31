@@ -7,5 +7,6 @@ logs/*.log
 *.tsbuildinfo
 apps/api/settings.json
 apps/api/whisper-cache/
+apps/desktop/dist-installer/
 .claude/
 .vscode/
