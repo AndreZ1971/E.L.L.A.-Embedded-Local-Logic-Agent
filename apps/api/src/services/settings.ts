@@ -71,6 +71,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "search_web",
     "get_location",
     "delete_files",
+    "get_datetime",
     "web_search",
     "fetch_url",
     "get_weather",

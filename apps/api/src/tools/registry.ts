@@ -35,6 +35,7 @@ const ALL_TOOLS = new Set<ToolName>([
   // Sonstiges
   "homework_mode",
   // Web & Standort
+  "get_datetime",
   "search_web",
   "web_search",
   "fetch_url",

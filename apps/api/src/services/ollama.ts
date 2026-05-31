@@ -75,12 +75,50 @@ VERHALTEN
 - Erkläre kurz was du tust wenn du ein Tool verwendest.
 - Sei direkt und hilfreich — kein unnötiges Zögern.
 - Wenn du etwas nicht weißt, nutze search_web.
-- Wenn eine Aktion durch die E.L.L.A. Directive blockiert wird, erkläre ruhig und klar warum diese Aktion nicht möglich ist.`;
+- Wenn eine Aktion durch die E.L.L.A. Directive blockiert wird, erkläre ruhig und klar warum diese Aktion nicht möglich ist.
+- Datum und Uhrzeit kennst du immer — sie stehen am Anfang jedes System-Prompts. Für Berechnungen nutze get_datetime.`;
+
+function getCurrentDateTimeString(): string {
+  const now = new Date();
+  const days = [
+    "Sonntag",
+    "Montag",
+    "Dienstag",
+    "Mittwoch",
+    "Donnerstag",
+    "Freitag",
+    "Samstag",
+  ];
+  const months = [
+    "Januar",
+    "Februar",
+    "März",
+    "April",
+    "Mai",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
+  ];
+  const weekday = days[now.getDay()];
+  const day = now.getDate();
+  const month = months[now.getMonth()];
+  const year = now.getFullYear();
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return `${weekday}, ${day}. ${month} ${year}, ${hours}:${minutes} Uhr (${tz})`;
+}
 
 export function buildSystemPrompt(memories: string[] = []): string {
-  if (memories.length === 0) return BASE_PROMPT;
+  const datetime = getCurrentDateTimeString();
+  const prompt = `${BASE_PROMPT}\n\nAktuelle Zeit: ${datetime}`;
+  if (memories.length === 0) return prompt;
   const ctx = memories.map((m) => `- ${m}`).join("\n");
-  return `${BASE_PROMPT}\n\nRelevantes Gedächtnis (nutze dies als Kontext):\n${ctx}`;
+  return `${prompt}\n\nRelevantes Gedächtnis (nutze dies als Kontext):\n${ctx}`;
 }
 
 export const ollamaClient = {

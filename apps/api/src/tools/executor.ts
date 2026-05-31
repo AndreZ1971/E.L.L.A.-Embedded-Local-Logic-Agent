@@ -619,6 +619,47 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     }
   },
 
+  get_datetime: async (args) => {
+    const tz = ((args.timezone as string) ?? "").trim() || undefined;
+    try {
+      const now = new Date();
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: tz,
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZoneName: "short",
+      };
+      const formatted = new Intl.DateTimeFormat("de-DE", options).format(now);
+      const resolvedTz = tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+      trackToolUsage("get_datetime", resolvedTz);
+      return {
+        success: true,
+        output: {
+          datetime: formatted,
+          iso: now.toISOString(),
+          timezone: resolvedTz,
+          timestamp: now.getTime(),
+        },
+      };
+    } catch {
+      const now = new Date();
+      return {
+        success: true,
+        output: {
+          datetime: now.toLocaleString("de-DE"),
+          iso: now.toISOString(),
+          timezone: "system",
+          timestamp: now.getTime(),
+        },
+      };
+    }
+  },
+
   search_web: async (args) => {
     const query = (args.query as string) ?? "";
     if (!query.trim()) return { success: false, error: "query fehlt" };

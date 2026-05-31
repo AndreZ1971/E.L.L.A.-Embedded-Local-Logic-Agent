@@ -23,6 +23,7 @@ export type ToolName =
   | "get_system_status"
   | "search_web"
   | "get_location"
+  | "get_datetime"
   | "delete_files"
   | "web_search"
   | "fetch_url"

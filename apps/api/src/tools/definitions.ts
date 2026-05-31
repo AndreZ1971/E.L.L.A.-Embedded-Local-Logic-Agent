@@ -551,6 +551,25 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  defs.push({
+    type: "function",
+    function: {
+      name: "get_datetime",
+      description:
+        "Gibt die exakte aktuelle Uhrzeit, das Datum und die Zeitzone zurück. Nutze dies für Berechnungen wie 'Wie viele Tage bis...', 'Was ist in 3 Stunden?' oder wenn du die genaue Zeit für eine andere Zeitzone brauchst.",
+      parameters: {
+        type: "object",
+        properties: {
+          timezone: {
+            type: "string",
+            description:
+              "Optional: IANA Zeitzone z.B. 'America/New_York'. Weglassen für lokale Systemzeit.",
+          },
+        },
+      },
+    },
+  });
+
   // Directive-Demo — kein Handler, wird von DIRECTIVE_DENY blockiert
   defs.push({
     type: "function",
