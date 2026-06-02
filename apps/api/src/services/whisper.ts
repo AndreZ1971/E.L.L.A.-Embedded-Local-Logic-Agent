@@ -20,7 +20,7 @@ type ASRPipeline = Awaited<ReturnType<typeof pipeline>>;
 let _pipe: ASRPipeline | null = null;
 let _loading: Promise<ASRPipeline> | null = null;
 
-const MODEL = "Xenova/whisper-tiny";
+const MODEL = "Xenova/whisper-base";
 
 export async function getWhisperPipeline(): Promise<ASRPipeline> {
   if (_pipe) return _pipe;
