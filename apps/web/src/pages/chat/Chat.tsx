@@ -3,7 +3,10 @@ import { AudioVAD, encodeWav } from "../../utils/audioVAD.js";
 
 type VoiceMode = "off" | "manual" | "wakeword";
 
-const WAKEWORD_RE = /^e+l+a+[,.\s]*/i;
+const WAKEWORD_RE = /el+a+[,.\s!?]*/i;
+// Whisper-tiny hallucinations — skip these segments entirely
+const HALLUCINATION_RE =
+  /^\[.*\]$|^\(.*\)$|wir sehen uns wieder|bis zum nächsten|vielen dank für|untertitel|copyright/i;
 
 /* ── Message + stream types ──────────────────────────────────────────── */
 interface Message {
@@ -472,8 +475,17 @@ const Chat: React.FC = () => {
             });
             const { text } = (await r.json()) as { text: string };
             const clean = (text ?? "").trim();
-            if (WAKEWORD_RE.test(clean)) {
-              const command = clean.replace(WAKEWORD_RE, "").trim();
+            if (!clean || HALLUCINATION_RE.test(clean)) return;
+            const matched = WAKEWORD_RE.test(clean);
+            console.log(
+              "[WAKEWORD] Whisper:",
+              JSON.stringify(clean),
+              "→ match:",
+              matched,
+            );
+            if (matched) {
+              // Extract command: everything after "ella" (+ trailing punctuation/spaces)
+              const command = clean.replace(/^.*?el+a+[,.\s!?]*/i, "").trim();
               if (command) sendText(command);
             }
           } catch {
