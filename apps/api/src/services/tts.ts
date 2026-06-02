@@ -20,8 +20,13 @@ export async function synthesize(
   options: TTSOptions = {},
 ): Promise<Buffer> {
   const tts = getTTS();
-  const voice = options.voice?.trim() || DEFAULT_VOICE;
-  const locale = voice.split("-").slice(0, 2).join("-") || "de-DE";
+  const rawVoice = options.voice?.trim() ?? "";
+  // msedge-tts requires ShortName format: "de-DE-KatjaNeural"
+  // Windows SAPI names like "Microsoft Katja - German (Germany)" are not valid here
+  const voice = /^[a-z]{2}-[A-Z]{2}-.+/.test(rawVoice)
+    ? rawVoice
+    : DEFAULT_VOICE;
+  const locale = voice.split("-").slice(0, 2).join("-");
 
   const metadataOptions = new MetadataOptions();
   metadataOptions.voiceLocale = locale;
