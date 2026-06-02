@@ -15,8 +15,12 @@ export class AudioVAD {
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     this.ctx = new AudioContext();
 
-    // Static file in public/ — no Blob-URL, no CSP issues
-    await this.ctx.audioWorklet.addModule("/vad-processor.js");
+    // Pfad relativ zur aktuellen Seite — funktioniert in http:// und Electron file://
+    const base = document.baseURI.substring(
+      0,
+      document.baseURI.lastIndexOf("/") + 1,
+    );
+    await this.ctx.audioWorklet.addModule(base + "vad-processor.js");
 
     this.source = this.ctx.createMediaStreamSource(this.stream);
     this.node = new AudioWorkletNode(this.ctx, "vad-processor");

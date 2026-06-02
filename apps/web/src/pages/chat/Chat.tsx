@@ -419,9 +419,11 @@ const Chat: React.FC = () => {
       mediaRecorderRef.current = mr;
       setMicActive(true);
       setMicStatus("Aufnahme…");
-    } catch {
-      setMicStatus("Mikrofon nicht verfügbar");
-      setTimeout(() => setMicStatus(""), 3000);
+    } catch (err) {
+      const msg = err instanceof Error ? err.name : "Unbekannt";
+      setMicStatus(`Mikrofon: ${msg}`);
+      console.error("[MIC] getUserMedia fehlgeschlagen:", err);
+      setTimeout(() => setMicStatus(""), 5000);
     }
   }, []);
 
@@ -482,9 +484,11 @@ const Chat: React.FC = () => {
         },
       })
       .then(() => setWakeListening(true))
-      .catch(() => {
-        setMicStatus("Mikrofon nicht verfügbar");
-        setTimeout(() => setMicStatus(""), 3000);
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.name : "Unbekannt";
+        setMicStatus(`Wakeword: ${msg}`);
+        console.error("[WAKEWORD] VAD-Start fehlgeschlagen:", err);
+        setTimeout(() => setMicStatus(""), 5000);
       });
 
     return () => {
