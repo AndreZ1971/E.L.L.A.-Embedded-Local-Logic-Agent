@@ -76,6 +76,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "web_search",
     "fetch_url",
     "get_weather",
+    "shutdown_system",
   ],
   sessionLimit: 40,
   openaiApiKey: "",

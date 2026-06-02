@@ -81,6 +81,10 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "web_search", label: "Web-Suche via DuckDuckGo (kein API-Key)" },
   { name: "fetch_url", label: "URL-Inhalt abrufen" },
   { name: "get_weather", label: "Wettervorhersage (Open-Meteo)" },
+  {
+    name: "shutdown_system",
+    label: "PC herunterfahren / Neu starten / Schlafmodus",
+  },
 ];
 
 const input: React.CSSProperties = {

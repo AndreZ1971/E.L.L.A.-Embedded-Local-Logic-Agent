@@ -90,6 +90,7 @@ export async function runMigrations(): Promise<void> {
     [23, "Web-Suche (DDG) erlaubt", "web_search", "always", "allow"],
     [24, "URL abrufen erlaubt", "fetch_url", "always", "allow"],
     [25, "Wetter abrufen erlaubt", "get_weather", "always", "allow"],
+    [26, "PC herunterfahren erlaubt", "shutdown_system", "always", "allow"],
   ] as const;
 
   for (const [id, name, tool_name, trigger, action] of standardTools) {
