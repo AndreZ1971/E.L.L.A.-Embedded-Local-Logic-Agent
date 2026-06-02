@@ -147,6 +147,8 @@ const Chat: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const vadRef = useRef<AudioVAD | null>(null);
+  const awaitingCommandRef = useRef(false);
+  const awaitingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [wakeListening, setWakeListening] = useState(false);
   const loadingRef = useRef(false);
 
@@ -476,17 +478,33 @@ const Chat: React.FC = () => {
             const { text } = (await r.json()) as { text: string };
             const clean = (text ?? "").trim();
             if (!clean || HALLUCINATION_RE.test(clean)) return;
-            const matched = WAKEWORD_RE.test(clean);
-            console.log(
-              "[WAKEWORD] Whisper:",
-              JSON.stringify(clean),
-              "→ match:",
-              matched,
-            );
-            if (matched) {
-              // Extract command: everything after "ella" (+ trailing punctuation/spaces)
+            console.log("[WAKEWORD] Whisper:", JSON.stringify(clean));
+            // Phase 2: wakeword already heard — treat next segment as command
+            if (awaitingCommandRef.current) {
+              awaitingCommandRef.current = false;
+              if (awaitingTimerRef.current) {
+                clearTimeout(awaitingTimerRef.current);
+                awaitingTimerRef.current = null;
+              }
+              sendText(clean);
+              return;
+            }
+            // Phase 1: check for wakeword
+            if (WAKEWORD_RE.test(clean)) {
               const command = clean.replace(/^.*?el+a+[,.\s!?]*/i, "").trim();
-              if (command) sendText(command);
+              if (command) {
+                sendText(command);
+              } else {
+                // Wakeword alone — wait for next segment as command
+                awaitingCommandRef.current = true;
+                setMicStatus("Bereit…");
+                // Auto-reset after 6 s if no follow-up
+                awaitingTimerRef.current = setTimeout(() => {
+                  awaitingCommandRef.current = false;
+                  awaitingTimerRef.current = null;
+                  setMicStatus("");
+                }, 6000);
+              }
             }
           } catch {
             /* Segment still ignorieren */
