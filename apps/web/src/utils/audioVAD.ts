@@ -1,5 +1,51 @@
 /** Energy-based Voice Activity Detector — AudioWorkletNode. */
 
+// Worklet-Code als Blob — umgeht file://-Einschränkungen von Chromium/Electron
+// und braucht keinen externen HTTP-Fetch für das Modul.
+const VAD_PROCESSOR_CODE = `
+class VADProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this._buf = [];
+    this._speaking = false;
+    this._silence = 0;
+  }
+  process(inputs) {
+    const ch = inputs[0]?.[0];
+    if (!ch) return true;
+    let rms = 0;
+    for (let i = 0; i < ch.length; i++) rms += ch[i] * ch[i];
+    rms = Math.sqrt(rms / ch.length);
+    const THRESHOLD = 0.015;
+    const SILENCE_FRAMES = 280;
+    if (rms > THRESHOLD) {
+      if (!this._speaking) {
+        this._speaking = true;
+        this._silence = 0;
+        this.port.postMessage({ type: 'speechStart' });
+      }
+      this._silence = 0;
+      this._buf.push(ch.slice());
+    } else if (this._speaking) {
+      this._silence++;
+      this._buf.push(ch.slice());
+      if (this._silence >= SILENCE_FRAMES) {
+        const total = this._buf.reduce((s, b) => s + b.length, 0);
+        const out = new Float32Array(total);
+        let off = 0;
+        for (const b of this._buf) { out.set(b, off); off += b.length; }
+        this.port.postMessage({ type: 'segment', audio: out }, [out.buffer]);
+        this._buf = [];
+        this._speaking = false;
+        this._silence = 0;
+      }
+    }
+    return true;
+  }
+}
+registerProcessor('vad-processor', VADProcessor);
+`;
+
 export interface VADCallbacks {
   onSpeechStart?: () => void;
   onSegment: (audio: Float32Array, sampleRate: number) => void;
@@ -10,17 +56,18 @@ export class AudioVAD {
   private source: MediaStreamAudioSourceNode | null = null;
   private node: AudioWorkletNode | null = null;
   private stream: MediaStream | null = null;
+  private blobUrl: string | null = null;
 
   async start(callbacks: VADCallbacks): Promise<void> {
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     this.ctx = new AudioContext();
 
-    // Pfad relativ zur aktuellen Seite — funktioniert in http:// und Electron file://
-    const base = document.baseURI.substring(
-      0,
-      document.baseURI.lastIndexOf("/") + 1,
-    );
-    await this.ctx.audioWorklet.addModule(base + "vad-processor.js");
+    // Blob-URL: kein HTTP-Fetch nötig — funktioniert in http:// und Electron file://
+    const blob = new Blob([VAD_PROCESSOR_CODE], {
+      type: "application/javascript",
+    });
+    this.blobUrl = URL.createObjectURL(blob);
+    await this.ctx.audioWorklet.addModule(this.blobUrl);
 
     this.source = this.ctx.createMediaStreamSource(this.stream);
     this.node = new AudioWorkletNode(this.ctx, "vad-processor");
@@ -45,10 +92,12 @@ export class AudioVAD {
     this.source?.disconnect();
     this.stream?.getTracks().forEach((t) => t.stop());
     this.ctx?.close().catch(() => {});
+    if (this.blobUrl) URL.revokeObjectURL(this.blobUrl);
     this.ctx = null;
     this.node = null;
     this.source = null;
     this.stream = null;
+    this.blobUrl = null;
   }
 }
 
@@ -64,8 +113,8 @@ export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
   str(8, "WAVE");
   str(12, "fmt ");
   view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true); // PCM
-  view.setUint16(22, 1, true); // mono
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
   view.setUint32(24, sampleRate, true);
   view.setUint32(28, sampleRate * 2, true);
   view.setUint16(32, 2, true);
