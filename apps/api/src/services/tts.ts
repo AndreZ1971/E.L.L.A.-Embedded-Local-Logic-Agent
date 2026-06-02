@@ -20,8 +20,8 @@ export async function synthesize(
   options: TTSOptions = {},
 ): Promise<Buffer> {
   const tts = getTTS();
-  const voice = options.voice ?? DEFAULT_VOICE;
-  const locale = voice.split("-").slice(0, 2).join("-"); // "de-DE" from "de-DE-KatjaNeural"
+  const voice = options.voice?.trim() || DEFAULT_VOICE;
+  const locale = voice.split("-").slice(0, 2).join("-") || "de-DE";
 
   const metadataOptions = new MetadataOptions();
   metadataOptions.voiceLocale = locale;
