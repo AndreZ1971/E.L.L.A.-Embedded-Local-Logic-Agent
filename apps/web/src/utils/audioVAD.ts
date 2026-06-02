@@ -10,6 +10,8 @@ class VADProcessor extends AudioWorkletProcessor {
     this._speaking = false;
     this._silence = 0;
     this._speechFrames = 0;
+    this._noiseFloor = 0.012;
+    this._noiseFrameCount = 0;
   }
   process(inputs) {
     const ch = inputs[0]?.[0];
@@ -17,10 +19,12 @@ class VADProcessor extends AudioWorkletProcessor {
     let rms = 0;
     for (let i = 0; i < ch.length; i++) rms += ch[i] * ch[i];
     rms = Math.sqrt(rms / ch.length);
-    const THRESHOLD = 0.015;
     const SILENCE_FRAMES = 200;
     const MIN_SPEECH_FRAMES = 12;
-    if (rms > THRESHOLD) {
+    // Adaptive threshold: speech must be 3.5x above measured noise floor.
+    // Minimum 0.015 so quiet environments don't become hair-trigger.
+    const threshold = Math.max(0.015, this._noiseFloor * 3.5);
+    if (rms > threshold) {
       if (!this._speaking) {
         this._speaking = true;
         this._silence = 0;
@@ -45,6 +49,13 @@ class VADProcessor extends AudioWorkletProcessor {
         this._speaking = false;
         this._silence = 0;
         this._speechFrames = 0;
+      }
+    } else {
+      // Not speaking — update noise floor with exponential moving average.
+      // Skip first 20 frames to avoid init spike.
+      this._noiseFrameCount++;
+      if (this._noiseFrameCount > 20) {
+        this._noiseFloor = this._noiseFloor * 0.98 + rms * 0.02;
       }
     }
     return true;
