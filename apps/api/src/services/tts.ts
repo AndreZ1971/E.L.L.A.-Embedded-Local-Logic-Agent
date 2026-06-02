@@ -1,4 +1,4 @@
-import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
+import { MsEdgeTTS, MetadataOptions, OUTPUT_FORMAT } from "msedge-tts";
 
 const DEFAULT_VOICE = "de-DE-KatjaNeural";
 
@@ -21,8 +21,16 @@ export async function synthesize(
 ): Promise<Buffer> {
   const tts = getTTS();
   const voice = options.voice ?? DEFAULT_VOICE;
+  const locale = voice.split("-").slice(0, 2).join("-"); // "de-DE" from "de-DE-KatjaNeural"
 
-  await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+  const metadataOptions = new MetadataOptions();
+  metadataOptions.voiceLocale = locale;
+
+  await tts.setMetadata(
+    voice,
+    OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3,
+    metadataOptions,
+  );
 
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
