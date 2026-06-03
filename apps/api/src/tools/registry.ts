@@ -12,8 +12,12 @@ const ALL_TOOLS = new Set<ToolName>([
   "free_ram",
   "clean_temp",
   "empty_recycle_bin",
+  // Laufwerke (USB only — System-Laufwerke sind auf Implementierungsebene gesperrt)
+  "format_drive",
+  "rename_drive",
   // Apps & Setups
   "open_app",
+  "list_programs",
   "load_setup",
   "create_setup",
   // Hardware & Netzwerk
