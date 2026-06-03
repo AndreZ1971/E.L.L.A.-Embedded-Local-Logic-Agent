@@ -1,4 +1,4 @@
-import * as ort from "onnxruntime-node";
+import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs/promises";
@@ -13,21 +13,18 @@ const ffmpegBin: string = _require("ffmpeg-static");
 
 const __dir = path.dirname(fileURLToPath(import.meta.url));
 const MODEL_DIR = path.join(__dir, "../../wakeword-models");
-
-const MEL_PATH = path.join(MODEL_DIR, "melspectrogram.onnx");
-const EMB_PATH = path.join(MODEL_DIR, "embedding_model.onnx");
 const ELLA_PATH = path.join(MODEL_DIR, "ella.onnx");
+const SERVER_SCRIPT = path.join(
+  __dir,
+  "../../../../scripts/wakeword_server.py",
+);
 
-// Pipeline constants (verified against Python embed_clips output)
-const TARGET_SR = 16000;
-const AUDIO_SAMPLES = 20480; // 1.28s at 16kHz
-const MEL_WIN = 76; // embedding model window size
-const MEL_STRIDE = 8; // stride between windows
-const N_EMB = 7; // embeddings per inference = (125 - 76) / 8 + 1
-
-let melSess: ort.InferenceSession | null = null;
-let embSess: ort.InferenceSession | null = null;
-let ellaSess: ort.InferenceSession | null = null;
+let pyProcess: ChildProcessWithoutNullStreams | null = null;
+let ready = false;
+let pendingResolves: Array<
+  (result: { score: number; detected: boolean }) => void
+> = [];
+let lineBuffer = "";
 
 export function isWakewordAvailable(): boolean {
   try {
@@ -42,87 +39,114 @@ export async function loadWakewordModels(): Promise<void> {
     console.log("[WAKEWORD] Kein Modell — Wakeword-Erkennung deaktiviert");
     return;
   }
-  const opts: ort.InferenceSession.SessionOptions = {
-    executionProviders: ["cpu"],
-  };
-  [melSess, embSess, ellaSess] = await Promise.all([
-    ort.InferenceSession.create(MEL_PATH, opts),
-    ort.InferenceSession.create(EMB_PATH, opts),
-    ort.InferenceSession.create(ELLA_PATH, opts),
-  ]);
-  console.log("[WAKEWORD] Modelle geladen ✓");
+
+  return new Promise((resolve, reject) => {
+    pyProcess = spawn("py", ["-3.12", SERVER_SCRIPT], {
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+
+    pyProcess.stderr.on("data", (d: Buffer) => {
+      process.stdout.write("[WAKEWORD] " + d.toString().trimEnd() + "\n");
+    });
+
+    pyProcess.stdout.on("data", (d: Buffer) => {
+      lineBuffer += d.toString();
+      const lines = lineBuffer.split("\n");
+      lineBuffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const msg = JSON.parse(line) as {
+            ready?: boolean;
+            score?: number;
+            detected?: boolean;
+            error?: string;
+          };
+
+          if (msg.ready) {
+            ready = true;
+            resolve();
+            return;
+          }
+
+          const resolver = pendingResolves.shift();
+          if (resolver) {
+            resolver({
+              score: msg.score ?? 0,
+              detected: msg.detected ?? false,
+            });
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+    });
+
+    pyProcess.on("error", (err) => {
+      console.error("[WAKEWORD] Prozess-Fehler:", err.message);
+      reject(err);
+    });
+
+    pyProcess.on("exit", (code) => {
+      if (!ready) reject(new Error(`Python exited with code ${code}`));
+      ready = false;
+      pyProcess = null;
+    });
+
+    setTimeout(() => {
+      if (!ready) {
+        reject(new Error("Wakeword server timeout"));
+      }
+    }, 30000);
+  });
 }
 
 export async function detectWakeword(
   audioBuffer: Buffer,
 ): Promise<{ detected: boolean; score: number }> {
-  if (!melSess || !embSess || !ellaSess) return { detected: false, score: 0 };
+  if (!ready || !pyProcess) return { detected: false, score: 0 };
 
   const tmpFile = path.join(os.tmpdir(), `wakeword-${Date.now()}.wav`);
   try {
     await fs.writeFile(tmpFile, audioBuffer);
 
-    // Convert to 16kHz float32 PCM via ffmpeg
-    const { stdout: pcm } = await execAsync(
-      `"${ffmpegBin}" -y -i "${tmpFile}" -ar ${TARGET_SR} -ac 1 -f f32le -`,
-      { encoding: "buffer", maxBuffer: 5 * 1024 * 1024, timeout: 10000 },
+    // Convert to 16kHz float32 WAV
+    const wavFile = tmpFile.replace(".wav", "_16k.wav");
+    await execAsync(
+      `"${ffmpegBin}" -y -i "${tmpFile}" -ar 16000 -ac 1 "${wavFile}"`,
+      { timeout: 10000 },
     );
 
-    const audioF32 = new Float32Array(
-      pcm.buffer,
-      pcm.byteOffset,
-      pcm.byteLength / 4,
-    );
-    if (audioF32.length < AUDIO_SAMPLES / 2) return { detected: false, score: 0 };
+    return new Promise((resolve) => {
+      pendingResolves.push(resolve);
+      const req = JSON.stringify({ audio_path: wavFile }) + "\n";
+      pyProcess!.stdin.write(req);
 
-    // Pad or trim to exactly AUDIO_SAMPLES
-    const audio = new Float32Array(AUDIO_SAMPLES);
-    audio.set(audioF32.slice(0, Math.min(audioF32.length, AUDIO_SAMPLES)));
-
-    // Step 1: mel spectrogram [1, AUDIO_SAMPLES] → [1, 1, 125, 32]
-    const audioTensor = new ort.Tensor("float32", audio, [1, AUDIO_SAMPLES]);
-    const melResult = await melSess.run({ input: audioTensor });
-    const melData = melResult["output"].data as Float32Array;
-    // Shape is [1, 1, 125, 32] → extract [125, 32] as flat
-    const melFrames = 125;
-    const melBins = 32;
-    // melData layout: [time=1, ch=1, frames=125, bins=32]
-
-    // Step 2: create N_EMB sliding windows [N_EMB, 76, 32, 1]
-    const windowSize = MEL_WIN * melBins; // 76*32 = 2432 floats per window
-    const windowData = new Float32Array(N_EMB * MEL_WIN * melBins * 1);
-    for (let w = 0; w < N_EMB; w++) {
-      const frameStart = w * MEL_STRIDE;
-      for (let f = 0; f < MEL_WIN; f++) {
-        const srcIdx = (frameStart + f) * melBins;
-        const dstIdx = w * windowSize + f * melBins;
-        windowData.set(melData.slice(srcIdx, srcIdx + melBins), dstIdx);
-      }
-    }
-    const windowTensor = new ort.Tensor("float32", windowData, [
-      N_EMB,
-      MEL_WIN,
-      melBins,
-      1,
-    ]);
-
-    // Step 3: embedding model [N_EMB, 76, 32, 1] → [N_EMB, 1, 1, 96]
-    const embResult = await embSess.run({ input_1: windowTensor });
-    const embData = embResult["conv2d_19"].data as Float32Array;
-    // Shape [N_EMB, 1, 1, 96] → flatten to [N_EMB, 96]
-    const embDim = 96;
-    const embFlat = new Float32Array(N_EMB * embDim);
-    for (let i = 0; i < N_EMB; i++) {
-      embFlat.set(embData.slice(i * embDim, (i + 1) * embDim), i * embDim);
-    }
-
-    // Step 4: ella classifier [1, N_EMB, 96] → [1, 1]
-    const ellaTensor = new ort.Tensor("float32", embFlat, [1, N_EMB, embDim]);
-    const ellaResult = await ellaSess.run({ x: ellaTensor });
-    const score = (ellaResult["ella"].data as Float32Array)[0];
-
-    return { detected: score > 0.5, score };
-  } finally {
+      // Timeout fallback
+      setTimeout(() => {
+        const idx = pendingResolves.indexOf(resolve);
+        if (idx !== -1) {
+          pendingResolves.splice(idx, 1);
+          resolve({ detected: false, score: 0 });
+        }
+        fs.unlink(wavFile).catch(() => {});
+      }, 5000);
+    }).finally(() => {
+      fs.unlink(tmpFile).catch(() => {});
+      fs.unlink(wavFile).catch(() => {});
+    }) as Promise<{ detected: boolean; score: number }>;
+  } catch {
     await fs.unlink(tmpFile).catch(() => {});
+    return { detected: false, score: 0 };
+  }
+}
+
+export function stopWakewordServer(): void {
+  if (pyProcess) {
+    pyProcess.stdin.end();
+    pyProcess.kill();
+    pyProcess = null;
+    ready = false;
   }
 }
