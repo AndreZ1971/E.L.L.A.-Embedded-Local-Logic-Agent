@@ -2,6 +2,7 @@ import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs/promises";
+import { existsSync } from "fs";
 import * as os from "os";
 import * as path from "path";
 import { createRequire } from "module";
@@ -28,7 +29,7 @@ let lineBuffer = "";
 
 export function isWakewordAvailable(): boolean {
   try {
-    return require("fs").existsSync(ELLA_PATH);
+    return existsSync(ELLA_PATH);
   } catch {
     return false;
   }
@@ -46,7 +47,7 @@ export async function loadWakewordModels(): Promise<void> {
     });
 
     pyProcess.stderr.on("data", (d: Buffer) => {
-      process.stdout.write("[WAKEWORD] " + d.toString().trimEnd() + "\n");
+      process.stdout.write(d.toString().trimEnd() + "\n");
     });
 
     pyProcess.stdout.on("data", (d: Buffer) => {
