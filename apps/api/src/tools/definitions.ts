@@ -5,6 +5,80 @@ export const TOOL_DEFINITIONS: OllamaTool[] = [
   {
     type: "function",
     function: {
+      name: "format_drive",
+      description:
+        "Formatiert ein USB-Laufwerk oder einen externen Datenträger. Systemlaufwerke (C:) sind gesperrt. Nur für Wechseldatenträger (USB-Sticks, externe Festplatten). Immer Bestätigung einholen bevor du formatierst!",
+      parameters: {
+        type: "object",
+        properties: {
+          drive: {
+            type: "string",
+            description: 'Laufwerksbuchstabe, z.B. "E" oder "F" — niemals C oder D',
+          },
+          label: {
+            type: "string",
+            description: 'Name/Label des Laufwerks nach dem Formatieren, z.B. "MeinUSB" (max 11 Zeichen)',
+          },
+          filesystem: {
+            type: "string",
+            description: '"FAT32" (Standard, kompatibel), "NTFS" (Windows, große Dateien), "exFAT" (Cross-Platform)',
+          },
+          quick: {
+            type: "boolean",
+            description: "true für Quick-Format (Standard), false für vollständiges Format",
+          },
+        },
+        required: ["drive"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "rename_drive",
+      description:
+        "Benennt ein USB-Laufwerk oder externen Datenträger um (ändert das Volume-Label). Systemlaufwerke (C:) sind gesperrt.",
+      parameters: {
+        type: "object",
+        properties: {
+          drive: {
+            type: "string",
+            description: 'Laufwerksbuchstabe, z.B. "E" oder "F"',
+          },
+          label: {
+            type: "string",
+            description: "Neuer Name für das Laufwerk",
+          },
+        },
+        required: ["drive", "label"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_programs",
+      description:
+        "Sucht installierte Programme in Program Files und Program Files (x86). Windows-Systemordner (System32 etc.) werden nicht durchsucht. Nutze dies wenn der Nutzer fragt welche Programme installiert sind, oder wenn open_app eine App nicht findet.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: 'Suchbegriff, z.B. "adobe" oder "office". Weglassen für alle Programme.',
+          },
+          limit: {
+            type: "string",
+            description: "Maximale Anzahl Ergebnisse (Standard: 20, max: 50)",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "open_app",
       description:
         "Öffnet eine Anwendung oder ein Programm auf dem Computer des Nutzers.",
