@@ -3,6 +3,9 @@ import {
   getDiskUsage,
   cleanTemp,
   emptyRecycleBin,
+  formatDrive,
+  renameDrive,
+  listPrograms,
 } from "@ella/agent-tools";
 import { execSync, exec } from "child_process";
 import { promisify } from "util";
@@ -160,6 +163,15 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
   get_disk_usage: (a) => getDiskUsage(a as { drive?: string }),
   clean_temp: (a) => cleanTemp(a as { scope?: string }),
   empty_recycle_bin: () => emptyRecycleBin(),
+
+  format_drive: (a) =>
+    formatDrive(a as { drive: string; label?: string; filesystem?: string; quick?: boolean }),
+
+  rename_drive: (a) =>
+    renameDrive(a as { drive: string; label: string }),
+
+  list_programs: (a) =>
+    listPrograms(a as { query?: string; limit?: number }),
   load_setup: loadSetup,
   homework_mode: homeworkModeTool,
   remember: (a) =>
