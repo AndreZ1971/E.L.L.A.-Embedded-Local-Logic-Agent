@@ -11,9 +11,18 @@ Output:
     apps/api/wakeword-models/embedding_model.onnx
 """
 
+import io
 import os
 import sys
 import asyncio
+
+# Force UTF-8 output on Windows (CP1252 console can't handle arrows/checkmarks)
+if hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
+# Disable torch dynamo — avoids speechbrain lazy-import conflict with torch 2.12
+import torch._dynamo
+torch._dynamo.disable()
 import shutil
 import numpy as np
 import soundfile as sf
@@ -74,7 +83,7 @@ async def generate_positive_samples():
                 n += 1
                 print(f"\r  Positive Samples: {n}", end="", flush=True)
 
-    print(f"\n  ✓ {n} positive Samples")
+    print(f"\n  OK {n} positive Samples")
     return n
 
 
@@ -84,7 +93,7 @@ def generate_negative_samples(n=400):
     os.makedirs(NEG_DIR, exist_ok=True)
     existing = len([f for f in os.listdir(NEG_DIR) if f.endswith(".wav")])
     if existing >= n:
-        print(f"  ✓ {existing} negative Samples bereits vorhanden")
+        print(f"  OK {existing} negative Samples bereits vorhanden")
         return
 
     for i in range(n):
@@ -109,7 +118,7 @@ def generate_negative_samples(n=400):
             ).astype(np.int16)
         sf.write(out, audio, TARGET_SR, subtype="PCM_16")
 
-    print(f"  ✓ {n} negative Samples generiert")
+    print(f"  OK {n} negative Samples generiert")
 
 
 # ── 3. Audio loading & feature extraction ───────────────────────────────────
@@ -204,24 +213,49 @@ def train_and_export():
     print(f"  Val:   {len(X_pos_val)} pos + {len(X_neg_val)} neg")
     print("  Trainiere Modell (CPU, ~10 Minuten)...")
 
+    import torch
+    from torch.utils.data import TensorDataset, DataLoader
+    import itertools
+
+    steps = 8000
+    batch_size = 32
+
+    # Training DataLoader — exactly `steps` batches via cycling
+    X_tr = np.concatenate([X_pos_train, X_neg_train])
+    y_tr = np.array([1] * len(X_pos_train) + [0] * len(X_neg_train), dtype=np.float32)
+    train_ds = TensorDataset(torch.FloatTensor(X_tr), torch.FloatTensor(y_tr))
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, drop_last=True)
+    train_data = list(itertools.islice(itertools.cycle(train_loader), steps))
+
+    # Validation DataLoader
+    X_va = np.concatenate([X_pos_val, X_neg_val]) if len(X_neg_val) > 0 else X_pos_val
+    y_va = np.array([1] * len(X_pos_val) + [0] * len(X_neg_val), dtype=np.float32)
+    val_ds = TensorDataset(torch.FloatTensor(X_va), torch.FloatTensor(y_va))
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False)
+
+    # FP validation: negative-only DataLoader (cycled)
+    fp_ds = TensorDataset(torch.FloatTensor(X_neg), torch.zeros(len(X_neg), dtype=torch.float32))
+    fp_loader = DataLoader(fp_ds, batch_size=batch_size, shuffle=False)
+    fp_data = list(itertools.islice(itertools.cycle(fp_loader), 200))
+
     model = Model(n_classes=1, input_shape=sample_shape)
     model.auto_train(
-        X_train=np.concatenate([X_pos_train, X_neg_train]),
-        X_val=np.concatenate([X_pos_val, X_neg_val]),
-        false_positive_val_data=X_neg,
-        steps=8000,
+        X_train=train_data,
+        X_val=val_loader,
+        false_positive_val_data=fp_data,
+        steps=steps,
         target_fp_per_hour=0.5,
     )
 
     os.makedirs(MODEL_DIR, exist_ok=True)
     onnx_path = os.path.join(MODEL_DIR, "ella.onnx")
     model.export_to_onnx(onnx_path, class_mapping="ella")
-    print(f"  ✓ ella.onnx → {onnx_path}")
+    print(f"  OK ella.onnx → {onnx_path}")
 
     for fname in ("melspectrogram.onnx", "embedding_model.onnx"):
         shutil.copy2(os.path.join(res_dir, fname),
                      os.path.join(MODEL_DIR, fname))
-    print(f"  ✓ Feature-Modelle kopiert")
+    print(f"  OK Feature-Modelle kopiert")
 
 
 # ── main ─────────────────────────────────────────────────────────────────────
@@ -234,5 +268,5 @@ if __name__ == "__main__":
     generate_negative_samples(n=400)
     print("\n3. Trainiere & exportiere Modell...")
     train_and_export()
-    print(f"\n✓ Fertig! Modell: {os.path.join(MODEL_DIR, 'ella.onnx')}")
+    print(f"\nOK Fertig! Modell: {os.path.join(MODEL_DIR, 'ella.onnx')}")
     print("  Starte ELLA neu um das Modell zu laden.")

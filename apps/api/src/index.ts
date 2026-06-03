@@ -10,6 +10,8 @@ import { eventsRouter } from "./routes/events.js";
 import { onboardingRouter } from "./routes/onboarding.js";
 import { setupRouter } from "./routes/setup.js";
 import { speechRouter, preloadWhisper } from "./routes/speech.js";
+import { wakewordRouter } from "./routes/wakeword.js";
+import { loadWakewordModels } from "./services/wakewordDetector.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { env } from "./config/env.js";
 import { loadSettings } from "./services/settings.js";
@@ -44,6 +46,7 @@ app.use("/api/onboarding", onboardingRouter);
 app.use("/api/setup", setupRouter);
 app.use("/api/homework", homeworkRouter);
 app.use("/api/speech", speechRouter);
+app.use("/api/wakeword", wakewordRouter);
 
 app.use(errorHandler);
 
@@ -54,5 +57,6 @@ loadSettings()
       console.log(`E.L.L.A. API  →  http://localhost:${env.port}`);
       worker.start();
       preloadWhisper();
+      loadWakewordModels().catch(() => {});
     });
   });

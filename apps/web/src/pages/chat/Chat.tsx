@@ -471,43 +471,63 @@ const Chat: React.FC = () => {
           const form = new FormData();
           form.append("audio", blob, "segment.wav");
           try {
-            const r = await fetch(`${API}/api/speech/transcribe`, {
-              method: "POST",
-              body: form,
-            });
-            const { text } = (await r.json()) as { text: string };
-            const clean = (text ?? "").trim();
-            if (!clean || HALLUCINATION_RE.test(clean)) return;
-            console.log("[WAKEWORD] Whisper:", JSON.stringify(clean));
-            // Phase 2: wakeword already heard — treat next segment as command
+            // Phase 2: wakeword confirmed — transcribe as command
             if (awaitingCommandRef.current) {
               awaitingCommandRef.current = false;
               if (awaitingTimerRef.current) {
                 clearTimeout(awaitingTimerRef.current);
                 awaitingTimerRef.current = null;
               }
-              sendText(clean);
+              const r = await fetch(`${API}/api/speech/transcribe`, {
+                method: "POST",
+                body: form,
+              });
+              const { text } = (await r.json()) as { text: string };
+              const clean = (text ?? "").trim();
+              if (clean && !HALLUCINATION_RE.test(clean)) sendText(clean);
               return;
             }
-            // Phase 1: check for wakeword
-            if (WAKEWORD_RE.test(clean)) {
+
+            // Phase 1: fast wakeword check via ONNX model
+            const wakeR = await fetch(`${API}/api/wakeword/detect`, {
+              method: "POST",
+              body: form,
+            });
+            const { detected, score } = (await wakeR.json()) as {
+              detected: boolean;
+              score: number;
+            };
+
+            if (!detected) return;
+
+            // Wakeword confirmed — transcribe same audio for inline command
+            const form2 = new FormData();
+            form2.append("audio", blob, "segment.wav");
+            const trR = await fetch(`${API}/api/speech/transcribe`, {
+              method: "POST",
+              body: form2,
+            });
+            const { text } = (await trR.json()) as { text: string };
+            const clean = (text ?? "").trim();
+
+            if (clean && !HALLUCINATION_RE.test(clean)) {
               const command = clean.replace(/^.*?el+a+[,.\s!?]*/i, "").trim();
               if (command) {
                 sendText(command);
-              } else {
-                // Wakeword alone — wait for next segment as command
-                awaitingCommandRef.current = true;
-                setMicStatus("Bereit…");
-                // Auto-reset after 6 s if no follow-up
-                awaitingTimerRef.current = setTimeout(() => {
-                  awaitingCommandRef.current = false;
-                  awaitingTimerRef.current = null;
-                  setMicStatus("");
-                }, 6000);
+                return;
               }
             }
+
+            // No inline command — wait for next segment
+            awaitingCommandRef.current = true;
+            setMicStatus("Bereit…");
+            awaitingTimerRef.current = setTimeout(() => {
+              awaitingCommandRef.current = false;
+              awaitingTimerRef.current = null;
+              setMicStatus("");
+            }, 6000);
           } catch {
-            /* Segment still ignorieren */
+            /* Segment ignorieren */
           } finally {
             setMicStatus("");
           }
