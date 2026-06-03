@@ -7,6 +7,8 @@ logs/*.log
 *.tsbuildinfo
 apps/api/settings.json
 apps/api/whisper-cache/
+apps/api/wakeword-models/
+scripts/wakeword_training_data/
 apps/desktop/dist-installer/
 .claude/
 .vscode/
