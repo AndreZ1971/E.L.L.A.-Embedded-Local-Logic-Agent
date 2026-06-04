@@ -80,6 +80,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "shutdown_system",
     "format_drive",
     "rename_drive",
+    "list_programs",
   ],
   sessionLimit: 20,
   openaiApiKey: "",

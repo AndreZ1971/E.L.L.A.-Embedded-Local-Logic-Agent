@@ -3,9 +3,6 @@ import {
   getDiskUsage,
   cleanTemp,
   emptyRecycleBin,
-  formatDrive,
-  renameDrive,
-  listPrograms,
 } from "@ella/agent-tools";
 import { execSync, exec } from "child_process";
 import { promisify } from "util";
@@ -232,14 +229,57 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
   clean_temp: (a) => cleanTemp(a as { scope?: string }),
   empty_recycle_bin: () => emptyRecycleBin(),
 
-  format_drive: (a) =>
-    formatDrive(a as { drive: string; label?: string; filesystem?: string; quick?: boolean }),
+  list_programs: async (args) => {
+    const query = ((args["query"] as string) ?? "").toLowerCase().trim();
+    const limit = Math.min(50, Math.max(1, Number(args["limit"]) || 20));
+    const programDirs = [
+      process.env["ProgramFiles"] ?? "C:\\Program Files",
+      process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)",
+    ];
+    try {
+      const results: { name: string; path: string }[] = [];
+      for (const dir of programDirs) {
+        const script = `
+          Get-ChildItem -Path '${dir}' -Recurse -Include '*.exe' -Depth 3 -ErrorAction SilentlyContinue |
+          Where-Object { $_.DirectoryName -notmatch 'unins|updater|update|crash|helper|\\\\$' } |
+          Select-Object -First ${limit * 2} -ExpandProperty FullName |
+          ConvertTo-Json -Compress
+        `.trim();
+        const encoded = Buffer.from(script, "utf16le").toString("base64");
+        const { stdout } = await execAsync(
+          `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+          { timeout: 15000 },
+        );
+        const raw = stdout.trim();
+        if (!raw) continue;
+        const paths: string | string[] = JSON.parse(raw);
+        const list = Array.isArray(paths) ? paths : [paths];
+        for (const p of list) {
+          const name = path.basename(p, ".exe");
+          if (
+            query &&
+            !name.toLowerCase().includes(query) &&
+            !p.toLowerCase().includes(query)
+          )
+            continue;
+          results.push({ name, path: p });
+          if (results.length >= limit) break;
+        }
+        if (results.length >= limit) break;
+      }
+      trackToolUsage("list_programs", query || "alle");
+      return {
+        success: true,
+        output: { count: results.length, programs: results },
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
 
-  rename_drive: (a) =>
-    renameDrive(a as { drive: string; label: string }),
-
-  list_programs: (a) =>
-    listPrograms(a as { query?: string; limit?: number }),
   load_setup: loadSetup,
   homework_mode: homeworkModeTool,
   remember: (a) =>

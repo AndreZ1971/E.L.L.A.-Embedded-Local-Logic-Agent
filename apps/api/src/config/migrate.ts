@@ -93,6 +93,7 @@ export async function runMigrations(): Promise<void> {
     [26, "PC herunterfahren erlaubt", "shutdown_system", "always", "allow"],
     [27, "Laufwerk formatieren erlaubt", "format_drive", "always", "allow"],
     [28, "Laufwerk umbenennen erlaubt", "rename_drive", "always", "allow"],
+    [29, "Programme auflisten erlaubt", "list_programs", "always", "allow"],
   ] as const;
 
   for (const [id, name, tool_name, trigger, action] of standardTools) {
