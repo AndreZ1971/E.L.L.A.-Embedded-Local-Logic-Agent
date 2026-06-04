@@ -39,6 +39,10 @@ export interface Settings {
   emergencyResetAt: string | null;
   protectedDrives: string[];
   customProgramPaths: string[];
+  googleClientId: string;
+  googleClientSecret: string;
+  googleConnected: boolean;
+  googleUserEmail: string;
 }
 
 const SETTINGS_PATH = path.join(
@@ -83,6 +87,10 @@ export const DEFAULT_SETTINGS: Settings = {
     "rename_drive",
     "list_programs",
     "pause_ella",
+    "read_gmail",
+    "mark_gmail",
+    "read_google_calendar",
+    "create_google_appointment",
   ],
   sessionLimit: 20,
   openaiApiKey: "",
@@ -97,6 +105,10 @@ export const DEFAULT_SETTINGS: Settings = {
   emergencyResetAt: null,
   protectedDrives: ["C", "D"],
   customProgramPaths: [],
+  googleClientId: "",
+  googleClientSecret: "",
+  googleConnected: false,
+  googleUserEmail: "",
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -157,6 +169,15 @@ export async function loadSettings(): Promise<void> {
     if (!Array.isArray(parsed.customProgramPaths)) {
       parsed.customProgramPaths = DEFAULT_SETTINGS.customProgramPaths;
     }
+    // Migrate Google fields
+    if (typeof parsed.googleClientId !== "string")
+      parsed.googleClientId = DEFAULT_SETTINGS.googleClientId;
+    if (typeof parsed.googleClientSecret !== "string")
+      parsed.googleClientSecret = DEFAULT_SETTINGS.googleClientSecret;
+    if (typeof parsed.googleConnected !== "boolean")
+      parsed.googleConnected = DEFAULT_SETTINGS.googleConnected;
+    if (typeof parsed.googleUserEmail !== "string")
+      parsed.googleUserEmail = DEFAULT_SETTINGS.googleUserEmail;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults

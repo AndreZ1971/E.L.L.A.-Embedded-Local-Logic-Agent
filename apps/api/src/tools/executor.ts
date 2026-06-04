@@ -46,6 +46,14 @@ import {
   BLOCKED_PATH_FRAGMENTS,
   BLOCKED_NAME_PATTERNS,
 } from "../routes/system.js";
+import {
+  readGmailMessages,
+  markGmailMessage,
+} from "../services/google/gmail.js";
+import {
+  readGoogleCalendar,
+  createGoogleAppointment as createGoogleAppt,
+} from "../services/google/calendar.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -1022,6 +1030,100 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       return {
         success: false,
         error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
+
+  read_gmail: async (args) => {
+    const limit = Math.min(20, Math.max(1, Number(args["limit"]) || 10));
+    try {
+      const items = await readGmailMessages(limit);
+      trackToolUsage("read_gmail", `${items.length} Mails`);
+      return {
+        success: true,
+        output: { source: "gmail", count: items.length, mails: items },
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: `Gmail nicht verfügbar: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  },
+
+  mark_gmail: async (args) => {
+    const id = ((args["id"] as string) ?? "").trim();
+    const action = ((args["action"] as string) ?? "").trim();
+    if (!id) return { success: false, error: "ID fehlt." };
+    const valid = ["read", "archive", "spam", "delete"] as const;
+    if (!valid.includes(action as (typeof valid)[number])) {
+      return {
+        success: false,
+        error: `Ungültige Aktion "${action}". Erlaubt: ${valid.join(", ")}.`,
+      };
+    }
+    try {
+      const result = await markGmailMessage(
+        id,
+        action as (typeof valid)[number],
+      );
+      if (result.directive)
+        return {
+          success: false,
+          directive: true,
+          error: result.error ?? "Direktive verweigert.",
+        };
+      if (!result.success) return { success: false, error: result.error };
+      trackToolUsage("mark_gmail", action);
+      return { success: true, output: `Gmail-Mail als "${action}" markiert.` };
+    } catch (err) {
+      return {
+        success: false,
+        error: `Gmail nicht verfügbar: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  },
+
+  read_google_calendar: async (args) => {
+    const days = Math.min(14, Math.max(1, Number(args["days"]) || 2));
+    try {
+      const events = await readGoogleCalendar(days);
+      trackToolUsage("read_google_calendar", `${days} Tage`);
+      return { success: true, output: { days, count: events.length, events } };
+    } catch (err) {
+      return {
+        success: false,
+        error: `Google Kalender nicht verfügbar: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  },
+
+  create_google_appointment: async (args) => {
+    const subject = ((args["subject"] as string) ?? "").trim();
+    const start = ((args["start"] as string) ?? "").trim();
+    const end = ((args["end"] as string) ?? "").trim();
+    const location = ((args["location"] as string) ?? "").trim();
+    if (!subject) return { success: false, error: "Betreff fehlt." };
+    if (!start) return { success: false, error: "Startzeit fehlt." };
+    if (!end) return { success: false, error: "Endzeit fehlt." };
+    if (new Date(end) <= new Date(start)) {
+      return {
+        success: false,
+        error: "Endzeit muss nach der Startzeit liegen.",
+      };
+    }
+    try {
+      const result = await createGoogleAppt(subject, start, end, location);
+      if (!result.success) return { success: false, error: result.error };
+      trackToolUsage("create_google_appointment", subject);
+      return {
+        success: true,
+        output: `Google-Termin "${subject}" am ${start} angelegt.`,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: `Google Kalender nicht verfügbar: ${err instanceof Error ? err.message : String(err)}`,
       };
     }
   },

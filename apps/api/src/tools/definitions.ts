@@ -400,6 +400,85 @@ const MAIL_TOOLS: OllamaTool[] = [
   },
 ];
 
+const GOOGLE_TOOLS: OllamaTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "read_gmail",
+      description:
+        "Liest ungelesene E-Mails aus Gmail. Gibt Betreff, Absender, Vorschau und ID zurück. Nur wenn Google verbunden ist.",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "string",
+            description: "Anzahl Mails (Standard: 10, max: 20)",
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "mark_gmail",
+      description:
+        'Markiert eine Gmail-Nachricht. Aktionen: "read", "archive", "spam", "delete" (nur gelesene). source muss "gmail" sein.',
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "Message-ID aus read_gmail",
+          },
+          action: {
+            type: "string",
+            description: '"read", "archive", "spam" oder "delete"',
+          },
+        },
+        required: ["id", "action"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "read_google_calendar",
+      description:
+        "Liest Termine aus Google Kalender. Standard: heute und morgen.",
+      parameters: {
+        type: "object",
+        properties: {
+          days: {
+            type: "string",
+            description: "Anzahl Tage ab heute (Standard: 2, max: 14)",
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_google_appointment",
+      description: "Legt einen neuen Termin in Google Kalender an.",
+      parameters: {
+        type: "object",
+        properties: {
+          subject: { type: "string", description: "Titel des Termins" },
+          start: {
+            type: "string",
+            description: 'Startzeit "2026-06-01 14:00"',
+          },
+          end: { type: "string", description: 'Endzeit "2026-06-01 15:00"' },
+          location: { type: "string", description: "Ort (optional)" },
+        },
+        required: ["subject", "start", "end"],
+      },
+    },
+  },
+];
+
 const DRIVE_TOOLS: OllamaTool[] = [
   {
     type: "function",
@@ -644,6 +723,7 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     ...DRIVE_TOOLS,
     ...CONVERSATION_TOOLS,
     ...MAIL_TOOLS,
+    ...GOOGLE_TOOLS,
   ];
 
   if (setups.length > 0) {

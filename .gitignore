@@ -12,3 +12,5 @@ scripts/wakeword_training_data/
 apps/desktop/dist-installer/
 .claude/
 .vscode/
+
+google-token.json

@@ -95,6 +95,22 @@ export async function runMigrations(): Promise<void> {
     [28, "Laufwerk umbenennen erlaubt", "rename_drive", "always", "allow"],
     [29, "Programme auflisten erlaubt", "list_programs", "always", "allow"],
     [30, "Pausenmodus erlaubt", "pause_ella", "always", "allow"],
+    [31, "Gmail lesen erlaubt", "read_gmail", "always", "allow"],
+    [32, "Gmail markieren erlaubt", "mark_gmail", "always", "allow"],
+    [
+      33,
+      "Google Kalender lesen erlaubt",
+      "read_google_calendar",
+      "always",
+      "allow",
+    ],
+    [
+      34,
+      "Google Termin erstellen erlaubt",
+      "create_google_appointment",
+      "always",
+      "allow",
+    ],
   ] as const;
 
   for (const [id, name, tool_name, trigger, action] of standardTools) {

@@ -32,7 +32,11 @@ export type ToolName =
   | "web_search"
   | "fetch_url"
   | "get_weather"
-  | "pause_ella";
+  | "pause_ella"
+  | "read_gmail"
+  | "mark_gmail"
+  | "read_google_calendar"
+  | "create_google_appointment";
 
 export interface ToolCall {
   tool: ToolName;

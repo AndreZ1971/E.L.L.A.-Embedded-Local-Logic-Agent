@@ -47,6 +47,10 @@ interface Settings {
   ttsVoice: string;
   onboardingComplete: boolean;
   emergencyResetAt: string | null;
+  googleClientId: string;
+  googleClientSecret: string;
+  googleConnected: boolean;
+  googleUserEmail: string;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -85,6 +89,14 @@ const ALL_TOOLS: { name: string; label: string }[] = [
     name: "shutdown_system",
     label: "PC herunterfahren / Neu starten / Schlafmodus",
   },
+  { name: "format_drive", label: "Laufwerk formatieren (Wechseldatenträger)" },
+  { name: "rename_drive", label: "Laufwerk umbenennen" },
+  { name: "list_programs", label: "Programme auflisten (ohne System32)" },
+  { name: "pause_ella", label: "ELLA pausieren" },
+  { name: "read_gmail", label: "Gmail lesen" },
+  { name: "mark_gmail", label: "Gmail markieren / archivieren" },
+  { name: "read_google_calendar", label: "Google Kalender lesen" },
+  { name: "create_google_appointment", label: "Google Termin erstellen" },
 ];
 
 const input: React.CSSProperties = {
@@ -123,7 +135,14 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   </div>
 );
 
-type Tab = "llm" | "tools" | "programme" | "setups" | "modus" | "regeln";
+type Tab =
+  | "llm"
+  | "tools"
+  | "programme"
+  | "setups"
+  | "modus"
+  | "regeln"
+  | "google";
 
 const Settings: React.FC = () => {
   const [tab, setTab] = useState<Tab>("llm");
@@ -414,6 +433,7 @@ const Settings: React.FC = () => {
     programme: `Programme (${allowedCount})`,
     modus: settings.homeworkMode?.active ? "🔒 Modus" : "Modus",
     regeln: `Regeln (${rules.length})`,
+    google: settings.googleConnected ? "Google ✓" : "Google",
   };
 
   const rowLabel: React.CSSProperties = {
@@ -491,7 +511,15 @@ const Settings: React.FC = () => {
         }}
       >
         {(
-          ["llm", "tools", "setups", "programme", "modus", "regeln"] as Tab[]
+          [
+            "llm",
+            "tools",
+            "setups",
+            "programme",
+            "modus",
+            "regeln",
+            "google",
+          ] as Tab[]
         ).map((t) => (
           <button
             key={t}
@@ -1515,6 +1543,128 @@ const Settings: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+        {/* ── Tab: Google ──────────────────────────────────────── */}
+        {tab === "google" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ color: "#94a3b8", fontSize: "0.8rem" }}>
+              OAuth 2.0 — Credentials aus der Google Cloud Console (Desktop
+              App).
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+                Client ID
+              </label>
+              <input
+                type="password"
+                value={settings.googleClientId ?? ""}
+                onChange={(e) => patch({ googleClientId: e.target.value })}
+                placeholder="xxx.apps.googleusercontent.com"
+                style={{
+                  background: "#1e2538",
+                  border: "1px solid #2d3148",
+                  borderRadius: 6,
+                  padding: "8px 12px",
+                  color: "#e2e8f0",
+                  fontSize: "0.85rem",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+                Client Secret
+              </label>
+              <input
+                type="password"
+                value={settings.googleClientSecret ?? ""}
+                onChange={(e) => patch({ googleClientSecret: e.target.value })}
+                placeholder="GOCSPX-…"
+                style={{
+                  background: "#1e2538",
+                  border: "1px solid #2d3148",
+                  borderRadius: 6,
+                  padding: "8px 12px",
+                  color: "#e2e8f0",
+                  fontSize: "0.85rem",
+                }}
+              />
+            </div>
+
+            {settings.googleConnected ? (
+              <div
+                style={{
+                  background: "#0f2a1a",
+                  border: "1px solid #22c55e",
+                  borderRadius: 8,
+                  padding: "12px 16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                }}
+              >
+                <span style={{ color: "#22c55e", fontSize: "0.85rem" }}>
+                  ✓ Verbunden als {settings.googleUserEmail}
+                </span>
+                <button
+                  onClick={async () => {
+                    await fetch(`${API}/api/google/disconnect`, {
+                      method: "POST",
+                    });
+                    patch({ googleConnected: false, googleUserEmail: "" });
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid #ef4444",
+                    borderRadius: 4,
+                    color: "#ef4444",
+                    padding: "4px 12px",
+                    cursor: "pointer",
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  Trennen
+                </button>
+              </div>
+            ) : (
+              <button
+                disabled={
+                  !settings.googleClientId || !settings.googleClientSecret
+                }
+                onClick={async () => {
+                  await save();
+                  const res = await fetch(`${API}/api/google/auth-url`);
+                  if (!res.ok) return;
+                  const { url } = (await res.json()) as { url: string };
+                  window.open(url, "_blank", "width=600,height=700");
+                }}
+                style={{
+                  background:
+                    settings.googleClientId && settings.googleClientSecret
+                      ? "#7c6af7"
+                      : "#2d3148",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "10px 20px",
+                  cursor:
+                    settings.googleClientId && settings.googleClientSecret
+                      ? "pointer"
+                      : "not-allowed",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  opacity:
+                    settings.googleClientId && settings.googleClientSecret
+                      ? 1
+                      : 0.5,
+                }}
+              >
+                Mit Google verbinden
+              </button>
+            )}
           </div>
         )}
       </div>
