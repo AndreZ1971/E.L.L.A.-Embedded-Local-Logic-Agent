@@ -63,18 +63,16 @@ export const TOOL_DEFINITIONS: OllamaTool[] = [
     function: {
       name: "list_programs",
       description:
-        "Sucht installierte Programme in Program Files und Program Files (x86). Windows-Systemordner (System32 etc.) werden nicht durchsucht. Nutze dies wenn der Nutzer fragt welche Programme installiert sind, oder wenn open_app eine App nicht findet.",
+        "Zeigt alle installierten Programme die gestartet werden können. " +
+        "Gibt nur Namen zurück — keine Pfade. " +
+        "Nutze filter um die Liste einzuschränken, z.B. 'office' oder 'browser'.",
       parameters: {
         type: "object",
         properties: {
-          query: {
+          filter: {
             type: "string",
             description:
-              'Suchbegriff, z.B. "adobe" oder "office". Weglassen für alle Programme.',
-          },
-          limit: {
-            type: "string",
-            description: "Maximale Anzahl Ergebnisse (Standard: 20, max: 50)",
+              'Optional: Suchbegriff um die Liste zu filtern, z.B. "office" oder "browser"',
           },
         },
         required: [],

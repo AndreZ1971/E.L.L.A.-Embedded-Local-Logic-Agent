@@ -232,22 +232,16 @@ const Settings: React.FC = () => {
     if (!settings) return;
     setScanning(true);
     try {
-      const data = (await fetch(`${API}/api/system/programs`).then((r) =>
-        r.json(),
-      )) as {
-        programs: { name: string; command: string }[];
-      };
-      const existing = new Map(
-        (settings.apps ?? []).map((a) => [a.name.toLowerCase(), a]),
-      );
-      const merged: AppEntry[] = [...(settings.apps ?? [])];
-      for (const p of data.programs) {
-        if (!existing.has(p.name.toLowerCase())) {
-          merged.push({ name: p.name, command: p.command, allowed: false });
-        }
+      const data = (await fetch(`${API}/api/system/scan-programs`, {
+        method: "POST",
+      }).then((r) => r.json())) as { ok: boolean; total: number };
+      if (data.ok) {
+        // Neue App-Liste vom Server laden
+        const fresh = (await fetch(`${API}/api/settings`).then((r) =>
+          r.json(),
+        )) as { apps: AppEntry[] };
+        patch({ apps: fresh.apps ?? [] });
       }
-      merged.sort((a, b) => a.name.localeCompare(b.name));
-      patch({ apps: merged });
     } finally {
       setScanning(false);
     }
@@ -1136,20 +1130,6 @@ const Settings: React.FC = () => {
                     }}
                   >
                     {a.name}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#475569",
-                      fontFamily: "monospace",
-                      maxWidth: 260,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                    title={a.command}
-                  >
-                    {a.command}
                   </span>
                 </label>
               ))}

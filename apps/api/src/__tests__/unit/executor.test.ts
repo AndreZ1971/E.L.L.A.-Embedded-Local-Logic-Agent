@@ -302,3 +302,77 @@ describe("pause_ella", () => {
     expect((result.output as any).minutes).toBe(1);
   });
 });
+
+describe("list_programs", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+  });
+
+  it("gibt nur Namen zurück — keine Pfade", async () => {
+    vi.mocked(getSettings).mockReturnValue({
+      enabledTools: ["list_programs"],
+      apps: [
+        { name: "Chrome", command: "C:\\chrome.exe", allowed: true },
+        { name: "VSCode", command: "C:\\code.exe", allowed: true },
+      ],
+      homeworkMode: { active: false, apps: [], pinHash: "" },
+      setups: [],
+      protectedDrives: ["C"],
+      customProgramPaths: [],
+    } as any);
+    const result = await toolExecutor.execute({
+      tool: "list_programs",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    const programs = (result.output as any).programs as string[];
+    expect(programs).toContain("Chrome");
+    expect(programs).toContain("VSCode");
+    const hasPath = programs.some((p) => p.includes("\\") || p.includes("/"));
+    expect(hasPath).toBe(false);
+  });
+
+  it("filtert nach Suchbegriff", async () => {
+    vi.mocked(getSettings).mockReturnValue({
+      enabledTools: ["list_programs"],
+      apps: [
+        { name: "Chrome", command: "C:\\chrome.exe", allowed: true },
+        { name: "Firefox", command: "C:\\firefox.exe", allowed: true },
+        { name: "VSCode", command: "C:\\code.exe", allowed: true },
+      ],
+      homeworkMode: { active: false, apps: [], pinHash: "" },
+      setups: [],
+      protectedDrives: ["C"],
+      customProgramPaths: [],
+    } as any);
+    const result = await toolExecutor.execute({
+      tool: "list_programs",
+      args: { filter: "fire" },
+    });
+    const programs = (result.output as any).programs as string[];
+    expect(programs).toContain("Firefox");
+    expect(programs).not.toContain("Chrome");
+    expect(programs).not.toContain("VSCode");
+  });
+
+  it("gibt nur erlaubte Apps zurück", async () => {
+    vi.mocked(getSettings).mockReturnValue({
+      enabledTools: ["list_programs"],
+      apps: [
+        { name: "Chrome", command: "C:\\chrome.exe", allowed: true },
+        { name: "BadApp", command: "C:\\bad.exe", allowed: false },
+      ],
+      homeworkMode: { active: false, apps: [], pinHash: "" },
+      setups: [],
+      protectedDrives: ["C"],
+      customProgramPaths: [],
+    } as any);
+    const result = await toolExecutor.execute({
+      tool: "list_programs",
+      args: {},
+    });
+    const programs = (result.output as any).programs as string[];
+    expect(programs).toContain("Chrome");
+    expect(programs).not.toContain("BadApp");
+  });
+});
