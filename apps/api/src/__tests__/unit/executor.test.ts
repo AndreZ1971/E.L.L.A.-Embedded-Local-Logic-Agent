@@ -253,3 +253,52 @@ describe("rename_drive", () => {
     expect(result.error).toMatch(/Name fehlt/);
   });
 });
+
+describe("pause_ella", () => {
+  beforeEach(() => {
+    vi.mocked(getSettings).mockReturnValue({
+      enabledTools: ["pause_ella"],
+      apps: [],
+      homeworkMode: { active: false, apps: [], pinHash: "" },
+      setups: [],
+      protectedDrives: ["C", "D"],
+      customProgramPaths: [],
+    } as any);
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+  });
+
+  it("gibt korrekte Dauer zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "pause_ella",
+      args: { minutes: 5 },
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).minutes).toBe(5);
+    expect((result.output as any).paused).toBe(true);
+    expect((result.output as any).resumeAt).toBeDefined();
+  });
+
+  it("begrenzt auf 120 Minuten", async () => {
+    const result = await toolExecutor.execute({
+      tool: "pause_ella",
+      args: { minutes: 999 },
+    });
+    expect((result.output as any).minutes).toBe(120);
+  });
+
+  it("Standard 10 Minuten wenn kein Argument", async () => {
+    const result = await toolExecutor.execute({
+      tool: "pause_ella",
+      args: {},
+    });
+    expect((result.output as any).minutes).toBe(10);
+  });
+
+  it("Minimum 1 Minute bei negativem Wert", async () => {
+    const result = await toolExecutor.execute({
+      tool: "pause_ella",
+      args: { minutes: -5 },
+    });
+    expect((result.output as any).minutes).toBe(1);
+  });
+});

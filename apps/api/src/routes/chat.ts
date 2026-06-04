@@ -212,6 +212,14 @@ chatRouter.post("/stream", async (req, res) => {
             delay: out.delay_seconds ?? 5,
           });
         }
+        if (
+          call.function.name === "pause_ella" &&
+          result.success &&
+          (result.output as Record<string, unknown>)?.paused
+        ) {
+          const out = result.output as Record<string, unknown>;
+          emit({ type: "pause", minutes: Number(out.minutes ?? 10) });
+        }
         messages.push({
           role: "tool",
           tool_call_id: call.id,

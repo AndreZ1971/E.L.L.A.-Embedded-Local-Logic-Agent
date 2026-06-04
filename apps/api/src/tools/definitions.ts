@@ -13,19 +13,23 @@ export const TOOL_DEFINITIONS: OllamaTool[] = [
         properties: {
           drive: {
             type: "string",
-            description: 'Laufwerksbuchstabe, z.B. "E" oder "F" — niemals C oder D',
+            description:
+              'Laufwerksbuchstabe, z.B. "E" oder "F" — niemals C oder D',
           },
           label: {
             type: "string",
-            description: 'Name/Label des Laufwerks nach dem Formatieren, z.B. "MeinUSB" (max 11 Zeichen)',
+            description:
+              'Name/Label des Laufwerks nach dem Formatieren, z.B. "MeinUSB" (max 11 Zeichen)',
           },
           filesystem: {
             type: "string",
-            description: '"FAT32" (Standard, kompatibel), "NTFS" (Windows, große Dateien), "exFAT" (Cross-Platform)',
+            description:
+              '"FAT32" (Standard, kompatibel), "NTFS" (Windows, große Dateien), "exFAT" (Cross-Platform)',
           },
           quick: {
             type: "boolean",
-            description: "true für Quick-Format (Standard), false für vollständiges Format",
+            description:
+              "true für Quick-Format (Standard), false für vollständiges Format",
           },
         },
         required: ["drive"],
@@ -65,7 +69,8 @@ export const TOOL_DEFINITIONS: OllamaTool[] = [
         properties: {
           query: {
             type: "string",
-            description: 'Suchbegriff, z.B. "adobe" oder "office". Weglassen für alle Programme.',
+            description:
+              'Suchbegriff, z.B. "adobe" oder "office". Weglassen für alle Programme.',
           },
           limit: {
             type: "string",
@@ -721,6 +726,27 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
           },
         },
         required: ["action"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "pause_ella",
+      description:
+        "Versetzt E.L.L.A. in den Pausenmodus für eine bestimmte Dauer. " +
+        "Das Wakeword wird deaktiviert. Nach Ablauf meldet sich E.L.L.A. selbstständig zurück. " +
+        "Nutze dies wenn der Nutzer sagt: 'mach Pause', 'ich brauche Ruhe', 'nicht stören' o.ä.",
+      parameters: {
+        type: "object",
+        properties: {
+          minutes: {
+            type: "number",
+            description: "Pausendauer in Minuten (1–120). Standard: 10",
+          },
+        },
+        required: [],
       },
     },
   });

@@ -32,8 +32,7 @@ export type ToolName =
   | "web_search"
   | "fetch_url"
   | "get_weather"
-  | "format_drive"
-  | "rename_drive";
+  | "pause_ella";
 
 export interface ToolCall {
   tool: ToolName;

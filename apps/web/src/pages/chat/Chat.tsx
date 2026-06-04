@@ -29,6 +29,7 @@ type StreamEvent =
       message: string;
       pendingAction: PendingAction;
     }
+  | { type: "pause"; minutes: number }
   | { type: "done" }
   | { type: "error"; message: string };
 
@@ -156,6 +157,13 @@ const Chat: React.FC = () => {
     },
     [speakEdge],
   );
+
+  /* Pause-Modus */
+  const [isPaused, setIsPaused] = useState(false);
+  const [pauseEndsAt, setPauseEndsAt] = useState<Date | null>(null);
+  const [pauseCountdown, setPauseCountdown] = useState("");
+  const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pauseTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* Voice state — Whisper (lokal, kein Google) */
   const [voiceMode, setVoiceMode] = useState<VoiceMode>("off");
@@ -300,6 +308,53 @@ const Chat: React.FC = () => {
     };
   }, [speakEdge]);
 
+  /* ── Pausenmodus ── */
+  const resumeFromPause = useCallback(() => {
+    setIsPaused(false);
+    setPauseEndsAt(null);
+    setPauseCountdown("");
+    if (pauseTimerRef.current) {
+      clearTimeout(pauseTimerRef.current);
+      pauseTimerRef.current = null;
+    }
+    if (pauseTickRef.current) {
+      clearInterval(pauseTickRef.current);
+      pauseTickRef.current = null;
+    }
+    setVoiceMode(pausedVoiceModeRef.current); // Wakeword wiederherstellen
+    speakEdge("Ich bin wieder da.");
+  }, [speakEdge]);
+
+  const pausedVoiceModeRef = useRef<VoiceMode>("off");
+
+  const activatePause = useCallback(
+    (minutes: number, currentVoiceMode: VoiceMode) => {
+      pausedVoiceModeRef.current = currentVoiceMode;
+      setVoiceMode("off"); // Wakeword deaktivieren
+      const endsAt = new Date(Date.now() + minutes * 60 * 1000);
+      setIsPaused(true);
+      setPauseEndsAt(endsAt);
+
+      const fmt = (d: Date) => {
+        const diff = Math.max(0, d.getTime() - Date.now());
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        return `${m}:${s.toString().padStart(2, "0")}`;
+      };
+      setPauseCountdown(fmt(endsAt));
+      pauseTickRef.current = setInterval(
+        () => setPauseCountdown(fmt(endsAt)),
+        10000,
+      );
+
+      pauseTimerRef.current = setTimeout(
+        () => resumeFromPause(),
+        minutes * 60 * 1000,
+      );
+    },
+    [resumeFromPause],
+  );
+
   /* ── History ── */
   useEffect(() => {
     fetch(`${API}/api/chat/history/${SESSION_ID}`)
@@ -388,6 +443,8 @@ const Chat: React.FC = () => {
                 },
                 (Number(delay) + 2) * 1000,
               );
+            } else if (ev.type === "pause") {
+              activatePause(ev.minutes, voiceMode);
             } else if (ev.type === "confirmation_required") {
               setConfirmationCard({
                 message: ev.message,
@@ -1073,6 +1130,40 @@ const Chat: React.FC = () => {
           <span style={{ color: "#94a3b8" }}>
             Diese Aktion ist architektonisch nicht erlaubt.
           </span>
+        </div>
+      )}
+
+      {/* Pausenmodus-Indikator */}
+      {isPaused && pauseEndsAt && (
+        <div
+          style={{
+            background: "#1e1b4b",
+            border: "1px solid #7c6af7",
+            borderRadius: 8,
+            padding: "10px 16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            fontSize: "0.85rem",
+            color: "#a5b4fc",
+          }}
+        >
+          <span>⏸ Pausiert — {pauseCountdown}</span>
+          <button
+            onClick={resumeFromPause}
+            style={{
+              background: "transparent",
+              border: "1px solid #7c6af7",
+              borderRadius: 4,
+              color: "#a5b4fc",
+              padding: "3px 10px",
+              cursor: "pointer",
+              fontSize: "0.8rem",
+            }}
+          >
+            Jetzt zurück
+          </button>
         </div>
       )}
 

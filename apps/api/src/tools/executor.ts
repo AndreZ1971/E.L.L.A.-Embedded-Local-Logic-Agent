@@ -42,6 +42,10 @@ import {
   fetchUrl as fetchUrlService,
 } from "../services/webSearch.js";
 import { getWeather } from "../services/weather.js";
+import {
+  BLOCKED_PATH_FRAGMENTS,
+  BLOCKED_NAME_PATTERNS,
+} from "../routes/system.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -142,6 +146,23 @@ async function openAppWithSettings(
       error: `Hausaufgaben-Modus aktiv — '${name}' ist nicht erlaubt.`,
     };
   }
+  const cmdLower = entry.command.toLowerCase();
+  if (BLOCKED_PATH_FRAGMENTS.some((b) => cmdLower.includes(b))) {
+    return {
+      success: false,
+      directive: true,
+      error: `'${name}' liegt in einem gesperrten Systempfad und darf nicht geöffnet werden.`,
+    };
+  }
+  const exeName = path.basename(cmdLower, ".exe");
+  if (BLOCKED_NAME_PATTERNS.some((b) => exeName.includes(b))) {
+    return {
+      success: false,
+      directive: true,
+      error: `'${name}' ist ein Installations- oder Systemprogramm und darf nicht geöffnet werden.`,
+    };
+  }
+
   const result = await openApp({ name }, { [name]: entry.command });
   if (result.success) trackToolUsage("open_app", name);
   return result;
@@ -1003,6 +1024,21 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         error: err instanceof Error ? err.message : String(err),
       };
     }
+  },
+
+  pause_ella: async (args) => {
+    const minutes = Math.min(120, Math.max(1, Number(args["minutes"]) || 10));
+    const resumeAt = new Date(Date.now() + minutes * 60 * 1000).toISOString();
+    trackToolUsage("pause_ella", `${minutes} Minuten`);
+    return {
+      success: true,
+      output: {
+        paused: true,
+        minutes,
+        resumeAt,
+        message: `Ich mache ${minutes} Minute${minutes === 1 ? "" : "n"} Pause und melde mich zurück.`,
+      },
+    };
   },
 
   free_ram: async () => {

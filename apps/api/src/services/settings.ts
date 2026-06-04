@@ -38,6 +38,7 @@ export interface Settings {
   userName: string;
   emergencyResetAt: string | null;
   protectedDrives: string[];
+  customProgramPaths: string[];
 }
 
 const SETTINGS_PATH = path.join(
@@ -81,6 +82,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "format_drive",
     "rename_drive",
     "list_programs",
+    "pause_ella",
   ],
   sessionLimit: 20,
   openaiApiKey: "",
@@ -94,6 +96,7 @@ export const DEFAULT_SETTINGS: Settings = {
   userName: "",
   emergencyResetAt: null,
   protectedDrives: ["C", "D"],
+  customProgramPaths: [],
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -149,6 +152,10 @@ export async function loadSettings(): Promise<void> {
       !parsed.protectedDrives.map((d: string) => d.toUpperCase()).includes("C")
     ) {
       parsed.protectedDrives.push("C");
+    }
+    // Migrate customProgramPaths
+    if (!Array.isArray(parsed.customProgramPaths)) {
+      parsed.customProgramPaths = DEFAULT_SETTINGS.customProgramPaths;
     }
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
