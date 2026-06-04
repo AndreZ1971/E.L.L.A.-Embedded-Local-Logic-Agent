@@ -186,20 +186,20 @@ describe("format_drive", () => {
   });
 
   it("blockiert internes Laufwerk DriveType 3 — directive:true", async () => {
-    // execSync gibt DriveType 3 zurück (Fixed Disk)
-    vi.mocked(execSync).mockReturnValue("3" as any);
+    // wmic-Format: "DriveType=3\r\n"
+    vi.mocked(execSync).mockReturnValue("DriveType=3\r\n" as any);
     const result = await toolExecutor.execute({
       tool: "format_drive",
       args: { drive: "F" },
     });
     expect(result.success).toBe(false);
     expect(result.directive).toBe(true);
-    expect(result.error).toMatch(/kein Wechseldatenträger/);
+    expect(result.error).toMatch(/internes Laufwerk/);
   });
 
   it("gibt requiresConfirmation für USB-Stick (DriveType 2)", async () => {
     vi.mocked(execSync)
-      .mockReturnValueOnce("2" as any) // getDriveType
+      .mockReturnValueOnce("DriveType=2\r\n" as any) // getDriveType
       .mockReturnValueOnce("8589934592" as any); // getDriveSizeLabel (8 GB)
     const result = await toolExecutor.execute({
       tool: "format_drive",

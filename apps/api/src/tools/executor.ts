@@ -66,13 +66,22 @@ function escLabel(s: string): string {
 
 export function getDriveType(letter: string): number {
   try {
-    const script = `(Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DeviceID -eq '${letter}:' }).DriveType`;
-    const encoded = Buffer.from(script, "utf16le").toString("base64");
-    const out = execSync(
-      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
-      { timeout: 6000, encoding: "utf-8" },
+    // wmic gibt UTF-16 LE zurück — als Buffer lesen, dann dekodieren
+    const raw = execSync(
+      `wmic logicaldisk where DeviceID="${letter}:" get DriveType /format:value`,
+      { stdio: ["ignore", "pipe", "ignore"], timeout: 5000 },
     );
-    const n = parseInt(out.trim(), 10);
+    // In Tests kommt ein String (Mock) — in Produktion ein Buffer
+    const out =
+      typeof raw === "string"
+        ? raw
+        : (raw as unknown as Buffer).toString("utf16le");
+    const line = out
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .find((l) => l.toLowerCase().startsWith("drivetype="));
+    if (!line) return -1;
+    const n = parseInt(line.split("=")[1], 10);
     return isNaN(n) ? -1 : n;
   } catch {
     return -1;
@@ -963,11 +972,17 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
 
     // Zone 2: Nur Wechseldatenträger (DriveType 2) erlaubt
     const driveType = getDriveType(drive);
+    if (driveType === -1) {
+      return {
+        success: false,
+        error: `Laufwerk ${drive}: konnte nicht erkannt werden. Bitte prüfe ob das Laufwerk verbunden ist.`,
+      };
+    }
     if (driveType !== 2) {
       return {
         success: false,
         directive: true,
-        error: `Laufwerk ${drive}: ist kein Wechseldatenträger (DriveType ${driveType}). Nur USB-Sticks und externe Laufwerke können formatiert werden.`,
+        error: `Laufwerk ${drive}: ist ein internes Laufwerk und kann nicht formatiert werden.`,
       };
     }
 
