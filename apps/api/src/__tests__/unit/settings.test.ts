@@ -34,8 +34,8 @@ describe("DEFAULT_SETTINGS", () => {
     expect(DEFAULT_SETTINGS.provider).toBe("auto");
   });
 
-  it("has sessionLimit = 40", () => {
-    expect(DEFAULT_SETTINGS.sessionLimit).toBe(40);
+  it("has sessionLimit = 20", () => {
+    expect(DEFAULT_SETTINGS.sessionLimit).toBe(20);
   });
 });
 

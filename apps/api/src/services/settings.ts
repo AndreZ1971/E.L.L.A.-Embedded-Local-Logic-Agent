@@ -37,6 +37,7 @@ export interface Settings {
   eulaAccepted: boolean;
   userName: string;
   emergencyResetAt: string | null;
+  protectedDrives: string[];
 }
 
 const SETTINGS_PATH = path.join(
@@ -77,8 +78,10 @@ export const DEFAULT_SETTINGS: Settings = {
     "fetch_url",
     "get_weather",
     "shutdown_system",
+    "format_drive",
+    "rename_drive",
   ],
-  sessionLimit: 40,
+  sessionLimit: 20,
   openaiApiKey: "",
   voiceMode: "off",
   setups: [],
@@ -89,6 +92,7 @@ export const DEFAULT_SETTINGS: Settings = {
   eulaAccepted: false,
   userName: "",
   emergencyResetAt: null,
+  protectedDrives: ["C", "D"],
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -134,6 +138,16 @@ export async function loadSettings(): Promise<void> {
       if (missing.length > 0) {
         parsed.enabledTools = [...parsed.enabledTools, ...missing];
       }
+    }
+    // Migrate protectedDrives: neues Feld auffüllen
+    if (!Array.isArray(parsed.protectedDrives)) {
+      parsed.protectedDrives = DEFAULT_SETTINGS.protectedDrives;
+    }
+    // C ist immer geschützt — unveränderlich
+    if (
+      !parsed.protectedDrives.map((d: string) => d.toUpperCase()).includes("C")
+    ) {
+      parsed.protectedDrives.push("C");
     }
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {

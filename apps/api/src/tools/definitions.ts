@@ -395,6 +395,61 @@ const MAIL_TOOLS: OllamaTool[] = [
   },
 ];
 
+const DRIVE_TOOLS: OllamaTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "format_drive",
+      description:
+        "Formatiert einen Wechseldatenträger (USB-Stick, externe HDD, SD-Karte). " +
+        "Systemlaufwerke (C:, Recovery, ELLA-Laufwerk) sind permanent gesperrt. " +
+        "Vor der Ausführung wird eine Bestätigung eingeholt. " +
+        "Dateisystem: FAT32 (Standard, max 4 GB/Datei), NTFS (Windows), exFAT (große Dateien).",
+      parameters: {
+        type: "object",
+        properties: {
+          drive: {
+            type: "string",
+            description: 'Laufwerksbuchstabe ohne Doppelpunkt, z.B. "E"',
+          },
+          filesystem: {
+            type: "string",
+            description: "FAT32, NTFS oder exFAT (Standard: FAT32)",
+          },
+          label: {
+            type: "string",
+            description:
+              "Optionaler Name für das Laufwerk nach dem Formatieren",
+          },
+        },
+        required: ["drive"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "rename_drive",
+      description:
+        "Benennt ein Laufwerk um (Volume-Label). Systemlaufwerke sind geschützt.",
+      parameters: {
+        type: "object",
+        properties: {
+          drive: {
+            type: "string",
+            description: 'Laufwerksbuchstabe ohne Doppelpunkt, z.B. "E"',
+          },
+          label: {
+            type: "string",
+            description: "Neuer Name des Laufwerks",
+          },
+        },
+        required: ["drive", "label"],
+      },
+    },
+  },
+];
+
 const HARDWARE_TOOLS: OllamaTool[] = [
   {
     type: "function",
@@ -581,6 +636,7 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     SEARCH_WEB_TOOL,
     ...WEB_TOOLS,
     ...HARDWARE_TOOLS,
+    ...DRIVE_TOOLS,
     ...CONVERSATION_TOOLS,
     ...MAIL_TOOLS,
   ];

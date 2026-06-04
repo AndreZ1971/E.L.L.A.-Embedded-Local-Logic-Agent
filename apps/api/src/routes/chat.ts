@@ -185,6 +185,21 @@ chatRouter.post("/stream", async (req, res) => {
         if (result.directive) {
           emit({ type: "directive_deny", tool: call.function.name });
         }
+        if (result.requiresConfirmation) {
+          emit({
+            type: "confirmation_required",
+            message: result.confirmationMessage ?? "",
+            pendingAction: result.pendingAction,
+          });
+          emit({ type: "done" });
+          history.push({
+            role: "assistant",
+            content: result.confirmationMessage ?? "Bestätigung erforderlich.",
+          });
+          await sessionStore.set(sessionId, history);
+          res.end();
+          return;
+        }
         if (
           call.function.name === "shutdown_system" &&
           result.success &&

@@ -71,10 +71,15 @@ vi.mock("../../services/calendar.js", () => ({
   createAppointment: vi.fn(),
 }));
 
-import { toolExecutor } from "../../tools/executor.js";
+import {
+  toolExecutor,
+  getDriveType,
+  getDriveSizeLabel,
+} from "../../tools/executor.js";
 import { getSettings } from "../../services/settings.js";
 import { evaluateRules } from "../../services/rules.js";
 import { getDiskUsage } from "@ella/agent-tools";
+import { execSync } from "child_process";
 
 describe("toolExecutor", () => {
   beforeEach(() => {
@@ -132,5 +137,119 @@ describe("toolExecutor", () => {
       args: { drive: "C" },
     });
     expect(result.success).toBe(true);
+  });
+});
+
+describe("format_drive", () => {
+  const mockSettings = {
+    enabledTools: ["format_drive", "rename_drive"],
+    apps: [],
+    homeworkMode: { active: false, apps: [], pinHash: "" },
+    setups: [],
+    protectedDrives: ["C", "D"],
+  };
+
+  beforeEach(() => {
+    vi.mocked(getSettings).mockReturnValue(mockSettings as any);
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+  });
+
+  it("blockiert C: immer — directive:true", async () => {
+    const result = await toolExecutor.execute({
+      tool: "format_drive",
+      args: { drive: "C" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.directive).toBe(true);
+    expect(result.error).toMatch(/geschützt/);
+  });
+
+  it("blockiert C: auch wenn protectedDrives leer wäre", async () => {
+    vi.mocked(getSettings).mockReturnValue({
+      ...mockSettings,
+      protectedDrives: [],
+    } as any);
+    const result = await toolExecutor.execute({
+      tool: "format_drive",
+      args: { drive: "C" },
+    });
+    expect(result.directive).toBe(true);
+  });
+
+  it("blockiert D: (in protectedDrives) — directive:true", async () => {
+    const result = await toolExecutor.execute({
+      tool: "format_drive",
+      args: { drive: "D" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.directive).toBe(true);
+  });
+
+  it("blockiert internes Laufwerk DriveType 3 — directive:true", async () => {
+    // execSync gibt DriveType 3 zurück (Fixed Disk)
+    vi.mocked(execSync).mockReturnValue("3" as any);
+    const result = await toolExecutor.execute({
+      tool: "format_drive",
+      args: { drive: "F" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.directive).toBe(true);
+    expect(result.error).toMatch(/kein Wechseldatenträger/);
+  });
+
+  it("gibt requiresConfirmation für USB-Stick (DriveType 2)", async () => {
+    vi.mocked(execSync)
+      .mockReturnValueOnce("2" as any) // getDriveType
+      .mockReturnValueOnce("8589934592" as any); // getDriveSizeLabel (8 GB)
+    const result = await toolExecutor.execute({
+      tool: "format_drive",
+      args: { drive: "E" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.confirmationMessage).toContain("E:");
+    expect(result.pendingAction?.tool).toBe("format_drive_confirmed");
+  });
+});
+
+describe("rename_drive", () => {
+  const mockSettings = {
+    enabledTools: ["format_drive", "rename_drive"],
+    apps: [],
+    homeworkMode: { active: false, apps: [], pinHash: "" },
+    setups: [],
+    protectedDrives: ["C", "D"],
+  };
+
+  beforeEach(() => {
+    vi.mocked(getSettings).mockReturnValue(mockSettings as any);
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+  });
+
+  it("blockiert D: (geschützt) — directive:true", async () => {
+    const result = await toolExecutor.execute({
+      tool: "rename_drive",
+      args: { drive: "D", label: "Backup" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.directive).toBe(true);
+  });
+
+  it("benennt E: erfolgreich um", async () => {
+    vi.mocked(execSync).mockReturnValue('{"success":true}' as any);
+    const result = await toolExecutor.execute({
+      tool: "rename_drive",
+      args: { drive: "E", label: "USB-Stick" },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("fehlt label → Fehler", async () => {
+    const result = await toolExecutor.execute({
+      tool: "rename_drive",
+      args: { drive: "E", label: "" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/Name fehlt/);
   });
 });

@@ -31,12 +31,18 @@ export type ToolName =
   | "delete_files"
   | "web_search"
   | "fetch_url"
-  | "get_weather";
+  | "get_weather"
+  | "format_drive"
+  | "rename_drive";
 
 export interface ToolCall {
   tool: ToolName;
   args: Record<string, unknown>;
-  requiresConfirmation?: boolean;
+}
+
+export interface PendingAction {
+  tool: string;
+  args: Record<string, unknown>;
 }
 
 export interface ToolResult {
@@ -45,5 +51,8 @@ export interface ToolResult {
   error?: string;
   directive?: boolean;
   confirm_required?: boolean;
+  requiresConfirmation?: boolean;
+  confirmationMessage?: string;
+  pendingAction?: PendingAction;
   executedAt?: string;
 }

@@ -14,11 +14,21 @@ interface Message {
   content: string;
   toolName?: string;
 }
+interface PendingAction {
+  tool: string;
+  args: Record<string, unknown>;
+}
+
 type StreamEvent =
   | { type: "chunk"; text: string }
   | { type: "tool"; name: string }
   | { type: "directive_deny"; tool: string }
   | { type: "shutdown"; cmd: string; delay: number }
+  | {
+      type: "confirmation_required";
+      message: string;
+      pendingAction: PendingAction;
+    }
   | { type: "done" }
   | { type: "error"; message: string };
 
@@ -51,6 +61,8 @@ const TOOL_LABELS: Record<string, string> = {
   get_location: "Standort ermitteln",
   delete_files: "Dateien löschen",
   load_setup: "Setup laden",
+  format_drive: "Laufwerk formatieren",
+  rename_drive: "Laufwerk umbenennen",
 };
 
 /* ── Component ───────────────────────────────────────────────────────── */
@@ -62,6 +74,11 @@ const Chat: React.FC = () => {
   const [directiveDeny, setDirectiveDeny] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [confirmationCard, setConfirmationCard] = useState<{
+    message: string;
+    pendingAction: PendingAction;
+  } | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   /* Hausaufgaben-Modus */
@@ -144,6 +161,7 @@ const Chat: React.FC = () => {
   const [voiceMode, setVoiceMode] = useState<VoiceMode>("off");
   const [micActive, setMicActive] = useState(false);
   const [micStatus, setMicStatus] = useState("");
+  const [awaitingCommand, setAwaitingCommand] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const vadRef = useRef<AudioVAD | null>(null);
@@ -370,6 +388,18 @@ const Chat: React.FC = () => {
                 },
                 (Number(delay) + 2) * 1000,
               );
+            } else if (ev.type === "confirmation_required") {
+              setConfirmationCard({
+                message: ev.message,
+                pendingAction: ev.pendingAction,
+              });
+              setMessages((p) => [
+                ...p,
+                { role: "assistant", content: ev.message },
+              ]);
+              setStreaming("");
+              setToolStatus("");
+              break outer;
             } else if (ev.type === "done") {
               setMessages((p) => [...p, { role: "assistant", content: full }]);
               setStreaming("");
@@ -474,16 +504,22 @@ const Chat: React.FC = () => {
             // Phase 2: wakeword confirmed — transcribe as command
             if (awaitingCommandRef.current) {
               awaitingCommandRef.current = false;
+              setAwaitingCommand(false);
               if (awaitingTimerRef.current) {
                 clearTimeout(awaitingTimerRef.current);
                 awaitingTimerRef.current = null;
               }
+              setMicStatus("Transkribiere…");
               const r = await fetch(`${API}/api/speech/transcribe`, {
                 method: "POST",
                 body: form,
               });
               const { text } = (await r.json()) as { text: string };
               const clean = (text ?? "").trim();
+              console.log(
+                "[WAKEWORD Phase 2] transkribiert:",
+                JSON.stringify(clean),
+              );
               if (clean && !HALLUCINATION_RE.test(clean)) sendText(clean);
               return;
             }
@@ -497,6 +533,9 @@ const Chat: React.FC = () => {
               detected: boolean;
               score: number;
             };
+            console.log(
+              `[WAKEWORD] score=${score.toFixed(4)} detected=${detected}`,
+            );
 
             if (!detected) return;
 
@@ -520,16 +559,18 @@ const Chat: React.FC = () => {
 
             // No inline command — wait for next segment
             awaitingCommandRef.current = true;
-            setMicStatus("Bereit…");
+            setAwaitingCommand(true);
+            setMicStatus("");
             awaitingTimerRef.current = setTimeout(() => {
               awaitingCommandRef.current = false;
+              setAwaitingCommand(false);
               awaitingTimerRef.current = null;
-              setMicStatus("");
-            }, 6000);
+            }, 15000);
           } catch {
             /* Segment ignorieren */
           } finally {
-            setMicStatus("");
+            // "Bereit…" bleibt sichtbar, solange ELLA auf den Folgebefehl wartet
+            if (!awaitingCommandRef.current) setMicStatus("");
           }
         },
       })
@@ -1001,8 +1042,9 @@ const Chat: React.FC = () => {
       </div>
 
       <style>{`
-        @keyframes blink  { 0%,100%{opacity:1} 50%{opacity:0} }
-        @keyframes pulse  { 0%,100%{opacity:0.4} 50%{opacity:1} }
+        @keyframes blink     { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes pulse     { 0%,100%{opacity:0.4} 50%{opacity:1} }
+        @keyframes countdown { from{width:100%} to{width:0%} }
       `}</style>
 
       {/* Directive-Denial Badge */}
@@ -1034,53 +1076,206 @@ const Chat: React.FC = () => {
         </div>
       )}
 
-      {/* Wakeword-Indikator */}
-      {voiceMode === "wakeword" && wakeListening && !micStatus && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: "0.78rem",
-            color: "#475569",
-          }}
-        >
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              display: "inline-block",
-              background: "#475569",
-              animation: "pulse 2.5s ease-in-out infinite",
-            }}
-          />
-          ELLA lauscht…
+      {/* Sprachstatus-Anzeige */}
+      {voiceMode === "wakeword" && wakeListening && (
+        <div style={{ minHeight: 28 }}>
+          {awaitingCommand ? (
+            /* "Jetzt sprechen" — grün, prominent, mit Ablauf-Balken */
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  color: "#22c55e",
+                }}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    background: "#22c55e",
+                    animation: "pulse 0.8s ease-in-out infinite",
+                  }}
+                />
+                Jetzt sprechen…
+              </div>
+              <div
+                style={{
+                  height: 2,
+                  background: "#1e2d3d",
+                  borderRadius: 1,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    background: "#22c55e",
+                    borderRadius: 1,
+                    animation: "countdown 15s linear forwards",
+                  }}
+                />
+              </div>
+            </div>
+          ) : micStatus ? (
+            /* Aktiver Mic-Status: Erkenne / Transkribiere */
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: "0.78rem",
+                color: "#7c6af7",
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  display: "inline-block",
+                  background: "#7c6af7",
+                  animation: "pulse 1.2s ease-in-out infinite",
+                }}
+              />
+              {micStatus}
+            </div>
+          ) : (
+            /* Idle — lauscht */
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: "0.78rem",
+                color: "#475569",
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  display: "inline-block",
+                  background: "#475569",
+                  animation: "pulse 2.5s ease-in-out infinite",
+                }}
+              />
+              ELLA lauscht…
+            </div>
+          )}
         </div>
       )}
 
-      {/* Mic-Status */}
-      {micStatus && (
+      {/* Confirmation Card */}
+      {confirmationCard && (
         <div
           style={{
+            background: "#1a1f2e",
+            border: "1px solid #f59e0b",
+            borderRadius: 10,
+            padding: "14px 16px",
             display: "flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: "0.78rem",
-            color: "#7c6af7",
+            flexDirection: "column",
+            gap: 12,
           }}
         >
-          <span
+          <div
             style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              display: "inline-block",
-              background: "#7c6af7",
-              animation: "pulse 1.5s ease-in-out infinite",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontWeight: 600,
+              color: "#f59e0b",
+              fontSize: "0.85rem",
             }}
-          />
-          {micStatus}
+          >
+            <span>⚠</span>
+            Bestätigung erforderlich
+          </div>
+          <div
+            style={{ color: "#e2e8f0", fontSize: "0.82rem", lineHeight: 1.5 }}
+          >
+            {confirmationCard.message}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              disabled={confirmBusy}
+              onClick={async () => {
+                setConfirmBusy(true);
+                try {
+                  const res = await fetch(`${API}/api/tools/confirm`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(confirmationCard.pendingAction),
+                  });
+                  const result = (await res.json()) as {
+                    success: boolean;
+                    error?: string;
+                  };
+                  setMessages((p) => [
+                    ...p,
+                    {
+                      role: "assistant",
+                      content: result.success
+                        ? "Laufwerk wurde erfolgreich formatiert."
+                        : `Fehler: ${result.error ?? "Unbekannt"}`,
+                    },
+                  ]);
+                } catch {
+                  setMessages((p) => [
+                    ...p,
+                    {
+                      role: "assistant",
+                      content: "Formatierung fehlgeschlagen.",
+                    },
+                  ]);
+                } finally {
+                  setConfirmationCard(null);
+                  setConfirmBusy(false);
+                }
+              }}
+              style={{
+                background: "#ef4444",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                padding: "6px 16px",
+                fontWeight: 600,
+                cursor: confirmBusy ? "not-allowed" : "pointer",
+                fontSize: "0.82rem",
+                opacity: confirmBusy ? 0.6 : 1,
+              }}
+            >
+              {confirmBusy ? "Formatiere…" : "Ja, formatieren"}
+            </button>
+            <button
+              disabled={confirmBusy}
+              onClick={() => setConfirmationCard(null)}
+              style={{
+                background: "transparent",
+                color: "#94a3b8",
+                border: "1px solid #334155",
+                borderRadius: 6,
+                padding: "6px 16px",
+                cursor: "pointer",
+                fontSize: "0.82rem",
+              }}
+            >
+              Abbrechen
+            </button>
+          </div>
         </div>
       )}
 

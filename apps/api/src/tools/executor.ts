@@ -49,6 +49,74 @@ import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
 
+// ── Drive-Hilfsfunktionen ─────────────────────────────────────────────────────
+
+function escLabel(s: string): string {
+  return s.replace(/'/g, "''");
+}
+
+export function getDriveType(letter: string): number {
+  try {
+    const script = `(Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DeviceID -eq '${letter}:' }).DriveType`;
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    const out = execSync(
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      { timeout: 6000, encoding: "utf-8" },
+    );
+    const n = parseInt(out.trim(), 10);
+    return isNaN(n) ? -1 : n;
+  } catch {
+    return -1;
+  }
+}
+
+export function getDriveSizeLabel(letter: string): string {
+  try {
+    const script = `(Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DeviceID -eq '${letter}:' }).Size`;
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    const out = execSync(
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      { timeout: 6000, encoding: "utf-8" },
+    );
+    const bytes = parseInt(out.trim(), 10);
+    if (isNaN(bytes) || bytes <= 0) return "unbekannte Größe";
+    return `${(bytes / 1024 ** 3).toFixed(0)} GB`;
+  } catch {
+    return "unbekannte Größe";
+  }
+}
+
+// Wird direkt nach Nutzer-Bestätigung aufgerufen — kein LLM-Tool
+export async function formatDriveConfirmed(args: {
+  drive: string;
+  filesystem: string;
+  label?: string;
+}): Promise<ToolResult> {
+  const drive = args.drive.toUpperCase();
+  const fs_type = (args.filesystem ?? "FAT32").toUpperCase();
+  const label = (args.label ?? "").trim();
+
+  try {
+    const labelPart = label ? `-NewFileSystemLabel '${escLabel(label)}'` : "";
+    const script = `
+      Format-Volume -DriveLetter '${drive}' -FileSystem '${fs_type}' ${labelPart} -Confirm:$false -Force | Out-Null
+      Write-Output '{"success":true}'
+    `.trim();
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    const out = execSync(
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      { timeout: 120_000, encoding: "utf-8" },
+    );
+    trackToolUsage("format_drive", `${drive}: ${fs_type}`);
+    return JSON.parse(out.trim()) as ToolResult;
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 async function openAppWithSettings(
   args: Record<string, unknown>,
 ): Promise<ToolResult> {
@@ -790,6 +858,109 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       return {
         success: false,
         error: `Wetter für "${location}" nicht verfügbar: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  },
+
+  format_drive: async (args) => {
+    const drive = ((args["drive"] as string) ?? "")
+      .toUpperCase()
+      .replace(":", "")
+      .trim();
+    const filesystem = (
+      (args["filesystem"] as string) ?? "FAT32"
+    ).toUpperCase();
+    const label = ((args["label"] as string) ?? "").trim();
+
+    if (!drive || drive.length !== 1 || !/[A-Z]/.test(drive)) {
+      return { success: false, error: "Ungültiger Laufwerksbuchstabe." };
+    }
+
+    // Zone 1: Absolute Sperre — C immer, protectedDrives aus Settings, ELLA-Laufwerk
+    const ellaDrive = process.cwd()[0].toUpperCase();
+    const { protectedDrives } = getSettings();
+    const blocked = new Set([
+      "C",
+      ellaDrive,
+      ...protectedDrives.map((d) => d.toUpperCase()),
+    ]);
+    if (blocked.has(drive)) {
+      return {
+        success: false,
+        directive: true,
+        error: `Laufwerk ${drive}: ist permanent geschützt und kann nicht formatiert werden.`,
+      };
+    }
+
+    // Zone 2: Nur Wechseldatenträger (DriveType 2) erlaubt
+    const driveType = getDriveType(drive);
+    if (driveType !== 2) {
+      return {
+        success: false,
+        directive: true,
+        error: `Laufwerk ${drive}: ist kein Wechseldatenträger (DriveType ${driveType}). Nur USB-Sticks und externe Laufwerke können formatiert werden.`,
+      };
+    }
+
+    const sizeInfo = getDriveSizeLabel(drive);
+    const msg =
+      `Laufwerk ${drive}: (${sizeInfo}) als ${filesystem} formatieren` +
+      (label ? ` mit Label "${label}"` : "") +
+      `. Alle Daten werden unwiderruflich gelöscht.`;
+
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: msg,
+      pendingAction: {
+        tool: "format_drive_confirmed",
+        args: { drive, filesystem, label },
+      },
+    };
+  },
+
+  rename_drive: async (args) => {
+    const drive = ((args["drive"] as string) ?? "")
+      .toUpperCase()
+      .replace(":", "")
+      .trim();
+    const newLabel = ((args["label"] as string) ?? "").trim();
+
+    if (!drive || drive.length !== 1 || !/[A-Z]/.test(drive)) {
+      return { success: false, error: "Ungültiger Laufwerksbuchstabe." };
+    }
+    if (!newLabel) {
+      return { success: false, error: "Neuer Name fehlt." };
+    }
+
+    const ellaDrive = process.cwd()[0].toUpperCase();
+    const { protectedDrives } = getSettings();
+    const blocked = new Set([
+      "C",
+      ellaDrive,
+      ...protectedDrives.map((d) => d.toUpperCase()),
+    ]);
+    if (blocked.has(drive)) {
+      return {
+        success: false,
+        directive: true,
+        error: `Laufwerk ${drive}: ist geschützt und kann nicht umbenannt werden.`,
+      };
+    }
+
+    try {
+      const script = `Set-Volume -DriveLetter '${drive}' -NewFileSystemLabel '${escLabel(newLabel)}'; Write-Output '{"success":true}'`;
+      const encoded = Buffer.from(script, "utf16le").toString("base64");
+      const out = execSync(
+        `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+        { timeout: 10_000, encoding: "utf-8" },
+      );
+      trackToolUsage("rename_drive", `${drive}: → ${newLabel}`);
+      return JSON.parse(out.trim()) as ToolResult;
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
       };
     }
   },
