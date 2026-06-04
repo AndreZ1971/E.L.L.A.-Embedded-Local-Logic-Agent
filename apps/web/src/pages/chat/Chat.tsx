@@ -8,6 +8,23 @@ const WAKEWORD_RE = /el+a+[,.\s!?]*/i;
 const HALLUCINATION_RE =
   /^\[.*\]$|^\(.*\)$|wir sehen uns wieder|bis zum nächsten|vielen dank für|untertitel|copyright/i;
 
+function cleanTextForTTS(text: string): string {
+  return text
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/#{1,6}\s+/g, "")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, "")
+    .replace(/[\u{2600}-\u{27BF}]/gu, "")
+    .replace(/[\u{FE00}-\u{FE0F}]/gu, "")
+    .replace(/‍/gu, "")
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /* ── Message + stream types ──────────────────────────────────────────── */
 interface Message {
   role: "user" | "assistant" | "directive_deny";
@@ -105,7 +122,7 @@ const Chat: React.FC = () => {
 
   const speakProactive = useCallback((text: string) => {
     window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
+    const utt = new SpeechSynthesisUtterance(cleanTextForTTS(text));
     utt.lang = "de-DE";
     const voices = window.speechSynthesis.getVoices();
     const saved = ttsVoiceRef.current;
@@ -120,11 +137,7 @@ const Chat: React.FC = () => {
 
   const speakEdge = useCallback(
     async (text: string) => {
-      const clean = text
-        .replace(/#{1,6}\s?/g, "")
-        .replace(/[*_`~]/g, "")
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-        .trim();
+      const clean = cleanTextForTTS(text);
       if (!clean) return;
       try {
         const voice = ttsVoiceRef.current || "de-DE-KatjaNeural";
