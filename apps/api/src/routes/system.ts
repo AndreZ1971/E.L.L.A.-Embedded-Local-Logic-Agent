@@ -1,5 +1,8 @@
 import { Router } from "express";
 import { execSync } from "child_process";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { pool } from "../config/database.js";
 import { env } from "../config/env.js";
 import { getDiskUsage } from "@ella/agent-tools";
@@ -125,16 +128,26 @@ function runProgramScan(
   customProgramPaths: string[],
 ): Array<{ name: string; command: string }> {
   const ps = buildScanScript(customProgramPaths);
-  const encoded = Buffer.from(ps, "utf16le").toString("base64");
-  const raw = execSync(
-    `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
-    { timeout: 20_000, encoding: "utf-8" },
-  ).trim();
+  // Script in Temp-Datei schreiben — umgeht CMD-Zeilenlimit von ~8191 Zeichen
+  const tmpFile = path.join(os.tmpdir(), `ella-scan-${Date.now()}.ps1`);
+  try {
+    fs.writeFileSync(tmpFile, ps, "utf-8");
+    const raw = execSync(
+      `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+      { timeout: 20_000, encoding: "utf-8" },
+    ).trim();
 
-  if (!raw || raw === "[]") return [];
-  const parsed = JSON.parse(raw) as unknown;
-  const list = Array.isArray(parsed) ? parsed : [parsed];
-  return list as Array<{ name: string; command: string }>;
+    if (!raw || raw === "[]") return [];
+    const parsed = JSON.parse(raw) as unknown;
+    const list = Array.isArray(parsed) ? parsed : [parsed];
+    return list as Array<{ name: string; command: string }>;
+  } finally {
+    try {
+      fs.unlinkSync(tmpFile);
+    } catch {
+      // best effort cleanup
+    }
+  }
 }
 
 // ── Routes ──────────────────────────────────────────────────────────────────
