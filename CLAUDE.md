@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v2.7.0**
+**Aktueller Stand: v3.0.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -20,7 +20,7 @@ Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offli
 
 - **Backend**: Express, TypeScript, MariaDB (Port 3306, E:\MariaDB)
 - **Frontend**: React 18, Vite (Port 5173)
-- **Desktop**: Electron 33 + electron-vite
+- **Desktop**: Electron 33 + electron-builder
 - **LLM**: Ollama (llama3.1:8b, Port 11434) + OpenAI GPT-4o (optional)
 - **Mono-Repo**: npm workspaces
 
@@ -31,77 +31,89 @@ apps/
   api/        Express-Server (Port 3002)
   web/        React-Frontend (Port 5173)
   desktop/    Electron-Wrapper
+  landing/    Statische Landingpage
 packages/
-  shared/     Geteilte Typen + Utilities
-  agent-tools/ LLM Tool-Definitionen + Ausführung
+  shared/     Geteilte Typen + Interfaces
+  agent-tools/ Windows-System-Tools (disk, temp, recycle, open_app)
+scripts/
+  wakeword_server.py  Python-Wakeword-Prozess (openWakeWord + ella.onnx)
+database/
+  schema.sql  MariaDB-Schema (idempotent)
 ```
 
 ---
 
-## Was läuft (vollständig implementiert)
+## Was läuft (vollständig implementiert — v3.0.0)
 
-- Dual-LLM (Ollama/OpenAI), SSE-Streaming, Tool-Loop max. 5
-- 21 Tools mit Handlern + Audit-Log (`tool_executions`)
-- ML Memory: nomic-embed-text, cosine similarity, 3 Typen (user/system/note)
-- Rule Engine: Default-Allow → Directive → Deny Rules → Allow Rules → allow
+### Kern
+
+- Dual-LLM (Ollama/OpenAI), SSE-Streaming, Tool-Loop max. 5 Runden
+- 53 Tools mit Handlern + Audit-Log (`tool_executions`)
+- Rule Engine: Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → allow
 - **Directive-Denial UI:** roter Badge im Chat bei Regel-Ablehnung
-- Homework Mode: SHA-256 PIN, Whitelist-Enforcement in open_app + loadSetup
-- Voice: Wakeword "ella" (AudioWorkletNode + Whisper lokal), manuell, TTS de-DE
-- **Proaktive TTS:** Alert/Device-Events werden automatisch vorgelesen
-- **search_web:** Web-Suche via OpenAI Responses API + web_search_preview
+- ML Memory: nomic-embed-text, cosine similarity, 3 Typen (user/system/note)
+
+### Voice & UI
+
+- Voice: Wakeword "ella" (Python/ONNX + openWakeWord), manuell, TTS (Edge/System, ohne Emojis/Markdown)
+- Proaktive TTS: Alert/Device-Events und proaktive Nachrichten werden vorgelesen
+- **Proaktive Nachrichten:** ELLA schreibt von sich aus in den Chat (SSE `proactive_message`)
+- System Tray: typisierte Balloon-Alerts (warning/error/info/device) mit Schweregrad-Sound
+
+### Produktivität
+
+- **Dateien:** `search_files` (alle Laufwerke, Typ-Filter), `open_file` (inkl. Word-Cursor-Ende), `explore_folder`
+- **Dokumente:** `create_document` (Word + TXT), `dictate_to_document` (KI-Korrektur via OpenAI/Ollama)
+- **E-Mail verfassen:** `compose_email` → Outlook-Entwurf mit KI-korrigiertem Text
+- **Musik:** `play_music` → Bibliothek durchsuchen (Künstler/Album/Titel), Media Player öffnen
+- **Prozesse:** `list_processes`, `kill_process` (systemkritische gesperrt, Bestätigung für andere)
+- **Systemsteuerung:** `set_volume` (Windows Audio COM API), `get_clipboard`/`set_clipboard` (+ Historie, 3s Polling)
+- **Erinnerungen:** `set_reminder`/`list_reminders`/`delete_reminder` via Windows Task Scheduler
+- **Vision:** `take_screenshot` → GDI+ Screenshot + GPT-4o Vision Analyse
+- **Schreibstil:** `write_for_me` → Stilprofil aus E-Mail-Historie + Text im Nutzerstil
+- **Duplikate:** `find_duplicates` (Größen+Name-Hash, Top-50)
+- **Autostart:** `list_autostart` (HKLM + HKCU Registry)
+
+### Kommunikation
+
 - Outlook COM: Mail lesen/markieren + Kalender lesen/erstellen
-- Thunderbird mbox Fallback für Mail
-- Background Worker: Disk/RAM/Ollama Monitoring, SSE EventBus
+- Gmail + Google Calendar via OAuth 2.0
+- `compose_email` → Outlook-Entwurf (sendet nicht automatisch)
+
+### Monitoring & Proaktiv
+
+- Background Worker (60s): Disk/RAM/Ollama-Alerts, PnP Delta-Detection, ARP-LAN-Scan, TCP-Verbindungen, Firewall/WiFi/DNS
+- Clipboard-Polling (3s), max. 20 Einträge History
+- `recordActivity()` in Chat-Routen → Comeback-Briefing nach 30 Min Inaktivität
+- Meeting-Vorbereitung (30 Min vor Termin, alle 5 Min gecheckt)
+- Tagesabschluss (18 Uhr), Pause-Reminder (90 Min aktive Arbeit)
+- Rhythmus-Analyse (täglich 12 Uhr) → Morgen-Setup vorschlagen
+- Duplikat-Scan (sonntags 10 Uhr) bei > 500 MB Verschwendung
+
+### Infrastruktur
+
 - **Onboarding:** 6-Schritt-Flow — Name, Directive-Acceptance, Hardware-Scan, Stimme wählen, Standort
 - **get_location:** Standort via Memory-first + IP-Geolocation Fallback
-- **Default-Allow:** Rule Engine gibt allow wenn kein explizites deny — Directive ist einzige Grenze
-- Conversational Config: create_setup, update_setting, create_rule
-- Auto-Migration: schema.sql idempotent, 22 Default-Rules
-- **Strategic Roadmap:** [docs/roadmap-strategic.md](docs/roadmap-strategic.md) — Vision v2.x bis Beyond Desktop
-- Setup Router: Ollama-Status, nomic-pull mit SSE-Progress
-- **System Tray:** typisierte Balloon-Alerts (warning/error/info) mit Schweregrad-Sound, Gerät-Events als eigener Balloon-Typ
+- Auto-Migration: schema.sql idempotent, 53 Default-Rules
+- Homework Mode: SHA-256 PIN, Whitelist-Enforcement, Emergency-Reset Route
+- Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
-- **63 Tests — alle grün** (Vitest Unit + Integration + Playwright E2E Web + Desktop)
+- **125 Tests — alle grün** (Vitest Unit + Integration)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 
 ---
 
-## Offene Phasen
+## Neue Tools — Checkliste
 
-### Phase 8 — Härtung (teilweise offen)
+Jedes neue Tool braucht alle folgenden Schritte:
 
-- `executor.ts`: forgetById Guard — `if (!a.id) return { success: false, error: "ID fehlt..." }`
-- Neue Route `POST /api/settings/emergency-reset` — setzt Homework Mode zurück ohne PIN
-- ~~WMIC Fallback~~ — erledigt (Get-CimInstance, alle 5 Stellen)
-
-### Phase 9 — Hardware-Awareness & PnP
-
-- ~~`getLogicalDrives()` dynamisch~~ — erledigt (Get-CimInstance)
-- PnP Delta-Detection: Webcam, USB, externe Laufwerke (Win32_PnPEntity) ✅ implementiert
-- Tool `list_devices` + Default-Regel ID 17 ✅ implementiert
-- Frontend: Toast-Notifications bei device_connected/disconnected ✅ implementiert
-
-### Phase 10 — Netzwerk-Monitoring
-
-- LAN Discovery via `arp -a` (passiv, delta, remember bei neuem Gerät)
-- Verbindungs-Monitor: `Get-NetTCPConnection` + Prozessname
-- Netz-Gesundheit: Firewall, WiFi-Sicherheit, DNS-Änderung
-- Tools: `scan_network`, `list_connections` + Default-Regeln ID 18+19
-- **Prinzip:** ELLA beobachtet. ELLA meldet. ELLA handelt nur auf expliziten Befehl.
-
-### Phase 11 — Compound Diagnostics
-
-- Tool `get_system_status`: parallel — alle Laufwerke, RAM, letzte Alerts, Verbindungen, letzter Boot, Temp-Größe, Ollama-Status
-- LLM synthetisiert → natürliche Sprache je nach Nutzer-Niveau
-- Default-Regel ID 20
-
-### ~~Phase 17 — Direktiven-Extraktion~~ — v2.2.0 ✅
-
-- Repo: `github.com/AndreZ1971/The-E.L.L.A.-Directive-` (privat, Tag v1.0.0)
-- Package `@ella-directive/core`: constants.ts, layer.ts, audit.ts, verify.ts
-- [docs/directive.md](docs/directive.md) — vollständige Spezifikation der vier Verbote
-- Eigene Lizenz: MIT für Code, DIRECTIVE.LICENSE für die Spezifikation
-- Versiegelung (kryptographisch) folgt nach Produktions-Stabilisierung — v2.x
+1. **`packages/shared/src/types/tool.ts`** — ToolName-Union ergänzen
+2. **`apps/api/src/tools/definitions.ts`** — Tool-Definition (type, function, parameters)
+3. **`apps/api/src/tools/executor.ts`** — Handler implementieren (Import + HANDLERS-Eintrag)
+4. **`apps/api/src/config/migrate.ts`** — Default-Regel (nächste freie ID, `always`, `allow`)
+5. **`apps/api/src/routes/settings.ts`** — Falls neue Settings-Felder: in PUT-Route Destructuring und `raw`-Objekt eintragen (sonst werden sie beim Speichern ignoriert!)
+6. **`apps/api/src/services/settings.ts`** — Falls neue Settings-Felder: Interface, DEFAULT_SETTINGS, loadSettings-Migration
+7. **Tests** — Unit-Test in `executor.test.ts` (Mock für externe Services)
 
 ---
 
@@ -116,11 +128,13 @@ Vier unveränderliche Verbote — architektonisch verankert, nicht konfigurierba
 
 Hierarchie: `Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → Tool Execution`
 
+Repo: `github.com/AndreZ1971/The-E.L.L.A.-Directive-` (privat, Tag v1.0.0)
+
 ---
 
 ## Wichtige Befehle
 
-```bash
+```powershell
 # Alles starten (Root)
 npm run dev                    # API + Web parallel (concurrently)
 
@@ -132,12 +146,11 @@ npm run dev --workspace=apps/web     # Web auf :5173
 npm run build
 
 # Desktop
-cd apps/desktop && npm run build:main
-cd apps/desktop && npm run dev
+cd apps/desktop && node build-main.mjs && cd ../..
+$env:ELLA_DEV = "1"; cd apps\desktop; .\node_modules\electron\dist\electron.exe .
 
 # Tests
-npm test                       # Alle Unit + Integration Tests (Vitest)
-npm run test:e2e               # Playwright E2E (Web + Desktop)
+npm test                       # 125 Unit + Integration Tests (Vitest)
 npm run lint
 
 # Ollama prüfen
@@ -157,7 +170,9 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 - TypeScript ES2022, strict mode, NodeNext module resolution
 - CommonJS-zu-ESM Bridge beachten — `import` vs `require` je nach Paket
 - Änderungen an `packages/shared` immer zuerst builden, dann Consumer
-- Neue Tools brauchen: Definition in `definitions.ts`, Handler in `executor.ts`, Default-Regel in `migrate.ts`
+- PowerShell-Scripts als Temp-Datei ausführen (nicht EncodedCommand) — vermeidet CMD-Zeilenlimit
+- `execSync` mit `{ encoding: "utf-8" }` oder ohne `shell: true` — sonst TS-Overload-Fehler
+- Neue Einstellungsfelder müssen in `settings.ts` UND `routes/settings.ts` eingetragen werden
 - Jede neue Funktionalität bekommt Tests — Unit wenn isolierbar, Integration wenn DB nötig
 
 ## Was vermeiden
@@ -167,20 +182,13 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 - `node_modules` in Electron nicht direkt editieren
 - Ollama muss laufen bevor API gestartet wird (oder OpenAI-Fallback konfiguriert)
 - Keine freien Shell-Commands aus dem LLM — nur strukturierte Tool-Calls durch den Executor
+- `{ shell: true }` bei `execSync` vermeiden — TypeScript findet keinen Overload
 
 ## Git
 
 ```
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
-
-
-
-
-
-
-
-
 
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
@@ -190,7 +198,7 @@ _Last synced: 2026-06-05T08:52:39.375Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).
-- **When the user’s task matches a server** (e.g. Confluence work and a **Confluence** / **Atlassian** MCP is listed), **prefer that server id** and plan on tool use—not only file search.
+- **When the user's task matches a server** (e.g. Confluence work and a **Confluence** / **Atlassian** MCP is listed), **prefer that server id** and plan on tool use—not only file search.
 - **Skills:** Folders below contain `SKILL.md`; attach or cite paths in chat when relevant.
 
 #### Workspace MCP
