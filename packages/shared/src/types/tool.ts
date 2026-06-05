@@ -37,7 +37,13 @@ export type ToolName =
   | "read_gmail"
   | "mark_gmail"
   | "read_google_calendar"
-  | "create_google_appointment";
+  | "create_google_appointment"
+  | "search_files"
+  | "open_file"
+  | "explore_folder"
+  | "create_document"
+  | "dictate_to_document"
+  | "compose_email";
 
 export interface ToolCall {
   tool: ToolName;

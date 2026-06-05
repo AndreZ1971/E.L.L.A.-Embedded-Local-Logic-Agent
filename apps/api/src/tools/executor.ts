@@ -55,6 +55,7 @@ import {
   createGoogleAppointment as createGoogleAppt,
 } from "../services/google/calendar.js";
 import { searchMusic, openWithPlayer } from "../services/music.js";
+import { correctText } from "../services/textCorrection.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -1158,6 +1159,451 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         success: false,
         error: `Media Player konnte nicht gestartet werden: ${err instanceof Error ? err.message : String(err)}`,
       };
+    }
+  },
+
+  search_files: async (args) => {
+    const query = ((args["query"] as string) ?? "").trim();
+    const type = ((args["type"] as string) ?? "").toLowerCase();
+    const drive = ((args["drive"] as string) ?? "").toUpperCase();
+
+    if (!query) return { success: false, error: "Suchbegriff fehlt." };
+
+    const typeMap: Record<string, string[]> = {
+      word: ["*.docx", "*.doc"],
+      excel: ["*.xlsx", "*.xls"],
+      pdf: ["*.pdf"],
+      bild: ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp", "*.bmp"],
+      video: ["*.mp4", "*.mkv", "*.avi", "*.mov", "*.wmv"],
+      audio: ["*.mp3", "*.flac", "*.wav", "*.m4a", "*.aac"],
+      text: ["*.txt", "*.md"],
+      alle: ["*.*"],
+    };
+    const extensions = typeMap[type] ?? typeMap["alle"];
+    const extFilter = extensions!.map((e) => `'${e}'`).join(",");
+
+    const { protectedDrives } = getSettings();
+    const drivesToSearch = drive
+      ? [`${drive}:\\`]
+      : ["C:\\", "D:\\", "E:\\", "H:\\", "Z:\\"].filter(
+          (d) => !protectedDrives.includes(d[0]!) || d[0] === "C",
+        );
+
+    const ps = `
+$query  = '${query.replace(/'/g, "''")}'
+$drives = @(${drivesToSearch.map((d) => `'${d}'`).join(",")})
+$ext    = @(${extFilter})
+$blocked = @('\\windows\\','\\system32\\','\\syswow64\\','\\winsxs\\')
+$results = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+foreach ($drive in $drives) {
+  if (-not (Test-Path $drive)) { continue }
+  Get-ChildItem $drive -Recurse -Include $ext -ErrorAction SilentlyContinue |
+    Where-Object {
+      $_.Name -like "*$query*" -and
+      -not ($blocked | Where-Object { $_.FullName.ToLower().Contains($_) })
+    } |
+    Select-Object -First 20 |
+    ForEach-Object {
+      $results.Add([PSCustomObject]@{
+        name    = $_.Name
+        path    = $_.FullName
+        size    = [math]::Round($_.Length / 1KB, 1)
+        changed = $_.LastWriteTime.ToString('yyyy-MM-dd HH:mm')
+        ext     = $_.Extension.ToLower()
+      })
+    }
+  if ($results.Count -ge 20) { break }
+}
+if ($results.Count -eq 0) { Write-Output '[]' }
+else { $results | ConvertTo-Json -Compress -Depth 2 }
+`.trim();
+
+    const tmpFile = path.join(os.tmpdir(), `ella-search-${Date.now()}.ps1`);
+    try {
+      const fs = await import("fs");
+      fs.writeFileSync(tmpFile, ps, "utf-8");
+      const out = execSync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+        { encoding: "utf-8", timeout: 30_000 },
+      ).trim();
+
+      const files = JSON.parse(!out || out === "[]" ? "[]" : out) as Array<{
+        name: string;
+        path: string;
+        size: number;
+        changed: string;
+        ext: string;
+      }>;
+
+      trackToolUsage("search_files", query);
+      return { success: true, output: { query, count: files.length, files } };
+    } finally {
+      try {
+        const fs = await import("fs");
+        fs.unlinkSync(tmpFile);
+      } catch {
+        // best effort
+      }
+    }
+  },
+
+  open_file: async (args) => {
+    const filePath = ((args["path"] as string) ?? "").trim();
+    const appName = ((args["app"] as string) ?? "").trim();
+    const position = ((args["position"] as string) ?? "").toLowerCase();
+
+    if (!filePath) return { success: false, error: "Dateipfad fehlt." };
+
+    if (filePath.toLowerCase().endsWith(".exe")) {
+      return {
+        success: false,
+        error:
+          "Ausführbare Dateien können nicht direkt geöffnet werden. Nutze open_app für Programme.",
+      };
+    }
+
+    const { apps } = getSettings();
+
+    if (
+      position === "end" &&
+      (filePath.endsWith(".docx") || filePath.endsWith(".doc"))
+    ) {
+      const ps = `
+$word = New-Object -ComObject Word.Application
+$word.Visible = $true
+$doc = $word.Documents.Open('${filePath.replace(/'/g, "''")}')
+$word.Activate()
+$word.Selection.EndKey(6)
+Write-Output '{"success":true}'
+`.trim();
+      const tmpFile = path.join(os.tmpdir(), `ella-word-${Date.now()}.ps1`);
+      const fs = await import("fs");
+      try {
+        fs.writeFileSync(tmpFile, ps, "utf-8");
+        execSync(
+          `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+          { encoding: "utf-8", timeout: 15_000 },
+        );
+        trackToolUsage("open_file", filePath);
+        return {
+          success: true,
+          output:
+            "Dokument geöffnet. Cursor ist am Ende — bereit zum Schreiben.",
+        };
+      } finally {
+        try {
+          fs.unlinkSync(tmpFile);
+        } catch {
+          // best effort
+        }
+      }
+    }
+
+    if (appName) {
+      const app = apps.find(
+        (a) => a.name.toLowerCase() === appName.toLowerCase() && a.allowed,
+      );
+      if (!app) {
+        return {
+          success: false,
+          error: `App "${appName}" nicht gefunden oder nicht erlaubt.`,
+        };
+      }
+      {
+        const psLaunch = `Start-Process '${app.command.replace(/'/g, "''")}' -ArgumentList "'${filePath.replace(/'/g, "''")}'"`;
+        const tmpLaunch = path.join(
+          os.tmpdir(),
+          `ella-launch-${Date.now()}.ps1`,
+        );
+        const fsLaunch = await import("fs");
+        try {
+          fsLaunch.writeFileSync(tmpLaunch, psLaunch, "utf-8");
+          execSync(
+            `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpLaunch}"`,
+            { timeout: 10_000 },
+          );
+        } finally {
+          try {
+            fsLaunch.unlinkSync(tmpLaunch);
+          } catch {
+            // best effort
+          }
+        }
+      }
+    } else {
+      const ps = `Start-Process '${filePath.replace(/'/g, "''")}'`;
+      const tmpFile = path.join(os.tmpdir(), `ella-open-${Date.now()}.ps1`);
+      const fs = await import("fs");
+      try {
+        fs.writeFileSync(tmpFile, ps, "utf-8");
+        execSync(
+          `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+          { timeout: 10_000 },
+        );
+      } finally {
+        try {
+          fs.unlinkSync(tmpFile);
+        } catch {
+          // best effort
+        }
+      }
+    }
+
+    trackToolUsage("open_file", filePath);
+    return {
+      success: true,
+      output: `${filePath.split("\\").pop()} wurde geöffnet.`,
+    };
+  },
+
+  explore_folder: async (args) => {
+    const folderPath = ((args["path"] as string) ?? "").trim();
+    if (!folderPath) return { success: false, error: "Pfad fehlt." };
+    const psExplore = `Start-Process explorer.exe -ArgumentList '${folderPath.replace(/'/g, "''")}'`;
+    const tmpExplore = path.join(os.tmpdir(), `ella-explore-${Date.now()}.ps1`);
+    const fsExplore = await import("fs");
+    try {
+      fsExplore.writeFileSync(tmpExplore, psExplore, "utf-8");
+      execSync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpExplore}"`,
+        { timeout: 10_000 },
+      );
+    } finally {
+      try {
+        fsExplore.unlinkSync(tmpExplore);
+      } catch {
+        // best effort
+      }
+    }
+    trackToolUsage("explore_folder", folderPath);
+    return { success: true, output: `Explorer geöffnet: ${folderPath}` };
+  },
+
+  create_document: async (args) => {
+    const docType = ((args["type"] as string) ?? "word").toLowerCase();
+    const fileName = ((args["name"] as string) ?? "").trim();
+    const savePath = ((args["path"] as string) ?? "").trim();
+    const content = ((args["content"] as string) ?? "").trim();
+
+    const folder = savePath || `${process.env["USERPROFILE"]}\\Documents`;
+
+    if (docType === "word" || docType === "docx") {
+      const safeFolder = folder.replace(/'/g, "''");
+      const safeFile = fileName.replace(/'/g, "''");
+      const safeContent = content.replace(/'/g, "''");
+      const ps = `
+$word = New-Object -ComObject Word.Application
+$word.Visible = $true
+$doc = $word.Documents.Add()
+${content ? `$word.Selection.TypeText('${safeContent}')` : ""}
+${
+  fileName
+    ? `
+$p = '${safeFolder}\\${safeFile}.docx'
+$doc.SaveAs([ref]$p)
+`
+    : ""
+}
+$word.Activate()
+$word.Selection.EndKey(6)
+Write-Output '{"success":true}'
+`.trim();
+      const tmpFile = path.join(os.tmpdir(), `ella-create-${Date.now()}.ps1`);
+      const fs = await import("fs");
+      try {
+        fs.writeFileSync(tmpFile, ps, "utf-8");
+        execSync(
+          `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+          { timeout: 15_000 },
+        );
+        trackToolUsage("create_document", "word");
+        return {
+          success: true,
+          output: `Neues Word-Dokument erstellt${fileName ? `: ${fileName}.docx` : ""}. Bereit zum Schreiben.`,
+        };
+      } finally {
+        try {
+          fs.unlinkSync(tmpFile);
+        } catch {
+          // best effort
+        }
+      }
+    }
+
+    if (docType === "text" || docType === "txt") {
+      const name =
+        fileName || `Notiz_${new Date().toISOString().replace(/[:.]/g, "-")}`;
+      const fullPath = `${folder}\\${name}.txt`;
+      const fs = await import("fs");
+      fs.writeFileSync(fullPath, content || "", "utf-8");
+      const psNotepad = `Start-Process notepad.exe -ArgumentList '${fullPath.replace(/'/g, "''")}'`;
+      const tmpNotepad = path.join(
+        os.tmpdir(),
+        `ella-notepad-${Date.now()}.ps1`,
+      );
+      try {
+        fs.writeFileSync(tmpNotepad, psNotepad, "utf-8");
+        execSync(
+          `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpNotepad}"`,
+          { timeout: 10_000 },
+        );
+      } finally {
+        try {
+          fs.unlinkSync(tmpNotepad);
+        } catch {
+          // best effort
+        }
+      }
+      trackToolUsage("create_document", "text");
+      return { success: true, output: `Textdatei erstellt: ${name}.txt` };
+    }
+
+    return {
+      success: false,
+      error: `Unbekannter Dokumenttyp: ${docType}. Nutze "word" oder "text".`,
+    };
+  },
+
+  dictate_to_document: async (args) => {
+    const rawText = ((args["text"] as string) ?? "").trim();
+    const target = ((args["target"] as string) ?? "word").toLowerCase();
+    const doCorrect = args["correct"] !== false;
+
+    if (!rawText) return { success: false, error: "Kein Text zum Diktieren." };
+
+    let finalText = rawText;
+    if (doCorrect) {
+      try {
+        finalText = await correctText(rawText);
+      } catch {
+        finalText = rawText;
+      }
+    }
+
+    if (target === "word") {
+      const ps = `
+try {
+  $word = [Runtime.InteropServices.Marshal]::GetActiveObject('Word.Application')
+} catch {
+  $word = New-Object -ComObject Word.Application
+  $word.Visible = $true
+  $doc = $word.Documents.Add()
+}
+$word.Activate()
+$word.Selection.TypeText('${finalText.replace(/'/g, "''")}')
+Write-Output '{"success":true}'
+`.trim();
+      const tmpFile = path.join(os.tmpdir(), `ella-dictate-${Date.now()}.ps1`);
+      const fs = await import("fs");
+      try {
+        fs.writeFileSync(tmpFile, ps, "utf-8");
+        execSync(
+          `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+          { timeout: 15_000, encoding: "utf-8" },
+        );
+        trackToolUsage("dictate_to_document", "word");
+        return {
+          success: true,
+          output: {
+            written: true,
+            original: rawText,
+            corrected: finalText,
+            corrections: rawText !== finalText,
+          },
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: `Word nicht erreichbar: ${err instanceof Error ? err.message : String(err)}`,
+        };
+      } finally {
+        try {
+          fs.unlinkSync(tmpFile);
+        } catch {
+          // best effort
+        }
+      }
+    }
+
+    if (target === "clipboard") {
+      const ps = `Set-Clipboard -Value '${finalText.replace(/'/g, "''")}'`;
+      const tmpFile = path.join(
+        os.tmpdir(),
+        `ella-clipboard-${Date.now()}.ps1`,
+      );
+      const fs = await import("fs");
+      try {
+        fs.writeFileSync(tmpFile, ps, "utf-8");
+        execSync(
+          `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+          { timeout: 10_000 },
+        );
+      } finally {
+        try {
+          fs.unlinkSync(tmpFile);
+        } catch {
+          // best effort
+        }
+      }
+      trackToolUsage("dictate_to_document", "clipboard");
+      return {
+        success: true,
+        output: `Text in Zwischenablage kopiert${rawText !== finalText ? " (korrigiert)" : ""}.`,
+      };
+    }
+
+    return {
+      success: false,
+      error: `Unbekanntes Ziel: ${target}. Nutze "word" oder "clipboard".`,
+    };
+  },
+
+  compose_email: async (args) => {
+    const to = ((args["to"] as string) ?? "").trim();
+    const subject = ((args["subject"] as string) ?? "").trim();
+    const body = ((args["body"] as string) ?? "").trim();
+    const doCorrect = args["correct"] !== false;
+
+    let finalBody = body;
+    if (body && doCorrect) {
+      try {
+        finalBody = await correctText(body);
+      } catch {
+        finalBody = body;
+      }
+    }
+
+    const esc = (s: string) => s.replace(/'/g, "''");
+    const ps = `
+$o    = New-Object -ComObject Outlook.Application
+$mail = $o.CreateItem(0)
+${to ? `$mail.To = '${esc(to)}'` : ""}
+${subject ? `$mail.Subject = '${esc(subject)}'` : ""}
+${finalBody ? `$mail.Body = '${esc(finalBody)}'` : ""}
+$mail.Display()
+Write-Output '{"success":true}'
+`.trim();
+
+    const tmpFile = path.join(os.tmpdir(), `ella-mail-${Date.now()}.ps1`);
+    const fs = await import("fs");
+    try {
+      fs.writeFileSync(tmpFile, ps, "utf-8");
+      execSync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+        { timeout: 10_000 },
+      );
+      trackToolUsage("compose_email", to || "draft");
+      return {
+        success: true,
+        output: `E-Mail-Entwurf geöffnet${to ? ` an ${to}` : ""}${body && doCorrect ? ". Text wurde KI-korrigiert." : "."}`,
+      };
+    } finally {
+      try {
+        fs.unlinkSync(tmpFile);
+      } catch {
+        // best effort
+      }
     }
   },
 

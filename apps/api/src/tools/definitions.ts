@@ -851,6 +851,164 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  defs.push({
+    type: "function",
+    function: {
+      name: "search_files",
+      description:
+        "Durchsucht alle Laufwerke nach Dateien. Findet Dokumente, Bilder, Videos, Musik nach Name oder Typ.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Suchbegriff — Dateiname oder Teil davon",
+          },
+          type: {
+            type: "string",
+            description:
+              "Dateityp: word, excel, pdf, bild, video, audio, text, alle",
+          },
+          drive: {
+            type: "string",
+            description: "Laufwerk einschränken: C, D, E, H — leer = alle",
+          },
+        },
+        required: ["query"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "open_file",
+      description:
+        "Öffnet eine Datei. Optional mit bestimmter App. Bei Word-Dokumenten optional direkt ans Ende springen.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Vollständiger Dateipfad",
+          },
+          app: {
+            type: "string",
+            description: "App-Name aus der Programmliste (optional)",
+          },
+          position: {
+            type: "string",
+            description: '"end" um Cursor ans Ende zu setzen (nur Word)',
+          },
+        },
+        required: ["path"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "explore_folder",
+      description: "Öffnet einen Ordner im Windows Explorer.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: 'Ordnerpfad, z.B. "E:\\Dokumente"',
+          },
+        },
+        required: ["path"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "create_document",
+      description:
+        "Erstellt ein neues Dokument. Word oder Textdatei. Optional mit Inhalt vorbefüllen.",
+      parameters: {
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+            description: '"word" (Standard) oder "text"',
+          },
+          name: {
+            type: "string",
+            description: "Dateiname ohne Endung (optional)",
+          },
+          path: {
+            type: "string",
+            description: "Speicherordner (optional, Standard: Dokumente)",
+          },
+          content: {
+            type: "string",
+            description: "Anfangsinhalt (optional)",
+          },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "dictate_to_document",
+      description:
+        "Schreibt diktierten Text in ein offenes Word-Dokument oder die Zwischenablage. " +
+        "KI korrigiert automatisch Rechtschreibung, Grammatik und Zeichensetzung. " +
+        'Nutze dies wenn der Nutzer Text diktieren will oder "schreib das auf" sagt.',
+      parameters: {
+        type: "object",
+        properties: {
+          text: {
+            type: "string",
+            description: "Der diktierte Rohtext",
+          },
+          target: {
+            type: "string",
+            description: '"word" (Standard), "clipboard"',
+          },
+          correct: {
+            type: "boolean",
+            description: "KI-Korrektur aktivieren (Standard: true)",
+          },
+        },
+        required: ["text"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "compose_email",
+      description:
+        "Öffnet einen E-Mail-Entwurf in Outlook. KI korrigiert den Text automatisch. Sendet NICHT — Nutzer entscheidet.",
+      parameters: {
+        type: "object",
+        properties: {
+          to: {
+            type: "string",
+            description: "Empfänger-E-Mail",
+          },
+          subject: {
+            type: "string",
+            description: "Betreff",
+          },
+          body: {
+            type: "string",
+            description: "E-Mail-Text",
+          },
+        },
+      },
+    },
+  });
+
   // Directive-Demo — kein Handler, wird von DIRECTIVE_DENY blockiert
   defs.push({
     type: "function",

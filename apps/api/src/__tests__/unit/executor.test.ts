@@ -17,6 +17,9 @@ vi.mock("../../services/music.js", () => ({
   searchMusic: vi.fn(),
   openWithPlayer: vi.fn(),
 }));
+vi.mock("../../services/textCorrection.js", () => ({
+  correctText: vi.fn((t: string) => Promise.resolve(t + " [korrigiert]")),
+}));
 vi.mock("util", () => ({
   promisify: vi.fn((fn: unknown) =>
     vi.fn().mockResolvedValue({ stdout: "", stderr: "" }),
@@ -89,6 +92,7 @@ import { evaluateRules } from "../../services/rules.js";
 import { getDiskUsage } from "@ella/agent-tools";
 import { execSync } from "child_process";
 import { searchMusic, openWithPlayer } from "../../services/music.js";
+import { correctText } from "../../services/textCorrection.js";
 
 describe("toolExecutor", () => {
   beforeEach(() => {
@@ -464,5 +468,197 @@ describe("play_music", () => {
     });
     expect(result.success).toBe(true);
     expect(openWithPlayer).toHaveBeenCalledWith("C:\\vlc.exe", "H:\\AC DC");
+  });
+});
+
+const prodToolSettings = {
+  enabledTools: [
+    "search_files",
+    "open_file",
+    "explore_folder",
+    "create_document",
+    "dictate_to_document",
+    "compose_email",
+  ],
+  apps: [{ name: "Word", command: "C:\\Word\\winword.exe", allowed: true }],
+  homeworkMode: { active: false, apps: [], pinHash: "" },
+  setups: [],
+  protectedDrives: ["Z"],
+  customProgramPaths: [],
+  musicLibraryPath: "",
+  defaultMediaPlayer: "vlc",
+  provider: "auto" as const,
+  ollamaModel: "llama3.1:8b",
+  openaiApiKey: "",
+};
+
+describe("search_files", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(prodToolSettings as any);
+    vi.mocked(execSync).mockReturnValue(
+      JSON.stringify([
+        {
+          name: "Angebot.docx",
+          path: "H:\\Docs\\Angebot.docx",
+          size: 12.5,
+          changed: "2025-01-01 10:00",
+          ext: ".docx",
+        },
+      ]) as any,
+    );
+  });
+
+  it("search_files — Fehler wenn kein Suchbegriff", async () => {
+    const result = await toolExecutor.execute({
+      tool: "search_files",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Suchbegriff");
+  });
+
+  it("search_files — gibt Treffer zurück", async () => {
+    vi.mocked(execSync).mockReturnValue(
+      JSON.stringify([
+        {
+          name: "Angebot.docx",
+          path: "H:\\Angebot.docx",
+          size: 12,
+          changed: "2025-01-01 10:00",
+          ext: ".docx",
+        },
+      ]) as any,
+    );
+    const result = await toolExecutor.execute({
+      tool: "search_files",
+      args: { query: "Angebot" },
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).count).toBe(1);
+  });
+});
+
+describe("open_file", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(prodToolSettings as any);
+    vi.mocked(execSync).mockReturnValue("" as any);
+  });
+
+  it("open_file — Fehler wenn kein Pfad", async () => {
+    const result = await toolExecutor.execute({ tool: "open_file", args: {} });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("open_file — blockiert .exe Dateien", async () => {
+    const result = await toolExecutor.execute({
+      tool: "open_file",
+      args: { path: "C:\\Windows\\evil.exe" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("open_app");
+  });
+});
+
+describe("explore_folder", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(prodToolSettings as any);
+    vi.mocked(execSync).mockReturnValue("" as any);
+  });
+
+  it("explore_folder — Fehler wenn kein Pfad", async () => {
+    const result = await toolExecutor.execute({
+      tool: "explore_folder",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("explore_folder — Erfolg", async () => {
+    const result = await toolExecutor.execute({
+      tool: "explore_folder",
+      args: { path: "E:\\Dokumente" },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("Explorer");
+  });
+});
+
+describe("dictate_to_document", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(prodToolSettings as any);
+    vi.mocked(execSync).mockReturnValue(
+      JSON.stringify({ success: true }) as any,
+    );
+    vi.mocked(correctText).mockClear();
+    vi.mocked(correctText).mockResolvedValue(
+      "Ich habe morgen einen Termin. [korrigiert]",
+    );
+  });
+
+  it("dictate_to_document — Fehler wenn kein Text", async () => {
+    const result = await toolExecutor.execute({
+      tool: "dictate_to_document",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Text");
+  });
+
+  it("dictate_to_document — ruft correctText auf", async () => {
+    vi.mocked(execSync).mockReturnValue("" as any);
+    const result = await toolExecutor.execute({
+      tool: "dictate_to_document",
+      args: { text: "ich hab morgen en termin", target: "word" },
+    });
+    expect(correctText).toHaveBeenCalledWith("ich hab morgen en termin");
+    expect(result.success).toBe(true);
+    expect((result.output as any).corrections).toBe(true);
+  });
+
+  it("dictate_to_document — correct:false überspringt Korrektur", async () => {
+    vi.mocked(execSync).mockReturnValue("" as any);
+    const result = await toolExecutor.execute({
+      tool: "dictate_to_document",
+      args: { text: "hallo welt", target: "word", correct: false },
+    });
+    expect(correctText).not.toHaveBeenCalled();
+    expect(result.success).toBe(true);
+    expect((result.output as any).corrections).toBe(false);
+  });
+});
+
+describe("compose_email", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(prodToolSettings as any);
+    vi.mocked(execSync).mockReturnValue("" as any);
+    vi.mocked(correctText).mockResolvedValue("Hallo Herr Müller. [korrigiert]");
+  });
+
+  it("compose_email — Erfolg ohne Empfänger", async () => {
+    const result = await toolExecutor.execute({
+      tool: "compose_email",
+      args: { subject: "Test", body: "Hallo" },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("Entwurf");
+  });
+
+  it("compose_email — nennt Empfänger in Ausgabe", async () => {
+    const result = await toolExecutor.execute({
+      tool: "compose_email",
+      args: {
+        to: "mueller@example.com",
+        subject: "Test",
+        body: "Hallo Herr Mueller",
+      },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("mueller@example.com");
   });
 });

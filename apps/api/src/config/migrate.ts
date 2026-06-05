@@ -112,6 +112,12 @@ export async function runMigrations(): Promise<void> {
       "allow",
     ],
     [35, "Musik spielen erlaubt", "play_music", "always", "allow"],
+    [36, "Dateien suchen erlaubt", "search_files", "always", "allow"],
+    [37, "Datei öffnen erlaubt", "open_file", "always", "allow"],
+    [38, "Ordner öffnen erlaubt", "explore_folder", "always", "allow"],
+    [39, "Dokument erstellen erlaubt", "create_document", "always", "allow"],
+    [40, "Diktat erlaubt", "dictate_to_document", "always", "allow"],
+    [41, "E-Mail verfassen erlaubt", "compose_email", "always", "allow"],
   ] as const;
 
   for (const [id, name, tool_name, trigger, action] of standardTools) {
