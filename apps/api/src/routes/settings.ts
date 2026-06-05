@@ -36,6 +36,8 @@ settingsRouter.put("/", async (req, res, next) => {
       ttsEnabled,
       ttsVoice,
       eulaAccepted,
+      musicLibraryPath,
+      defaultMediaPlayer,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -49,6 +51,8 @@ settingsRouter.put("/", async (req, res, next) => {
       ttsEnabled?: boolean;
       ttsVoice?: string;
       eulaAccepted?: boolean;
+      musicLibraryPath?: string;
+      defaultMediaPlayer?: string;
     };
 
     const raw = {
@@ -62,6 +66,8 @@ settingsRouter.put("/", async (req, res, next) => {
       ttsEnabled,
       ttsVoice,
       eulaAccepted,
+      musicLibraryPath,
+      defaultMediaPlayer,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(
