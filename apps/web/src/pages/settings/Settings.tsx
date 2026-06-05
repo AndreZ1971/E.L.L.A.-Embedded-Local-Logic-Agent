@@ -51,6 +51,8 @@ interface Settings {
   googleClientSecret: string;
   googleConnected: boolean;
   googleUserEmail: string;
+  musicLibraryPath: string;
+  defaultMediaPlayer: string;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -93,6 +95,7 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "rename_drive", label: "Laufwerk umbenennen" },
   { name: "list_programs", label: "Programme auflisten (ohne System32)" },
   { name: "pause_ella", label: "ELLA pausieren" },
+  { name: "play_music", label: "Musik spielen" },
   { name: "read_gmail", label: "Gmail lesen" },
   { name: "mark_gmail", label: "Gmail markieren / archivieren" },
   { name: "read_google_calendar", label: "Google Kalender lesen" },
@@ -1133,6 +1136,76 @@ const Settings: React.FC = () => {
                   </span>
                 </label>
               ))}
+            </div>
+
+            {/* Medienwiedergabe */}
+            <div
+              style={{
+                marginTop: 24,
+                borderTop: "1px solid #2d3148",
+                paddingTop: 20,
+                display: "flex",
+                flexDirection: "column",
+                gap: 14,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  color: "#64748b",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                Medienwiedergabe
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
+                  Musikbibliothek
+                </label>
+                <input
+                  value={settings.musicLibraryPath ?? ""}
+                  onChange={(e) => patch({ musicLibraryPath: e.target.value })}
+                  placeholder="z.B. H:\ oder H:\Musik"
+                  style={{
+                    background: "#1e2538",
+                    border: "1px solid #2d3148",
+                    borderRadius: 6,
+                    padding: "8px 12px",
+                    color: "#e2e8f0",
+                    fontSize: "0.85rem",
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
+                  Standard Media Player
+                </label>
+                <select
+                  value={settings.defaultMediaPlayer ?? "vlc"}
+                  onChange={(e) =>
+                    patch({ defaultMediaPlayer: e.target.value })
+                  }
+                  style={{
+                    background: "#1e2538",
+                    border: "1px solid #2d3148",
+                    borderRadius: 6,
+                    padding: "8px 12px",
+                    color: "#e2e8f0",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  {(settings.apps ?? [])
+                    .filter((a) => a.allowed)
+                    .map((a) => (
+                      <option key={a.name} value={a.name}>
+                        {a.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
           </div>
         )}

@@ -33,6 +33,7 @@ export type ToolName =
   | "fetch_url"
   | "get_weather"
   | "pause_ella"
+  | "play_music"
   | "read_gmail"
   | "mark_gmail"
   | "read_google_calendar"

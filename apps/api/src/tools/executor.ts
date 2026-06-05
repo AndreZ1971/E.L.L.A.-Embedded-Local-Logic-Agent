@@ -54,6 +54,7 @@ import {
   readGoogleCalendar,
   createGoogleAppointment as createGoogleAppt,
 } from "../services/google/calendar.js";
+import { searchMusic, openWithPlayer } from "../services/music.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -1101,6 +1102,61 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       return {
         success: false,
         error: `Google Kalender nicht verfügbar: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  },
+
+  play_music: async (args) => {
+    const query = ((args["query"] as string) ?? "").trim();
+    const { musicLibraryPath, defaultMediaPlayer, apps } = getSettings();
+
+    if (!musicLibraryPath) {
+      return {
+        success: false,
+        error:
+          "Keine Musikbibliothek konfiguriert. Bitte in Einstellungen den Musikpfad festlegen.",
+      };
+    }
+
+    const playerApp = apps.find(
+      (a) =>
+        a.name.toLowerCase() === defaultMediaPlayer.toLowerCase() && a.allowed,
+    );
+    if (!playerApp) {
+      return {
+        success: false,
+        error: `Media Player "${defaultMediaPlayer}" nicht gefunden oder nicht erlaubt. Bitte in Einstellungen konfigurieren.`,
+      };
+    }
+
+    let targetPath = musicLibraryPath;
+    let description = "Musikbibliothek";
+
+    if (query) {
+      const result = searchMusic(musicLibraryPath, query);
+      if (!result) {
+        return {
+          success: false,
+          error: `Keine Musik gefunden fuer "${query}". Versuche es mit Kuenstlername oder Albumtitel.`,
+        };
+      }
+      targetPath = result.path;
+      description = result.title;
+    }
+
+    try {
+      openWithPlayer(playerApp.command, targetPath);
+      trackToolUsage("play_music", query || "alle");
+      return {
+        success: true,
+        output: query
+          ? `"${description}" wird in ${playerApp.name} geoeffnet.`
+          : `Musikbibliothek wird in ${playerApp.name} geoeffnet.`,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: `Media Player konnte nicht gestartet werden: ${err instanceof Error ? err.message : String(err)}`,
       };
     }
   },

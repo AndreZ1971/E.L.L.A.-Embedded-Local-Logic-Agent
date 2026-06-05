@@ -43,6 +43,8 @@ export interface Settings {
   googleClientSecret: string;
   googleConnected: boolean;
   googleUserEmail: string;
+  musicLibraryPath: string;
+  defaultMediaPlayer: string;
 }
 
 const SETTINGS_PATH = path.join(
@@ -91,6 +93,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "mark_gmail",
     "read_google_calendar",
     "create_google_appointment",
+    "play_music",
   ],
   sessionLimit: 20,
   openaiApiKey: "",
@@ -109,6 +112,8 @@ export const DEFAULT_SETTINGS: Settings = {
   googleClientSecret: "",
   googleConnected: false,
   googleUserEmail: "",
+  musicLibraryPath: "",
+  defaultMediaPlayer: "vlc",
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -178,6 +183,11 @@ export async function loadSettings(): Promise<void> {
       parsed.googleConnected = DEFAULT_SETTINGS.googleConnected;
     if (typeof parsed.googleUserEmail !== "string")
       parsed.googleUserEmail = DEFAULT_SETTINGS.googleUserEmail;
+    // Migrate Music fields
+    if (typeof parsed.musicLibraryPath !== "string")
+      parsed.musicLibraryPath = DEFAULT_SETTINGS.musicLibraryPath;
+    if (typeof parsed.defaultMediaPlayer !== "string")
+      parsed.defaultMediaPlayer = DEFAULT_SETTINGS.defaultMediaPlayer;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults

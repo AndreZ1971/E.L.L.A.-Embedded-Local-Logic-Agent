@@ -111,6 +111,7 @@ export async function runMigrations(): Promise<void> {
       "always",
       "allow",
     ],
+    [35, "Musik spielen erlaubt", "play_music", "always", "allow"],
   ] as const;
 
   for (const [id, name, tool_name, trigger, action] of standardTools) {

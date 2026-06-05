@@ -829,6 +829,28 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  defs.push({
+    type: "function",
+    function: {
+      name: "play_music",
+      description:
+        "Spielt Musik aus der konfigurierten Musikbibliothek. " +
+        "Ohne Suchbegriff: oeffnet die gesamte Bibliothek im Media Player. " +
+        "Mit Suchbegriff: sucht nach Kuenstler, Album oder Titel und oeffnet den Treffer. " +
+        "Beispiele: 'spiel Musik', 'spiel etwas von AC/DC', 'oeffne meine Jazz-Playlist'.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description:
+              "Kuenstler, Album oder Titel — weglassen fuer gesamte Bibliothek",
+          },
+        },
+      },
+    },
+  });
+
   // Directive-Demo — kein Handler, wird von DIRECTIVE_DENY blockiert
   defs.push({
     type: "function",

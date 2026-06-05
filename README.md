@@ -4,7 +4,7 @@
 
 Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automatisierung — vollständig offline via Ollama, optional mit OpenAI GPT-4o.
 
-**Version:** v2.7.1 · Windows 10/11 (x64) · 94 Tests grün
+**Version:** v2.8.0 · Windows 10/11 (x64) · 99 Tests grün
 
 _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -29,6 +29,7 @@ _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 | Regel-Engine        | Tool-Whitelist mit allow/deny-Regeln und Zeitbedingungen          |
 | Monitoring          | Background-Worker, SSE-Push, Disk/Ollama-Alerts, PnP-Events       |
 | Selbstkonfiguration | Setups, Regeln, Einstellungen per Gespraech aendern               |
+| Musik               | Bibliothek durchsuchen und im Media Player oeffnen                |
 | Netzwerk            | LAN-Scan, TCP-Verbindungen, verbundene Geraete                    |
 
 ### Die E.L.L.A. Direktive — vier unveränderliche Verbote

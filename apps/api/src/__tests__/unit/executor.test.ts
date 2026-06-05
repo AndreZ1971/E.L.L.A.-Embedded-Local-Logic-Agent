@@ -8,7 +8,15 @@ vi.mock("@ella/agent-tools", () => ({
   cleanTemp: vi.fn(),
   emptyRecycleBin: vi.fn(),
 }));
-vi.mock("child_process", () => ({ execSync: vi.fn(), exec: vi.fn() }));
+vi.mock("child_process", () => ({
+  execSync: vi.fn(),
+  exec: vi.fn(),
+  spawn: vi.fn(() => ({ unref: vi.fn() })),
+}));
+vi.mock("../../services/music.js", () => ({
+  searchMusic: vi.fn(),
+  openWithPlayer: vi.fn(),
+}));
 vi.mock("util", () => ({
   promisify: vi.fn((fn: unknown) =>
     vi.fn().mockResolvedValue({ stdout: "", stderr: "" }),
@@ -80,6 +88,7 @@ import { getSettings } from "../../services/settings.js";
 import { evaluateRules } from "../../services/rules.js";
 import { getDiskUsage } from "@ella/agent-tools";
 import { execSync } from "child_process";
+import { searchMusic, openWithPlayer } from "../../services/music.js";
 
 describe("toolExecutor", () => {
   beforeEach(() => {
@@ -374,5 +383,86 @@ describe("list_programs", () => {
     const programs = (result.output as any).programs as string[];
     expect(programs).toContain("Chrome");
     expect(programs).not.toContain("BadApp");
+  });
+});
+
+describe("play_music", () => {
+  const baseSettings = {
+    enabledTools: ["play_music"],
+    apps: [{ name: "vlc", command: "C:\\vlc.exe", allowed: true }],
+    homeworkMode: { active: false, apps: [], pinHash: "" },
+    setups: [],
+    protectedDrives: ["C"],
+    customProgramPaths: [],
+    musicLibraryPath: "H:\\",
+    defaultMediaPlayer: "vlc",
+  };
+
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(openWithPlayer).mockReturnValue(undefined);
+  });
+
+  it("Fehler wenn keine Musikbibliothek konfiguriert", async () => {
+    vi.mocked(getSettings).mockReturnValue({
+      ...baseSettings,
+      musicLibraryPath: "",
+    } as any);
+    const result = await toolExecutor.execute({
+      tool: "play_music",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("konfiguriert");
+  });
+
+  it("Fehler wenn Player nicht in apps[]", async () => {
+    vi.mocked(getSettings).mockReturnValue({
+      ...baseSettings,
+      apps: [],
+    } as any);
+    const result = await toolExecutor.execute({
+      tool: "play_music",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("nicht gefunden");
+  });
+
+  it("Fehler wenn Suche kein Ergebnis liefert", async () => {
+    vi.mocked(getSettings).mockReturnValue(baseSettings as any);
+    vi.mocked(searchMusic).mockReturnValue(null);
+    const result = await toolExecutor.execute({
+      tool: "play_music",
+      args: { query: "xyzNichtVorhanden" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Keine Musik gefunden");
+  });
+
+  it("oeffnet gesamte Bibliothek ohne Query", async () => {
+    vi.mocked(getSettings).mockReturnValue(baseSettings as any);
+    const result = await toolExecutor.execute({
+      tool: "play_music",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("Musikbibliothek");
+    expect(openWithPlayer).toHaveBeenCalledWith("C:\\vlc.exe", "H:\\");
+  });
+
+  it("oeffnet gefundenen Kuenstler-Ordner", async () => {
+    vi.mocked(getSettings).mockReturnValue(baseSettings as any);
+    vi.mocked(searchMusic).mockReturnValue({
+      path: "H:\\AC DC",
+      title: "AC DC",
+      isFolder: true,
+    });
+    const result = await toolExecutor.execute({
+      tool: "play_music",
+      args: { query: "AC DC" },
+    });
+    expect(result.success).toBe(true);
+    expect(openWithPlayer).toHaveBeenCalledWith("C:\\vlc.exe", "H:\\AC DC");
   });
 });
