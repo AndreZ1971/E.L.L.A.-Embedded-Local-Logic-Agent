@@ -56,7 +56,11 @@ export type ToolName =
   | "take_screenshot"
   | "write_for_me"
   | "find_duplicates"
-  | "list_autostart";
+  | "list_autostart"
+  | "add_task"
+  | "list_tasks"
+  | "complete_task"
+  | "delete_task";
 
 export interface ToolCall {
   tool: ToolName;

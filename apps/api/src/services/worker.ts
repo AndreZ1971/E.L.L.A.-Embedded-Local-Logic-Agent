@@ -7,7 +7,8 @@ import { pool } from "../config/database.js";
 import { env } from "../config/env.js";
 import { eventBus, EVENT_SYSTEM, type SystemEvent } from "./eventBus.js";
 import { remember } from "./memory.js";
-import { recordClipboard } from "./clipboardHistory.js";
+import { recordClipboard, detectPattern } from "./clipboardHistory.js";
+import { getSettings } from "./settings.js";
 import { sendProactiveMessage } from "./proactive.js";
 import { analyzeRhythm } from "./rhythmLearner.js";
 import { checkUpcomingMeetings } from "./meetingPrep.js";
@@ -642,6 +643,13 @@ export const worker = {
         if (clip && clip !== lastClip && clip.length < 50000) {
           lastClip = clip;
           recordClipboard(clip);
+          // Muster erkennen und proaktive Nachricht senden (nur lokal, kein LLM)
+          if (getSettings().clipboardPatternEnabled) {
+            const pattern = detectPattern(clip);
+            if (pattern) {
+              sendProactiveMessage(pattern.suggestion, "suggestion");
+            }
+          }
         }
       } catch {
         // Clipboard nicht verfügbar

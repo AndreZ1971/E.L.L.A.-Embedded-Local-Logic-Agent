@@ -55,6 +55,12 @@ import {
   createGoogleAppointment as createGoogleAppt,
 } from "../services/google/calendar.js";
 import { searchMusic, openWithPlayer } from "../services/music.js";
+import {
+  addTask,
+  listTasks,
+  completeTask,
+  deleteTask,
+} from "../services/tasks.js";
 import { correctText } from "../services/textCorrection.js";
 import {
   listProcesses,
@@ -1924,6 +1930,70 @@ else { $results | ConvertTo-Json -Compress }`.trim();
         // best effort
       }
     }
+  },
+
+  add_task: async (args) => {
+    const title = ((args["title"] as string) ?? "").trim();
+    if (!title) return { success: false, error: "Aufgabentitel fehlt." };
+
+    const priority =
+      (args["priority"] as "low" | "normal" | "high") ?? "normal";
+    const dueDate = ((args["due_date"] as string) ?? "").trim() || undefined;
+    const note = ((args["note"] as string) ?? "").trim() || undefined;
+
+    if (dueDate && isNaN(new Date(dueDate).getTime())) {
+      return { success: false, error: "Ungültiges Datum — Format: YYYY-MM-DD" };
+    }
+
+    const task = await addTask(title, { priority, dueDate, note });
+    trackToolUsage("add_task", title);
+    return {
+      success: true,
+      output: `Aufgabe angelegt: "${task.title}" (ID ${task.id}, Priorität: ${task.priority})`,
+    };
+  },
+
+  list_tasks: async (args) => {
+    const status =
+      ((args["status"] as string) ?? "pending") === "done" ? "done" : "pending";
+    const tasks = await listTasks(undefined, status as "pending" | "done");
+    trackToolUsage("list_tasks", status);
+    return {
+      success: true,
+      output: {
+        count: tasks.length,
+        tasks: tasks.map((t) => ({
+          id: t.id,
+          title: t.title,
+          priority: t.priority,
+          dueDate: t.dueDate,
+          note: t.note,
+        })),
+      },
+    };
+  },
+
+  complete_task: async (args) => {
+    const id = Number(args["id"]);
+    if (!id) return { success: false, error: "Aufgaben-ID fehlt." };
+    const ok = await completeTask(id);
+    trackToolUsage("complete_task", String(id));
+    return ok
+      ? { success: true, output: `Aufgabe ${id} als erledigt markiert.` }
+      : {
+          success: false,
+          error: `Aufgabe ${id} nicht gefunden oder bereits erledigt.`,
+        };
+  },
+
+  delete_task: async (args) => {
+    const id = Number(args["id"]);
+    if (!id) return { success: false, error: "Aufgaben-ID fehlt." };
+    const ok = await deleteTask(id);
+    trackToolUsage("delete_task", String(id));
+    return ok
+      ? { success: true, output: `Aufgabe ${id} abgebrochen.` }
+      : { success: false, error: `Aufgabe ${id} nicht gefunden.` };
   },
 
   pause_ella: async (args) => {

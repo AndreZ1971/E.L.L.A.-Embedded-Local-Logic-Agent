@@ -53,6 +53,10 @@ interface Settings {
   googleUserEmail: string;
   musicLibraryPath: string;
   defaultMediaPlayer: string;
+  windowContextEnabled: boolean;
+  ttsEngine: "system" | "kokoro";
+  sessionCompressionEnabled: boolean;
+  clipboardPatternEnabled: boolean;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -100,6 +104,10 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "mark_gmail", label: "Gmail markieren / archivieren" },
   { name: "read_google_calendar", label: "Google Kalender lesen" },
   { name: "create_google_appointment", label: "Google Termin erstellen" },
+  { name: "add_task", label: "Aufgabe hinzufügen" },
+  { name: "list_tasks", label: "Aufgaben auflisten" },
+  { name: "complete_task", label: "Aufgabe als erledigt markieren" },
+  { name: "delete_task", label: "Aufgabe löschen" },
 ];
 
 const input: React.CSSProperties = {
@@ -1395,6 +1403,108 @@ const Settings: React.FC = () => {
                 })}
               </div>
             </Section>
+          </div>
+        )}
+
+        {/* ── Tab: Intelligenz (neue Einstellungen v3.1.0) ────── */}
+        {tab === "modus" && (
+          <div
+            style={{
+              marginTop: 24,
+              borderTop: "1px solid #2d3148",
+              paddingTop: 20,
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.75rem",
+                color: "#64748b",
+                marginBottom: 12,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+              }}
+            >
+              Proaktive Intelligenz
+            </div>
+
+            {(
+              [
+                {
+                  key: "windowContextEnabled" as const,
+                  label: "Aktives Fenster als Kontext",
+                  desc: "ELLA kennt beim Chat die aktive Anwendung (nur Ollama-Modus)",
+                },
+                {
+                  key: "clipboardPatternEnabled" as const,
+                  label: "Zwischenablage-Muster erkennen",
+                  desc: "IBAN, Paketnummern, E-Mail-Adressen automatisch erkennen",
+                },
+                {
+                  key: "sessionCompressionEnabled" as const,
+                  label: "Gesprächs-Kompression",
+                  desc: "Lange Gespräche automatisch zusammenfassen (nur Ollama)",
+                },
+              ] as const
+            ).map(({ key, label, desc }) => (
+              <label
+                key={key}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
+                  marginBottom: 14,
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={(settings[key] as boolean) ?? false}
+                  onChange={(e) => patch({ [key]: e.target.checked })}
+                  style={{ marginTop: 3 }}
+                />
+                <div>
+                  <div style={{ fontSize: "0.85rem", color: "#e2e8f0" }}>
+                    {label}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                    {desc}
+                  </div>
+                </div>
+              </label>
+            ))}
+
+            <div style={{ marginTop: 16 }}>
+              <label
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#94a3b8",
+                  display: "block",
+                  marginBottom: 6,
+                }}
+              >
+                TTS-Engine
+              </label>
+              <select
+                value={settings.ttsEngine ?? "system"}
+                onChange={(e) =>
+                  patch({ ttsEngine: e.target.value as "system" | "kokoro" })
+                }
+                style={{
+                  background: "#1a1d27",
+                  border: "1px solid #2d3148",
+                  color: "#e2e8f0",
+                  borderRadius: 6,
+                  padding: "6px 10px",
+                  fontSize: "0.85rem",
+                  width: "100%",
+                }}
+              >
+                <option value="system">System (Windows Stimme)</option>
+                <option value="kokoro">
+                  Kokoro (lokal, Python erforderlich)
+                </option>
+              </select>
+            </div>
           </div>
         )}
 

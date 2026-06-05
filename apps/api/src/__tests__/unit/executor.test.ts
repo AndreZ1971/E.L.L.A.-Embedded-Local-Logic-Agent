@@ -31,6 +31,31 @@ vi.mock("../../services/clipboardHistory.js", () => ({
   getClipboardHistory: vi.fn(() => []),
   getLastClipboard: vi.fn(() => null),
 }));
+vi.mock("../../services/tasks.js", () => ({
+  addTask: vi.fn((title: string) =>
+    Promise.resolve({
+      id: 42,
+      title,
+      status: "pending",
+      priority: "normal",
+      dueDate: null,
+      note: null,
+    }),
+  ),
+  listTasks: vi.fn(() =>
+    Promise.resolve([
+      {
+        id: 1,
+        title: "Arzt anrufen",
+        priority: "high",
+        dueDate: "2026-06-10",
+        note: null,
+      },
+    ]),
+  ),
+  completeTask: vi.fn(() => Promise.resolve(true)),
+  deleteTask: vi.fn(() => Promise.resolve(true)),
+}));
 vi.mock("../../services/reminder.js", () => ({
   createReminder: vi.fn(),
   deleteReminder: vi.fn(),
@@ -128,6 +153,12 @@ import {
 import { getLastClipboard } from "../../services/clipboardHistory.js";
 import { analyzeScreenshot } from "../../services/vision.js";
 import { writeInUserStyle } from "../../services/styleProfile.js";
+import {
+  addTask,
+  listTasks,
+  completeTask,
+  deleteTask,
+} from "../../services/tasks.js";
 
 describe("toolExecutor", () => {
   beforeEach(() => {
@@ -712,6 +743,10 @@ const wowSettings = {
     "write_for_me",
     "find_duplicates",
     "list_autostart",
+    "add_task",
+    "list_tasks",
+    "complete_task",
+    "delete_task",
   ],
   apps: [],
   homeworkMode: { active: false, apps: [], pinHash: "" },
@@ -916,5 +951,99 @@ describe("find_duplicates", () => {
     expect(result.success).toBe(true);
     expect((result.output as any).count).toBe(1);
     expect((result.output as any).totalWastedMB).toBe(1);
+  });
+});
+
+describe("add_task", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+  });
+
+  it("Fehler wenn kein Titel", async () => {
+    const result = await toolExecutor.execute({ tool: "add_task", args: {} });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("legt Aufgabe an und gibt ID zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "add_task",
+      args: { title: "Arzt anrufen", priority: "high" },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("42");
+    expect(addTask).toHaveBeenCalledWith(
+      "Arzt anrufen",
+      expect.objectContaining({ priority: "high" }),
+    );
+  });
+
+  it("lehnt ungültiges Datum ab", async () => {
+    const result = await toolExecutor.execute({
+      tool: "add_task",
+      args: { title: "Test", due_date: "kein-datum" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Datum");
+  });
+});
+
+describe("list_tasks", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+  });
+
+  it("listet offene Aufgaben auf", async () => {
+    const result = await toolExecutor.execute({
+      tool: "list_tasks",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).count).toBe(1);
+    expect(listTasks).toHaveBeenCalledWith(undefined, "pending");
+  });
+});
+
+describe("complete_task", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(completeTask).mockClear();
+  });
+
+  it("Fehler wenn keine ID", async () => {
+    const result = await toolExecutor.execute({
+      tool: "complete_task",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("erledigt Aufgabe", async () => {
+    const result = await toolExecutor.execute({
+      tool: "complete_task",
+      args: { id: 1 },
+    });
+    expect(result.success).toBe(true);
+    expect(completeTask).toHaveBeenCalledWith(1);
+  });
+});
+
+describe("delete_task", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(deleteTask).mockClear();
+  });
+
+  it("bricht Aufgabe ab", async () => {
+    const result = await toolExecutor.execute({
+      tool: "delete_task",
+      args: { id: 5 },
+    });
+    expect(result.success).toBe(true);
+    expect(deleteTask).toHaveBeenCalledWith(5);
   });
 });

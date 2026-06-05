@@ -1,6 +1,7 @@
 import { pool } from "../config/database.js";
 import { readCalendar } from "./calendar.js";
 import { sendProactiveMessage } from "./proactive.js";
+import { getDueTasks } from "./tasks.js";
 
 let lastBriefingDate = "";
 
@@ -28,10 +29,18 @@ export async function checkDayBriefing(): Promise<void> {
     // Outlook nicht verfügbar
   }
 
+  const dueTasks = await getDueTasks().catch(() => []);
+
   let msg = `Tagesabschluss: Du hast heute ${totalActions} Aktionen ausgeführt.`;
   if (tomorrowEvents.length > 0) {
     msg += ` Morgen hast du ${tomorrowEvents.length} Termin${tomorrowEvents.length > 1 ? "e" : ""}, `;
     msg += `der erste um ${tomorrowEvents[0]!.start.slice(11, 16)} Uhr: "${tomorrowEvents[0]!.subject}".`;
+  }
+  if (dueTasks.length > 0) {
+    msg += ` Du hast ${dueTasks.length} offene Aufgabe${dueTasks.length > 1 ? "n" : ""} für morgen: ${dueTasks
+      .slice(0, 3)
+      .map((t) => `"${t.title}"`)
+      .join(", ")}.`;
   }
   msg += ` Gute Nacht.`;
 

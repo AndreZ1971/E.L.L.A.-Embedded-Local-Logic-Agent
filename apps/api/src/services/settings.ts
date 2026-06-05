@@ -45,6 +45,11 @@ export interface Settings {
   googleUserEmail: string;
   musicLibraryPath: string;
   defaultMediaPlayer: string;
+  windowContextEnabled: boolean;
+  ttsEngine: "system" | "kokoro";
+  sessionCompressionEnabled: boolean;
+  activeProfileId: number;
+  clipboardPatternEnabled: boolean;
 }
 
 const SETTINGS_PATH = path.join(
@@ -114,6 +119,11 @@ export const DEFAULT_SETTINGS: Settings = {
   googleUserEmail: "",
   musicLibraryPath: "",
   defaultMediaPlayer: "vlc",
+  windowContextEnabled: false,
+  ttsEngine: "system",
+  sessionCompressionEnabled: false,
+  activeProfileId: 1,
+  clipboardPatternEnabled: true,
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -188,6 +198,18 @@ export async function loadSettings(): Promise<void> {
       parsed.musicLibraryPath = DEFAULT_SETTINGS.musicLibraryPath;
     if (typeof parsed.defaultMediaPlayer !== "string")
       parsed.defaultMediaPlayer = DEFAULT_SETTINGS.defaultMediaPlayer;
+    // Migrate v3.1.0 fields
+    if (typeof parsed.windowContextEnabled !== "boolean")
+      parsed.windowContextEnabled = DEFAULT_SETTINGS.windowContextEnabled;
+    if (parsed.ttsEngine !== "system" && parsed.ttsEngine !== "kokoro")
+      parsed.ttsEngine = DEFAULT_SETTINGS.ttsEngine;
+    if (typeof parsed.sessionCompressionEnabled !== "boolean")
+      parsed.sessionCompressionEnabled =
+        DEFAULT_SETTINGS.sessionCompressionEnabled;
+    if (typeof parsed.activeProfileId !== "number")
+      parsed.activeProfileId = DEFAULT_SETTINGS.activeProfileId;
+    if (typeof parsed.clipboardPatternEnabled !== "boolean")
+      parsed.clipboardPatternEnabled = DEFAULT_SETTINGS.clipboardPatternEnabled;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults

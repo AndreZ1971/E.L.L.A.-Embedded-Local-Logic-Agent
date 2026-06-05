@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v3.0.0**
+**Aktueller Stand: v3.1.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -98,7 +98,7 @@ database/
 - Homework Mode: SHA-256 PIN, Whitelist-Enforcement, Emergency-Reset Route
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
-- **125 Tests — alle grün** (Vitest Unit + Integration)
+- **132 Tests — alle grün** (Vitest Unit + Integration)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 
 ---

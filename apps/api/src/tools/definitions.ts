@@ -1219,6 +1219,82 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  // ── Aufgabenliste ──────────────────────────────────────────────────────────
+  defs.push({
+    type: "function",
+    function: {
+      name: "add_task",
+      description:
+        "Fügt eine neue Aufgabe zur persistenten Aufgabenliste hinzu. " +
+        'Nutze dies wenn der Nutzer sagt: "Merk dir", "Ich muss noch", "Aufgabe anlegen".',
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Aufgabenbeschreibung" },
+          priority: {
+            type: "string",
+            description: '"low", "normal" (Standard) oder "high"',
+          },
+          due_date: {
+            type: "string",
+            description: "Fälligkeitsdatum YYYY-MM-DD (optional)",
+          },
+          note: { type: "string", description: "Zusätzliche Notiz (optional)" },
+        },
+        required: ["title"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "list_tasks",
+      description:
+        "Zeigt offene oder erledigte Aufgaben aus der Aufgabenliste.",
+      parameters: {
+        type: "object",
+        properties: {
+          status: {
+            type: "string",
+            description:
+              '"pending" (Standard — offene) oder "done" (erledigte)',
+          },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "complete_task",
+      description: "Markiert eine Aufgabe als erledigt.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "number", description: "Aufgaben-ID aus list_tasks" },
+        },
+        required: ["id"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "delete_task",
+      description: "Bricht eine Aufgabe ab und entfernt sie aus der Liste.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "number", description: "Aufgaben-ID aus list_tasks" },
+        },
+        required: ["id"],
+      },
+    },
+  });
+
   // Directive-Demo — kein Handler, wird von DIRECTIVE_DENY blockiert
   defs.push({
     type: "function",

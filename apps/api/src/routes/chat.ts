@@ -8,6 +8,8 @@ import { env } from "../config/env.js";
 import { getSettings } from "../services/settings.js";
 import { recall, extractAndRemember } from "../services/memory.js";
 import { recordActivity } from "../services/worker.js";
+import { getForegroundWindowTitle } from "../services/windowContext.js";
+import { compressSession } from "../services/sessionCompressor.js";
 import type { ToolName } from "@ella/shared";
 
 function resolveProvider(): "openai" | "ollama" {
@@ -47,13 +49,35 @@ chatRouter.post("/", async (req, res, next) => {
     }
 
     const useOpenAI = resolveProvider() === "openai";
-    const activeModel = model ?? getSettings().ollamaModel ?? env.ollamaModel;
+    const settings = getSettings();
+    const activeModel = model ?? settings.ollamaModel ?? env.ollamaModel;
     const tools = activeToolDefs();
     const history = await sessionStore.get(sessionId);
+
+    // Kompression (Ollama-only, nie OpenAI — exfiltrate-Direktive)
+    if (
+      settings.sessionCompressionEnabled &&
+      !useOpenAI &&
+      history.length >= 15
+    ) {
+      const compressed = await compressSession(history);
+      if (compressed.length < history.length) {
+        await sessionStore.set(sessionId, compressed);
+        history.splice(0, history.length, ...compressed);
+      }
+    }
+
     history.push({ role: "user", content: message });
 
-    const memories = await recall(message);
-    const userName = getSettings().userName?.trim() ?? "";
+    let memories = await recall(message);
+    const userName = settings.userName?.trim() ?? "";
+
+    // Fenster-Kontext (opt-in, kein OpenAI)
+    if (settings.windowContextEnabled && !useOpenAI) {
+      const winTitle = getForegroundWindowTitle();
+      if (winTitle) memories = [`Aktives Fenster: ${winTitle}`, ...memories];
+    }
+
     const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
       history.map((m) => ({ ...m, id: "", createdAt: "" })),
     );
@@ -131,13 +155,35 @@ chatRouter.post("/stream", async (req, res) => {
 
   try {
     const useOpenAI = resolveProvider() === "openai";
-    const activeModel = model ?? getSettings().ollamaModel ?? env.ollamaModel;
+    const settings = getSettings();
+    const activeModel = model ?? settings.ollamaModel ?? env.ollamaModel;
     const tools = activeToolDefs();
     const history = await sessionStore.get(sessionId);
+
+    // Kompression (Ollama-only, nie OpenAI — exfiltrate-Direktive)
+    if (
+      settings.sessionCompressionEnabled &&
+      !useOpenAI &&
+      history.length >= 15
+    ) {
+      const compressed = await compressSession(history);
+      if (compressed.length < history.length) {
+        await sessionStore.set(sessionId, compressed);
+        history.splice(0, history.length, ...compressed);
+      }
+    }
+
     history.push({ role: "user", content: message });
 
-    const memories = await recall(message);
-    const userName = getSettings().userName?.trim() ?? "";
+    let memories = await recall(message);
+    const userName = settings.userName?.trim() ?? "";
+
+    // Fenster-Kontext (opt-in, kein OpenAI)
+    if (settings.windowContextEnabled && !useOpenAI) {
+      const winTitle = getForegroundWindowTitle();
+      if (winTitle) memories = [`Aktives Fenster: ${winTitle}`, ...memories];
+    }
+
     const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
       history.map((m) => ({ ...m, id: "", createdAt: "" })),
     );

@@ -175,6 +175,9 @@ const Chat: React.FC = () => {
   /* Pause-Modus */
   const [isPaused, setIsPaused] = useState(false);
   const [pauseEndsAt, setPauseEndsAt] = useState<Date | null>(null);
+  const [feedback, setFeedback] = useState<
+    Record<number, "positive" | "negative">
+  >({});
   const [pauseCountdown, setPauseCountdown] = useState("");
   const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pauseTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -499,6 +502,23 @@ const Chat: React.FC = () => {
   );
 
   const send = useCallback(() => sendText(input.trim()), [input, sendText]);
+
+  const sendFeedback = useCallback(
+    async (idx: number, rating: "positive" | "negative", content: string) => {
+      if (feedback[idx]) return;
+      setFeedback((prev) => ({ ...prev, [idx]: rating }));
+      fetch(`${API}/api/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: SESSION_ID,
+          messageExcerpt: content.slice(0, 300),
+          feedback: rating,
+        }),
+      }).catch(() => {});
+    },
+    [feedback],
+  );
 
   /* ── Whisper-basierte Spracheingabe ── */
   const startRecording = useCallback(async () => {
@@ -1035,6 +1055,49 @@ const Chat: React.FC = () => {
               }}
             >
               {m.content}
+              {m.role === "assistant" && !m.proactive && (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 6,
+                    marginTop: 6,
+                    opacity: feedback[i] ? 1 : 0.35,
+                    transition: "opacity 0.2s",
+                  }}
+                  onMouseEnter={(e) =>
+                    ((e.currentTarget as HTMLDivElement).style.opacity = "1")
+                  }
+                  onMouseLeave={(e) =>
+                    ((e.currentTarget as HTMLDivElement).style.opacity =
+                      feedback[i] ? "1" : "0.35")
+                  }
+                >
+                  {(["positive", "negative"] as const).map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => sendFeedback(i, r, m.content)}
+                      disabled={Boolean(feedback[i])}
+                      title={r === "positive" ? "Hilfreich" : "Nicht hilfreich"}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: feedback[i] ? "default" : "pointer",
+                        fontSize: "0.75rem",
+                        padding: "2px 4px",
+                        borderRadius: 4,
+                        color:
+                          feedback[i] === r
+                            ? r === "positive"
+                              ? "#4ade80"
+                              : "#f87171"
+                            : "#64748b",
+                      }}
+                    >
+                      {r === "positive" ? "👍" : "👎"}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}

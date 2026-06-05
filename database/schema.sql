@@ -70,3 +70,41 @@ CREATE TABLE IF NOT EXISTS settings (
   value      TEXT         NOT NULL,
   updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+-- v3.1.0 ─────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS profiles (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(100) NOT NULL,
+  color      VARCHAR(20)  NOT NULL DEFAULT '#7c3aed',
+  pin_hash   VARCHAR(60)  NULL,
+  is_active  TINYINT(1)   NOT NULL DEFAULT 0,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS tasks (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  profile_id INT          NULL,
+  title      VARCHAR(500) NOT NULL,
+  status     ENUM('pending','done','cancelled') NOT NULL DEFAULT 'pending',
+  priority   ENUM('low','normal','high')        NOT NULL DEFAULT 'normal',
+  due_date   DATETIME NULL,
+  note       TEXT     NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_tasks_status  (status),
+  INDEX idx_tasks_profile (profile_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS user_feedback (
+  id              INT AUTO_INCREMENT PRIMARY KEY,
+  profile_id      INT          NULL,
+  session_id      VARCHAR(255) NULL,
+  tool_name       VARCHAR(100) NULL,
+  message_excerpt TEXT         NOT NULL,
+  feedback        ENUM('positive','negative') NOT NULL,
+  category        VARCHAR(100) NULL,
+  created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_feedback_type    (feedback),
+  INDEX idx_feedback_session (session_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

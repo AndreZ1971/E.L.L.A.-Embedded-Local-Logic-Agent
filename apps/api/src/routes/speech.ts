@@ -69,6 +69,45 @@ speechRouter.post("/synthesize", async (req, res, next) => {
   }
 });
 
+speechRouter.post("/kokoro", async (req, res, next) => {
+  try {
+    const { text } = req.body as { text?: string };
+    if (!text) {
+      res.status(400).json({ error: "text required" });
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    try {
+      const upstream = await fetch("http://127.0.0.1:3003/synthesize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!upstream.ok) {
+        res.status(503).json({ error: "Kokoro TTS nicht verfügbar." });
+        return;
+      }
+
+      res.json({ ok: true });
+    } catch {
+      clearTimeout(timeout);
+      res
+        .status(503)
+        .json({
+          error: "Kokoro TTS nicht erreichbar — Fallback auf System-TTS.",
+        });
+    }
+  } catch (e) {
+    next(e);
+  }
+});
+
 speechRouter.get("/voices", async (_req, res, next) => {
   try {
     const voices = await listVoices();

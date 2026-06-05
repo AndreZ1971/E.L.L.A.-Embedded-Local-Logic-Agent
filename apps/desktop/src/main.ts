@@ -22,6 +22,30 @@ let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
 let apiProcess: ChildProcess | null = null;
+let ttsProcess: ChildProcess | null = null;
+
+function startKokoroTts(): void {
+  const settingsPath = path.join(app.getPath("userData"), "settings.json");
+  try {
+    const raw = require("fs").readFileSync(settingsPath, "utf-8");
+    const settings = JSON.parse(raw) as { ttsEngine?: string };
+    if (settings.ttsEngine !== "kokoro") return;
+  } catch {
+    return;
+  }
+
+  const scriptPath = path.join(app.getAppPath(), "../scripts/tts_server.py");
+  ttsProcess = spawn("python", [scriptPath], { stdio: "pipe" });
+  ttsProcess.stdout?.on("data", (d: Buffer) =>
+    console.log("[TTS]", d.toString().trimEnd()),
+  );
+  ttsProcess.stderr?.on("data", (d: Buffer) =>
+    console.error("[TTS-ERR]", d.toString().trimEnd()),
+  );
+  ttsProcess.on("exit", (code) =>
+    console.log("[TTS] Prozess beendet, Code:", code),
+  );
+}
 
 // ── API-Spawn ─────────────────────────────────────────────────────────────────
 
@@ -389,6 +413,7 @@ app.whenReady().then(async () => {
   if (!isDev) {
     await freePort(API_PORT);
     startApi();
+    startKokoroTts();
     try {
       console.log(`[ELLA] Warte auf API :${API_PORT}…`);
       await waitForPort(API_PORT);
@@ -412,6 +437,9 @@ app.on("before-quit", () => {
   isQuitting = true;
   if (apiProcess && !apiProcess.killed) {
     apiProcess.kill();
+  }
+  if (ttsProcess && !ttsProcess.killed) {
+    ttsProcess.kill();
   }
 });
 

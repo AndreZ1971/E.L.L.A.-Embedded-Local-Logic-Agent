@@ -144,6 +144,72 @@ export async function runMigrations(): Promise<void> {
   }
   // clean_temp + empty_recycle_bin intentionally ohne Default-Regel — Nutzer muss explizit erlauben
 
+  // ── v3.1.0 Tabellen ────────────────────────────────────────────────────────
+  await exec(`
+    CREATE TABLE IF NOT EXISTS profiles (
+      id         INT AUTO_INCREMENT PRIMARY KEY,
+      name       VARCHAR(100) NOT NULL,
+      color      VARCHAR(20)  NOT NULL DEFAULT '#7c3aed',
+      pin_hash   VARCHAR(60)  NULL,
+      is_active  TINYINT(1)   NOT NULL DEFAULT 0,
+      created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  await exec(`
+    INSERT IGNORE INTO profiles (id, name, color, is_active)
+    VALUES (1, 'Standard', '#7c3aed', 1)
+  `);
+
+  await exec(`
+    CREATE TABLE IF NOT EXISTS tasks (
+      id         INT AUTO_INCREMENT PRIMARY KEY,
+      profile_id INT          NULL,
+      title      VARCHAR(500) NOT NULL,
+      status     ENUM('pending','done','cancelled') NOT NULL DEFAULT 'pending',
+      priority   ENUM('low','normal','high')        NOT NULL DEFAULT 'normal',
+      due_date   DATETIME NULL,
+      note       TEXT NULL,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  await exec(`
+    CREATE TABLE IF NOT EXISTS user_feedback (
+      id              INT AUTO_INCREMENT PRIMARY KEY,
+      profile_id      INT          NULL,
+      session_id      VARCHAR(255) NULL,
+      tool_name       VARCHAR(100) NULL,
+      message_excerpt TEXT         NOT NULL,
+      feedback        ENUM('positive','negative') NOT NULL,
+      category        VARCHAR(100) NULL,
+      created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  // Spalten-Erweiterungen bestehender Tabellen (ALTER TABLE ... ADD COLUMN IF NOT EXISTS)
+  await exec(
+    `ALTER TABLE memories ADD COLUMN IF NOT EXISTS profile_id INT NULL`,
+  );
+  await exec(
+    `ALTER TABLE sessions ADD COLUMN IF NOT EXISTS profile_id INT NULL`,
+  );
+
+  // Task-Regeln IDs 54–57
+  for (const [id, name, tool_name] of [
+    [54, "Aufgabe hinzufügen erlaubt", "add_task"],
+    [55, "Aufgaben auflisten erlaubt", "list_tasks"],
+    [56, "Aufgabe erledigen erlaubt", "complete_task"],
+    [57, "Aufgabe löschen erlaubt", "delete_task"],
+  ] as const) {
+    await exec(`
+      INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
+      VALUES (${id}, '${name}', '${tool_name}', 'always', 'allow', TRUE)
+      ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
+    `);
+  }
+
   // Directive Audit-Log Tabelle
   await exec(`
     CREATE TABLE IF NOT EXISTS directive_audit (

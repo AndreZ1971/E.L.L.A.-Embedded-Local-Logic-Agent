@@ -38,6 +38,11 @@ settingsRouter.put("/", async (req, res, next) => {
       eulaAccepted,
       musicLibraryPath,
       defaultMediaPlayer,
+      windowContextEnabled,
+      ttsEngine,
+      sessionCompressionEnabled,
+      activeProfileId,
+      clipboardPatternEnabled,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -53,6 +58,11 @@ settingsRouter.put("/", async (req, res, next) => {
       eulaAccepted?: boolean;
       musicLibraryPath?: string;
       defaultMediaPlayer?: string;
+      windowContextEnabled?: boolean;
+      ttsEngine?: "system" | "kokoro";
+      sessionCompressionEnabled?: boolean;
+      activeProfileId?: number;
+      clipboardPatternEnabled?: boolean;
     };
 
     const raw = {
@@ -68,6 +78,11 @@ settingsRouter.put("/", async (req, res, next) => {
       eulaAccepted,
       musicLibraryPath,
       defaultMediaPlayer,
+      windowContextEnabled,
+      ttsEngine,
+      sessionCompressionEnabled,
+      activeProfileId,
+      clipboardPatternEnabled,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(
