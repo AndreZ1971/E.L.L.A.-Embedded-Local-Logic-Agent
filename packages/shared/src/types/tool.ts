@@ -43,7 +43,20 @@ export type ToolName =
   | "explore_folder"
   | "create_document"
   | "dictate_to_document"
-  | "compose_email";
+  | "compose_email"
+  | "list_processes"
+  | "kill_process"
+  | "kill_process_confirmed"
+  | "set_volume"
+  | "get_clipboard"
+  | "set_clipboard"
+  | "set_reminder"
+  | "list_reminders"
+  | "delete_reminder"
+  | "take_screenshot"
+  | "write_for_me"
+  | "find_duplicates"
+  | "list_autostart";
 
 export interface ToolCall {
   tool: ToolName;

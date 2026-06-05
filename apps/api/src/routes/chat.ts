@@ -7,6 +7,7 @@ import { sessionStore } from "../services/sessions.js";
 import { env } from "../config/env.js";
 import { getSettings } from "../services/settings.js";
 import { recall, extractAndRemember } from "../services/memory.js";
+import { recordActivity } from "../services/worker.js";
 import type { ToolName } from "@ella/shared";
 
 function resolveProvider(): "openai" | "ollama" {
@@ -28,6 +29,7 @@ function activeToolDefs() {
 export const chatRouter = Router();
 
 chatRouter.post("/", async (req, res, next) => {
+  recordActivity();
   try {
     const {
       message,
@@ -104,6 +106,7 @@ chatRouter.post("/", async (req, res, next) => {
 });
 
 chatRouter.post("/stream", async (req, res) => {
+  recordActivity();
   const {
     message,
     sessionId = "default",

@@ -1009,6 +1009,216 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  // ── WOW-Features ────────────────────────────────────────────────────────────
+  defs.push({
+    type: "function",
+    function: {
+      name: "list_processes",
+      description: "Zeigt laufende Prozesse nach CPU/RAM-Verbrauch sortiert.",
+      parameters: {
+        type: "object",
+        properties: {
+          top: {
+            type: "string",
+            description: "Anzahl anzeigen (Standard: 20)",
+          },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "kill_process",
+      description:
+        "Beendet einen laufenden Prozess. Systemkritische Prozesse sind geschützt.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Prozessname" },
+          pid: {
+            type: "string",
+            description: "Prozess-ID (alternative zu name)",
+          },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "set_volume",
+      description: "Setzt die Windows-Systemlautstärke oder schaltet stumm.",
+      parameters: {
+        type: "object",
+        properties: {
+          level: { type: "number", description: "Lautstärke 0–100" },
+          mute: { type: "boolean", description: "true = stumm schalten" },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "get_clipboard",
+      description:
+        "Liest den aktuellen Inhalt der Zwischenablage. Optional: Historie der letzten 20 Einträge.",
+      parameters: {
+        type: "object",
+        properties: {
+          history: {
+            type: "boolean",
+            description: "true für die letzten 20 Einträge",
+          },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "set_clipboard",
+      description: "Kopiert Text in die Zwischenablage.",
+      parameters: {
+        type: "object",
+        properties: {
+          text: { type: "string", description: "Text der kopiert werden soll" },
+        },
+        required: ["text"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "set_reminder",
+      description:
+        "Setzt eine Erinnerung die zum angegebenen Zeitpunkt als Windows-Benachrichtigung erscheint.",
+      parameters: {
+        type: "object",
+        properties: {
+          message: { type: "string", description: "Text der Erinnerung" },
+          time: {
+            type: "string",
+            description: "Uhrzeit im Format HH:MM",
+          },
+          date: {
+            type: "string",
+            description:
+              "Datum YYYY-MM-DD (optional, Standard: heute oder morgen)",
+          },
+        },
+        required: ["message", "time"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "list_reminders",
+      description: "Zeigt alle aktiven ELLA-Erinnerungen.",
+      parameters: { type: "object", properties: {} },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "delete_reminder",
+      description: "Löscht eine Erinnerung anhand ihrer ID.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "Erinnerungs-ID aus list_reminders",
+          },
+        },
+        required: ["id"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "take_screenshot",
+      description:
+        "Macht einen Screenshot und analysiert ihn mit KI. " +
+        "Nutze dies wenn der Nutzer fragt was auf dem Bildschirm ist oder eine Fehlermeldung zeigt.",
+      parameters: {
+        type: "object",
+        properties: {
+          question: {
+            type: "string",
+            description: "Konkrete Frage zum Bildschirminhalt (optional)",
+          },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "write_for_me",
+      description:
+        "Schreibt einen Text im Stil des Nutzers — E-Mail, Brief, Nachricht. " +
+        "Lernt automatisch aus bisherigen Texten.",
+      parameters: {
+        type: "object",
+        properties: {
+          task: {
+            type: "string",
+            description:
+              'Was soll geschrieben werden? Z.B. "Absage an Müller wegen Termin nächste Woche"',
+          },
+          style: {
+            type: "boolean",
+            description: "Nutzerstil anwenden (Standard: true)",
+          },
+        },
+        required: ["task"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "find_duplicates",
+      description:
+        "Sucht nach doppelten Dateien auf dem System die Speicherplatz verschwenden.",
+      parameters: {
+        type: "object",
+        properties: {
+          drives: {
+            type: "string",
+            description:
+              'Laufwerke kommagetrennt, z.B. "C,E,H" (Standard: C,E,H)',
+          },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "list_autostart",
+      description:
+        "Zeigt alle Programme die beim Windows-Start automatisch gestartet werden.",
+      parameters: { type: "object", properties: {} },
+    },
+  });
+
   // Directive-Demo — kein Handler, wird von DIRECTIVE_DENY blockiert
   defs.push({
     type: "function",

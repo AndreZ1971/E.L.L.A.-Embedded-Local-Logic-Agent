@@ -4,7 +4,7 @@
 
 Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automatisierung — vollständig offline via Ollama, optional mit OpenAI GPT-4o.
 
-**Version:** v2.9.0 · Windows 10/11 (x64) · 110 Tests grün
+**Version:** v3.0.0 · Windows 10/11 (x64) · 125 Tests grün
 
 _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -35,6 +35,14 @@ _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 | Dokumente           | Word-Dokumente und Textdateien erstellen                          |
 | Diktat              | Spracheingabe direkt in Word schreiben, KI korrigiert automatisch |
 | E-Mail verfassen    | Outlook-Entwurf mit KI-korrigiertem Text oeffnen                  |
+| Prozesse            | Laufende Prozesse anzeigen, CPU-/RAM-Fresser beenden              |
+| Systemsteuerung     | Lautstaerke setzen, Zwischenablage lesen/schreiben/Historie       |
+| Erinnerungen        | Windows Task Scheduler — feuert als Popup zur gesetzten Zeit      |
+| Screenshot + Vision | Bildschirm fotografieren und mit GPT-4o analysieren               |
+| Schreibstil         | Texte im Stil des Nutzers generieren — lernt aus bisherigen Mails |
+| Duplikate           | Doppelte Dateien finden und Speicherplatz-Verschwendung aufzeigen |
+| Autostart           | Programme beim Windows-Start anzeigen                             |
+| Proaktiv            | Meeting-Vorbereitung, Tagesabschluss, Comeback, Pause-Reminder    |
 
 ### Die E.L.L.A. Direktive — vier unveränderliche Verbote
 

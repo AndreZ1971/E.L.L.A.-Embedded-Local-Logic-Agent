@@ -118,6 +118,18 @@ export async function runMigrations(): Promise<void> {
     [39, "Dokument erstellen erlaubt", "create_document", "always", "allow"],
     [40, "Diktat erlaubt", "dictate_to_document", "always", "allow"],
     [41, "E-Mail verfassen erlaubt", "compose_email", "always", "allow"],
+    [42, "Prozesse auflisten erlaubt", "list_processes", "always", "allow"],
+    [43, "Prozess beenden erlaubt", "kill_process", "always", "allow"],
+    [44, "Lautstärke setzen erlaubt", "set_volume", "always", "allow"],
+    [45, "Zwischenablage lesen erlaubt", "get_clipboard", "always", "allow"],
+    [46, "Zwischenablage setzen erlaubt", "set_clipboard", "always", "allow"],
+    [47, "Erinnerung setzen erlaubt", "set_reminder", "always", "allow"],
+    [48, "Erinnerungen auflisten erlaubt", "list_reminders", "always", "allow"],
+    [49, "Erinnerung löschen erlaubt", "delete_reminder", "always", "allow"],
+    [50, "Screenshot erlaubt", "take_screenshot", "always", "allow"],
+    [51, "Im Nutzerstil schreiben erlaubt", "write_for_me", "always", "allow"],
+    [52, "Duplikate finden erlaubt", "find_duplicates", "always", "allow"],
+    [53, "Autostart auflisten erlaubt", "list_autostart", "always", "allow"],
   ] as const;
 
   for (const [id, name, tool_name, trigger, action] of standardTools) {

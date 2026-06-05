@@ -56,6 +56,26 @@ import {
 } from "../services/google/calendar.js";
 import { searchMusic, openWithPlayer } from "../services/music.js";
 import { correctText } from "../services/textCorrection.js";
+import {
+  listProcesses,
+  killProcess as killSystemProcess,
+} from "../services/processes.js";
+import {
+  recordClipboard,
+  getClipboardHistory,
+  getLastClipboard,
+} from "../services/clipboardHistory.js";
+import {
+  createReminder,
+  deleteReminder,
+  listReminders,
+} from "../services/reminder.js";
+import { analyzeScreenshot } from "../services/vision.js";
+import {
+  buildStyleProfile,
+  writeInUserStyle,
+} from "../services/styleProfile.js";
+import { findDuplicates } from "../services/duplicateFinder.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -1601,6 +1621,305 @@ Write-Output '{"success":true}'
     } finally {
       try {
         fs.unlinkSync(tmpFile);
+      } catch {
+        // best effort
+      }
+    }
+  },
+
+  list_processes: async (args) => {
+    const top = Math.min(50, Number(args["top"]) || 20);
+    const procs = listProcesses(top);
+    trackToolUsage("list_processes", `top ${top}`);
+    return { success: true, output: { count: procs.length, processes: procs } };
+  },
+
+  kill_process: async (args) => {
+    const target =
+      ((args["name"] as string) ?? "").trim() ||
+      ((args["pid"] as string) ?? "").trim();
+    if (!target) return { success: false, error: "Name oder PID fehlt." };
+
+    const PROTECTED = [
+      "ella",
+      "node",
+      "electron",
+      "system",
+      "svchost",
+      "lsass",
+      "csrss",
+      "winlogon",
+      "smss",
+    ];
+    if (PROTECTED.some((p) => target.toLowerCase().includes(p))) {
+      return {
+        success: false,
+        directive: true,
+        error: `Prozess "${target}" ist systemkritisch und kann nicht beendet werden.`,
+      };
+    }
+
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `Prozess "${target}" beenden. Nicht gespeicherte Daten gehen verloren.`,
+      pendingAction: { tool: "kill_process_confirmed", args: { target } },
+    };
+  },
+
+  kill_process_confirmed: async (args) => {
+    const target = (args["target"] as string) ?? "";
+    const ok = killSystemProcess(target);
+    trackToolUsage("kill_process", target);
+    return ok
+      ? { success: true, output: `Prozess "${target}" beendet.` }
+      : {
+          success: false,
+          error: `Prozess konnte nicht beendet werden. Möglicherweise bereits beendet.`,
+        };
+  },
+
+  set_volume: async (args) => {
+    const level = Math.min(100, Math.max(0, Number(args["level"] ?? 50)));
+    const mute = args["mute"] === true || args["mute"] === "true";
+
+    const ps = mute
+      ? `$obj = New-Object -ComObject WScript.Shell; for ($i=0;$i -lt 50;$i++){$obj.SendKeys([char]173)}`
+      : `
+$vol = ${(level / 100.0).toFixed(4)}
+$code = @'
+using System.Runtime.InteropServices;
+[Guid("5CDF2C82-841E-4546-9722-0CF74078229A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IAudioEndpointVolume {
+  void M1(); void M2(); void M3(); void M4();
+  int SetMasterVolumeLevelScalar(float fLevel, System.Guid pguidEventContext);
+}
+[Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IMMDevice {
+  int Activate(ref System.Guid iid, int dwClsCtx, System.IntPtr pActivationParams, [MarshalAs(UnmanagedType.IUnknown)] out object ppInterface);
+}
+[Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IMMDeviceEnumerator {
+  int f();
+  int GetDefaultAudioEndpoint(int dataFlow, int role, out IMMDevice ppDevice);
+}
+[ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")] class MMDeviceEnumeratorComObject {}
+'@
+Add-Type -TypeDefinition $code
+$enum = [Activator]::CreateInstance([type]::GetTypeFromCLSID([guid]'BCDE0395-E52F-467C-8E3D-C4579291692E'))
+$dev = $null; $enum.GetDefaultAudioEndpoint(0,1,[ref]$dev) | Out-Null
+$iid = [guid]'5CDF2C82-841E-4546-9722-0CF74078229A'
+$vol_obj = $null; $dev.Activate([ref]$iid, 23, [IntPtr]::Zero, [ref]$vol_obj) | Out-Null
+([IAudioEndpointVolume]$vol_obj).SetMasterVolumeLevelScalar($vol, [guid]::Empty) | Out-Null`.trim();
+
+    const tmpFile = path.join(os.tmpdir(), `ella-vol-${Date.now()}.ps1`);
+    const fsVol = await import("fs");
+    try {
+      fsVol.writeFileSync(tmpFile, ps, "utf-8");
+      execSync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+        { timeout: 8000 },
+      );
+    } finally {
+      try {
+        fsVol.unlinkSync(tmpFile);
+      } catch {
+        // best effort
+      }
+    }
+    trackToolUsage("set_volume", mute ? "mute" : `${level}%`);
+    return {
+      success: true,
+      output: mute ? "Stumm geschaltet." : `Lautstärke auf ${level}% gesetzt.`,
+    };
+  },
+
+  get_clipboard: async (args) => {
+    if (args["history"] === true) {
+      return { success: true, output: { history: getClipboardHistory() } };
+    }
+    const last = getLastClipboard();
+    return last
+      ? { success: true, output: { content: last } }
+      : { success: false, error: "Zwischenablage ist leer." };
+  },
+
+  set_clipboard: async (args) => {
+    const text = ((args["text"] as string) ?? "").trim();
+    if (!text) return { success: false, error: "Text fehlt." };
+    const ps = `Set-Clipboard -Value '${text.replace(/'/g, "''")}'`;
+    const encoded = Buffer.from(ps, "utf16le").toString("base64");
+    execSync(
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      { timeout: 5000 },
+    );
+    recordClipboard(text);
+    trackToolUsage("set_clipboard", `${text.length} Zeichen`);
+    return { success: true, output: "Text in Zwischenablage kopiert." };
+  },
+
+  set_reminder: async (args) => {
+    const message = ((args["message"] as string) ?? "").trim();
+    const timeStr = ((args["time"] as string) ?? "").trim();
+    const dateStr = ((args["date"] as string) ?? "").trim();
+
+    if (!message) return { success: false, error: "Erinnerungstext fehlt." };
+    if (!timeStr) return { success: false, error: "Uhrzeit fehlt." };
+    if (!/^\d{2}:\d{2}$/.test(timeStr))
+      return { success: false, error: "Uhrzeit im Format HH:MM angeben." };
+
+    const now = new Date();
+    const base = dateStr || now.toISOString().slice(0, 10);
+    let targetDate = new Date(`${base}T${timeStr}:00`);
+    if (isNaN(targetDate.getTime()))
+      return { success: false, error: "Ungültiges Datum oder Uhrzeit." };
+    if (targetDate <= now) targetDate.setDate(targetDate.getDate() + 1);
+
+    const id = `${Date.now()}`;
+    createReminder(id, message, targetDate);
+
+    const formatted = targetDate.toLocaleString("de-DE", {
+      weekday: "long",
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    trackToolUsage("set_reminder", message);
+    return {
+      success: true,
+      output: `Erinnerung gesetzt: "${message}" — ${formatted}`,
+    };
+  },
+
+  list_reminders: async () => {
+    const reminders = listReminders();
+    return { success: true, output: { count: reminders.length, reminders } };
+  },
+
+  delete_reminder: async (args) => {
+    const id = ((args["id"] as string) ?? "").trim();
+    if (!id) return { success: false, error: "ID fehlt." };
+    deleteReminder(id);
+    trackToolUsage("delete_reminder", id);
+    return { success: true, output: "Erinnerung gelöscht." };
+  },
+
+  take_screenshot: async (args) => {
+    const question = ((args["question"] as string) ?? "").trim();
+    try {
+      const analysis = await analyzeScreenshot(
+        question || "Was siehst du? Beschreibe den Bildschirminhalt.",
+      );
+      trackToolUsage("take_screenshot", question || "analyze");
+      return { success: true, output: { analysis } };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
+
+  write_for_me: async (args) => {
+    const task = ((args["task"] as string) ?? "").trim();
+    const useStyle = args["style"] !== false;
+
+    if (!task) return { success: false, error: "Aufgabe fehlt." };
+
+    let profile = "";
+    if (useStyle) {
+      try {
+        profile = await buildStyleProfile();
+      } catch {
+        // kein Profil verfügbar
+      }
+    }
+
+    try {
+      const text = await writeInUserStyle(task, profile);
+      trackToolUsage("write_for_me", task.slice(0, 50));
+      return {
+        success: true,
+        output: { text, styleApplied: Boolean(profile) },
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
+
+  find_duplicates: async (args) => {
+    const drivesArg = ((args["drives"] as string) ?? "").trim();
+    const drives = drivesArg
+      ? drivesArg.split(",").map((d) => d.trim().toUpperCase())
+      : ["C", "E", "H"];
+    try {
+      const dupes = findDuplicates(drives);
+      const totalWasted = dupes.reduce((s, d) => s + d.wastedMB, 0);
+      trackToolUsage("find_duplicates", drives.join(","));
+      return {
+        success: true,
+        output: {
+          count: dupes.length,
+          totalWastedMB: Math.round(totalWasted),
+          groups: dupes,
+        },
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
+
+  list_autostart: async () => {
+    const ps = `
+$reg = @(
+  'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run',
+  'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run'
+)
+$results = [System.Collections.Generic.List[PSCustomObject]]::new()
+foreach ($regPath in $reg) {
+  if (Test-Path $regPath) {
+    $props = Get-ItemProperty $regPath
+    $props | Get-Member -MemberType NoteProperty |
+      Where-Object { $_.Name -notlike 'PS*' } |
+      ForEach-Object {
+        $results.Add([PSCustomObject]@{
+          name    = $_.Name
+          command = $props.$($_.Name)
+          scope   = if ($regPath -like '*HKLM*') { 'System' } else { 'Nutzer' }
+        })
+      }
+  }
+}
+if ($results.Count -eq 0) { Write-Output '[]' }
+else { $results | ConvertTo-Json -Compress }`.trim();
+
+    const tmpFile = path.join(os.tmpdir(), `ella-autostart-${Date.now()}.ps1`);
+    const fsAs = await import("fs");
+    try {
+      fsAs.writeFileSync(tmpFile, ps, "utf-8");
+      const out = execSync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+        { encoding: "utf-8", timeout: 8000 },
+      ).trim();
+      const data = JSON.parse(!out || out === "[]" ? "[]" : out) as unknown[];
+      trackToolUsage(
+        "list_autostart",
+        `${Array.isArray(data) ? data.length : 0} Einträge`,
+      );
+      return {
+        success: true,
+        output: { entries: Array.isArray(data) ? data : [data] },
+      };
+    } finally {
+      try {
+        fsAs.unlinkSync(tmpFile);
       } catch {
         // best effort
       }

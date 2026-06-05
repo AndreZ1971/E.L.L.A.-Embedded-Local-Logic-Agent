@@ -7,6 +7,12 @@ import { pool } from "../config/database.js";
 import { env } from "../config/env.js";
 import { eventBus, EVENT_SYSTEM, type SystemEvent } from "./eventBus.js";
 import { remember } from "./memory.js";
+import { recordClipboard } from "./clipboardHistory.js";
+import { sendProactiveMessage } from "./proactive.js";
+import { analyzeRhythm } from "./rhythmLearner.js";
+import { checkUpcomingMeetings } from "./meetingPrep.js";
+import { checkDayBriefing } from "./dayBriefing.js";
+import { findDuplicates } from "./duplicateFinder.js";
 
 const INTERVAL_MS = Number(process.env.WORKER_INTERVAL_MS ?? 60_000);
 const DISK_ALERT_THRESHOLD = Number(process.env.DISK_ALERT_THRESHOLD ?? 85);
@@ -292,7 +298,40 @@ function emit(event: SystemEvent) {
 }
 
 let timer: ReturnType<typeof setInterval> | null = null;
+let clipboardTimer: ReturnType<typeof setInterval> | null = null;
 let ollamaWasDown = false;
+
+// ── Proaktiv-State ─────────────────────────────────────────────────────────────
+export let lastActivityTime = Date.now();
+let wasInactive = false;
+const INACTIVE_THRESHOLD_MS = 30 * 60 * 1000;
+let lastBreakReminder = 0;
+const BREAK_INTERVAL_MS = 90 * 60 * 1000;
+
+export function recordActivity(): void {
+  const wasAway = Date.now() - lastActivityTime > INACTIVE_THRESHOLD_MS;
+  lastActivityTime = Date.now();
+  if (wasAway && wasInactive) {
+    wasInactive = false;
+    triggerComebackBriefing().catch(() => {});
+  }
+}
+
+async function triggerComebackBriefing(): Promise<void> {
+  try {
+    const [alertRows] = await pool.execute<any[]>(`
+      SELECT payload FROM system_events
+      WHERE type = 'alert' AND created_at > DATE_SUB(NOW(), INTERVAL 45 MINUTE)
+    `);
+    let msg = "Willkommen zurück.";
+    if (alertRows.length > 0) {
+      msg += ` Während du weg warst: ${alertRows.length} System-Alert${alertRows.length > 1 ? "s" : ""}.`;
+    }
+    sendProactiveMessage(msg, "info");
+  } catch {
+    // DB nicht verfügbar
+  }
+}
 let lastDevices: Map<string, PnPDevice> = new Map();
 let devicesInitialized = false;
 let lastArpIps: Set<string> = new Set();
@@ -530,6 +569,58 @@ async function tick() {
     });
   }
   if (currentDns) lastDnsServers = currentDns;
+
+  // ── Proaktive Intelligenz ──────────────────────────────────────────────────
+  const now2 = new Date();
+  const hour = now2.getHours();
+  const minute = now2.getMinutes();
+
+  // Inaktivität festhalten
+  if (Date.now() - lastActivityTime > INACTIVE_THRESHOLD_MS) {
+    wasInactive = true;
+  }
+
+  // Pause-Erinnerung alle 90 Minuten wenn Nutzer aktiv
+  const timeSinceBreak = Date.now() - lastBreakReminder;
+  const timeSinceActivity = Date.now() - lastActivityTime;
+  if (timeSinceBreak > BREAK_INTERVAL_MS && timeSinceActivity < 5 * 60 * 1000) {
+    lastBreakReminder = Date.now();
+    sendProactiveMessage(
+      `Du arbeitest seit ${Math.round(timeSinceBreak / 60000)} Minuten ohne Pause. ` +
+        `Kurze Unterbrechung empfohlen.`,
+      "info",
+    );
+  }
+
+  // Meeting-Vorbereitung alle 5 Minuten
+  if (minute % 5 === 0) {
+    checkUpcomingMeetings().catch(() => {});
+  }
+
+  // Tagesabschluss um 18 Uhr
+  checkDayBriefing().catch(() => {});
+
+  // Rhythmus-Analyse täglich um 12 Uhr
+  if (hour === 12 && minute < 1) {
+    analyzeRhythm().catch(() => {});
+  }
+
+  // Duplikat-Scan sonntags um 10 Uhr
+  if (now2.getDay() === 0 && hour === 10 && minute < 1) {
+    try {
+      const dupes = findDuplicates();
+      const totalWasted = dupes.reduce((s, d) => s + d.wastedMB, 0);
+      if (totalWasted > 500) {
+        sendProactiveMessage(
+          `Ich habe ${dupes.length} doppelte Dateigruppen gefunden die ${totalWasted.toFixed(0)} MB belegen. ` +
+            `Soll ich dir die Liste zeigen?`,
+          "suggestion",
+        );
+      }
+    } catch {
+      // Laufwerke nicht verfügbar
+    }
+  }
 }
 
 export const worker = {
@@ -537,11 +628,34 @@ export const worker = {
     if (timer) return;
     tick().catch(() => {});
     timer = setInterval(() => tick().catch(() => {}), INTERVAL_MS);
+
+    // Clipboard-Polling alle 3 Sekunden
+    let lastClip = "";
+    clipboardTimer = setInterval(() => {
+      try {
+        const ps = "Get-Clipboard -Raw";
+        const encoded = Buffer.from(ps, "utf16le").toString("base64");
+        const clip = execSync(
+          `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+          { encoding: "utf-8", timeout: 2000 },
+        ).trim();
+        if (clip && clip !== lastClip && clip.length < 50000) {
+          lastClip = clip;
+          recordClipboard(clip);
+        }
+      } catch {
+        // Clipboard nicht verfügbar
+      }
+    }, 3000);
   },
   stop() {
     if (timer) {
       clearInterval(timer);
       timer = null;
+    }
+    if (clipboardTimer) {
+      clearInterval(clipboardTimer);
+      clipboardTimer = null;
     }
   },
 };

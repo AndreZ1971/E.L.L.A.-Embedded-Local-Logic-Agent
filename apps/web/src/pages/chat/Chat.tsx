@@ -30,6 +30,7 @@ interface Message {
   role: "user" | "assistant" | "directive_deny";
   content: string;
   toolName?: string;
+  proactive?: boolean;
 }
 interface PendingAction {
   tool: string;
@@ -293,6 +294,13 @@ const Chat: React.FC = () => {
           `Neues Gerät im Netzwerk: ${ip}`,
           "network",
         );
+      } else if (ev.type === "proactive_message") {
+        const msg = (ev.payload.message as string) ?? "";
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: msg, proactive: true },
+        ]);
+        speakEdge(msg);
       }
     };
 

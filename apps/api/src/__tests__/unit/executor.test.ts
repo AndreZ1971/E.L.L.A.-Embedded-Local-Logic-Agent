@@ -20,6 +20,34 @@ vi.mock("../../services/music.js", () => ({
 vi.mock("../../services/textCorrection.js", () => ({
   correctText: vi.fn((t: string) => Promise.resolve(t + " [korrigiert]")),
 }));
+vi.mock("../../services/processes.js", () => ({
+  listProcesses: vi.fn(() => [
+    { pid: 1, name: "notepad", cpuPct: 0.5, ramMB: 12 },
+  ]),
+  killProcess: vi.fn(() => true),
+}));
+vi.mock("../../services/clipboardHistory.js", () => ({
+  recordClipboard: vi.fn(),
+  getClipboardHistory: vi.fn(() => []),
+  getLastClipboard: vi.fn(() => null),
+}));
+vi.mock("../../services/reminder.js", () => ({
+  createReminder: vi.fn(),
+  deleteReminder: vi.fn(),
+  listReminders: vi.fn(() => []),
+}));
+vi.mock("../../services/vision.js", () => ({
+  analyzeScreenshot: vi.fn(() => Promise.resolve("Ein Desktop.")),
+}));
+vi.mock("../../services/styleProfile.js", () => ({
+  buildStyleProfile: vi.fn(() => Promise.resolve("")),
+  writeInUserStyle: vi.fn(() => Promise.resolve("Sehr geehrter Herr Müller")),
+}));
+vi.mock("../../services/duplicateFinder.js", () => ({
+  findDuplicates: vi.fn(() => [
+    { hash: "dup_0", size: 1024000, files: ["a.pdf", "b.pdf"], wastedMB: 1.0 },
+  ]),
+}));
 vi.mock("util", () => ({
   promisify: vi.fn((fn: unknown) =>
     vi.fn().mockResolvedValue({ stdout: "", stderr: "" }),
@@ -93,6 +121,13 @@ import { getDiskUsage } from "@ella/agent-tools";
 import { execSync } from "child_process";
 import { searchMusic, openWithPlayer } from "../../services/music.js";
 import { correctText } from "../../services/textCorrection.js";
+import {
+  listProcesses,
+  killProcess as killSystemProcess,
+} from "../../services/processes.js";
+import { getLastClipboard } from "../../services/clipboardHistory.js";
+import { analyzeScreenshot } from "../../services/vision.js";
+import { writeInUserStyle } from "../../services/styleProfile.js";
 
 describe("toolExecutor", () => {
   beforeEach(() => {
@@ -660,5 +695,226 @@ describe("compose_email", () => {
     });
     expect(result.success).toBe(true);
     expect(result.output).toContain("mueller@example.com");
+  });
+});
+
+const wowSettings = {
+  enabledTools: [
+    "list_processes",
+    "kill_process",
+    "set_volume",
+    "get_clipboard",
+    "set_clipboard",
+    "set_reminder",
+    "list_reminders",
+    "delete_reminder",
+    "take_screenshot",
+    "write_for_me",
+    "find_duplicates",
+    "list_autostart",
+  ],
+  apps: [],
+  homeworkMode: { active: false, apps: [], pinHash: "" },
+  setups: [],
+  protectedDrives: [],
+  customProgramPaths: [],
+  musicLibraryPath: "",
+  defaultMediaPlayer: "vlc",
+  provider: "auto" as const,
+  ollamaModel: "llama3.1:8b",
+  openaiApiKey: "sk-test",
+};
+
+describe("list_processes", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+  });
+
+  it("gibt Prozessliste zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "list_processes",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).count).toBe(1);
+  });
+});
+
+describe("kill_process", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+  });
+
+  it("blockiert systemkritische Prozesse", async () => {
+    const result = await toolExecutor.execute({
+      tool: "kill_process",
+      args: { name: "svchost" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.directive).toBe(true);
+  });
+
+  it("gibt Bestätigungsanfrage für normale Prozesse zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "kill_process",
+      args: { name: "notepad" },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+  });
+
+  it("Fehler wenn Name und PID fehlen", async () => {
+    const result = await toolExecutor.execute({
+      tool: "kill_process",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("set_volume", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(execSync).mockReturnValue("" as any);
+  });
+
+  it("clampt level auf 100", async () => {
+    const result = await toolExecutor.execute({
+      tool: "set_volume",
+      args: { level: 150 },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("100%");
+  });
+});
+
+describe("get_clipboard", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+  });
+
+  it("Fehler wenn Zwischenablage leer", async () => {
+    vi.mocked(getLastClipboard).mockReturnValue(null);
+    const result = await toolExecutor.execute({
+      tool: "get_clipboard",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("gibt Inhalt zurück", async () => {
+    vi.mocked(getLastClipboard).mockReturnValue("Hallo Welt");
+    const result = await toolExecutor.execute({
+      tool: "get_clipboard",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).content).toBe("Hallo Welt");
+  });
+});
+
+describe("set_reminder", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+  });
+
+  it("Fehler ohne Uhrzeit", async () => {
+    const result = await toolExecutor.execute({
+      tool: "set_reminder",
+      args: { message: "Arzttermin" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Uhrzeit");
+  });
+
+  it("Fehler ohne Nachricht", async () => {
+    const result = await toolExecutor.execute({
+      tool: "set_reminder",
+      args: { time: "09:00" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Erinnerungstext");
+  });
+
+  it("setzt Erinnerung erfolgreich", async () => {
+    const result = await toolExecutor.execute({
+      tool: "set_reminder",
+      args: { message: "Arzttermin", time: "09:00" },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("Arzttermin");
+  });
+});
+
+describe("take_screenshot", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+  });
+
+  it("gibt Analyse zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "take_screenshot",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).analysis).toBe("Ein Desktop.");
+  });
+
+  it("Fehler ohne OpenAI Key", async () => {
+    vi.mocked(analyzeScreenshot).mockRejectedValueOnce(
+      new Error("Vision benötigt OpenAI API-Key"),
+    );
+    const result = await toolExecutor.execute({
+      tool: "take_screenshot",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("OpenAI");
+  });
+});
+
+describe("write_for_me", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+  });
+
+  it("Fehler ohne Aufgabe", async () => {
+    const result = await toolExecutor.execute({
+      tool: "write_for_me",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("gibt generierten Text zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "write_for_me",
+      args: { task: "Absage an Müller" },
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).text).toBe("Sehr geehrter Herr Müller");
+  });
+});
+
+describe("find_duplicates", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+  });
+
+  it("gibt Duplikat-Gruppen zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "find_duplicates",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).count).toBe(1);
+    expect((result.output as any).totalWastedMB).toBe(1);
   });
 });
