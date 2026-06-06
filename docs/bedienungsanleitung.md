@@ -1,6 +1,6 @@
 # E.L.L.A. — Bedienungsanleitung
 
-_Version 3.0.0_
+_Version 3.1.0_
 
 ---
 
@@ -12,12 +12,14 @@ _Version 3.0.0_
 4. [Das Onboarding](#4-das-onboarding)
 5. [Die Benutzeroberfläche](#5-die-benutzeroberfläche)
 6. [Mit ELLA sprechen — Beispiele](#6-mit-ella-sprechen--beispiele)
-7. [Sprache und Wakeword](#7-sprache-und-wakeword)
-8. [Proaktive Nachrichten](#8-proaktive-nachrichten)
-9. [Einstellungen](#9-einstellungen)
-10. [Die E.L.L.A. Direktive](#10-die-ella-direktive)
-11. [Hausaufgaben-Modus](#11-hausaufgaben-modus)
-12. [Fehlerbehebung](#12-fehlerbehebung)
+7. [Aufgabenliste](#7-aufgabenliste)
+8. [Sprache und Wakeword](#8-sprache-und-wakeword)
+9. [Proaktive Intelligenz](#9-proaktive-intelligenz)
+10. [Nutzerprofile](#10-nutzerprofile)
+11. [Einstellungen](#11-einstellungen)
+12. [Die E.L.L.A. Direktive](#12-die-ella-direktive)
+13. [Hausaufgaben-Modus](#13-hausaufgaben-modus)
+14. [Fehlerbehebung](#14-fehlerbehebung)
 
 ---
 
@@ -25,44 +27,52 @@ _Version 3.0.0_
 
 E.L.L.A. ist ein persönlicher KI-Assistent für Windows. Der Name steht für **Embedded Local Logic Agent** — ein Assistent der auf deinem eigenen Rechner läuft, ohne dass deine Daten in die Cloud gesendet werden müssen.
 
-ELLA versteht natürliche Sprache und kann deinen Computer für dich bedienen: Apps starten, Dateien suchen, E-Mails verfassen, Termine nachschlagen, Erinnerungen setzen, Musik abspielen, und vieles mehr. Statt Menüs zu klicken, sagst oder schreibst du einfach was du brauchst.
+ELLA versteht natürliche Sprache und kann deinen Computer für dich bedienen: Apps starten, Dateien suchen, E-Mails verfassen, Termine nachschlagen, Erinnerungen setzen, Aufgaben verwalten, Musik abspielen — und vieles mehr. Statt Menüs zu klicken, sagst oder schreibst du einfach was du brauchst.
 
-### Zwei Betriebsmodi
+ELLA lernt mit der Zeit: Sie merkt sich deine Gewohnheiten, erkennt Muster in deiner Arbeit und meldet sich von sich aus wenn etwas wichtig ist — ohne dass du danach fragen musst.
 
-| Modus                | Beschreibung                                         | Voraussetzung                           |
-| -------------------- | ---------------------------------------------------- | --------------------------------------- |
-| **Offline (Ollama)** | Alles bleibt auf deinem Rechner, kein Internet nötig | Ollama installiert, llama3.1:8b geladen |
-| **Online (OpenAI)**  | Schnellere und präzisere Antworten via GPT-4o        | OpenAI API-Key in den Einstellungen     |
+### Betriebsmodi
+
+| Modus                | Beschreibung                                              | Voraussetzung                           |
+| -------------------- | --------------------------------------------------------- | --------------------------------------- |
+| **Offline (Ollama)** | Alles bleibt auf deinem Rechner, kein Internet nötig      | Ollama installiert, llama3.1:8b geladen |
+| **Online (OpenAI)**  | Schnellere, präzisere Antworten und erweiterte Funktionen | OpenAI API-Key in den Einstellungen     |
 
 Im **Auto**-Modus verwendet ELLA automatisch OpenAI wenn ein API-Key vorhanden ist, sonst Ollama.
+
+> **Hinweis zu Datenschutz:** Bestimmte Funktionen wie Fenster-Kontext und Gesprächskompression funktionieren ausschließlich im Ollama-Modus und senden niemals Daten an externe Dienste.
 
 ---
 
 ## 2. Voraussetzungen
 
-Folgende Programme müssen installiert sein bevor du ELLA startest:
+| Programm        | Zweck                                          | Download    |
+| --------------- | ---------------------------------------------- | ----------- |
+| **Ollama**      | Lokales KI-Modell (Offline-Betrieb)            | ollama.ai   |
+| **MariaDB**     | Datenbank für Gedächtnis, Aufgaben, Protokolle | mariadb.org |
+| **Node.js 20+** | Laufzeitumgebung                               | nodejs.org  |
+| **Python 3.12** | Wakeword-Erkennung, optional Kokoro TTS        | python.org  |
 
-| Programm        | Zweck                                   | Download    |
-| --------------- | --------------------------------------- | ----------- |
-| **Ollama**      | Lokales KI-Modell (Offline-Betrieb)     | ollama.ai   |
-| **MariaDB**     | Datenbank für Gedächtnis und Protokolle | mariadb.org |
-| **Node.js 20+** | Laufzeitumgebung                        | nodejs.org  |
-| **Python 3.12** | Wakeword-Erkennung                      | python.org  |
-
-### Ollama-Modelle laden
-
-Nach der Ollama-Installation diese beiden Modelle einmalig herunterladen:
+### Ollama-Modelle laden (einmalig)
 
 ```powershell
-ollama pull llama3.1:8b        # Das Chat-Modell (ca. 4.7 GB)
-ollama pull nomic-embed-text   # Für das Gedächtnis (ca. 274 MB)
+ollama pull llama3.1:8b        # Chat-Modell (ca. 4.7 GB)
+ollama pull nomic-embed-text   # Gedächtnis-Modell (ca. 274 MB)
 ```
 
-### Python-Pakete für Wakeword
+### Python-Pakete für Wakeword (einmalig)
 
 ```powershell
 py -3.12 -m pip install openwakeword onnxruntime soundfile
 ```
+
+### Optional: Kokoro TTS für bessere Sprachausgabe
+
+```powershell
+py -3.12 -m pip install kokoro-onnx sounddevice numpy
+```
+
+Kokoro ist eine lokale neuronale TTS-Engine die natürlicher klingt als die eingebauten Windows-Stimmen. Sie läuft vollständig offline und kann in den Einstellungen aktiviert werden.
 
 ---
 
@@ -82,7 +92,7 @@ ELLA prüft automatisch ob alle Voraussetzungen erfüllt sind:
 - Ist MariaDB erreichbar?
 - Ist das Onboarding abgeschlossen?
 
-Falls etwas fehlt, zeigt ELLA einen Setup-Bildschirm mit genauen Anweisungen.
+Falls etwas fehlt, zeigt ELLA einen Setup-Bildschirm mit genauen Anweisungen und Fortschrittsanzeige.
 
 ---
 
@@ -97,16 +107,16 @@ Lies und akzeptiere die Nutzungsbedingungen.
 Sag ELLA wie du heißt. Sie merkt sich das und spricht dich persönlich an.
 
 **Schritt 3 — Die E.L.L.A. Direktive**
-ELLA erklärt ihre vier unveränderlichen Verbote (kein Schaden, keine Täuschung, keine Überwachung, keine Datenweitergabe). Du bestätigst, dass du sie verstanden hast.
+ELLA erklärt ihre vier unveränderlichen Verbote. Du bestätigst, dass du sie verstanden hast.
 
 **Schritt 4 — Hardware-Scan**
 ELLA scannt deinen Rechner und lernt deine Laufwerke und ihre Kapazitäten kennen.
 
 **Schritt 5 — Stimme wählen**
-Wähle aus verfügbaren Windows-Stimmen für die Sprachausgabe.
+Wähle eine Stimme für die Sprachausgabe. Wenn Kokoro installiert ist, steht es hier bereits als Option zur Verfügung.
 
 **Schritt 6 — Standort**
-Optional: Teile ELLA deinen Standort mit, damit sie Wetter und lokale Informationen abrufen kann.
+Optional: Teile ELLA deinen Standort mit für Wetter und lokale Informationen.
 
 Nach dem Onboarding startet der normale Chat.
 
@@ -116,20 +126,21 @@ Nach dem Onboarding startet der normale Chat.
 
 ### Hauptfenster
 
-Das Fenster besteht aus drei Bereichen:
-
 **Links — Navigation**
-Über die Seitenleiste erreichst du Chat, Einstellungen und andere Bereiche.
+Seitenleiste mit Chat, Einstellungen und Profil-Wechsler.
 
 **Mitte — Chat**
-Hier findet das Gespräch mit ELLA statt. Du siehst alle Nachrichten, Tool-Ausführungen und Systembenachrichtigungen. Proaktive Nachrichten von ELLA erscheiben hier ebenfalls — ohne dass du etwas gefragt hast.
+Hier findet das Gespräch mit ELLA statt. Du siehst alle Nachrichten, Tool-Ausführungen und System-Benachrichtigungen. Proaktive Nachrichten von ELLA erscheinen hier von sich aus — ohne dass du etwas gefragt hast.
+
+**Feedback-Buttons**
+Unter jeder Antwort von ELLA erscheinen beim Hovern kleine Daumen-hoch/runter-Buttons. Damit kannst du ELLA Rückmeldung geben. Das Feedback wird gespeichert — aber niemals in den Gesprächs-Kontext eingebettet (kein Sicherheitsrisiko).
 
 **Unten — Eingabe**
-Das Textfeld für deine Nachrichten. Mit Enter sendest du, mit Shift+Enter machst du einen Zeilenumbruch.
+Textfeld für Nachrichten. Enter sendet, Shift+Enter macht einen Zeilenumbruch.
 
 ### System Tray
 
-ELLA läuft im Hintergrund und ist über das Tray-Icon (Taskleiste unten rechts) erreichbar. Rechtsklick öffnet ein Menü mit:
+ELLA läuft im Hintergrund und ist über das Tray-Icon (Taskleiste rechts unten) erreichbar:
 
 - Fenster öffnen/minimieren
 - Autostart aktivieren/deaktivieren
@@ -137,17 +148,17 @@ ELLA läuft im Hintergrund und ist über das Tray-Icon (Taskleiste unten rechts)
 
 ### Toast-Benachrichtigungen
 
-Bei System-Ereignissen (volle Festplatte, RAM-Warnung, neues USB-Gerät) erscheinen kurze Meldungen oben im Chat. Diese werden auch vorgelesen wenn TTS aktiviert ist.
+Bei System-Ereignissen (volle Festplatte, RAM-Warnung, neues USB-Gerät, Clipboard-Muster) erscheinen kurze Meldungen im Chat. Diese werden vorgelesen wenn TTS aktiviert ist.
 
 ### Confirmation Card
 
-Bei gefährlichen Aktionen (USB-Stick formatieren, Prozess beenden) zeigt ELLA eine Bestätigungskarte bevor sie handelt. Du musst explizit bestätigen — ELLA handelt nie eigenständig bei solchen Aktionen.
+Bei gefährlichen Aktionen (USB-Stick formatieren, Prozess beenden) zeigt ELLA eine Bestätigungskarte bevor sie handelt. Du musst explizit bestätigen.
 
 ---
 
 ## 6. Mit ELLA sprechen — Beispiele
 
-Du kannst mit ELLA wie mit einem Menschen schreiben oder sprechen. Du musst keine speziellen Befehle kennen.
+Du kannst ELLA wie mit einem Menschen schreiben oder sprechen.
 
 ### Programme und Setups
 
@@ -162,19 +173,20 @@ Du kannst mit ELLA wie mit einem Menschen schreiben oder sprechen. Du musst kein
 
 ```
 "Suche die Datei Angebot"
-"Suche alle PDFs mit dem Namen Rechnung"
+"Suche alle PDFs mit dem Namen Rechnung auf Laufwerk E"
 "Öffne die Datei C:\Dokumente\Brief.docx und geh ans Ende"
 "Zeig mir den Ordner E:\Projekte"
 "Erstell ein neues Word-Dokument"
+"Suche doppelte Dateien auf meinen Laufwerken"
 ```
 
 ### Diktat
 
-Sage ELLA was du schreiben willst. Sie tippt den Text in ein offenes Word-Dokument und korrigiert dabei automatisch Rechtschreibung, Grammatik und Zeichensetzung:
+ELLA tippt diktierten Text in ein offenes Word-Dokument und korrigiert automatisch Rechtschreibung, Grammatik und Zeichensetzung:
 
 ```
-"Schreib auf: Sehr geehrte Damen und Herren ich wollte ihnen mitteilen das
- das Angebot noch gültigkeit hat"
+"Schreib auf: Sehr geehrte Damen und Herren ich wollte ihnen mitteilen
+ das das Angebot noch gültigkeit hat"
 ```
 
 ELLA schreibt: _"Sehr geehrte Damen und Herren, ich wollte Ihnen mitteilen, dass das Angebot noch Gültigkeit hat."_
@@ -187,7 +199,17 @@ ELLA schreibt: _"Sehr geehrte Damen und Herren, ich wollte Ihnen mitteilen, dass
 "Schreib mir eine Absage an Herrn Schmidt"
 ```
 
-Das Outlook-Fenster öffnet sich mit dem vorbereiteten Entwurf. Du sendest selbst.
+Das Outlook-Fenster öffnet sich mit dem vorbereiteten Entwurf. Du sendest selbst — ELLA sendet nie automatisch.
+
+### Im eigenen Stil schreiben lassen
+
+ELLA analysiert deinen Schreibstil aus früheren E-Mails und übernimmt Tonalität und typische Formulierungen:
+
+```
+"Schreib mir eine Absage an Herrn Müller wegen des Termins nächsten Dienstag"
+"Verfasse eine freundliche Mahnung für Rechnung 2024-042"
+"Schreib eine kurze Dankesnachricht an das Team"
+```
 
 ### Kalender und Termine
 
@@ -216,8 +238,6 @@ Das Outlook-Fenster öffnet sich mit dem vorbereiteten Entwurf. Du sendest selbs
 "Spiel das Album Thriller"
 ```
 
-ELLA durchsucht die konfigurierte Musikbibliothek und öffnet den Treffer im eingestellten Media Player.
-
 ### System und Hardware
 
 ```
@@ -236,14 +256,13 @@ ELLA durchsucht die konfigurierte Musikbibliothek und öffnet den Treffer im ein
 "Beende Notepad"
 ```
 
-Systemkritische Prozesse (Windows-Dienste) kann ELLA grundsätzlich nicht beenden. Bei allen anderen fragt sie vorher nach.
+Systemkritische Prozesse (Windows-Dienste) kann ELLA nicht beenden. Bei allen anderen fragt sie vorher nach.
 
 ### Lautstärke
 
 ```
 "Stell die Lautstärke auf 40%"
 "Schalte den Ton aus"
-"Mach lauter"
 ```
 
 ### Zwischenablage
@@ -265,42 +284,29 @@ ELLA merkt sich automatisch die letzten 20 Inhalte der Zwischenablage.
 "Lösche die Erinnerung 1234567890"
 ```
 
-Die Erinnerungen erscheinen zum gesetzten Zeitpunkt als Windows-Popup — auch wenn ELLA im Hintergrund läuft.
+Die Erinnerungen erscheinen als Windows-Popup — auch wenn ELLA im Hintergrund läuft.
 
 ### Screenshot und Bildanalyse
 
 ```
 "Was siehst du?"
 "Was steht auf meinem Bildschirm?"
-"Analysiere den Bildschirm"
-"Was bedeutet diese Fehlermeldung?" (dann macht ELLA einen Screenshot)
+"Was bedeutet diese Fehlermeldung?"
 ```
 
-Diese Funktion benötigt einen OpenAI API-Key.
-
-### Im eigenen Stil schreiben lassen
-
-```
-"Schreib mir eine Absage an Herrn Müller wegen des Termins nächsten Dienstag"
-"Verfasse eine freundliche Mahnung für Rechnung 2024-042"
-"Schreib eine kurze Dankesnachricht an das Team"
-```
-
-ELLA analysiert deinen bisherigen Schreibstil aus früheren E-Mails und übernimmt Tonalität, Anrede und typische Formulierungen.
+Benötigt einen OpenAI API-Key.
 
 ### Netzwerk
 
 ```
 "Welche Geräte sind in meinem Netzwerk?"
 "Zeig mir alle aktiven Verbindungen"
-"Welche Programme haben gerade eine Netzwerkverbindung?"
 ```
 
-### Duplikate und Speicher
+### Autostart
 
 ```
-"Suche doppelte Dateien auf meinen Laufwerken"
-"Welche Dateien verschwenden Speicherplatz?"
+"Welche Programme starten automatisch mit Windows?"
 ```
 
 ### Gedächtnis
@@ -324,23 +330,53 @@ ELLA analysiert deinen bisherigen Schreibstil aus früheren E-Mails und übernim
 ```
 "Wie ist das Wetter heute?"
 "Wird es morgen regnen?"
-"Wo bin ich gerade?"
-```
-
-### Autostart
-
-```
-"Welche Programme starten automatisch mit Windows?"
-"Was läuft alles beim Start?"
 ```
 
 ---
 
-## 7. Sprache und Wakeword
+## 7. Aufgabenliste
+
+ELLA verwaltet eine persistente Aufgabenliste — Aufgaben bleiben auch nach dem Neustart erhalten.
+
+### Aufgaben anlegen
+
+```
+"Merk dir: Zahnarzt anrufen"
+"Aufgabe: Präsentation vorbereiten, Priorität hoch, bis Freitag"
+"Ich muss noch die Steuererklärung einreichen — bis 31. Juli"
+```
+
+### Aufgaben ansehen
+
+```
+"Welche Aufgaben habe ich?"
+"Zeig mir meine offenen Aufgaben"
+"Was steht noch aus?"
+```
+
+ELLA sortiert die Liste automatisch nach Priorität (hoch → normal → niedrig) und Fälligkeitsdatum.
+
+### Aufgaben erledigen oder löschen
+
+```
+"Markiere Aufgabe 3 als erledigt"
+"Erledigt: Zahnarzt anrufen"
+"Lösche die Aufgabe 5"
+```
+
+### Integration im Tagesabschluss
+
+Um 18 Uhr berichtet ELLA automatisch auch über fällige Aufgaben:
+
+_"Du hast heute 14 Aktionen ausgeführt. Morgen hast du 2 Termine. Außerdem hast du 3 offene Aufgaben für morgen: 'Zahnarzt anrufen', 'Rechnung prüfen', 'Bericht abgeben'. Gute Nacht."_
+
+---
+
+## 8. Sprache und Wakeword
 
 ### Sprachmodi
 
-In den Einstellungen unter **Stimme** wählst du den Modus:
+In den Einstellungen unter **Modus** wählst du den Sprachmodus:
 
 | Modus        | Beschreibung                                   |
 | ------------ | ---------------------------------------------- |
@@ -350,51 +386,110 @@ In den Einstellungen unter **Stimme** wählst du den Modus:
 
 ### Wakeword-Erkennung
 
-Wenn du "Wakeword" aktivierst, läuft im Hintergrund ein Python-Prozess der auf das Wort **"Ella"** lauscht. Sobald du es sagst, öffnet ELLA automatisch das Mikrofon und wartet auf deine Frage.
-
-> **Hinweis:** Das Wakeword wird vollständig lokal ausgewertet — es werden keine Audiodaten gesendet.
+Das Wakeword wird vollständig lokal ausgewertet — keine Audiodaten werden gesendet.
 
 ### ELLA pausieren
-
-Wenn du ungestört arbeiten willst:
 
 ```
 "Ella, mach 30 Minuten Pause"
 "Pausiere für eine Stunde"
 ```
 
-Das Wakeword wird für die angegebene Zeit deaktiviert. ELLA meldet sich automatisch zurück.
+Das Wakeword wird deaktiviert, ELLA meldet sich automatisch zurück.
 
 ### Sprachausgabe (TTS)
 
-In den Einstellungen unter **Stimme** aktivierst du die Sprachausgabe. Wähle aus den auf deinem System verfügbaren Windows-Stimmen. ELLA liest Antworten, Alerts und proaktive Nachrichten automatisch vor.
+ELLA liest Antworten, Alerts und proaktive Nachrichten automatisch vor wenn TTS aktiviert ist.
+
+### Kokoro TTS — bessere Stimme
+
+Wenn `kokoro-onnx` installiert ist, kann in den Einstellungen unter **Modus → TTS-Engine** auf "Kokoro" umgestellt werden. Kokoro klingt deutlich natürlicher als Windows-Standardstimmen und läuft vollständig lokal.
+
+Wenn Kokoro nicht verfügbar ist, fällt ELLA automatisch auf die Windows-Stimme zurück.
 
 ---
 
-## 8. Proaktive Nachrichten
+## 9. Proaktive Intelligenz
 
-ELLA handelt ohne Aufforderung und schreibt von sich aus in den Chat:
+ELLA handelt ohne Aufforderung und schreibt von sich aus in den Chat. Diese Nachrichten erscheinen als ELLA-Nachricht und werden vorgelesen wenn TTS aktiviert ist.
 
-| Wann                               | Was ELLA sagt                                                                                                           |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 30 Min vor einem Kalendertermin    | _"Du hast in 28 Minuten einen Termin: Projektmeeting. Soll ich relevante Dokumente suchen?"_                            |
-| 18:00 Uhr                          | Tagesabschluss mit Anzahl erledigter Aktionen und morgigen Terminen                                                     |
-| Nach 30 Min Inaktivität + Rückkehr | _"Willkommen zurück. Während du weg warst: 2 System-Alerts."_                                                           |
-| Nach 90 Min aktiver Arbeit         | _"Du arbeitest seit 92 Minuten ohne Pause. Kurze Unterbrechung empfohlen."_                                             |
-| Täglich 12 Uhr                     | Falls jeden Morgen dieselben Apps geöffnet werden: _"Soll ich ein Morgen-Setup erstellen?"_                             |
-| Sonntags 10 Uhr                    | Falls > 500 MB durch Duplikate verschwendet: _"Ich habe 23 doppelte Dateigruppen gefunden. Soll ich die Liste zeigen?"_ |
+### Automatische Auslöser
 
-Proaktive Nachrichten werden auch vorgelesen wenn TTS aktiviert ist.
+| Wann                               | Was ELLA sagt                                                                                |
+| ---------------------------------- | -------------------------------------------------------------------------------------------- |
+| 30 Min vor einem Kalendertermin    | _"Du hast in 28 Minuten einen Termin: Projektmeeting. Soll ich relevante Dokumente suchen?"_ |
+| 18:00 Uhr                          | Tagesabschluss mit Aktivitäten, morgigen Terminen und fälligen Aufgaben                      |
+| Nach 30 Min Inaktivität + Rückkehr | _"Willkommen zurück. Während du weg warst: 2 System-Alerts."_                                |
+| Nach 90 Min aktiver Arbeit         | _"Du arbeitest seit 92 Minuten ohne Pause. Kurze Unterbrechung empfohlen."_                  |
+| Täglich 12 Uhr                     | Falls jeden Morgen dieselben Apps: _"Soll ich ein Morgen-Setup erstellen?"_                  |
+| Sonntags 10 Uhr                    | Falls > 500 MB Duplikate: _"Ich habe 23 doppelte Dateigruppen gefunden."_                    |
+
+### Clipboard-Mustererkennung
+
+ELLA erkennt automatisch bekannte Muster wenn du etwas in die Zwischenablage kopierst — und bietet direkt Hilfe an:
+
+| Erkanntes Muster   | Beispiel-Vorschlag                                                 |
+| ------------------ | ------------------------------------------------------------------ |
+| **IBAN**           | _"IBAN erkannt — soll ich sie in ein Dokument einfügen?"_          |
+| **Paketnummer**    | _"Paketnummer erkannt — soll ich den Versandstatus nachschlagen?"_ |
+| **Telefonnummer**  | _"Telefonnummer erkannt — soll ich eine Notiz dazu anlegen?"_      |
+| **URL**            | _"URL erkannt — soll ich die Seite öffnen oder zusammenfassen?"_   |
+| **E-Mail-Adresse** | _"E-Mail-Adresse erkannt — soll ich eine neue Mail vorbereiten?"_  |
+
+Diese Erkennung läuft vollständig lokal. Clipboard-Inhalte werden nie an externe Dienste gesendet.
+
+Die Funktion kann in den Einstellungen unter **Modus → Proaktive Intelligenz** deaktiviert werden.
+
+### Fenster-Kontext
+
+Wenn aktiviert (Einstellungen → Modus → Aktives Fenster als Kontext), weiß ELLA beim Chat welche Anwendung und welches Dokument du gerade geöffnet hast:
+
+_"Ich sehe du arbeitest gerade in Word an 'Angebot_2024.docx' — soll ich den Text weiterschreiben?"_
+
+> **Wichtig:** Diese Funktion ist standardmäßig **deaktiviert** und funktioniert ausschließlich im Ollama-Modus. Fenstertitel von Passwort-Managern und Banking-Apps werden nie weitergegeben.
+
+### Gesprächskompression
+
+Bei langen Gesprächen (ab 15 Nachrichten) fasst ELLA die ältesten Nachrichten automatisch zusammen, um den Kontext effizienter zu nutzen. Du bemerkst davon nichts — das Gespräch läuft normal weiter.
+
+> Diese Funktion nutzt ausschließlich das lokale Ollama-Modell und sendet keine Gesprächsinhalte nach außen.
 
 ---
 
-## 9. Einstellungen
+## 10. Nutzerprofile
+
+ELLA unterstützt mehrere Nutzerprofile. Jedes Profil hat sein eigenes Gedächtnis und seinen eigenen Gesprächsverlauf.
+
+### Profile anlegen
+
+In den Einstellungen → **Profile** (oder via API) kann ein neues Profil mit Namen und Farbe erstellt werden. Optional kann ein PIN gesetzt werden.
+
+### Profil wechseln
+
+Der Profilwechsler ist in der Navigation erreichbar. Bei PIN-geschützten Profilen wird der PIN abgefragt.
+
+### Profil-Isolation
+
+- Gedächtnis-Einträge eines Profils sind für andere Profile nicht sichtbar
+- Gesprächsverläufe sind profilgetrennt
+- Aufgabenlisten können profilgebunden sein
+- Globale Regeln (Erlaubnis/Verbots-Regeln) gelten für alle Profile
+
+### Standard-Profil
+
+Beim ersten Start wird automatisch das Profil **"Standard"** angelegt. Alle bisherigen Daten gehören zu diesem Profil.
+
+### Profil-PINs
+
+Profile können mit einem PIN gesichert werden. ELLA verwendet PBKDF2 mit Salt und 100.000 Iterationen — deutlich sicherer als ein einfaches Passwort-Hash.
+
+---
+
+## 11. Einstellungen
 
 Öffne die Einstellungen über das Zahnrad-Symbol in der Navigation.
 
 ### Tab: LLM
-
-Hier konfigurierst du das KI-Modell:
 
 | Einstellung        | Beschreibung                                 |
 | ------------------ | -------------------------------------------- |
@@ -405,13 +500,11 @@ Hier konfigurierst du das KI-Modell:
 
 ### Tab: Tools
 
-Aktiviere oder deaktiviere einzelne ELLA-Fähigkeiten. Deaktivierte Tools werden dem LLM nicht angeboten — ELLA kann sie dann nicht nutzen auch wenn sie danach gefragt wird.
+Aktiviere oder deaktiviere einzelne ELLA-Fähigkeiten. Deaktivierte Tools werden dem LLM nicht angeboten — ELLA kann sie dann auch nicht nutzen wenn sie explizit danach gefragt wird.
 
 ### Tab: Setups
 
 Setups sind Sammlungen von Apps die ELLA mit einem Befehl startet oder schließt.
-
-**Beispiel:** Setup "Arbeiten" startet Chrome, Word und Slack gleichzeitig.
 
 Setups können auch per Gespräch erstellt werden:
 
@@ -421,26 +514,30 @@ Setups können auch per Gespräch erstellt werden:
 
 ### Tab: Programme
 
-Hier verwaltest du die Liste erlaubter Anwendungen:
-
 - **Scannen:** ELLA durchsucht Startmenü und Registry nach installierten Programmen
 - **Erlauben/Sperren:** Nur erlaubte Programme kann ELLA öffnen
 - **Musikbibliothek:** Pfad zu deiner Musiksammlung (z.B. `H:\Musik`)
-- **Standard Media Player:** Der Player der für Musik genutzt wird (muss in der Programmliste erlaubt sein)
+- **Standard Media Player:** Der Player der für Musik genutzt wird
 
-> **Wichtig:** Nach Änderungen im Programme-Tab auf **Speichern** klicken.
+> **Wichtig:** Nach Änderungen immer auf **Speichern** klicken.
 
 ### Tab: Modus
 
-Konfiguriere Sprache und Stimme:
+Sprache, TTS und Proaktiv-Einstellungen:
 
-- **Stimme:** Wakeword / Manuell / Aus
-- **TTS:** Sprachausgabe ein/aus, Stimme auswählen
-- **Weckwort-Empfindlichkeit:** Wie sensibel das Wakeword reagiert
+| Einstellung                        | Beschreibung                                            |
+| ---------------------------------- | ------------------------------------------------------- |
+| **Stimme**                         | Wakeword / Manuell / Aus                                |
+| **TTS**                            | Sprachausgabe ein/aus                                   |
+| **TTS-Stimme**                     | Windows-Stimme auswählen                                |
+| **TTS-Engine**                     | System (Windows) oder Kokoro (lokal, natürlicher)       |
+| **Aktives Fenster als Kontext**    | ELLA kennt die aktive Anwendung beim Chat (Ollama-only) |
+| **Zwischenablage-Muster erkennen** | IBAN, Paketnummern etc. proaktiv erkennen               |
+| **Gesprächs-Kompression**          | Lange Sessions automatisch zusammenfassen (Ollama-only) |
 
 ### Tab: Regeln
 
-Die Regel-Engine steuert wann ELLA welche Aktionen ausführen darf. Jede Regel hat:
+Die Regel-Engine steuert wann ELLA welche Aktionen ausführen darf:
 
 | Feld        | Beschreibung                                             |
 | ----------- | -------------------------------------------------------- |
@@ -448,29 +545,26 @@ Die Regel-Engine steuert wann ELLA welche Aktionen ausführen darf. Jede Regel h
 | **Aktion**  | `allow` (erlauben) oder `deny` (verbieten)               |
 | **Trigger** | `always` — oder zeitbasiert (z.B. nur zwischen 9–17 Uhr) |
 
-**Reihenfolge der Auswertung:**
+**Auswertungsreihenfolge:**
 
 1. Direktive (unveränderliche Verbote — höchste Priorität)
 2. Deny-Regeln
 3. Allow-Regeln
 4. Standard: erlaubt
 
-> ELLA zeigt im Chat einen roten Badge wenn eine Anfrage durch die Direktive oder eine Deny-Regel blockiert wird.
+ELLA zeigt im Chat einen roten Badge wenn eine Anfrage blockiert wird.
 
 ### Tab: Google
 
-Verbinde ELLA mit deinem Google-Konto für Gmail und Google Calendar:
-
 1. Google Client ID und Client Secret eintragen (aus der Google Cloud Console)
-2. "Mit Google verbinden" klicken
-3. Browser öffnet sich → Google-Konto autorisieren
-4. Nach der Autorisierung kehrt ELLA automatisch zurück
+2. "Mit Google verbinden" klicken → Browser öffnet sich → Autorisieren
+3. ELLA kehrt automatisch zurück
 
 Der Token wird lokal gespeichert und nie weitergegeben.
 
 ---
 
-## 10. Die E.L.L.A. Direktive
+## 12. Die E.L.L.A. Direktive
 
 Die Direktive sind vier unveränderliche Verbote die tief in ELLA verankert sind. Keine Einstellung und keine Regel kann sie außer Kraft setzen:
 
@@ -485,14 +579,15 @@ Die Direktive sind vier unveränderliche Verbote die tief in ELLA verankert sind
 
 - Systemlaufwerk C: kann niemals formatiert werden
 - Ungelesene Mails können nicht automatisch gelöscht werden
-- ELLA kann keine Screenshot-Überwachung ohne dein Wissen einrichten
+- Fenster-Kontext und Kompression funktionieren nie mit OpenAI
+- Clipboard-Inhalte werden nie an externe Dienste gesendet
 - ELLA sendet keine Daten ohne deine Genehmigung
 
 ---
 
-## 11. Hausaufgaben-Modus
+## 13. Hausaufgaben-Modus
 
-Der Hausaufgaben-Modus sperrt ELLA auf bestimmte Apps ein — gedacht für Kinder die ungestört lernen sollen.
+Sperrt ELLA auf bestimmte Apps ein — gedacht für Kinder die ungestört lernen sollen.
 
 ### Aktivieren
 
@@ -500,20 +595,15 @@ Der Hausaufgaben-Modus sperrt ELLA auf bestimmte Apps ein — gedacht für Kinde
 "Aktiviere den Hausaufgaben-Modus"
 ```
 
-oder in den Einstellungen unter **Sicherheit**.
-
 ### Funktionsweise
 
 - Nur Apps aus der konfigurierten Whitelist können geöffnet werden
 - ELLA antwortet nur auf schulbezogene Anfragen
-- Der Modus ist mit einem SHA-256-PIN gesichert
+- Der Modus ist PIN-gesichert
 
 ### PIN einrichten
 
-In den Einstellungen unter **Modus** → Hausaufgaben-Modus:
-
-1. Neuen PIN eingeben und bestätigen
-2. Speichern
+In den Einstellungen unter **Modus** → Hausaufgaben-Modus → Neuen PIN eingeben → Speichern.
 
 ### Deaktivieren
 
@@ -525,31 +615,31 @@ ELLA fragt nach dem PIN.
 
 ### Notfall-Reset
 
-Falls der PIN vergessen wurde, gibt es eine Notfall-Reset-Funktion in den Einstellungen die den Hausaufgaben-Modus ohne PIN deaktiviert.
+Falls der PIN vergessen wurde: Einstellungen → Notfall-Reset deaktiviert den Hausaufgaben-Modus ohne PIN.
 
 ---
 
-## 12. Fehlerbehebung
+## 14. Fehlerbehebung
 
 ### ELLA antwortet nicht
 
-**Mögliche Ursachen:**
-
-- Ollama läuft nicht → `sc start Ollama` in PowerShell oder Ollama-App starten
+- Ollama läuft nicht → `sc start Ollama` oder Ollama-App starten
 - MariaDB läuft nicht → `sc start MariaDB`
-- Kein API-Key für OpenAI gesetzt und Ollama fehlt das Modell
+- Kein API-Key und Ollama fehlt das Modell → `ollama pull llama3.1:8b`
 
-**Prüfen:**
-
-```
-"Ella, wie ist dein Status?"
-```
+Prüfen: `"Ella, wie ist dein Status?"`
 
 ### Wakeword reagiert nicht
 
-- Mikrofon-Berechtigung prüfen (Windows Einstellungen → Datenschutz → Mikrofon)
+- Mikrofon-Berechtigung prüfen (Windows → Datenschutz → Mikrofon)
 - Python-Pakete prüfen: `py -3.12 -m pip list | findstr openwakeword`
 - Wakeword-Modus in den Einstellungen auf "Wakeword" gestellt?
+
+### Aufgaben verschwinden nach Neustart
+
+- Das sollte nicht passieren — Aufgaben sind in MariaDB gespeichert
+- MariaDB läuft? `sc query MariaDB` prüfen
+- Profil-Wechsel: Aufgaben sind profilgebunden, nach Profilwechsel siehst du andere Aufgaben
 
 ### Musik wird nicht gefunden
 
@@ -557,23 +647,40 @@ Falls der PIN vergessen wurde, gibt es eine Notfall-Reset-Funktion in den Einste
 - Media Player in der Programmliste erlaubt?
 - Nach dem Eintragen auf **Speichern** geklickt?
 
+### Clipboard-Muster erscheinen nicht
+
+- Funktion in Einstellungen → Modus → "Zwischenablage-Muster erkennen" aktiviert?
+- Muster werden nur bei neuen Inhalten erkannt (nicht wenn derselbe Text erneut kopiert wird)
+
+### Fenster-Kontext funktioniert nicht
+
+- In Einstellungen → Modus: "Aktives Fenster als Kontext" aktiviert?
+- Nur im Ollama-Modus verfügbar — bei aktivem OpenAI-Provider bleibt der Kontext leer
+- Sensible Fenstertitel (Passwort-Manager, Banking) werden absichtlich gefiltert
+
+### Kokoro TTS funktioniert nicht
+
+- Python-Pakete installiert? `py -3.12 -m pip list | findstr kokoro`
+- Einstellungen → Modus → TTS-Engine auf "Kokoro" gestellt?
+- ELLA fällt automatisch auf die Windows-Stimme zurück wenn Kokoro nicht startet
+- ELLA neu starten damit der Kokoro-Prozess gestartet wird
+
 ### Google-Verbindung schlägt fehl
 
 - Client ID und Secret korrekt eingetragen (keine Leerzeichen)?
 - In der Google Cloud Console ist "Desktop App" als Anwendungstyp gewählt?
 - Token-Datei löschen und neu verbinden: `google-token.json` im ELLA-Datenordner
 
-### TTS funktioniert nicht
-
-- In Einstellungen → Modus: TTS eingeschaltet?
-- Eine Stimme ausgewählt?
-- Windows-Sprachpakete installiert? (Windows Einstellungen → Zeit & Sprache → Sprache)
-
 ### Einstellung wird nicht gespeichert
 
-- Immer den **Speichern**-Button klicken — Änderungen im Tab werden nicht automatisch übernommen
-- Bei der Musikbibliothek: Pfad vollständig eingeben inkl. abschließendem Backslash (z.B. `H:\Musik\`)
+- Immer den **Speichern**-Button klicken — Änderungen werden nicht automatisch übernommen
+- Bei der Musikbibliothek: Pfad vollständig eingeben z.B. `H:\Musik\`
+
+### Profil-PIN vergessen
+
+- Einstellungen → Modus → Hausaufgaben-Modus → Notfall-Reset (für Homework-Mode)
+- Für Nutzerprofile: PIN-Hash in der Datenbank zurücksetzen (Entwickler-Zugriff nötig)
 
 ---
 
-_E.L.L.A. v3.0.0 · Proprietär · Alle Rechte vorbehalten_
+_E.L.L.A. v3.1.0 · Proprietär · Alle Rechte vorbehalten_

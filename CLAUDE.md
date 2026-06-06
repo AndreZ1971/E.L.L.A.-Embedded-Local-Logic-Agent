@@ -37,42 +37,45 @@ packages/
   agent-tools/ Windows-System-Tools (disk, temp, recycle, open_app)
 scripts/
   wakeword_server.py  Python-Wakeword-Prozess (openWakeWord + ella.onnx)
+  tts_server.py       Python-Kokoro-TTS-Server (Port 3003, 127.0.0.1-only)
 database/
-  schema.sql  MariaDB-Schema (idempotent)
+  schema.sql  MariaDB-Schema (idempotent, IF NOT EXISTS)
 ```
 
 ---
 
-## Was läuft (vollständig implementiert — v3.0.0)
+## Was läuft (vollständig implementiert — v3.1.0)
 
 ### Kern
 
 - Dual-LLM (Ollama/OpenAI), SSE-Streaming, Tool-Loop max. 5 Runden
-- 53 Tools mit Handlern + Audit-Log (`tool_executions`)
+- 57 Tools mit Handlern + Audit-Log (`tool_executions`)
 - Rule Engine: Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → allow
 - **Directive-Denial UI:** roter Badge im Chat bei Regel-Ablehnung
 - ML Memory: nomic-embed-text, cosine similarity, 3 Typen (user/system/note)
+- **Nutzerprofile** (v3.1.0): Profil-isoliertes Gedächtnis, PBKDF2+Salt PIN-Hash
 
 ### Voice & UI
 
-- Voice: Wakeword "ella" (Python/ONNX + openWakeWord), manuell, TTS (Edge/System, ohne Emojis/Markdown)
+- Voice: Wakeword "ella" (Python/ONNX + openWakeWord), manuell, TTS
+- **Kokoro TTS** (v3.1.0): `scripts/tts_server.py` — lokale neuronale Stimme, Port 3003, 127.0.0.1-only
 - Proaktive TTS: Alert/Device-Events und proaktive Nachrichten werden vorgelesen
 - **Proaktive Nachrichten:** ELLA schreibt von sich aus in den Chat (SSE `proactive_message`)
+- **Feedback-Buttons** (v3.1.0): Daumen hoch/runter auf jeder Assistenten-Antwort (DB-only, kein LLM-Kontext)
 - System Tray: typisierte Balloon-Alerts (warning/error/info/device) mit Schweregrad-Sound
 
 ### Produktivität
 
-- **Dateien:** `search_files` (alle Laufwerke, Typ-Filter), `open_file` (inkl. Word-Cursor-Ende), `explore_folder`
-- **Dokumente:** `create_document` (Word + TXT), `dictate_to_document` (KI-Korrektur via OpenAI/Ollama)
-- **E-Mail verfassen:** `compose_email` → Outlook-Entwurf mit KI-korrigiertem Text
+- **Dateien:** `search_files`, `open_file` (inkl. Word-Cursor-Ende), `explore_folder`
+- **Dokumente:** `create_document` (Word + TXT), `dictate_to_document` (KI-Korrektur)
+- **Aufgabenliste** (v3.1.0): `add_task`, `list_tasks`, `complete_task`, `delete_task` — persistente TODOs in MariaDB
 - **Musik:** `play_music` → Bibliothek durchsuchen (Künstler/Album/Titel), Media Player öffnen
-- **Prozesse:** `list_processes`, `kill_process` (systemkritische gesperrt, Bestätigung für andere)
-- **Systemsteuerung:** `set_volume` (Windows Audio COM API), `get_clipboard`/`set_clipboard` (+ Historie, 3s Polling)
+- **Prozesse:** `list_processes`, `kill_process` (systemkritische gesperrt)
+- **Systemsteuerung:** `set_volume`, `get_clipboard`/`set_clipboard` (+ Historie, 3s Polling)
 - **Erinnerungen:** `set_reminder`/`list_reminders`/`delete_reminder` via Windows Task Scheduler
 - **Vision:** `take_screenshot` → GDI+ Screenshot + GPT-4o Vision Analyse
 - **Schreibstil:** `write_for_me` → Stilprofil aus E-Mail-Historie + Text im Nutzerstil
-- **Duplikate:** `find_duplicates` (Größen+Name-Hash, Top-50)
-- **Autostart:** `list_autostart` (HKLM + HKCU Registry)
+- **Duplikate:** `find_duplicates`, **Autostart:** `list_autostart`
 
 ### Kommunikation
 
@@ -82,20 +85,21 @@ database/
 
 ### Monitoring & Proaktiv
 
-- Background Worker (60s): Disk/RAM/Ollama-Alerts, PnP Delta-Detection, ARP-LAN-Scan, TCP-Verbindungen, Firewall/WiFi/DNS
-- Clipboard-Polling (3s), max. 20 Einträge History
-- `recordActivity()` in Chat-Routen → Comeback-Briefing nach 30 Min Inaktivität
-- Meeting-Vorbereitung (30 Min vor Termin, alle 5 Min gecheckt)
-- Tagesabschluss (18 Uhr), Pause-Reminder (90 Min aktive Arbeit)
-- Rhythmus-Analyse (täglich 12 Uhr) → Morgen-Setup vorschlagen
-- Duplikat-Scan (sonntags 10 Uhr) bei > 500 MB Verschwendung
+- Background Worker (60s): Disk/RAM/Ollama-Alerts, PnP, ARP, TCP, Firewall/WiFi/DNS
+- Clipboard-Polling (3s): History + **Muster-Erkennung** (v3.1.0): IBAN, Paketnummer, Telefon, URL, E-Mail
+- **Gesprächskompression** (v3.1.0): `sessionCompressor.ts` — Ollama-only, älteste 10 Messages → Summary ab 15 Nachrichten
+- **Fenster-Kontext** (v3.1.0): `windowContext.ts` — GetForegroundWindow, sensible Titel gefiltert, Ollama-only, opt-in
+- `recordActivity()` → Comeback-Briefing; Meeting-Prep, Tagesabschluss (+fällige Tasks), Pause-Reminder
+- Rhythmus-Analyse (12 Uhr), Duplikat-Scan (So 10 Uhr)
 
 ### Infrastruktur
 
-- **Onboarding:** 6-Schritt-Flow — Name, Directive-Acceptance, Hardware-Scan, Stimme wählen, Standort
-- **get_location:** Standort via Memory-first + IP-Geolocation Fallback
-- Auto-Migration: schema.sql idempotent, 53 Default-Rules
-- Homework Mode: SHA-256 PIN, Whitelist-Enforcement, Emergency-Reset Route
+- **Onboarding:** 6-Schritt-Flow — Name, Directive-Acceptance, Hardware-Scan, Stimme, Standort
+- Auto-Migration: schema.sql idempotent, **57 Default-Rules** (IDs 1–57)
+- **DB v3.1.0:** `profiles`, `tasks`, `user_feedback` + `ALTER memories/sessions` (profile_id)
+- **Nutzerprofile:** `routes/profiles.ts`, `services/profiles.ts` — PBKDF2+Salt (100k Iterations)
+- **Feedback-Route:** `routes/feedback.ts` — POST /api/feedback (nie in LLM-Kontext)
+- Homework Mode: SHA-256 PIN (Homework), PBKDF2 (Profile), Emergency-Reset
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
 - **132 Tests — alle grün** (Vitest Unit + Integration)
@@ -110,10 +114,23 @@ Jedes neue Tool braucht alle folgenden Schritte:
 1. **`packages/shared/src/types/tool.ts`** — ToolName-Union ergänzen
 2. **`apps/api/src/tools/definitions.ts`** — Tool-Definition (type, function, parameters)
 3. **`apps/api/src/tools/executor.ts`** — Handler implementieren (Import + HANDLERS-Eintrag)
-4. **`apps/api/src/config/migrate.ts`** — Default-Regel (nächste freie ID, `always`, `allow`)
-5. **`apps/api/src/routes/settings.ts`** — Falls neue Settings-Felder: in PUT-Route Destructuring und `raw`-Objekt eintragen (sonst werden sie beim Speichern ignoriert!)
+4. **`apps/api/src/config/migrate.ts`** — Default-Regel (nächste freie ID ab 58, `always`, `allow`) + ggf. CREATE TABLE
+5. **`apps/api/src/routes/settings.ts`** — Falls neue Settings-Felder: in PUT-Route Destructuring UND `raw`-Objekt eintragen (sonst beim Speichern ignoriert!)
 6. **`apps/api/src/services/settings.ts`** — Falls neue Settings-Felder: Interface, DEFAULT_SETTINGS, loadSettings-Migration
-7. **Tests** — Unit-Test in `executor.test.ts` (Mock für externe Services)
+7. **`apps/api/src/index.ts`** — Falls neue Route: Router importieren + `app.use(...)` eintragen
+8. **`apps/web/src/pages/settings/Settings.tsx`** — Falls neue Settings-Felder: Interface erweitern + UI-Element + ALL_TOOLS-Liste
+9. **Tests** — Unit-Test in `executor.test.ts` (Mock für externe Services, Tool in `wowSettings.enabledTools`!)
+
+### Neue Route anlegen
+
+1. `apps/api/src/routes/<name>.ts` — Router erstellen
+2. `apps/api/src/index.ts` — importieren + `app.use("/api/<name>", <name>Router)`
+
+### Neue DB-Tabelle anlegen
+
+1. `database/schema.sql` — `CREATE TABLE IF NOT EXISTS` ans Ende
+2. `apps/api/src/config/migrate.ts` — `await exec("CREATE TABLE IF NOT EXISTS ...")` in `runMigrations()`
+3. Neue `profile_id INT NULL`-Spalte von Anfang an — vermeidet spätere Migrations-Komplexität
 
 ---
 
@@ -150,7 +167,7 @@ cd apps/desktop && node build-main.mjs && cd ../..
 $env:ELLA_DEV = "1"; cd apps\desktop; .\node_modules\electron\dist\electron.exe .
 
 # Tests
-npm test                       # 125 Unit + Integration Tests (Vitest)
+npm test                       # 132 Unit + Integration Tests (Vitest)
 npm run lint
 
 # Ollama prüfen
@@ -190,15 +207,16 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
 
+
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-06-05T08:52:39.375Z._
+_Last synced: 2026-06-06T04:47:37.677Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).
-- **When the user's task matches a server** (e.g. Confluence work and a **Confluence** / **Atlassian** MCP is listed), **prefer that server id** and plan on tool use—not only file search.
+- **When the user’s task matches a server** (e.g. Confluence work and a **Confluence** / **Atlassian** MCP is listed), **prefer that server id** and plan on tool use—not only file search.
 - **Skills:** Folders below contain `SKILL.md`; attach or cite paths in chat when relevant.
 
 #### Workspace MCP

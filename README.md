@@ -12,45 +12,44 @@ _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
 ## Features
 
-| Bereich             | Was E.L.L.A. kann                                                                |
-| ------------------- | -------------------------------------------------------------------------------- |
-| Programme           | Apps starten/schließen, Setups laden, Programme auflisten                        |
-| Laufwerke           | Umbenennen, USB-Sticks formatieren (Systemlaufwerke gesperrt)                    |
-| Mail (Outlook)      | Mails lesen, als gelesen/Spam/archiviert markieren                               |
-| Mail (Gmail)        | Gmail via OAuth 2.0 lesen und markieren                                          |
-| Kalender (Outlook)  | Termine lesen und anlegen                                                        |
-| Kalender (Google)   | Google Calendar lesen und Termine erstellen via OAuth 2.0                        |
-| System              | Temp, Papierkorb, RAM, Festplatte, Diagnose, Herunterfahren                      |
-| Gedächtnis          | Vektor-Embeddings (nomic-embed-text), Cosinus-Suche, 3 Typen                     |
-| Sprache             | Wakeword "ella" (Python/ONNX), manuell, aus, TTS ohne Emojis                     |
-| Pause               | Wakeword 1–120 Minuten deaktivieren, Countdown, automatische Rückkehr            |
-| Web                 | Sofortige Suche ohne Rückfrage (Filme, Personen, Produkte, News)                 |
-| Wetter              | Aktuelles Wetter via Open-Meteo                                                  |
-| Hausaufgaben-Modus  | PIN-gesicherter Kiosk mit App-Whitelist                                          |
-| Regel-Engine        | 53 Default-Regeln, allow/deny, Zeitbedingungen, Directive-Layer                  |
-| Monitoring          | Background-Worker, SSE-Push, Disk/Ollama/RAM-Alerts, PnP-Events                  |
-| Netzwerk            | LAN-Scan via ARP, TCP-Verbindungen, DNS/Firewall/WiFi-Überwachung                |
-| Selbstkonfiguration | Setups, Regeln, Einstellungen per Gespräch ändern                                |
-| Musik               | Bibliothek durchsuchen (Künstler/Album/Titel) im Media Player öffnen             |
-| Dateien             | Alle Laufwerke durchsuchen (Typ-Filter), Dateien und Ordner öffnen               |
-| Dokumente           | Word-Dokumente und Textdateien erstellen                                         |
-| Diktat              | Spracheingabe direkt in Word, KI korrigiert Grammatik und Zeichensetzung         |
-| E-Mail verfassen    | Outlook-Entwurf mit KI-korrigiertem Text öffnen (sendet nicht automatisch)       |
-| Prozesse            | Laufende Prozesse anzeigen, CPU-/RAM-Fresser beenden (systemkritische geschützt) |
-| Systemsteuerung     | Lautstärke setzen/muten, Zwischenablage lesen/schreiben mit Historie             |
-| Erinnerungen        | Windows Task Scheduler — feuert als Popup zur gesetzten Zeit                     |
-| Screenshot + Vision | Bildschirm fotografieren und mit GPT-4o Vision analysieren                       |
-| Schreibstil         | Texte im persönlichen Stil generieren — lernt aus bisherigen E-Mails             |
-| Duplikate           | Doppelte Dateien finden, Speicherplatz-Verschwendung berechnen                   |
-| Autostart           | Programme beim Windows-Start auflisten                                           |
-| Proaktiv            | Meeting-Vorbereitung, Tagesabschluss, Comeback, Pause-Reminder, Rhythmus         |
-| Aufgabenliste       | Persistente TODOs mit Priorität und Fälligkeit, im Tagesabschluss integriert     |
-| Feedback-Loop       | Daumen hoch/runter auf jede Antwort — gespeichert, nie im LLM-Kontext            |
-| Fenster-Kontext     | ELLA kennt die aktive Anwendung beim Chat (opt-in, Ollama-only)                  |
-| Clipboard-Muster    | IBAN, Paketnummern, E-Mail-Adressen erkennen und Hilfe anbieten                  |
-| Kompression         | Lange Sessions automatisch komprimieren (lokales Ollama)                         |
-| Nutzerprofile       | Eigenes Gedächtnis pro Profil, PBKDF2-gesicherter PIN-Wechsel                    |
-| Kokoro TTS          | Lokale neuronale Stimme via Python — natürlicher als Windows-Stimmen             |
+| Bereich              | Was E.L.L.A. kann                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| Programme            | Apps starten/schließen, Setups laden, Programme auflisten                          |
+| Laufwerke            | Umbenennen, USB-Sticks formatieren (Systemlaufwerke gesperrt)                      |
+| Mail (Outlook)       | Mails lesen, als gelesen/Spam/archiviert markieren                                 |
+| Mail (Gmail)         | Gmail via OAuth 2.0 lesen und markieren                                            |
+| Kalender (Outlook)   | Termine lesen und anlegen                                                          |
+| Kalender (Google)    | Google Calendar lesen und Termine erstellen via OAuth 2.0                          |
+| System               | Temp, Papierkorb, RAM, Festplatte, Diagnose, Herunterfahren                        |
+| Gedächtnis           | Vektor-Embeddings (nomic-embed-text), Cosinus-Suche, 3 Typen, Profil-isoliert      |
+| Sprache              | Wakeword "ella" (Python/ONNX), manuell, aus, TTS — System oder Kokoro (lokal)      |
+| Pause                | Wakeword 1–120 Minuten deaktivieren, Countdown, automatische Rückkehr              |
+| Web                  | Sofortige Suche ohne Rückfrage (Filme, Personen, Produkte, News)                   |
+| Wetter               | Aktuelles Wetter via Open-Meteo                                                    |
+| Hausaufgaben-Modus   | PIN-gesicherter Kiosk mit App-Whitelist                                            |
+| Regel-Engine         | 57 Default-Regeln, allow/deny, Zeitbedingungen, Directive-Layer                    |
+| Monitoring           | Background-Worker, SSE-Push, Disk/Ollama/RAM-Alerts, PnP-Events                    |
+| Netzwerk             | LAN-Scan via ARP, TCP-Verbindungen, DNS/Firewall/WiFi-Überwachung                  |
+| Selbstkonfiguration  | Setups, Regeln, Einstellungen per Gespräch ändern                                  |
+| Musik                | Bibliothek durchsuchen (Künstler/Album/Titel) im Media Player öffnen               |
+| Dateien              | Alle Laufwerke durchsuchen (Typ-Filter), Dateien und Ordner öffnen                 |
+| Dokumente            | Word-Dokumente und Textdateien erstellen                                           |
+| Diktat               | Spracheingabe direkt in Word, KI korrigiert Grammatik und Zeichensetzung           |
+| E-Mail verfassen     | Outlook-Entwurf mit KI-korrigiertem Text öffnen (sendet nicht automatisch)         |
+| Prozesse             | Laufende Prozesse anzeigen, CPU-/RAM-Fresser beenden (systemkritische geschützt)   |
+| Systemsteuerung      | Lautstärke setzen/muten, Zwischenablage lesen/schreiben mit 20-Einträge-Historie   |
+| Erinnerungen         | Windows Task Scheduler — feuert als Popup zur gesetzten Zeit                       |
+| Screenshot + Vision  | Bildschirm fotografieren und mit GPT-4o Vision analysieren                         |
+| Schreibstil          | Texte im persönlichen Stil generieren — lernt aus bisherigen E-Mails               |
+| Duplikate            | Doppelte Dateien finden, Speicherplatz-Verschwendung berechnen                     |
+| Autostart            | Programme beim Windows-Start auflisten                                             |
+| Aufgabenliste        | Persistente TODOs mit Priorität und Fälligkeit, im Tagesabschluss integriert       |
+| Proaktiv             | Meeting-Vorbereitung, Tagesabschluss, Comeback, Pause-Reminder, Clipboard-Muster   |
+| Feedback-Loop        | Daumen hoch/runter auf jede Antwort — gespeichert für Analyse, nie im LLM-Kontext  |
+| Fenster-Kontext      | ELLA kennt die aktive Anwendung beim Chat (opt-in, Ollama-only)                    |
+| Gesprächskompression | Lange Sessions automatisch komprimieren (lokales Ollama)                           |
+| Nutzerprofile        | Eigenes Gedächtnis und Gesprächsverlauf pro Profil, PBKDF2-gesicherter PIN-Wechsel |
+| Kokoro TTS           | Lokale neuronale Stimme via Python — natürlicher als Windows-Standardstimmen       |
 
 ### Die E.L.L.A. Direktive — vier unveränderliche Verbote
 
@@ -82,10 +81,16 @@ ollama pull llama3.1:8b        # Chat-Modell (~4.7 GB)
 ollama pull nomic-embed-text   # Gedächtnis-Modell (~274 MB)
 ```
 
-Python-Pakete für Wakeword-Erkennung:
+Python-Pakete für Wakeword:
 
 ```powershell
 py -3.12 -m pip install openwakeword onnxruntime soundfile
+```
+
+Optional — für Kokoro TTS (bessere Sprachausgabe):
+
+```powershell
+py -3.12 -m pip install kokoro-onnx sounddevice numpy
 ```
 
 ---
@@ -105,17 +110,14 @@ Der Installer enthält alle Node.js-Abhängigkeiten. Ollama und MariaDB müssen 
 ### Schnellstart nach Clone
 
 ```powershell
-# Abhängigkeiten installieren
 npm install
 
-# Packages bauen (Reihenfolge wichtig)
 npm run build --workspace=packages/shared
 npm run build --workspace=packages/agent-tools
 npm run build --workspace=apps/api
 npm run build --workspace=apps/web
 cd apps/desktop && node build-main.mjs && cd ../..
 
-# Electron starten (verwaltet API als Child-Prozess)
 $env:ELLA_DEV = "1"
 cd apps\desktop
 .\node_modules\electron\dist\electron.exe .
@@ -137,8 +139,6 @@ DB_USER=ella
 DB_PASSWORD=<dein-passwort>
 ```
 
-MariaDB-Dienst starten:
-
 ```powershell
 sc start MariaDB
 ```
@@ -146,21 +146,16 @@ sc start MariaDB
 ### Parallel-Dev (API + Vite)
 
 ```powershell
-# API + Web parallel (concurrently):
-npm run dev
-
-# Oder einzeln:
-npm run dev --workspace=apps/api   # :3002
-npm run dev --workspace=apps/web   # :5173
+npm run dev                        # API + Web parallel
+npm run dev --workspace=apps/api   # nur API :3002
+npm run dev --workspace=apps/web   # nur Web :5173
 ```
 
 ### Build für Installer
 
 ```powershell
 npm run build
-
-cd apps/desktop
-npm run dist
+cd apps/desktop && npm run dist
 # → dist-installer/E.L.L.A.-Setup.exe
 ```
 
@@ -178,15 +173,17 @@ packages/
   shared/     Gemeinsame Typen + Interfaces
   agent-tools/ Windows-System-Tools (disk, temp, recycle, open_app)
 scripts/
-  wakeword_server.py  Persistenter Python-Prozess für Wakeword-Inferenz
+  wakeword_server.py  Python-Wakeword-Prozess (openWakeWord + ella.onnx)
+  tts_server.py       Python-Kokoro-TTS-Server (Port 3003, 127.0.0.1)
 database/
   schema.sql  MariaDB-Schema (idempotent, IF NOT EXISTS)
 docs/
-  architecture.md  Systemübersicht, Chat-Flow, Ports
-  history.md       Entwicklungshistorie
-  roadmap.md       Abgeschlossene und geplante Features
-  database.md      Schema-Dokumentation, Admin-Befehle
-  hardware.md      Hardware-Spezifikation
+  bedienungsanleitung.md  Vollständige Nutzerdokumentation
+  architecture.md         Systemübersicht, Chat-Flow, Ports
+  history.md              Entwicklungshistorie
+  roadmap.md              Abgeschlossene und geplante Features
+  database.md             Schema-Dokumentation, Admin-Befehle
+  hardware.md             Hardware-Spezifikation
 ```
 
 ---
@@ -196,55 +193,65 @@ docs/
 ```text
 Electron (Main)
   └─ spawnt API als Child-Prozess (node dist/index.js)
+  └─ spawnt Kokoro-TTS-Server wenn ttsEngine="kokoro" (python tts_server.py)
   └─ lädt Web-Build via file:// (HashRouter)
   └─ IPC: minimize/maximize/close, Mikrofon-Berechtigung, Pause-Modus
   └─ System Tray: Balloon-Alerts (warning/error/info/device), Schweregrad-Sound
 
 API (Express :3002)
-  ├─ /api/chat/stream         — SSE-Streaming, Tool-Loop (max. 5 Runden)
-  ├─ /api/chat                — Synchroner Chat (non-streaming)
-  ├─ /api/settings            — Settings CRUD (settings.json)
-  ├─ /api/settings/emergency-reset — Homework-Mode zurücksetzen ohne PIN
-  ├─ /api/rules               — Rule-Engine CRUD (MariaDB)
-  ├─ /api/events/stream       — SSE-Push vom Background-Worker
-  ├─ /api/system/programs     — Programm-Scanner (Start Menu + Registry)
-  ├─ /api/system/scan-programs— Scan + Merge in Settings
-  ├─ /api/google              — OAuth 2.0 Flow (Gmail + Calendar)
-  ├─ /api/tools/confirm       — Bestätigter Format-Aufruf (USB-Sticks)
-  ├─ /api/homework            — PIN-Verwaltung, Homework-Mode
-  ├─ /api/onboarding          — 6-Schritt-Onboarding-Flow
-  ├─ /api/speech              — TTS, Wakeword-Status
-  └─ /api/setup               — Ollama-Status, nomic-pull (SSE-Progress)
+  ├─ /api/chat            — Sync + /stream SSE (Tool-Loop max. 5 Runden)
+  ├─ /api/settings        — Settings CRUD (settings.json)
+  ├─ /api/settings/emergency-reset
+  ├─ /api/rules           — Rule-Engine CRUD (MariaDB)
+  ├─ /api/events/stream   — SSE-Push vom Background-Worker
+  ├─ /api/system          — Programme, Scan, Diagnose
+  ├─ /api/google          — OAuth 2.0 Flow (Gmail + Calendar)
+  ├─ /api/tools/confirm   — Bestätigter Format-Aufruf
+  ├─ /api/homework        — PIN-Verwaltung, Homework-Mode
+  ├─ /api/onboarding      — 6-Schritt-Onboarding-Flow
+  ├─ /api/speech          — TTS, Whisper, /kokoro Proxy → Port 3003
+  ├─ /api/feedback        — POST Daumen-Feedback (DB-only, kein LLM-Kontext)
+  ├─ /api/profiles        — Nutzerprofile CRUD + Aktivierung
+  └─ /api/setup           — Ollama-Status, nomic-pull (SSE-Progress)
 
 LLM-Provider (auto-detect)
-  ├─ Ollama  (lokal, Port 11434, llama3.1:8b, num_ctx=8192)
-  └─ OpenAI  (GPT-4o, wenn API-Key gesetzt — auch für Vision + Schreibstil)
+  ├─ Ollama  (lokal, Port 11434, llama3.1:8b)
+  │    └─ Fenster-Kontext, Kompression, proaktive Aktionen
+  └─ OpenAI  (GPT-4o, wenn API-Key gesetzt — Vision, Schreibstil, Diktat-Korrektur)
 
 Wakeword-Erkennung
   └─ Python 3.12 Child-Prozess (scripts/wakeword_server.py)
-     └─ openWakeWord + ella.onnx ONNX-Modell
-     └─ stdin/stdout JSON-Protokoll
+
+Kokoro TTS (optional)
+  └─ Python 3.12 Child-Prozess (scripts/tts_server.py)
+     └─ HTTP-Server 127.0.0.1:3003
+     └─ Fallback: Windows SAPI wenn kokoro-onnx fehlt
 
 Background Worker (60s Interval)
   ├─ Disk/RAM/Ollama-Monitoring → SSE-Alerts
   ├─ PnP Delta-Detection (Webcam, USB, externe Laufwerke)
   ├─ ARP-LAN-Scan, TCP-Verbindungen, Firewall/WiFi/DNS-Monitoring
-  ├─ Clipboard-Polling (3s) → History (max. 20 Einträge)
-  ├─ Proaktive Checks: Meeting-Prep, Tagesabschluss, Comeback, Pause-Reminder
-  ├─ Rhythmus-Analyse (täglich 12 Uhr), Duplikat-Scan (sonntags 10 Uhr)
-  └─ recordActivity() — Inaktivitätserkennung (30 Min Schwelle)
+  ├─ Clipboard-Polling (3s) → History + Muster-Erkennung
+  │    (IBAN, Paketnummer, Telefon, URL, E-Mail → proaktive Nachricht)
+  ├─ Meeting-Prep (5 Min), Tagesabschluss (18 Uhr), Comeback (30 Min)
+  ├─ Pause-Reminder (90 Min), Rhythmus-Analyse (12 Uhr), Duplikat-Scan (So 10 Uhr)
+  └─ recordActivity() — Inaktivitätserkennung
 
 MariaDB (Port 3306)
-  ├─ sessions / session_messages — Gesprächsverlauf (Limit: 20 Nachrichten)
-  ├─ memories                    — Vektor-Embeddings (JSON)
-  ├─ rules                       — 53 Default-Regeln (allow/deny, Zeitbedingungen)
-  ├─ system_events               — Alert-Historie für Comeback-Briefing
-  └─ tool_executions             — Audit-Log (Basis für Rhythmus-Analyse + Stilprofil)
+  ├─ sessions / session_messages  — Gesprächsverlauf (profile_id-isoliert)
+  ├─ memories                     — Vektor-Embeddings (profile_id-isoliert)
+  ├─ rules                        — 57 Default-Regeln (allow/deny)
+  ├─ profiles                     — Nutzerprofile (PBKDF2+Salt PIN-Hash)
+  ├─ tasks                        — Persistente Aufgabenliste (profile_id)
+  ├─ user_feedback                — Daumen-Feedback (DB-only)
+  ├─ system_events                — Alert-Historie
+  ├─ directive_audit              — Direktiven-Auswertungs-Log
+  └─ tool_executions              — Audit-Log
 ```
 
 ---
 
-## Tools (53 Default-Regeln)
+## Tools (57 Default-Regeln)
 
 ### System & Hardware
 
@@ -267,6 +274,15 @@ MariaDB (Port 3306)
 | `kill_process`      | Prozess beenden (systemkritische gesperrt)          |
 | `set_volume`        | Systemlautstärke setzen oder stumm schalten         |
 | `list_autostart`    | Autostart-Programme (HKLM + HKCU Registry)          |
+
+### Aufgaben & Produktivität
+
+| Tool            | Funktion                                                |
+| --------------- | ------------------------------------------------------- |
+| `add_task`      | Aufgabe anlegen (Priorität low/normal/high, Fälligkeit) |
+| `list_tasks`    | Offene oder erledigte Aufgaben anzeigen                 |
+| `complete_task` | Aufgabe als erledigt markieren                          |
+| `delete_task`   | Aufgabe abbrechen                                       |
 
 ### Netzwerk
 
@@ -348,14 +364,15 @@ MariaDB (Port 3306)
 
 ELLA handelt ohne Aufforderung — erscheint als Nachricht im Chat und wird vorgelesen:
 
-| Trigger                         | Aktion                                            |
-| ------------------------------- | ------------------------------------------------- |
-| 30 Min vor einem Kalendertermin | Meeting-Vorbereitung + Dokument-Suche anbieten    |
-| 18:00 Uhr                       | Tagesabschluss mit Aktivitätszusammenfassung      |
-| 30 Min Inaktivität → Rückkehr   | Comeback-Briefing mit verpassten System-Alerts    |
-| 90 Min aktive Arbeit            | Pause-Erinnerung                                  |
-| Täglich 12 Uhr                  | Rhythmus-Analyse → Morgen-Setup vorschlagen       |
-| Sonntags 10 Uhr                 | Duplikat-Scan → Speicherplatz-Report bei > 500 MB |
+| Trigger                           | Aktion                                                        |
+| --------------------------------- | ------------------------------------------------------------- |
+| 30 Min vor einem Kalendertermin   | Meeting-Vorbereitung + Dokument-Suche anbieten                |
+| 18:00 Uhr                         | Tagesabschluss: Aktionen + Termine morgen + fällige Aufgaben  |
+| 30 Min Inaktivität → Rückkehr     | Comeback-Briefing mit verpassten System-Alerts                |
+| 90 Min aktive Arbeit              | Pause-Erinnerung                                              |
+| Täglich 12 Uhr                    | Rhythmus-Analyse → Morgen-Setup vorschlagen                   |
+| Sonntags 10 Uhr                   | Duplikat-Scan → Speicherplatz-Report bei > 500 MB             |
+| Neuer Clipboard-Inhalt mit Muster | IBAN / Paketnummer / E-Mail / URL / Telefon erkannt → Angebot |
 
 ---
 
@@ -363,14 +380,16 @@ ELLA handelt ohne Aufforderung — erscheint als Nachricht im Chat und wird vorg
 
 - **Whitelist-Prinzip:** Jede Tool-Ausführung braucht eine explizite allow-Regel
 - **Default-Deny für destruktive Tools:** `clean_temp` und `empty_recycle_bin` müssen manuell freigeschaltet werden
-- **Direktive:** Ungelesene Mails löschen, Systemlaufwerke formatieren = hardcodiertes Verbot
+- **Direktive:** Systemlaufwerke formatieren, ungelesene Mails löschen = hardcodiertes Verbot
 - **Bestätigungs-Karte:** Formatieren und Prozess-Beenden erfordern explizite Nutzer-Bestätigung
 - **Systemkritische Prozesse:** `svchost`, `lsass`, `csrss` etc. können nicht beendet werden
-- **Programm-Scanner:** Start Menu + Registry — kein System32, keine Uninstaller
-- **LLM sieht keine Pfade:** `list_programs` gibt nur App-Namen zurück
+- **Keine Daten-Exfiltration:** Fenster-Kontext und Gesprächskompression sind Ollama-only (kein OpenAI)
+- **Feedback nie im LLM-Kontext:** Daumen-Feedback landet in DB, nicht im System-Prompt (Prompt-Injection-Schutz)
+- **Sensible Fenstertitel gefiltert:** Passwort-Manager, Banking-Apps werden nie als Kontext weitergegeben
+- **Profil-PINs mit PBKDF2+Salt:** 100.000 Iterationen, timing-safe Compare — kein einfaches SHA-256
+- **Kokoro TTS:** Bindet auf 127.0.0.1 — kein LAN-Exposure
 - **OpenAI-Key:** Nur im Backend `.env`, wird als `***` ans Frontend geliefert
 - **Google-Token:** Lokal in `google-token.json`, nie committed (`.gitignore`)
-- **PIN:** SHA-256-Hash, nur serverseitig — nie im Klartext übertragen
 
 ---
 
@@ -403,7 +422,7 @@ Geschützte Laufwerke sind in `settings.protectedDrives` konfigurierbar. C: ist 
 ## Tests & Lint
 
 ```powershell
-npm test            # 125 Unit + Integration Tests (Vitest)
+npm test            # 132 Unit + Integration Tests (Vitest)
 npm run test:e2e    # Playwright E2E (Web + Desktop)
 npm run lint
 ```
@@ -412,14 +431,15 @@ npm run lint
 
 ## Dokumentation
 
-| Dokument                                     | Inhalt                                                          |
-| -------------------------------------------- | --------------------------------------------------------------- |
-| [CHANGELOG.md](CHANGELOG.md)                 | Alle Versionen auf einen Blick                                  |
-| [docs/history.md](docs/history.md)           | Detaillierte Entwicklungshistorie mit Entscheidungsbegründungen |
-| [docs/architecture.md](docs/architecture.md) | Systemübersicht, Chat-Flow, Ports, Stack                        |
-| [docs/database.md](docs/database.md)         | MariaDB-Schema, Tabellenbeschreibungen, Admin-Befehle           |
-| [docs/roadmap.md](docs/roadmap.md)           | Abgeschlossene und geplante Features                            |
-| [docs/hardware.md](docs/hardware.md)         | Hardware-Spezifikation und GPU-Setup                            |
+| Dokument                                                   | Inhalt                                             |
+| ---------------------------------------------------------- | -------------------------------------------------- |
+| [docs/bedienungsanleitung.md](docs/bedienungsanleitung.md) | Vollständige Nutzerdokumentation (Deutsch)         |
+| [CHANGELOG.md](CHANGELOG.md)                               | Alle Versionen auf einen Blick                     |
+| [docs/history.md](docs/history.md)                         | Entwicklungshistorie mit Entscheidungsbegründungen |
+| [docs/architecture.md](docs/architecture.md)               | Systemübersicht, Chat-Flow, Ports, Stack           |
+| [docs/database.md](docs/database.md)                       | MariaDB-Schema, Tabellenbeschreibungen             |
+| [docs/roadmap.md](docs/roadmap.md)                         | Abgeschlossene und geplante Features               |
+| [docs/hardware.md](docs/hardware.md)                       | Hardware-Spezifikation und GPU-Setup               |
 
 ---
 
