@@ -140,6 +140,20 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "drag_drop", label: "Drag & Drop" },
   { name: "run_command", label: "PowerShell-Befehl ausführen (lesend)" },
   { name: "watch_screen", label: "Bildschirm beobachten (OCR-Loop, offline)" },
+  { name: "read_file_content", label: "Dateiinhalt lesen" },
+  { name: "rename_file", label: "Datei umbenennen" },
+  { name: "copy_file", label: "Datei kopieren" },
+  { name: "create_folder", label: "Ordner erstellen" },
+  { name: "toggle_dark_mode", label: "Dark/Light Mode umschalten" },
+  { name: "get_battery_status", label: "Akkustatus abrufen" },
+  { name: "get_temperatures", label: "CPU/System-Temperaturen abrufen" },
+  { name: "get_event_log", label: "Windows Ereignisprotokoll lesen" },
+  { name: "get_wifi_info", label: "WLAN-Informationen abrufen" },
+  { name: "control_media", label: "Medien steuern (Play/Pause/Next)" },
+  { name: "get_now_playing", label: "Aktuelle Wiedergabe anzeigen" },
+  { name: "translate_text", label: "Text übersetzen (offline via Ollama)" },
+  { name: "summarize_text", label: "Text zusammenfassen (offline via Ollama)" },
+  { name: "click_element", label: "UI-Element per Text klicken (semantisch)" },
 ];
 
 const input: React.CSSProperties = {

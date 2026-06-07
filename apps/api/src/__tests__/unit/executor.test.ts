@@ -94,6 +94,75 @@ vi.mock("../../services/serviceManager.js", () => ({
 }));
 vi.mock("../../services/ocr.js", () => ({
   readScreenOcr: vi.fn(() => Promise.resolve("Hallo Welt OCR")),
+  readScreenOcrElements: vi.fn(() =>
+    Promise.resolve({
+      text: "Speichern Abbrechen OK",
+      elements: [
+        { text: "Speichern", x: 100, y: 50, w: 80, h: 25 },
+        { text: "Abbrechen", x: 200, y: 50, w: 80, h: 25 },
+        { text: "OK", x: 300, y: 50, w: 30, h: 25 },
+      ],
+    }),
+  ),
+}));
+vi.mock("../../services/fileManager.js", () => ({
+  readFileContent: vi.fn(() => ({
+    success: true,
+    content: "Zeile 1\nZeile 2",
+    truncated: false,
+  })),
+  renameFile: vi.fn(() => ({ success: true, newPath: "E:\\Datei_neu.txt" })),
+  copyFile: vi.fn(() => ({ success: true })),
+  createFolder: vi.fn(() => ({ success: true })),
+}));
+vi.mock("../../services/mediaControl.js", () => ({
+  controlMedia: vi.fn(() => ({ success: true })),
+  getNowPlaying: vi.fn(() =>
+    Promise.resolve({
+      available: true,
+      playing: true,
+      title: "Test Song",
+      artist: "Test Artist",
+      album: "Test Album",
+    }),
+  ),
+}));
+vi.mock("../../services/systemComfort.js", () => ({
+  toggleDarkMode: vi.fn(() => ({ success: true, mode: "dark" })),
+  getBatteryStatus: vi.fn(() => ({
+    success: true,
+    available: true,
+    chargePercent: 80,
+    charging: false,
+    statusText: "Entladen",
+  })),
+  getTemperatures: vi.fn(() => ({
+    success: true,
+    available: true,
+    zones: [{ name: "Zone 0", celsius: 45.5 }],
+  })),
+  getEventLog: vi.fn(() => ({
+    success: true,
+    events: [
+      {
+        time: "01.06.2026 10:00",
+        level: "Fehler",
+        source: "Application Error",
+        message: "Prozess abgestürzt",
+      },
+    ],
+  })),
+  getWifiInfo: vi.fn(() => ({
+    success: true,
+    connected: true,
+    ssid: "MeinWLAN",
+    signal: "80%",
+    receiveRate: "120 Mbps",
+  })),
+}));
+vi.mock("../../services/textProcessing.js", () => ({
+  translateText: vi.fn(() => Promise.resolve("Hello World")),
+  summarizeText: vi.fn(() => Promise.resolve("Kurze Zusammenfassung.")),
 }));
 vi.mock("../../services/mouseControl.js", () => ({
   moveMouse: vi.fn(() => ({ success: true })),
@@ -199,9 +268,24 @@ import {
   listServicesPs,
   controlService,
 } from "../../services/serviceManager.js";
-import { readScreenOcr } from "../../services/ocr.js";
+import { readScreenOcr, readScreenOcrElements } from "../../services/ocr.js";
 import { moveMouse, clickAt, dragDrop } from "../../services/mouseControl.js";
 import { runSafeCommand } from "../../services/shellRunner.js";
+import {
+  readFileContent,
+  renameFile,
+  copyFile,
+  createFolder,
+} from "../../services/fileManager.js";
+import { controlMedia, getNowPlaying } from "../../services/mediaControl.js";
+import {
+  toggleDarkMode,
+  getBatteryStatus,
+  getTemperatures,
+  getEventLog,
+  getWifiInfo,
+} from "../../services/systemComfort.js";
+import { translateText, summarizeText } from "../../services/textProcessing.js";
 
 describe("toolExecutor", () => {
   beforeEach(() => {
@@ -801,6 +885,20 @@ const wowSettings = {
     "drag_drop",
     "run_command",
     "watch_screen",
+    "read_file_content",
+    "rename_file",
+    "copy_file",
+    "create_folder",
+    "toggle_dark_mode",
+    "get_battery_status",
+    "get_temperatures",
+    "get_event_log",
+    "get_wifi_info",
+    "control_media",
+    "get_now_playing",
+    "translate_text",
+    "summarize_text",
+    "click_element",
   ],
   apps: [],
   homeworkMode: { active: false, apps: [], pinHash: "" },
@@ -1527,5 +1625,402 @@ describe("watch_screen", () => {
     expect(result.success).toBe(true);
     const changes = (result.output as any).changes as string[];
     expect(changes.some((c: string) => c.includes("Neu"))).toBe(true);
+  });
+});
+
+// ── v3.4.0 Komfort & Intelligenz ─────────────────────────────────────────────
+
+describe("read_file_content", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(readFileContent).mockClear();
+  });
+
+  it("Fehler wenn kein Pfad", async () => {
+    const result = await toolExecutor.execute({
+      tool: "read_file_content",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("gibt Dateiinhalt zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "read_file_content",
+      args: { path: "E:\\Notizen.txt" },
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).content).toBe("Zeile 1\nZeile 2");
+    expect(readFileContent).toHaveBeenCalledWith("E:\\Notizen.txt");
+  });
+
+  it("Fehler wenn Service fehlschlägt", async () => {
+    vi.mocked(readFileContent).mockReturnValueOnce({
+      success: false,
+      error: "Datei nicht gefunden",
+    });
+    const result = await toolExecutor.execute({
+      tool: "read_file_content",
+      args: { path: "E:\\Gibts-Nicht.txt" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("nicht gefunden");
+  });
+});
+
+describe("rename_file", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(renameFile).mockClear();
+  });
+
+  it("Fehler wenn Pfad oder Name fehlt", async () => {
+    const result = await toolExecutor.execute({
+      tool: "rename_file",
+      args: { path: "E:\\alt.txt" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("gibt Bestätigung zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "rename_file",
+      args: { path: "E:\\alt.txt", new_name: "neu.txt" },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.pendingAction?.tool).toBe("rename_file_confirmed");
+  });
+
+  it("rename_file_confirmed benennt Datei um", async () => {
+    const result = await toolExecutor.execute({
+      tool: "rename_file_confirmed",
+      args: { path: "E:\\alt.txt", new_name: "neu.txt" },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("Datei_neu.txt");
+    expect(renameFile).toHaveBeenCalledWith("E:\\alt.txt", "neu.txt");
+  });
+});
+
+describe("copy_file", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(copyFile).mockClear();
+  });
+
+  it("Fehler wenn Quelle oder Ziel fehlt", async () => {
+    const result = await toolExecutor.execute({
+      tool: "copy_file",
+      args: { source: "E:\\a.txt" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("gibt Bestätigung zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "copy_file",
+      args: { source: "E:\\a.txt", destination: "E:\\Backup\\a.txt" },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.pendingAction?.tool).toBe("copy_file_confirmed");
+  });
+
+  it("copy_file_confirmed kopiert Datei", async () => {
+    const result = await toolExecutor.execute({
+      tool: "copy_file_confirmed",
+      args: { source: "E:\\a.txt", destination: "E:\\Backup\\a.txt" },
+    });
+    expect(result.success).toBe(true);
+    expect(copyFile).toHaveBeenCalledWith("E:\\a.txt", "E:\\Backup\\a.txt");
+  });
+});
+
+describe("create_folder", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(createFolder).mockClear();
+  });
+
+  it("Fehler wenn kein Pfad", async () => {
+    const result = await toolExecutor.execute({
+      tool: "create_folder",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("erstellt Ordner", async () => {
+    const result = await toolExecutor.execute({
+      tool: "create_folder",
+      args: { path: "E:\\NeuerOrdner" },
+    });
+    expect(result.success).toBe(true);
+    expect(createFolder).toHaveBeenCalledWith("E:\\NeuerOrdner");
+  });
+});
+
+describe("toggle_dark_mode", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(toggleDarkMode).mockClear();
+  });
+
+  it("schaltet Dark Mode um", async () => {
+    const result = await toolExecutor.execute({
+      tool: "toggle_dark_mode",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("Dark Mode");
+    expect(toggleDarkMode).toHaveBeenCalled();
+  });
+
+  it("Fehler wenn Umschaltung fehlschlägt", async () => {
+    vi.mocked(toggleDarkMode).mockReturnValueOnce({
+      success: false,
+      error: "Registry-Zugriff verweigert",
+    });
+    const result = await toolExecutor.execute({
+      tool: "toggle_dark_mode",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("get_battery_status", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(getBatteryStatus).mockClear();
+  });
+
+  it("gibt Akkustatus zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "get_battery_status",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).chargePercent).toBe(80);
+    expect(getBatteryStatus).toHaveBeenCalled();
+  });
+});
+
+describe("get_temperatures", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(getTemperatures).mockClear();
+  });
+
+  it("gibt Temperaturzonen zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "get_temperatures",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).zones).toHaveLength(1);
+    expect(getTemperatures).toHaveBeenCalled();
+  });
+});
+
+describe("get_event_log", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(getEventLog).mockClear();
+  });
+
+  it("gibt Ereignisprotokoll zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "get_event_log",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).count).toBe(1);
+    expect(getEventLog).toHaveBeenCalled();
+  });
+
+  it("übergibt hours und maxEvents korrekt", async () => {
+    await toolExecutor.execute({
+      tool: "get_event_log",
+      args: { hours: 48, max_events: 50 },
+    });
+    expect(getEventLog).toHaveBeenCalledWith(48, 50);
+  });
+});
+
+describe("get_wifi_info", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(getWifiInfo).mockClear();
+  });
+
+  it("gibt WLAN-Info zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "get_wifi_info",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).ssid).toBe("MeinWLAN");
+    expect(getWifiInfo).toHaveBeenCalled();
+  });
+});
+
+describe("control_media", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(controlMedia).mockClear();
+  });
+
+  it("defaults zu toggle wenn keine Aktion angegeben", async () => {
+    const result = await toolExecutor.execute({
+      tool: "control_media",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect(controlMedia).toHaveBeenCalledWith("toggle");
+  });
+
+  it("gibt play-Aktion weiter", async () => {
+    const result = await toolExecutor.execute({
+      tool: "control_media",
+      args: { action: "play" },
+    });
+    expect(result.success).toBe(true);
+    expect(controlMedia).toHaveBeenCalledWith("play");
+  });
+});
+
+describe("get_now_playing", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(getNowPlaying).mockClear();
+  });
+
+  it("gibt aktuelle Wiedergabe zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "get_now_playing",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).title).toBe("Test Song");
+    expect(getNowPlaying).toHaveBeenCalled();
+  });
+});
+
+describe("translate_text", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(translateText).mockClear();
+  });
+
+  it("Fehler wenn Text fehlt", async () => {
+    const result = await toolExecutor.execute({
+      tool: "translate_text",
+      args: { target_language: "English" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("übersetzt Text", async () => {
+    const result = await toolExecutor.execute({
+      tool: "translate_text",
+      args: { text: "Hallo Welt", target_language: "English" },
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).translation).toBe("Hello World");
+    expect(translateText).toHaveBeenCalledWith("Hallo Welt", "English");
+  });
+});
+
+describe("summarize_text", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(summarizeText).mockClear();
+  });
+
+  it("Fehler wenn Text fehlt", async () => {
+    const result = await toolExecutor.execute({
+      tool: "summarize_text",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("gibt Zusammenfassung zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "summarize_text",
+      args: { text: "Langer Text über viele Dinge...", style: "kurz" },
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).summary).toBe("Kurze Zusammenfassung.");
+    expect(summarizeText).toHaveBeenCalledWith(
+      "Langer Text über viele Dinge...",
+      "kurz",
+    );
+  });
+});
+
+describe("click_element", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(readScreenOcrElements).mockClear();
+    vi.mocked(clickAt).mockClear();
+  });
+
+  it("Fehler wenn kein Label", async () => {
+    const result = await toolExecutor.execute({
+      tool: "click_element",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("findet Element via OCR und fragt Bestätigung", async () => {
+    const result = await toolExecutor.execute({
+      tool: "click_element",
+      args: { label: "Speichern" },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.pendingAction?.tool).toBe("click_element_confirmed");
+    expect(result.confirmationMessage).toContain("Speichern");
+    expect(readScreenOcrElements).toHaveBeenCalled();
+  });
+
+  it("Fehler wenn Element nicht gefunden", async () => {
+    const result = await toolExecutor.execute({
+      tool: "click_element",
+      args: { label: "Nichtexistent" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Bildschirm");
+  });
+
+  it("click_element_confirmed klickt auf gefundene Koordinaten", async () => {
+    const result = await toolExecutor.execute({
+      tool: "click_element_confirmed",
+      args: { x: 140, y: 62 },
+    });
+    expect(result.success).toBe(true);
+    expect(clickAt).toHaveBeenCalledWith(140, 62, "left", false);
   });
 });

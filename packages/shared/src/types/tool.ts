@@ -79,7 +79,24 @@ export type ToolName =
   | "drag_drop_confirmed"
   | "run_command"
   | "run_command_confirmed"
-  | "watch_screen";
+  | "watch_screen"
+  | "read_file_content"
+  | "rename_file"
+  | "rename_file_confirmed"
+  | "copy_file"
+  | "copy_file_confirmed"
+  | "create_folder"
+  | "toggle_dark_mode"
+  | "get_battery_status"
+  | "get_temperatures"
+  | "get_event_log"
+  | "get_wifi_info"
+  | "control_media"
+  | "get_now_playing"
+  | "translate_text"
+  | "summarize_text"
+  | "click_element"
+  | "click_element_confirmed";
 
 export interface ToolCall {
   tool: ToolName;

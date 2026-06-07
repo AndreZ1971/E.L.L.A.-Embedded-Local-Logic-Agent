@@ -213,6 +213,20 @@ export async function runMigrations(): Promise<void> {
     [66, "Drag and Drop erlaubt", "drag_drop"],
     [67, "Befehl ausfuehren erlaubt", "run_command"],
     [68, "Bildschirm beobachten erlaubt", "watch_screen"],
+    [69, "Datei lesen erlaubt", "read_file_content"],
+    [70, "Datei umbenennen erlaubt", "rename_file"],
+    [71, "Datei kopieren erlaubt", "copy_file"],
+    [72, "Ordner erstellen erlaubt", "create_folder"],
+    [73, "Dark Mode umschalten erlaubt", "toggle_dark_mode"],
+    [74, "Akkustatus abrufen erlaubt", "get_battery_status"],
+    [75, "Temperaturen abrufen erlaubt", "get_temperatures"],
+    [76, "Ereignisprotokoll abrufen erlaubt", "get_event_log"],
+    [77, "WLAN-Info abrufen erlaubt", "get_wifi_info"],
+    [78, "Medien steuern erlaubt", "control_media"],
+    [79, "Aktuelle Wiedergabe abrufen erlaubt", "get_now_playing"],
+    [80, "Text uebersetzen erlaubt", "translate_text"],
+    [81, "Text zusammenfassen erlaubt", "summarize_text"],
+    [82, "UI-Element klicken erlaubt", "click_element"],
   ] as const) {
     await exec(`
       INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)

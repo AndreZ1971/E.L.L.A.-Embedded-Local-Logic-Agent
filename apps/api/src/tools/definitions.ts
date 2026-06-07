@@ -1543,6 +1543,237 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  // ── v3.4.0 Komfort & Intelligenz ─────────────────────────────────────────────
+  defs.push({
+    type: "function",
+    function: {
+      name: "read_file_content",
+      description:
+        "Liest den Inhalt einer Datei und gibt ihn zurück. " +
+        "Unterstützt: txt, log, md, csv, json, xml, ini, py, js, ts, docx und viele mehr. " +
+        "Max. 15.000 Zeichen. Nutze dies wenn der Nutzer fragt was in einer Datei steht.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "Vollständiger Dateipfad" },
+        },
+        required: ["path"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "rename_file",
+      description: "Benennt eine Datei oder einen Ordner um.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "Vollständiger Pfad zur Datei" },
+          new_name: {
+            type: "string",
+            description: "Neuer Name (nur Dateiname, nicht vollständiger Pfad)",
+          },
+        },
+        required: ["path", "new_name"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "copy_file",
+      description:
+        "Kopiert eine Datei oder einen Ordner an ein neues Ziel. Systempfade sind gesperrt.",
+      parameters: {
+        type: "object",
+        properties: {
+          source: { type: "string", description: "Quellpfad" },
+          destination: { type: "string", description: "Zielpfad" },
+        },
+        required: ["source", "destination"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "create_folder",
+      description: "Erstellt einen neuen Ordner (inkl. Unterordner).",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: 'Vollständiger Pfad, z.B. "E:\\\\Projekte\\\\Neu"',
+          },
+        },
+        required: ["path"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "toggle_dark_mode",
+      description:
+        "Schaltet Windows zwischen Dark Mode und Light Mode um. Ändert Apps und System.",
+      parameters: { type: "object", properties: {} },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "get_battery_status",
+      description:
+        "Gibt Akku-Status zurück: Ladestand, ob geladen wird, geschätzte Restlaufzeit.",
+      parameters: { type: "object", properties: {} },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "get_temperatures",
+      description:
+        "Gibt CPU/System-Temperaturen zurück (ACPI Thermalzonen). " +
+        "Nicht auf allen Systemen verfügbar — ELLA gibt 'nicht verfügbar' zurück falls nicht.",
+      parameters: { type: "object", properties: {} },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "get_event_log",
+      description:
+        "Zeigt Windows Fehler und Warnungen aus System- und Anwendungsprotokoll.",
+      parameters: {
+        type: "object",
+        properties: {
+          hours: {
+            type: "number",
+            description: "Zeitraum in Stunden (Standard: 24)",
+          },
+          max_events: {
+            type: "number",
+            description: "Max. Einträge (Standard: 20)",
+          },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "get_wifi_info",
+      description:
+        "Zeigt aktuelle WLAN-Verbindung: Netzwerkname (SSID), Signalstärke, Übertragungsrate.",
+      parameters: { type: "object", properties: {} },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "control_media",
+      description:
+        "Steuert die aktuelle Medienwiedergabe (Spotify, YouTube, VLC, usw.) per Medientasten.",
+      parameters: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            description:
+              '"play", "pause", "toggle" (Play/Pause), "next", "prev", "stop"',
+          },
+        },
+        required: ["action"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "get_now_playing",
+      description:
+        "Zeigt was gerade abgespielt wird: Titel, Künstler, Album und Status. " +
+        "Nutzt die Windows Media Session API — funktioniert mit Spotify, Browser, VLC usw.",
+      parameters: { type: "object", properties: {} },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "translate_text",
+      description:
+        "Übersetzt Text in eine beliebige Sprache. Läuft offline über Ollama oder optional über OpenAI.",
+      parameters: {
+        type: "object",
+        properties: {
+          text: { type: "string", description: "Zu übersetzender Text" },
+          target_language: {
+            type: "string",
+            description:
+              'Zielsprache, z.B. "Englisch", "Französisch", "Spanisch"',
+          },
+        },
+        required: ["text", "target_language"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "summarize_text",
+      description:
+        "Fasst einen langen Text zusammen. Läuft offline über Ollama oder optional über OpenAI.",
+      parameters: {
+        type: "object",
+        properties: {
+          text: { type: "string", description: "Zu zusammenfassender Text" },
+          style: {
+            type: "string",
+            description:
+              '"kurz" (1–2 Sätze), "mittel" (Standard), "ausführlich" (1–2 Absätze)',
+          },
+        },
+        required: ["text"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "click_element",
+      description:
+        "Klickt auf ein UI-Element auf dem Bildschirm anhand seines sichtbaren Textes (semantischer Klick). " +
+        "ELLA macht einen Screenshot, liest alle Texte per OCR und klickt das passende Element. " +
+        'Nutze dies statt click_at wenn der Nutzer sagt "klick auf Speichern" oder "drück OK".',
+      parameters: {
+        type: "object",
+        properties: {
+          label: {
+            type: "string",
+            description:
+              'Sichtbarer Text des Elements, z.B. "Speichern", "OK", "Abbrechen"',
+          },
+        },
+        required: ["label"],
+      },
+    },
+  });
+
   defs.push({
     type: "function",
     function: {

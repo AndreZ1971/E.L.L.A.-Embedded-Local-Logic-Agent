@@ -89,9 +89,28 @@ import {
 } from "../services/windowManager.js";
 import { deleteToRecycleBin } from "../services/fileOps.js";
 import { listServicesPs, controlService } from "../services/serviceManager.js";
-import { readScreenOcr } from "../services/ocr.js";
 import { moveMouse, clickAt, dragDrop } from "../services/mouseControl.js";
 import { runSafeCommand } from "../services/shellRunner.js";
+import {
+  readFileContent,
+  renameFile,
+  copyFile,
+  createFolder,
+} from "../services/fileManager.js";
+import { controlMedia, getNowPlaying } from "../services/mediaControl.js";
+import {
+  toggleDarkMode,
+  getBatteryStatus,
+  getTemperatures,
+  getEventLog,
+  getWifiInfo,
+} from "../services/systemComfort.js";
+import { translateText, summarizeText } from "../services/textProcessing.js";
+import {
+  readScreenOcr,
+  readScreenOcrElements,
+  type OcrElement,
+} from "../services/ocr.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -2400,6 +2419,298 @@ else { $results | ConvertTo-Json -Compress }`.trim();
         changes: changes.length > 0 ? changes : ["Keine Änderungen erkannt."],
       },
     };
+  },
+
+  // ── v3.4.0 Komfort & Intelligenz ─────────────────────────────────────────────
+
+  read_file_content: async (args) => {
+    const filePath = ((args["path"] as string) ?? "").trim();
+    if (!filePath) return { success: false, error: "Pfad fehlt." };
+    const result = readFileContent(filePath);
+    trackToolUsage("read_file_content", filePath);
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      output: {
+        path: filePath,
+        content: result.content,
+        truncated: result.truncated ?? false,
+      },
+    };
+  },
+
+  rename_file: async (args) => {
+    const filePath = ((args["path"] as string) ?? "").trim();
+    const newName = ((args["new_name"] as string) ?? "").trim();
+    if (!filePath) return { success: false, error: "Pfad fehlt." };
+    if (!newName) return { success: false, error: "Neuer Name fehlt." };
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `"${filePath.split("\\").pop()}" umbenennen zu "${newName}"?`,
+      pendingAction: {
+        tool: "rename_file_confirmed",
+        args: { path: filePath, new_name: newName },
+      },
+    };
+  },
+
+  rename_file_confirmed: async (args) => {
+    const filePath = (args["path"] as string) ?? "";
+    const newName = (args["new_name"] as string) ?? "";
+    const result = renameFile(filePath, newName);
+    trackToolUsage("rename_file", `${filePath} → ${newName}`);
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, output: `Umbenannt: ${result.newPath}` };
+  },
+
+  copy_file: async (args) => {
+    const src = ((args["source"] as string) ?? "").trim();
+    const dst = ((args["destination"] as string) ?? "").trim();
+    if (!src) return { success: false, error: "Quelle fehlt." };
+    if (!dst) return { success: false, error: "Ziel fehlt." };
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `"${src.split("\\").pop()}" kopieren nach "${dst}"?`,
+      pendingAction: {
+        tool: "copy_file_confirmed",
+        args: { source: src, destination: dst },
+      },
+    };
+  },
+
+  copy_file_confirmed: async (args) => {
+    const src = (args["source"] as string) ?? "";
+    const dst = (args["destination"] as string) ?? "";
+    const result = copyFile(src, dst);
+    trackToolUsage("copy_file", `${src} → ${dst}`);
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, output: `Kopiert nach: ${dst}` };
+  },
+
+  create_folder: async (args) => {
+    const folderPath = ((args["path"] as string) ?? "").trim();
+    if (!folderPath) return { success: false, error: "Pfad fehlt." };
+    const result = createFolder(folderPath);
+    trackToolUsage("create_folder", folderPath);
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, output: `Ordner erstellt: ${folderPath}` };
+  },
+
+  toggle_dark_mode: async () => {
+    const result = toggleDarkMode();
+    trackToolUsage("toggle_dark_mode", result.mode ?? "?");
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      output:
+        result.mode === "dark"
+          ? "Dark Mode aktiviert."
+          : "Light Mode aktiviert.",
+    };
+  },
+
+  get_battery_status: async () => {
+    const result = getBatteryStatus();
+    trackToolUsage("get_battery_status", "query");
+    if (!result.success) return { success: false, error: result.error };
+    if (!result.available)
+      return {
+        success: true,
+        output: {
+          available: false,
+          message: "Kein Akku erkannt (Desktop-PC oder Treiber fehlt).",
+        },
+      };
+    return { success: true, output: result };
+  },
+
+  get_temperatures: async () => {
+    const result = getTemperatures();
+    trackToolUsage("get_temperatures", "query");
+    if (!result.success) return { success: false, error: result.error };
+    if (!result.available)
+      return {
+        success: true,
+        output: { available: false, reason: result.reason },
+      };
+    return { success: true, output: { zones: result.zones } };
+  },
+
+  get_event_log: async (args) => {
+    const hours = Math.min(168, Math.max(1, Number(args["hours"]) || 24));
+    const maxEvents = Math.min(
+      50,
+      Math.max(5, Number(args["max_events"]) || 20),
+    );
+    const result = getEventLog(hours, maxEvents);
+    trackToolUsage("get_event_log", `${hours}h`);
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      output: { count: result.events?.length ?? 0, events: result.events },
+    };
+  },
+
+  get_wifi_info: async () => {
+    const result = getWifiInfo();
+    trackToolUsage("get_wifi_info", "query");
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, output: result };
+  },
+
+  control_media: async (args) => {
+    const action = ((args["action"] as string) ?? "toggle").toLowerCase();
+    const result = controlMedia(action);
+    trackToolUsage("control_media", action);
+    if (!result.success) return { success: false, error: result.error };
+    const labels: Record<string, string> = {
+      play: "Wiedergabe gestartet.",
+      pause: "Pausiert.",
+      toggle: "Play/Pause umgeschaltet.",
+      next: "Nächster Titel.",
+      prev: "Vorheriger Titel.",
+      previous: "Vorheriger Titel.",
+      back: "Vorheriger Titel.",
+      stop: "Wiedergabe gestoppt.",
+    };
+    return {
+      success: true,
+      output: labels[action] ?? "Mediensteuerung ausgeführt.",
+    };
+  },
+
+  get_now_playing: async () => {
+    const result = await getNowPlaying();
+    trackToolUsage("get_now_playing", "query");
+    if (!result.available)
+      return {
+        success: true,
+        output: {
+          available: false,
+          message: "Keine aktive Medienwiedergabe gefunden.",
+        },
+      };
+    return { success: true, output: result };
+  },
+
+  translate_text: async (args) => {
+    const text = ((args["text"] as string) ?? "").trim();
+    const targetLanguage = (
+      (args["target_language"] as string) ?? "Englisch"
+    ).trim();
+    if (!text) return { success: false, error: "Text fehlt." };
+    try {
+      const translated = await translateText(text, targetLanguage);
+      trackToolUsage("translate_text", targetLanguage);
+      return {
+        success: true,
+        output: { original: text, translation: translated, targetLanguage },
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
+
+  summarize_text: async (args) => {
+    const text = ((args["text"] as string) ?? "").trim();
+    const style = ((args["style"] as string) ?? "mittel") as
+      | "kurz"
+      | "mittel"
+      | "ausführlich";
+    if (!text) return { success: false, error: "Text fehlt." };
+    try {
+      const summary = await summarizeText(text, style);
+      trackToolUsage("summarize_text", style);
+      return { success: true, output: { summary, style } };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
+
+  click_element: async (args) => {
+    const label = ((args["label"] as string) ?? "").trim();
+    if (!label) return { success: false, error: "Element-Name fehlt." };
+
+    let elements: OcrElement[];
+    try {
+      const ocr = await readScreenOcrElements();
+      elements = ocr.elements;
+    } catch (err) {
+      return {
+        success: false,
+        error: `OCR fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+
+    const lower = label.toLowerCase();
+
+    // 1. Exact match
+    let match = elements.find((e) => e.text.toLowerCase() === lower);
+    // 2. Contains
+    if (!match)
+      match = elements.find((e) => e.text.toLowerCase().includes(lower));
+
+    if (match) {
+      const cx = Math.round(match.x + match.w / 2);
+      const cy = Math.round(match.y + match.h / 2);
+      return {
+        success: false,
+        requiresConfirmation: true,
+        confirmationMessage: `"${match.text}" gefunden bei (${cx}, ${cy}) — klicken?`,
+        pendingAction: {
+          tool: "click_element_confirmed",
+          args: { x: cx, y: cy },
+        },
+      };
+    }
+
+    // 3. Multi-word consecutive match
+    const words = lower.split(/\s+/);
+    if (words.length > 1) {
+      for (let i = 0; i <= elements.length - words.length; i++) {
+        const group = elements.slice(i, i + words.length);
+        const groupText = group.map((e) => e.text.toLowerCase()).join(" ");
+        if (groupText === lower || groupText.includes(lower)) {
+          const x1 = Math.min(...group.map((e) => e.x));
+          const y1 = Math.min(...group.map((e) => e.y));
+          const x2 = Math.max(...group.map((e) => e.x + e.w));
+          const y2 = Math.max(...group.map((e) => e.y + e.h));
+          const cx = Math.round(x1 + (x2 - x1) / 2);
+          const cy = Math.round(y1 + (y2 - y1) / 2);
+          return {
+            success: false,
+            requiresConfirmation: true,
+            confirmationMessage: `"${group.map((e) => e.text).join(" ")}" gefunden bei (${cx}, ${cy}) — klicken?`,
+            pendingAction: {
+              tool: "click_element_confirmed",
+              args: { x: cx, y: cy },
+            },
+          };
+        }
+      }
+    }
+
+    return {
+      success: false,
+      error: `Element "${label}" nicht auf dem Bildschirm gefunden.`,
+    };
+  },
+
+  click_element_confirmed: async (args) => {
+    const x = Number(args["x"]);
+    const y = Number(args["y"]);
+    const result = clickAt(x, y, "left", false);
+    trackToolUsage("click_element", `${x},${y}`);
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, output: `Klick bei (${x}, ${y}) ausgeführt.` };
   },
 
   pause_ella: async (args) => {
