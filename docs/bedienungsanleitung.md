@@ -1,6 +1,6 @@
 # E.L.L.A. — Bedienungsanleitung
 
-_Version 3.1.0_
+_Version 3.4.0_
 
 ---
 
@@ -308,6 +308,98 @@ Benötigt einen OpenAI API-Key.
 ```
 "Welche Programme starten automatisch mit Windows?"
 ```
+
+### Fenster-Automatisierung
+
+```
+"Öffne den Taschenrechner"
+"Minimiere das aktive Fenster"
+"Maximiere Chrome"
+"Schreib 'Hallo Welt' ins aktive Fenster"
+"Drück Enter im aktiven Fenster"
+```
+
+### Dienste
+
+```
+"Welche Windows-Dienste laufen gerade?"
+"Starte den Drucker-Dienst"
+"Stoppe den Spooler-Dienst"
+```
+
+### Bildschirm lesen und beobachten
+
+```
+"Was steht auf meinem Bildschirm?"
+"Lies den Text aus dem aktiven Fenster"
+"Beobachte den Bildschirm für 20 Sekunden und meld dich wenn sich etwas ändert"
+```
+
+`read_screen` liest den sichtbaren Text via Windows OCR (offline, WinRT). `watch_screen` überwacht Textänderungen bis zu 30 Sekunden und meldet neue Inhalte automatisch.
+
+### Dateien verwalten
+
+```
+"Lies die Datei C:\Dokumente\Notizen.txt"
+"Benenne C:\Dateien\Alt.txt in Neu.txt um"
+"Kopiere C:\Quelle\Bericht.docx nach E:\Backup\"
+"Erstelle den Ordner E:\Projekte\2026"
+```
+
+> **Hinweis:** Systemverzeichnisse (Windows, Programme, ProgramData) sind gesperrt und können nicht verändert werden.
+
+### Maus und Klicks
+
+```
+"Bewege die Maus zur Mitte des Bildschirms"
+"Klick auf die Schaltfläche 'Speichern'"
+"Klick auf Position 400, 300"
+"Ziehe von 100, 200 nach 500, 200"
+```
+
+`click_element` erkennt Schaltflächen und Text per OCR und klickt präzise — auch ohne genaue Koordinaten. Bei destruktiven Klicks erfolgt immer eine Bestätigung. Klicks in Passwort-Manager und Banking-Apps sind geblockt.
+
+### Shell-Befehle
+
+```
+"Zeig mir alle Dateien in E:\Projekte"
+"Führe ipconfig aus"
+"Wie viel Speicher hat mein System?"
+```
+
+Shell-Befehle werden immer zuerst zur Bestätigung angezeigt. Über 60 gefährliche Befehle (format, rm -rf, Benutzer anlegen etc.) sind fest gesperrt.
+
+### Systemkomfort
+
+```
+"Aktiviere den Dark Mode"
+"Wie ist der Akkustand?"
+"Wie heiß ist meine CPU gerade?"
+"Zeig mir die letzten Windows-Fehler"
+"Mit welchem WLAN bin ich verbunden?"
+```
+
+### Medien
+
+```
+"Nächster Titel"
+"Pause"
+"Lauter"
+"Was läuft gerade?"
+"Zeig mir den aktuellen Song"
+```
+
+`control_media` steuert den aktiven Mediaplayer über Systemtasten. `get_now_playing` liest den aktuell spielenden Titel via Windows Media Control (WinRT).
+
+### Übersetzen und Zusammenfassen
+
+```
+"Übersetze diesen Text ins Englische: Guten Morgen"
+"Fasse diesen Text zusammen: [langer Text]"
+"Übersetze ins Spanische: Wie geht es dir?"
+```
+
+Übersetzung und Zusammenfassung laufen vollständig lokal über Ollama — oder optional über OpenAI wenn ein API-Key konfiguriert ist.
 
 ### Gedächtnis
 
@@ -683,4 +775,4 @@ Prüfen: `"Ella, wie ist dein Status?"`
 
 ---
 
-_E.L.L.A. v3.1.0 · Proprietär · Alle Rechte vorbehalten_
+_E.L.L.A. v3.4.0 · Proprietär · Alle Rechte vorbehalten_

@@ -1,7 +1,9 @@
 # E.L.L.A. — Strategic Roadmap
 
-**Stand:** Mai 2026
-**Aktuell:** v2.3.0 — produktionsreif, lokal, direktive-gesichert
+**Stand:** Juni 2026
+**Aktuell:** v3.4.0 — produktionsreif, lokal, direktive-gesichert, 85 Tools
+
+> _E.L.L.A. passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
 ---
 
@@ -9,46 +11,50 @@
 
 E.L.L.A. läuft auf einem i3 12th Gen mit GTX 1060 — Consumer-Hardware unterhalb des Marktdurchschnitts. Das ist kein Zufall. Es ist der Beweis: was auf dieser Hardware läuft, läuft auf jedem modernen Windows-Gerät.
 
-**Heute produktiv:**
+**Heute produktiv (v3.4.0):**
 
-- Lokale KI-Inferenz (llama3.1:8b, ~14 t/s on-device)
-- Systemsteuerung via natürlicher Sprache
-- Wakeword-Aktivierung ("ella")
-- Mail & Kalender (Outlook COM)
-- Proaktives Monitoring — Firewall, DNS, neue Geräte, Speicher
-- Web-Suche via OpenAI (optional)
-- Vollständiges Gedächtnissystem (768-dim Embeddings, MariaDB)
-- The E.L.L.A. Directive — vier unveränderliche Verbote, kryptographisch versiegelbar
-
----
-
-## v2.x — Polishing (laufend)
-
-E.L.L.A. wird zur täglichen Gewohnheit.
-
-| Feature            | Beschreibung                                               |
-| ------------------ | ---------------------------------------------------------- |
-| Onboarding         | Name, Directive-Acceptance, Hardware-Scan, Standort        |
-| Multilingual UI    | Interface folgt Windows-Systemsprache (DE/EN/FR/ES/...)    |
-| Proaktive Sprache  | E.L.L.A. meldet sich bei System-Events ohne Aufforderung   |
-| Standort-Awareness | IP-Geolocation + Memory — Wetter, lokale Infos             |
-| Directive UI       | Ablehnungen werden visuell als Directive-Event dargestellt |
-| wmic → CimInstance | Windows 11 22H2+ Kompatibilität sichergestellt             |
+- Lokale KI-Inferenz (llama3.1:8b, 14.6 t/s GPU, vollständig offline)
+- 85 aktive Tools — Systemsteuerung, Dateien, Medien, Netzwerk, Kommunikation, UI-Automation
+- Wakeword-Aktivierung ("ella") via openWakeWord + ONNX, vollständig offline
+- Kokoro TTS — neuronale lokale Sprachausgabe (Port 3003, 127.0.0.1-only)
+- Mail & Kalender (Outlook COM + Gmail/Google Calendar via OAuth 2.0)
+- Proaktives Monitoring — Firewall, DNS, neue Geräte, Speicher, Clipboard-Muster
+- Vollständiges Gedächtnissystem (768-dim Embeddings, MariaDB, Cosinus-Suche)
+- Nutzerprofile — profilgebundenes Gedächtnis, PBKDF2+Salt PIN-Hash
+- Gesprächskompression — Ollama-only, lokaler Kontext-Schutz
+- Semantischer Bildschirm-Klick — OCR → 3-Pass-Matching → confirm
+- Maus, Tastatur, Fenster, Dienste, Shell (sandboxed, Bestätigungspflicht)
+- The E.L.L.A. Directive — vier unveränderliche Verbote, 82 Default-Regeln, Audit-Log
 
 ---
 
-## v3.0 — Deep Integration
+## v2.x / v3.x — Produktivitäts-Sprint (abgeschlossen)
 
-E.L.L.A. kennt nicht nur das System — sie versteht den Kontext.
+Alles was E.L.L.A. zur täglichen Gewohnheit macht — vollständig umgesetzt.
 
-| Feature                   | Beschreibung                                                     |
-| ------------------------- | ---------------------------------------------------------------- |
-| Vision                    | Bildschirminhalt analysieren via lokales Vision-Modell           |
-| Kamera-Integration        | Umgebungserkennung — wer ist am Gerät, Gesten                    |
-| Erweitertes App-Ökosystem | Browser-Steuerung, Office-Integration via COM                    |
-| Profile                   | Arbeit / Gaming / Privat — E.L.L.A. wechselt Kontext automatisch |
-| Autorun & Silent Mode     | Läuft unsichtbar, meldet sich nur wenn nötig                     |
-| Session-Persistenz        | Gesprächskontext überlebt Neustarts                              |
+| Feature                    | Version | Status |
+| -------------------------- | ------- | ------ |
+| Onboarding 6-Schritt-Flow  | v2.x    | ✅     |
+| Proaktive Sprache (SSE)    | v2.x    | ✅     |
+| Standort-Awareness         | v2.x    | ✅     |
+| Directive UI (roter Badge) | v2.x    | ✅     |
+| wmic → CimInstance         | v2.x    | ✅     |
+| Vision (Screenshot + GPT)  | v3.0.0  | ✅     |
+| Nutzerprofile              | v3.1.0  | ✅     |
+| Kokoro TTS (lokal)         | v3.1.0  | ✅     |
+| Aufgabenliste (MariaDB)    | v3.1.0  | ✅     |
+| Gesprächskompression       | v3.1.0  | ✅     |
+| Fenster-Kontext (opt-in)   | v3.1.0  | ✅     |
+| System Automation (10)     | v3.2.0  | ✅     |
+| Mouse Control + Shell      | v3.3.0  | ✅     |
+| Screen Monitor (OCR-Diff)  | v3.3.0  | ✅     |
+| Datei-Operationen (4)      | v3.4.0  | ✅     |
+| System-Komfort (5)         | v3.4.0  | ✅     |
+| Medien-Steuerung (WinRT)   | v3.4.0  | ✅     |
+| KI-Textverarbeitung (2)    | v3.4.0  | ✅     |
+| Semantischer OCR-Klick     | v3.4.0  | ✅     |
+
+Nicht umgesetzt (bewusst zurückgestellt): Multilingual UI, Kamera-Integration, Session-Persistenz über Neustarts.
 
 ---
 
@@ -84,12 +90,13 @@ Die architektonischen Prinzipien der E.L.L.A. Directive — Verbote als struktur
 
 ## Was bewusst nicht geplant ist
 
-| Feature              | Warum nicht                                                           |
-| -------------------- | --------------------------------------------------------------------- |
-| Cloud-Hosting        | Lokale Ausführung ist Designprinzip — keine Kompromisse               |
-| Multi-User           | E.L.L.A. ist ein persönlicher Assistent — ein Nutzer, ein Gerät       |
-| Subscription         | Einmalkauf — €99 Consumer, €299 Enterprise. Keine monatlichen Kosten. |
-| Offene Shell-Befehle | Die Directive verhindert freie Kommandoausführung — by design         |
+| Feature             | Warum nicht                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| Cloud-Hosting       | Lokale Ausführung ist Designprinzip — keine Kompromisse                                  |
+| Multi-User-Netzwerk | E.L.L.A. ist ein persönlicher Assistent — Nutzerprofile sind gerätlokal, kein Netzwerk   |
+| Subscription        | Einmalkauf — €99 Consumer, €299 Enterprise. Keine monatlichen Kosten.                    |
+| Freie Shell         | `run_command` existiert — aber sandboxed (60+ gesperrte Muster, immer Bestätigung nötig) |
+| Unkontrollierte KI  | Die Directive verhindert Ausführung ohne Nutzerkenntnis — by design                      |
 
 ---
 

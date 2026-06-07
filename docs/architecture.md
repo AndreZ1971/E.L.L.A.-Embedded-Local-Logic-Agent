@@ -1,4 +1,4 @@
-# Architektur — v1.0.0
+# Architektur — v3.4.0
 
 ---
 
@@ -39,21 +39,30 @@
 │                    └────────────────┘          └─────────────┘  │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │  Tool-Loop                                              │    │
+│  │  Tool-Loop (85 aktive Tools)                            │    │
 │  │   1. recall(message)         — Gedächtnis laden         │    │
 │  │   2. LLM-Stream              — mit Memories + Tools     │    │
-│  │   3. evaluateRules(toolName) — Rule-Engine-Check        │    │
-│  │   4. handler(args)           — Tool ausführen           │    │
-│  │   5. extractAndRemember()    — fire-and-forget          │    │
+│  │   3. DirectiveLayer.check()  — harm/surveil/etc.        │    │
+│  │   4. evaluateRules(toolName) — Rule-Engine-Check        │    │
+│  │   5. handler(args)           — Tool ausführen           │    │
+│  │   6. extractAndRemember()    — fire-and-forget          │    │
 │  └─────────────────────────────────────────────────────────┘    │
 │                                                                  │
 │  ┌─────────────────────┐   ┌────────────────────────────────┐   │
 │  │  Background-Worker  │   │  MariaDB Pool (Port 3306)      │   │
 │  │  alle 60s: Disk,    │──►│  sessions + session_messages   │   │
-│  │  RAM, Ollama-Ping   │   │  memories (Vektor-Embeddings)  │   │
-│  │  EventBus-Push      │   │  rules + tool_executions       │   │
-│  └─────────────────────┘   │  system_events                 │   │
-│                            └────────────────────────────────┘   │
+│  │  RAM, Ollama-Ping,  │   │  memories (Vektor-Embeddings)  │   │
+│  │  PnP, ARP, TCP,     │   │  rules + tool_executions       │   │
+│  │  Firewall, WiFi,DNS │   │  profiles + tasks              │   │
+│  │  EventBus-Push      │   │  user_feedback + directive_audit│  │
+│  └─────────────────────┘   └────────────────────────────────┘   │
+│                                                                  │
+│  ┌─────────────────────┐   ┌────────────────────────────────┐   │
+│  │  Clipboard-Polling  │   │  Python-Prozesse               │   │
+│  │  alle 3s: History,  │   │  wakeword_server.py :mic       │   │
+│  │  Muster-Erkennung   │   │  tts_server.py :3003 (Kokoro)  │   │
+│  │  IBAN/URL/IBAN/...  │   │  127.0.0.1-only, offline       │   │
+│  └─────────────────────┘   └────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -183,6 +192,7 @@ Typen:
 | `/api/rules/:id/toggle`         | PATCH        | Regel aktivieren / deaktivieren        |
 | `/api/tools`                    | GET          | Aktivierte Tools (aus Settings)        |
 | `/api/tools/execute`            | POST         | Tool direkt ausführen                  |
+| `/api/confirm`                  | POST         | Bestätigung für `_confirmed`-Tools     |
 | `/api/system/status`            | GET          | Ollama + MariaDB Erreichbarkeit        |
 | `/api/system/disk`              | GET          | Disk-Usage C:, E:, Z:                  |
 | `/api/system/programs`          | GET          | Installierte Programme (Start-Menü)    |
@@ -197,6 +207,12 @@ Typen:
 | `/api/onboarding/complete`      | POST         | Onboarding abschließen                 |
 | `/api/setup/status`             | GET          | Dependency-Check (Ollama, nomic, DB)   |
 | `/api/setup/pull-nomic`         | POST         | nomic-embed-text via SSE herunterladen |
+| `/api/profiles`                 | GET / POST   | Nutzerprofile auflisten / anlegen      |
+| `/api/profiles/:id`             | PUT / DELETE | Profil bearbeiten / löschen            |
+| `/api/profiles/:id/activate`    | POST         | Profil aktivieren (PIN falls gesetzt)  |
+| `/api/feedback`                 | POST         | Daumen hoch/runter speichern           |
+| `/api/google/auth`              | GET          | Google OAuth 2.0 starten               |
+| `/api/google/callback`          | GET          | OAuth Callback (Token speichern)       |
 
 ---
 
@@ -206,6 +222,7 @@ Typen:
 | ------------------- | ----- | ---------------------------------------- |
 | Frontend (Vite Dev) | 5173  | Nur Dev-Modus — Production via `file://` |
 | Backend (Express)   | 3002  | Port 3001 von Docker Desktop belegt      |
+| Kokoro TTS-Server   | 3003  | Python, 127.0.0.1-only, lokal, offline   |
 | MariaDB             | 3306  | Windows-Dienst, E:\MariaDB\data          |
 | Ollama              | 11434 | Standard-Port, läuft als Tray-App        |
 
@@ -246,9 +263,13 @@ z:\repos\E.L.L.A\
 │  │     │  └─ errorHandler.ts      — Zentraler Fehler-Handler
 │  │     ├─ routes/
 │  │     │  ├─ chat.ts              — Chat + Tool-Loop
+│  │     │  ├─ confirm.ts           — Generische Bestätigung (_confirmed-Tools)
 │  │     │  ├─ events.ts            — SSE-Push + recent Events
+│  │     │  ├─ feedback.ts          — POST /api/feedback (Daumen hoch/runter)
+│  │     │  ├─ google.ts            — OAuth 2.0 Callback
 │  │     │  ├─ homework.ts          — Hausaufgaben-Modus REST
 │  │     │  ├─ onboarding.ts        — Onboarding-Flow REST
+│  │     │  ├─ profiles.ts          — Nutzerprofile CRUD + Aktivierung
 │  │     │  ├─ rules.ts             — Rule-Engine CRUD
 │  │     │  ├─ settings.ts          — Settings CRUD + Emergency-Reset
 │  │     │  ├─ setup.ts             — Dependency-Check + nomic-Pull-SSE
@@ -256,20 +277,43 @@ z:\repos\E.L.L.A\
 │  │     │  └─ tools.ts             — Tool-Listing + direktes Execute
 │  │     ├─ services/
 │  │     │  ├─ calendar.ts          — Outlook-Kalender via COM
+│  │     │  ├─ clipboardHistory.ts  — Polling (3s), History, Muster-Erkennung
+│  │     │  ├─ duplicateFinder.ts   — Hash-basierte Duplikat-Suche
 │  │     │  ├─ eventBus.ts          — Singleton EventEmitter (Worker→SSE)
+│  │     │  ├─ fileManager.ts       — readFileContent, renameFile, copyFile, createFolder
+│  │     │  ├─ fileOps.ts           — deleteToRecycleBin (VisualBasic COM)
+│  │     │  ├─ google.ts            — Gmail + Google Calendar OAuth
 │  │     │  ├─ homework.ts          — Aktivieren/Deaktivieren, SHA-256-PIN
 │  │     │  ├─ mail.ts              — Outlook COM + Thunderbird mbox
+│  │     │  ├─ mediaControl.ts      — VK_MEDIA_* Tasten + WinRT NowPlaying
 │  │     │  ├─ memory.ts            — Embeddings, recall(), extractAndRemember()
+│  │     │  ├─ mouseControl.ts      — SetCursorPos, mouse_event (P/Invoke)
+│  │     │  ├─ music.ts             — Bibliothekssuche + Player-Start
+│  │     │  ├─ ocr.ts               — Windows.Media.Ocr WinRT (offline)
 │  │     │  ├─ ollama.ts            — OllamaClient (chat, stream, embed)
 │  │     │  ├─ openai.ts            — OpenAIClient (chat, stream)
+│  │     │  ├─ processes.ts         — listProcesses, killProcess
+│  │     │  ├─ profiles.ts          — PBKDF2+Salt, Profil-Isolation
+│  │     │  ├─ reminder.ts          — Windows Task Scheduler
 │  │     │  ├─ rules.ts             — evaluateRules(), CRUD-Helpers
+│  │     │  ├─ serviceManager.ts    — listServicesPs, controlService
+│  │     │  ├─ sessionCompressor.ts — Ollama-only Gesprächskompression
 │  │     │  ├─ sessions.ts          — MariaDB-backed Session-Store
 │  │     │  ├─ settings.ts          — settings.json lesen/schreiben
-│  │     │  ├─ systemScan.ts        — wmic: CPU/GPU/RAM/Computername
-│  │     │  └─ worker.ts            — Background-Worker (Disk/RAM/Ollama)
+│  │     │  ├─ shellRunner.ts       — runSafeCommand (60+ gesperrte Muster)
+│  │     │  ├─ styleProfile.ts      — E-Mail-Stil-Profil + writeInUserStyle
+│  │     │  ├─ systemComfort.ts     — Dark Mode, Akku, Temp, EventLog, WiFi
+│  │     │  ├─ systemScan.ts        — Get-CimInstance: CPU/GPU/RAM/Name
+│  │     │  ├─ tasks.ts             — addTask, listTasks, completeTask, deleteTask
+│  │     │  ├─ textCorrection.ts    — KI-Korrektur (Ollama/OpenAI)
+│  │     │  ├─ textProcessing.ts    — translateText, summarizeText
+│  │     │  ├─ vision.ts            — Screenshot + GPT-4o Vision-Analyse
+│  │     │  ├─ windowContext.ts     — GetForegroundWindow, opt-in, gefiltert
+│  │     │  ├─ windowManager.ts     — launchApp, controlWindow, sendKeys
+│  │     │  └─ worker.ts            — Background-Worker (60s: Disk/RAM/PnP/ARP/TCP)
 │  │     └─ tools/
-│  │        ├─ definitions.ts       — Tool-Schemas für LLM (18 Tools)
-│  │        ├─ executor.ts          — Settings-Check + Rule-Check + Dispatch
+│  │        ├─ definitions.ts       — Tool-Schemas für LLM (85 aktive Tools)
+│  │        ├─ executor.ts          — Directive + Rule-Check + Dispatch
 │  │        └─ registry.ts          — Legacy (listEnabled via settings)
 │  │
 │  ├─ desktop/                      — Electron Desktop-App (@ella/desktop)
@@ -297,7 +341,7 @@ z:\repos\E.L.L.A\
 │
 ├─ packages/
 │  ├─ shared/                       — Gemeinsame Typen (@ella/shared)
-│  │  └─ src/types/tool.ts          — ToolName (18), ToolCall, ToolResult
+│  │  └─ src/types/tool.ts          — ToolName (85+), ToolCall, ToolResult
 │  └─ agent-tools/                  — Windows-System-Tools (@ella/agent-tools)
 │     └─ src/                       — open-app, get-disk-usage, clean-temp, empty-recycle-bin
 │

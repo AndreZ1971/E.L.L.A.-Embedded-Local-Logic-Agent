@@ -1,7 +1,7 @@
 # The E.L.L.A. Directive
 
 **Version:** 1.0.0
-**Datum:** Mai 2026
+**Datum:** Juni 2026
 **Autor:** Andre Zabel (AndreZ1971)
 **Status:** Finalized — pending cryptographic seal (v1.1.0)
 **Repo:** [github.com/AndreZ1971/The-E.L.L.A.-Directive-](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
@@ -52,8 +52,8 @@ E.L.L.A. darf keine Nutzerdaten, Systemdaten oder Kommunikation an externe Serve
 DirectiveLayer.check(tool)     → deny wenn harm/exfiltrate
 evaluateRules(tool)            → deny wenn explizite Deny-Regel
 evaluateRules(tool)            → allow wenn explizite Allow-Regel
-evaluateRules(tool)            → allow (Default-Allow)
-toolExecutor.execute(tool)     → Handler aufrufen
+no_match                       → deny (Default-Deny)
+toolExecutor.execute(tool)     → Handler aufrufen (nur bei allow)
 ```
 
 ---

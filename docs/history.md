@@ -4,6 +4,181 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v3.4.0 — 07.06.2026 — Datei-Verwaltung, System-Komfort, Medien, KI-Text, OCR-Klick
+
+**Ziel:** 14 neue Tools in vier Kategorien — vollständige Datei-Verwaltung, System-Komfort-Funktionen, Mediensteuerung per WinRT, KI-gestützte Textverarbeitung und semantischer Bildschirm-Klick.
+
+**Neue Services:** `fileManager.ts`, `mediaControl.ts`, `systemComfort.ts`, `textProcessing.ts` (neu), `ocr.ts` (erweitert um `readScreenOcrElements()`).
+
+**14 neue Tools:**
+
+| Tool                 | Service            | Beschreibung                                                 |
+| -------------------- | ------------------ | ------------------------------------------------------------ |
+| `read_file_content`  | fileManager        | Dateiinhalt lesen (BLOCKED_PREFIXES für Systemverzeichnisse) |
+| `rename_file`        | fileManager        | Umbenennen mit \_confirmed-Bypass                            |
+| `copy_file`          | fileManager        | Kopieren mit \_confirmed-Bypass                              |
+| `create_folder`      | fileManager        | Ordner anlegen                                               |
+| `toggle_dark_mode`   | systemComfort      | Dark Mode via PowerShell Registry-Schlüssel                  |
+| `get_battery_status` | systemComfort      | Akku-Status via Get-CimInstance                              |
+| `get_temperatures`   | systemComfort      | CPU/GPU-Temperaturen via Get-CimInstance MSAcpi_ThermalZone  |
+| `get_event_log`      | systemComfort      | Windows-Fehlerlog (Application/System)                       |
+| `get_wifi_info`      | systemComfort      | Netzwerkname, Signal, IP via netsh/ipconfig                  |
+| `control_media`      | mediaControl       | VK_MEDIA_PLAY_PAUSE / NEXT / PREV / VOLUME via P/Invoke      |
+| `get_now_playing`    | mediaControl       | Windows.Media.Control WinRT API — Titel, Künstler, App       |
+| `translate_text`     | textProcessing     | Ollama/OpenAI, gleiche Provider-Logik wie Chat               |
+| `summarize_text`     | textProcessing     | Ollama/OpenAI, gleiche Provider-Logik wie Chat               |
+| `click_element`      | ocr + mouseControl | Screenshot → WinRT OCR → 3-Pass-Match → confirm → click      |
+
+**BLOCKED_PREFIXES** (Dateizugriff gesperrt): `c:\windows`, `c:\program files`, `c:\program files (x86)`, `c:\programdata\microsoft`, `c:\users\default`.
+
+**click_element 3-Pass-Matching:** Exakter Match → Substring → Lowercase-Fuzzy. Bei keinem Treffer: Fehlermeldung mit "nicht auf dem Bildschirm gefunden".
+
+**Tests:** 196 Tests gesamt (29 neue Suites für v3.4.0-Tools) — alle grün. Default-Regeln IDs 1–82.
+
+---
+
+## v3.3.0 — Juni 2026 — Mouse Control, Shell Runner, Screen Monitor
+
+**Ziel:** Drei gefährliche-aber-notwendige Fähigkeiten mit maximalen Sicherheitsschranken: Maus-Steuerung, Kommandozeile und passives Bildschirm-Monitoring.
+
+**Mouse Control (`mouseControl.ts`):**
+
+- `move_mouse` — SetCursorPos via P/Invoke, Koordinaten-Validierung gegen Bildschirmgrenzen
+- `click_at` / `click_at_confirmed` — mouse_event LEFT_DOWN + LEFT_UP, immer Bestätigung
+- `drag_drop` / `drag_drop_confirmed` — Drag-Sequenz mit Interpolation
+
+**BLOCKED_TITLES:** Klicks in Fenstern mit Titeln, die auf 1Password, KeePass, Bitwarden, LastPass, DasHLane, "Passwort", "Password", "Bank", "Banking", "PayPal", "Kreditkarte" enthalten, sind gesperrt — Direktive surveil/exfiltrate.
+
+**Shell Runner (`shellRunner.ts`):**
+
+- `run_command` / `run_command_confirmed` — immer `_confirmed`, kein direktes Ausführen
+- 60+ gesperrte Muster: format, del /s, Remove-Item -Recurse, net user add, reg delete, takeown, cipher, Invoke-WebRequest mit -OutFile, Base64-Decode-Execution etc.
+- Whitelist-Prinzip: alles was nicht explizit erlaubt ist → Ablehnung
+
+**Screen Monitor (`ocr.ts`):**
+
+- `watch_screen` — Screenshot-Differenz-Schleife bis 30s, WinRT OCR
+- Meldet neue Textinhalte via proactive_message SSE-Event
+- Immer opt-in: Nutzer muss explizit danach fragen
+
+**Tests:** 167 Tests — alle grün. Default-Regeln IDs 1–73.
+
+---
+
+## v3.2.0 — Juni 2026 — System Automation
+
+**Ziel:** ELLA bekommt direkte Windows-Automatisierungs-Fähigkeiten — Apps starten, Fenster steuern, Tasten senden, Dienste verwalten, Bildschirm lesen.
+
+**10 neue Tools:**
+
+| Tool                    | Beschreibung                                                    |
+| ----------------------- | --------------------------------------------------------------- |
+| `launch_app`            | App per Prozessname oder Pfad starten                           |
+| `control_window`        | Minimize / Maximize / Restore / Close via Windows API           |
+| `send_keys`             | Tasteneingaben ins aktive Fenster senden (SendKeys)             |
+| `delete_file`           | In Papierkorb verschieben via VisualBasic.FileSystem.DeleteFile |
+| `manage_service`        | Windows-Dienste starten/stoppen/Status (sc.exe, Whitelist)      |
+| `read_screen`           | Screenshot → WinRT OCR offline → Text zurückgeben               |
+| `find_window`           | Laufende Fenster nach Titel/Prozessname suchen                  |
+| `get_active_window`     | GetForegroundWindow → Titel + Prozessname                       |
+| `list_services`         | Alle laufenden Windows-Dienste auflisten                        |
+| `get_clipboard_history` | Zwischenablage-History (letzte 20 Einträge)                     |
+
+**Confirm-Route generisch:** `/api/confirm` ersetzt den spezifischen `format_drive`-Confirm — funktioniert für alle `_confirmed`-Tools. `name.endsWith("_confirmed")` überspringt `enabledTools`-Check.
+
+**Tests:** 156 Tests — alle grün. Default-Regeln IDs 1–67.
+
+---
+
+## v3.1.0 — Juni 2026 — Kokoro TTS, Nutzerprofile, Intelligenz-Features
+
+**Ziel:** Drei große Bereiche: bessere Sprachausgabe, Mehrbenutzer-Unterstützung, und Intelligenz-Features die ELLA selbstständiger machen.
+
+**Kokoro TTS (`scripts/tts_server.py`):**
+
+- Python Flask-Server, Port 3003, ausschließlich 127.0.0.1 (kein Netzwerk-Zugriff)
+- `kokoro-onnx` — neuronale Stimme, lokal, vollständig offline
+- Fallback auf Windows-Stimme wenn Kokoro nicht verfügbar
+- Proaktive Alerts und Device-Events werden vorgelesen
+
+**Nutzerprofile (`services/profiles.ts`, `routes/profiles.ts`):**
+
+- PBKDF2 + Salt, 100.000 Iterationen, SHA-512
+- Profilgebundenes Gedächtnis: `memories.profile_id`, `sessions.profile_id`
+- Standard-Profil "Standard" beim ersten Start automatisch angelegt
+- PIN-geschützte Profile: Profilwechsel erfordert PIN-Eingabe
+
+**Aufgabenliste:** `add_task`, `list_tasks`, `complete_task`, `delete_task` — persistente TODOs in MariaDB (`tasks`-Tabelle), sortiert nach Priorität und Fälligkeitsdatum.
+
+**Intelligenz-Features:**
+
+- **Gesprächskompression** (`sessionCompressor.ts`): Ab 15 Nachrichten → älteste 10 werden per Ollama zusammengefasst. Ollama-only, kein Cloud-Kontakt.
+- **Fenster-Kontext** (`windowContext.ts`): `GetForegroundWindow`, Titel gefiltert (Passwort-Manager, Banking), opt-in, Ollama-only.
+- **Clipboard-Mustererkennung**: IBAN, Paketnummer, Telefon, URL, E-Mail → proaktiver Vorschlag.
+- **Proaktive Nachrichten**: SSE `proactive_message`-Event — ELLA schreibt von sich aus in den Chat.
+- **Feedback-Buttons**: Daumen hoch/runter unter jeder Antwort, DB-only (`user_feedback`), nie im LLM-Kontext.
+
+**DB-Änderungen:** Neue Tabellen `profiles`, `tasks`, `user_feedback`. ALTER auf `memories` und `sessions` (profile_id-Spalte).
+
+**Tests:** 132 Tests — alle grün.
+
+---
+
+## v3.0.0 — Juni 2026 — WoW-Tools Sprint, Gmail, Musik, Duplikate
+
+**Ziel:** E.L.L.A. wird zum vollwertigen täglichen Produktivitäts-Assistenten. Alle "World of Work"-Funktionen in einem Sprint.
+
+**WoW-Tools (14 neue Tools):**
+
+| Tool              | Beschreibung                                              |
+| ----------------- | --------------------------------------------------------- |
+| `list_processes`  | Prozessliste sortiert nach RAM/CPU-Verbrauch              |
+| `kill_process`    | Prozess beenden (systemkritische Prozesse geblockt)       |
+| `set_volume`      | Systemlautstärke 0–100% via NirCmd                        |
+| `get_clipboard`   | Aktuellen Inhalt der Zwischenablage lesen                 |
+| `set_clipboard`   | Text in die Zwischenablage schreiben                      |
+| `set_reminder`    | Windows Task Scheduler — `schtasks /Create`               |
+| `list_reminders`  | Alle ELLA-Erinnerungen aus dem Task Scheduler             |
+| `delete_reminder` | Erinnerung per ID löschen                                 |
+| `take_screenshot` | GDI+ Screenshot → GPT-4o Vision-Analyse                   |
+| `write_for_me`    | Stilprofil aus E-Mail-Historie → Text im Nutzerstil       |
+| `find_duplicates` | Hash-basierte Duplikatsuche auf konfigurierten Laufwerken |
+| `list_autostart`  | Autostart-Einträge aus Registry + Task Scheduler          |
+| `compose_email`   | Outlook-Entwurf erstellen (sendet nicht automatisch)      |
+| `play_music`      | Musikbibliothek durchsuchen und Media Player öffnen       |
+
+**Gmail + Google Calendar via OAuth 2.0:** `read_gmail`, `mark_gmail`, `read_google_calendar`, `create_google_appointment` — Token lokal gespeichert, nie weitergegeben.
+
+**Background Worker erweitert:** PnP-Events (USB-Geräte), ARP-Scan (neue Netzwerkgeräte), TCP-Verbindungen, Firewall-Status, WiFi-DNS-Überwachung.
+
+**Onboarding:** 6-Schritt-Flow — EULA, Name, Direktive, Hardware-Scan, Stimme, Standort.
+
+**System Tray:** Typisierte Balloon-Alerts (`warning`/`error`/`info`/`device`) mit Schweregrad-Sound.
+
+---
+
+## v2.9.0 — Juni 2026 — Datei-Ops + Diktat + Directive UI
+
+**Ziel:** E.L.L.A. bekommt Zugriff auf das Dateisystem und kann in laufende Word-Dokumente diktieren. Außerdem: roter Badge im Chat bei Direktiven-Ablehnung.
+
+**Datei-Tools:**
+
+| Tool                  | Beschreibung                                               |
+| --------------------- | ---------------------------------------------------------- |
+| `search_files`        | Rekursive Dateisuche nach Name/Extension/Laufwerk          |
+| `open_file`           | Datei mit Standardprogramm öffnen (inkl. Word-Cursor-Ende) |
+| `explore_folder`      | Ordner im Explorer öffnen                                  |
+| `create_document`     | Neues Word-Dokument (.docx) oder TXT-Datei erstellen       |
+| `dictate_to_document` | Text in offenes Word-Dokument diktieren + KI-Korrektur     |
+
+**Directive Denial UI:** Wenn die Rule-Engine oder Direktive einen Tool-Aufruf ablehnt, erscheint im Chat ein roter Badge mit dem Ablehnungsgrund. Der Nutzer sieht sofort warum ELLA nicht gehandelt hat.
+
+**`open_file` mit Word-Cursor-Ende:** Öffnet `.docx`-Dateien via COM-Automation und setzt den Cursor automatisch ans Dokumentende — sofort bereit für Diktat.
+
+**`dictate_to_document`:** KI-Korrektur via Ollama/OpenAI — Rechtschreibung, Grammatik, Zeichensetzung — bevor der Text in Word eingefügt wird.
+
+---
+
 ## v1.0.0-rc — 28.05.2026 — Installer & Deployment
 
 **Ziel:** E.L.L.A. wird installierbar. NSIS-Installer für Windows, EULA-Einblendung beim ersten Start, automatische Abhängigkeitsprüfung vor dem ersten Chat.

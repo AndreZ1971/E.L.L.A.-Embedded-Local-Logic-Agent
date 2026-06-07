@@ -1,4 +1,4 @@
-# Datenbank — v1.0.0
+# Datenbank — v3.4.0
 
 **System:** MariaDB 12.2.2
 **Datenbankname:** `ella`
@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS rules (
 
 **Hinweis:** `` `trigger` `` muss mit Backticks geschrieben werden — `trigger` ist ein reserviertes SQL-Keyword.
 
-**Default-Regeln (IDs 1–16):** Per `INSERT IGNORE` beim Start eingespielt. `clean_temp` und `empty_recycle_bin` haben bewusst keine Default-Regel — müssen explizit freigeschaltet werden.
+**Default-Regeln (IDs 1–82):** Per `INSERT IGNORE` beim Start eingespielt. `clean_temp` und `empty_recycle_bin` haben bewusst keine Default-Regel — müssen explizit freigeschaltet werden.
 
 ---
 
@@ -205,6 +205,97 @@ CREATE TABLE IF NOT EXISTS settings (
 ```
 
 Aktuell nicht aktiv genutzt — E.L.L.A. speichert Einstellungen in `apps/api/settings.json` (einfachere Migration, kein Schema-Lock-in). Die Tabelle bleibt im Schema für zukünftige Nutzung reserviert.
+
+---
+
+### `profiles` — Nutzerprofile (v3.1.0)
+
+```sql
+CREATE TABLE IF NOT EXISTS profiles (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(255) NOT NULL,
+  color      VARCHAR(7)   NOT NULL DEFAULT '#7C3AED',
+  pin_hash   VARCHAR(255),
+  pin_salt   VARCHAR(255),
+  is_default BOOLEAN      NOT NULL DEFAULT FALSE,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+| Spalte       | Typ          | Beschreibung                                             |
+| ------------ | ------------ | -------------------------------------------------------- |
+| `pin_hash`   | VARCHAR(255) | PBKDF2-Hash (100k Iterationen, SHA-512), NULL = kein PIN |
+| `pin_salt`   | VARCHAR(255) | Zufälliger Salt, 32 Bytes als Hex                        |
+| `is_default` | BOOLEAN      | Genau ein Profil ist Default (wird beim Start geladen)   |
+
+`memories` und `sessions` haben eine `profile_id INT NULL`-Spalte — NULL bedeutet das Standard-Profil.
+
+---
+
+### `tasks` — Aufgabenliste (v3.1.0)
+
+```sql
+CREATE TABLE IF NOT EXISTS tasks (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  profile_id  INT          NULL,
+  title       VARCHAR(500) NOT NULL,
+  priority    ENUM('low', 'normal', 'high') NOT NULL DEFAULT 'normal',
+  due_date    DATE         NULL,
+  completed   BOOLEAN      NOT NULL DEFAULT FALSE,
+  completed_at DATETIME    NULL,
+  created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+| Spalte       | Typ  | Beschreibung                                                        |
+| ------------ | ---- | ------------------------------------------------------------------- |
+| `priority`   | ENUM | `high` → `normal` → `low` — Sortierreihenfolge in `list_tasks`      |
+| `due_date`   | DATE | Optionales Fälligkeitsdatum — wird im Tagesabschluss berücksichtigt |
+| `profile_id` | INT  | NULL = Profil-unabhängige Aufgabe                                   |
+
+---
+
+### `user_feedback` — Feedback-Buttons (v3.1.0)
+
+```sql
+CREATE TABLE IF NOT EXISTS user_feedback (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  session_id  VARCHAR(255) NOT NULL,
+  message_idx INT          NOT NULL,
+  feedback    ENUM('up', 'down') NOT NULL,
+  created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+| Spalte        | Typ  | Beschreibung                                   |
+| ------------- | ---- | ---------------------------------------------- |
+| `message_idx` | INT  | Index der Nachricht im Gesprächsverlauf        |
+| `feedback`    | ENUM | `up` (Daumen hoch) oder `down` (Daumen runter) |
+
+Feedback wird **nie** in den LLM-Kontext eingebettet — ausschließlich zur späteren Auswertung.
+
+---
+
+### `directive_audit` — Direktiven-Protokoll (v3.2.0)
+
+```sql
+CREATE TABLE IF NOT EXISTS directive_audit (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  tool_name   VARCHAR(100) NOT NULL,
+  reason      VARCHAR(100) NOT NULL,
+  session_id  VARCHAR(255),
+  created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+| Spalte      | Typ          | Beschreibung                                             |
+| ----------- | ------------ | -------------------------------------------------------- |
+| `tool_name` | VARCHAR(100) | Das abgelehnte Tool                                      |
+| `reason`    | VARCHAR(100) | Welches Verbot ausgelöst wurde (`harm`, `exfiltrate`, …) |
+
+Jede Direktiven-Ablehnung wird hier protokolliert — unabhängig vom Tool-Execution-Audit-Log.
 
 ---
 
