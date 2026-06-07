@@ -135,6 +135,11 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "delete_file", label: "Datei/Ordner in Papierkorb" },
   { name: "manage_service", label: "Windows-Dienste verwalten" },
   { name: "read_screen", label: "Bildschirm lesen (lokales OCR, offline)" },
+  { name: "move_mouse", label: "Maus bewegen" },
+  { name: "click_at", label: "Mausklick an Position" },
+  { name: "drag_drop", label: "Drag & Drop" },
+  { name: "run_command", label: "PowerShell-Befehl ausführen (lesend)" },
+  { name: "watch_screen", label: "Bildschirm beobachten (OCR-Loop, offline)" },
 ];
 
 const input: React.CSSProperties = {

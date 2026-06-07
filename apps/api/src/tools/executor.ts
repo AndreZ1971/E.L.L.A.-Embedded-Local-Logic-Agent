@@ -90,6 +90,8 @@ import {
 import { deleteToRecycleBin } from "../services/fileOps.js";
 import { listServicesPs, controlService } from "../services/serviceManager.js";
 import { readScreenOcr } from "../services/ocr.js";
+import { moveMouse, clickAt, dragDrop } from "../services/mouseControl.js";
+import { runSafeCommand } from "../services/shellRunner.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -2238,6 +2240,166 @@ else { $results | ConvertTo-Json -Compress }`.trim();
         error: err instanceof Error ? err.message : String(err),
       };
     }
+  },
+
+  // ── v3.3.0 Mouse, Shell, Screen Monitor ──────────────────────────────────────
+
+  move_mouse: async (args) => {
+    const x = Number(args["x"]);
+    const y = Number(args["y"]);
+    if (isNaN(x) || isNaN(y))
+      return { success: false, error: "Koordinaten fehlen oder ungültig." };
+
+    const result = moveMouse(x, y);
+    trackToolUsage("move_mouse", `${x},${y}`);
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, output: `Maus bewegt zu (${x}, ${y}).` };
+  },
+
+  click_at: async (args) => {
+    const x = Number(args["x"]);
+    const y = Number(args["y"]);
+    if (isNaN(x) || isNaN(y))
+      return { success: false, error: "Koordinaten fehlen oder ungültig." };
+
+    const button = (args["button"] as "left" | "right" | "middle") ?? "left";
+    const double = args["double"] === true;
+    const btnLabel = double
+      ? `Doppelklick (${button})`
+      : `${button === "left" ? "Links" : button === "right" ? "Rechts" : "Mittel"}klick`;
+
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `${btnLabel} an Position (${x}, ${y})?`,
+      pendingAction: {
+        tool: "click_at_confirmed",
+        args: { x, y, button, double },
+      },
+    };
+  },
+
+  click_at_confirmed: async (args) => {
+    const x = Number(args["x"]);
+    const y = Number(args["y"]);
+    const button = (args["button"] as "left" | "right" | "middle") ?? "left";
+    const double = args["double"] === true;
+
+    const result = clickAt(x, y, button, double);
+    trackToolUsage("click_at", `${x},${y}`);
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, output: `Klick an (${x}, ${y}) ausgeführt.` };
+  },
+
+  drag_drop: async (args) => {
+    const fromX = Number(args["from_x"]);
+    const fromY = Number(args["from_y"]);
+    const toX = Number(args["to_x"]);
+    const toY = Number(args["to_y"]);
+
+    if ([fromX, fromY, toX, toY].some(isNaN))
+      return { success: false, error: "Koordinaten fehlen oder ungültig." };
+
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `Drag von (${fromX}, ${fromY}) nach (${toX}, ${toY})?`,
+      pendingAction: {
+        tool: "drag_drop_confirmed",
+        args: { from_x: fromX, from_y: fromY, to_x: toX, to_y: toY },
+      },
+    };
+  },
+
+  drag_drop_confirmed: async (args) => {
+    const fromX = Number(args["from_x"]);
+    const fromY = Number(args["from_y"]);
+    const toX = Number(args["to_x"]);
+    const toY = Number(args["to_y"]);
+
+    const result = dragDrop(fromX, fromY, toX, toY);
+    trackToolUsage("drag_drop", `(${fromX},${fromY})→(${toX},${toY})`);
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      output: `Drag von (${fromX}, ${fromY}) nach (${toX}, ${toY}) ausgeführt.`,
+    };
+  },
+
+  run_command: async (args) => {
+    const command = ((args["command"] as string) ?? "").trim();
+    if (!command) return { success: false, error: "Befehl fehlt." };
+
+    const preview = command.length > 60 ? `${command.slice(0, 60)}…` : command;
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `PowerShell ausführen: "${preview}"?`,
+      pendingAction: { tool: "run_command_confirmed", args: { command } },
+    };
+  },
+
+  run_command_confirmed: async (args) => {
+    const command = ((args["command"] as string) ?? "").trim();
+    if (!command) return { success: false, error: "Befehl fehlt." };
+
+    const result = runSafeCommand(command);
+    trackToolUsage("run_command", command.slice(0, 80));
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, output: { command, result: result.output ?? "" } };
+  },
+
+  watch_screen: async (args) => {
+    const durationSec = Math.min(
+      30,
+      Math.max(5, Number(args["duration"]) || 10),
+    );
+    const intervalSec = Math.min(
+      15,
+      Math.max(3, Number(args["interval"]) || 5),
+    );
+    const maxSnaps = Math.max(2, Math.floor(durationSec / intervalSec));
+
+    const snapshots: { time: string; text: string }[] = [];
+    for (let i = 0; i < maxSnaps; i++) {
+      const time = new Date().toLocaleTimeString("de-DE");
+      try {
+        const text = await readScreenOcr();
+        snapshots.push({ time, text });
+      } catch {
+        snapshots.push({ time, text: "[OCR-Fehler]" });
+      }
+      if (i < maxSnaps - 1) {
+        await new Promise((resolve) => setTimeout(resolve, intervalSec * 1000));
+      }
+    }
+
+    const changes: string[] = [];
+    for (let i = 1; i < snapshots.length; i++) {
+      const prev = new Set(snapshots[i - 1].text.split("\n").filter(Boolean));
+      const newLines = snapshots[i].text
+        .split("\n")
+        .filter((l) => l.trim() && !prev.has(l));
+      if (newLines.length > 0) {
+        changes.push(
+          `[${snapshots[i].time}] ${newLines.slice(0, 5).join(" | ")}`,
+        );
+      }
+    }
+
+    trackToolUsage(
+      "watch_screen",
+      `${durationSec}s / ${snapshots.length} Snapshots`,
+    );
+    return {
+      success: true,
+      output: {
+        duration: durationSec,
+        snapshots: snapshots.length,
+        latest: snapshots[snapshots.length - 1]?.text ?? "",
+        changes: changes.length > 0 ? changes : ["Keine Änderungen erkannt."],
+      },
+    };
   },
 
   pause_ella: async (args) => {

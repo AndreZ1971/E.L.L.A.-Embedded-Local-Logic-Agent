@@ -1454,5 +1454,118 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  // ── v3.3.0 Mouse, Shell, Screen Monitor ──────────────────────────────────────
+  defs.push({
+    type: "function",
+    function: {
+      name: "move_mouse",
+      description:
+        "Bewegt den Mauszeiger zu einer bestimmten Bildschirmposition. Keine Aktion — nur Bewegung.",
+      parameters: {
+        type: "object",
+        properties: {
+          x: { type: "number", description: "X-Koordinate in Pixel" },
+          y: { type: "number", description: "Y-Koordinate in Pixel" },
+        },
+        required: ["x", "y"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "click_at",
+      description:
+        "Klickt an einer bestimmten Bildschirmposition. " +
+        "Sicherheitskritische Fenster (Passwort-Manager, Banking) werden blockiert. " +
+        "Immer Bestätigung einholen — zeige Koordinaten und aktives Fenster.",
+      parameters: {
+        type: "object",
+        properties: {
+          x: { type: "number", description: "X-Koordinate in Pixel" },
+          y: { type: "number", description: "Y-Koordinate in Pixel" },
+          button: {
+            type: "string",
+            description: '"left" (Standard), "right", "middle"',
+          },
+          double: {
+            type: "boolean",
+            description: "true für Doppelklick (Standard: false)",
+          },
+        },
+        required: ["x", "y"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "drag_drop",
+      description:
+        "Zieht die Maus von einer Position zu einer anderen (Drag & Drop). " +
+        "Nützlich zum Verschieben von Dateien, Fenstern oder Elementen. " +
+        "Immer Bestätigung einholen.",
+      parameters: {
+        type: "object",
+        properties: {
+          from_x: { type: "number", description: "Start X-Koordinate" },
+          from_y: { type: "number", description: "Start Y-Koordinate" },
+          to_x: { type: "number", description: "Ziel X-Koordinate" },
+          to_y: { type: "number", description: "Ziel Y-Koordinate" },
+        },
+        required: ["from_x", "from_y", "to_x", "to_y"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "run_command",
+      description:
+        "Führt einen lesenden PowerShell-Befehl aus. " +
+        "Erlaubt: Get-*, Select-*, Where-*, Sort-*, Measure-*, Format-*, Test-Path, usw. " +
+        "Gesperrt: alle schreibenden, netzwerk- oder ausführenden Operationen. " +
+        "Immer Bestätigung einholen — zeige den genauen Befehl.",
+      parameters: {
+        type: "object",
+        properties: {
+          command: {
+            type: "string",
+            description:
+              'PowerShell-Befehl, z.B. "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10"',
+          },
+        },
+        required: ["command"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "watch_screen",
+      description:
+        "Beobachtet den Bildschirm für eine kurze Zeit via lokalem OCR und meldet Änderungen. " +
+        "Vollständig offline — kein Cloud-Dienst. Maximal 30 Sekunden, opt-in durch den Nutzer.",
+      parameters: {
+        type: "object",
+        properties: {
+          duration: {
+            type: "number",
+            description: "Beobachtungsdauer in Sekunden (5–30, Standard: 10)",
+          },
+          interval: {
+            type: "number",
+            description:
+              "Abstand zwischen Snapshots in Sekunden (3–15, Standard: 5)",
+          },
+        },
+      },
+    },
+  });
+
   return defs;
 }

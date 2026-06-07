@@ -71,7 +71,15 @@ export type ToolName =
   | "delete_file_confirmed"
   | "manage_service"
   | "manage_service_confirmed"
-  | "read_screen";
+  | "read_screen"
+  | "click_at"
+  | "click_at_confirmed"
+  | "move_mouse"
+  | "drag_drop"
+  | "drag_drop_confirmed"
+  | "run_command"
+  | "run_command_confirmed"
+  | "watch_screen";
 
 export interface ToolCall {
   tool: ToolName;

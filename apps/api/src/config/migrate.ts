@@ -208,6 +208,11 @@ export async function runMigrations(): Promise<void> {
     [61, "Datei in Papierkorb erlaubt", "delete_file"],
     [62, "Dienste verwalten erlaubt", "manage_service"],
     [63, "Bildschirm lesen (OCR) erlaubt", "read_screen"],
+    [64, "Mausklick erlaubt", "click_at"],
+    [65, "Mausbewegung erlaubt", "move_mouse"],
+    [66, "Drag and Drop erlaubt", "drag_drop"],
+    [67, "Befehl ausfuehren erlaubt", "run_command"],
+    [68, "Bildschirm beobachten erlaubt", "watch_screen"],
   ] as const) {
     await exec(`
       INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)

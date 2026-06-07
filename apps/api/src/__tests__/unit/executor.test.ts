@@ -95,6 +95,14 @@ vi.mock("../../services/serviceManager.js", () => ({
 vi.mock("../../services/ocr.js", () => ({
   readScreenOcr: vi.fn(() => Promise.resolve("Hallo Welt OCR")),
 }));
+vi.mock("../../services/mouseControl.js", () => ({
+  moveMouse: vi.fn(() => ({ success: true })),
+  clickAt: vi.fn(() => ({ success: true })),
+  dragDrop: vi.fn(() => ({ success: true })),
+}));
+vi.mock("../../services/shellRunner.js", () => ({
+  runSafeCommand: vi.fn(() => ({ success: true, output: "PID 1234" })),
+}));
 vi.mock("util", () => ({
   promisify: vi.fn((fn: unknown) =>
     vi.fn().mockResolvedValue({ stdout: "", stderr: "" }),
@@ -192,6 +200,8 @@ import {
   controlService,
 } from "../../services/serviceManager.js";
 import { readScreenOcr } from "../../services/ocr.js";
+import { moveMouse, clickAt, dragDrop } from "../../services/mouseControl.js";
+import { runSafeCommand } from "../../services/shellRunner.js";
 
 describe("toolExecutor", () => {
   beforeEach(() => {
@@ -786,6 +796,11 @@ const wowSettings = {
     "delete_file",
     "manage_service",
     "read_screen",
+    "move_mouse",
+    "click_at",
+    "drag_drop",
+    "run_command",
+    "watch_screen",
   ],
   apps: [],
   homeworkMode: { active: false, apps: [], pinHash: "" },
@@ -1320,5 +1335,197 @@ describe("read_screen", () => {
     });
     expect(result.success).toBe(false);
     expect(result.error).toContain("OCR");
+  });
+});
+
+// ── v3.3.0 Mouse, Shell, Screen Monitor ──────────────────────────────────────
+
+describe("move_mouse", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(moveMouse).mockClear();
+  });
+
+  it("Fehler ohne Koordinaten", async () => {
+    const result = await toolExecutor.execute({ tool: "move_mouse", args: {} });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Koordinaten");
+  });
+
+  it("bewegt Maus und gibt Position zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "move_mouse",
+      args: { x: 400, y: 300 },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("400");
+    expect(moveMouse).toHaveBeenCalledWith(400, 300);
+  });
+});
+
+describe("click_at", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(clickAt).mockClear();
+  });
+
+  it("Fehler ohne Koordinaten", async () => {
+    const result = await toolExecutor.execute({ tool: "click_at", args: {} });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Koordinaten");
+  });
+
+  it("gibt Bestätigung zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "click_at",
+      args: { x: 100, y: 200 },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.pendingAction?.tool).toBe("click_at_confirmed");
+    expect(result.confirmationMessage).toContain("100");
+  });
+
+  it("click_at_confirmed führt Klick aus", async () => {
+    const result = await toolExecutor.execute({
+      tool: "click_at_confirmed",
+      args: { x: 100, y: 200, button: "left", double: false },
+    });
+    expect(result.success).toBe(true);
+    expect(clickAt).toHaveBeenCalledWith(100, 200, "left", false);
+  });
+
+  it("click_at_confirmed — sicherheitskritisches Fenster blockiert", async () => {
+    vi.mocked(clickAt).mockReturnValueOnce({
+      success: false,
+      error: "Klick nicht erlaubt — aktives Fenster ist sicherheitskritisch.",
+    });
+    const result = await toolExecutor.execute({
+      tool: "click_at_confirmed",
+      args: { x: 50, y: 50, button: "left", double: false },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("sicherheitskritisch");
+  });
+});
+
+describe("drag_drop", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(dragDrop).mockClear();
+  });
+
+  it("Fehler wenn Koordinaten fehlen", async () => {
+    const result = await toolExecutor.execute({
+      tool: "drag_drop",
+      args: { from_x: 10 },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Koordinaten");
+  });
+
+  it("gibt Bestätigung zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "drag_drop",
+      args: { from_x: 100, from_y: 100, to_x: 500, to_y: 300 },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.pendingAction?.tool).toBe("drag_drop_confirmed");
+  });
+
+  it("drag_drop_confirmed führt Drag aus", async () => {
+    const result = await toolExecutor.execute({
+      tool: "drag_drop_confirmed",
+      args: { from_x: 100, from_y: 100, to_x: 500, to_y: 300 },
+    });
+    expect(result.success).toBe(true);
+    expect(dragDrop).toHaveBeenCalledWith(100, 100, 500, 300);
+  });
+});
+
+describe("run_command", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(runSafeCommand).mockClear();
+  });
+
+  it("Fehler wenn Befehl fehlt", async () => {
+    const result = await toolExecutor.execute({
+      tool: "run_command",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("gibt Bestätigung mit Befehl zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "run_command",
+      args: { command: "Get-Process | Select-Object -First 5" },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.confirmationMessage).toContain("Get-Process");
+  });
+
+  it("run_command_confirmed führt Befehl aus", async () => {
+    const result = await toolExecutor.execute({
+      tool: "run_command_confirmed",
+      args: { command: "Get-Process | Select-Object -First 5" },
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).result).toBe("PID 1234");
+    expect(runSafeCommand).toHaveBeenCalledWith(
+      "Get-Process | Select-Object -First 5",
+    );
+  });
+
+  it("run_command_confirmed — gesperrtes Muster blockiert", async () => {
+    vi.mocked(runSafeCommand).mockReturnValueOnce({
+      success: false,
+      error: "Befehl enthält gesperrte Operation.",
+    });
+    const result = await toolExecutor.execute({
+      tool: "run_command_confirmed",
+      args: { command: "Remove-Item C:\\evil.txt" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("gesperrte");
+  });
+});
+
+describe("watch_screen", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(readScreenOcr).mockClear();
+  });
+
+  it("gibt Snapshots und latest-Text zurück", async () => {
+    vi.mocked(readScreenOcr)
+      .mockResolvedValueOnce("Zeile A\nZeile B")
+      .mockResolvedValueOnce("Zeile A\nZeile C");
+    const result = await toolExecutor.execute({
+      tool: "watch_screen",
+      args: { duration: 5, interval: 3 },
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).snapshots).toBeGreaterThanOrEqual(1);
+    expect((result.output as any).latest).toContain("Zeile");
+  });
+
+  it("erkennt Änderungen zwischen Snapshots", async () => {
+    vi.mocked(readScreenOcr)
+      .mockResolvedValueOnce("Alt\nUnverändert")
+      .mockResolvedValueOnce("Neu\nUnverändert");
+    const result = await toolExecutor.execute({
+      tool: "watch_screen",
+      args: { duration: 5, interval: 3 },
+    });
+    expect(result.success).toBe(true);
+    const changes = (result.output as any).changes as string[];
+    expect(changes.some((c: string) => c.includes("Neu"))).toBe(true);
   });
 });
