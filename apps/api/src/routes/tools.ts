@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { toolExecutor, formatDriveConfirmed } from "../tools/executor.js";
+import { toolExecutor } from "../tools/executor.js";
 import { getSettings } from "../services/settings.js";
-import type { ToolCall } from "@ella/shared";
+import type { ToolCall, ToolName } from "@ella/shared";
 
 export const toolsRouter = Router();
 
@@ -29,13 +29,14 @@ toolsRouter.post("/confirm", async (req, res, next) => {
       tool: string;
       args: Record<string, unknown>;
     };
-    if (tool !== "format_drive_confirmed") {
+    if (!tool || !tool.endsWith("_confirmed")) {
       res.status(400).json({ success: false, error: "Nicht erlaubt." });
       return;
     }
-    const result = await formatDriveConfirmed(
-      args as { drive: string; filesystem: string; label?: string },
-    );
+    const result = await toolExecutor.execute({
+      tool: tool as ToolName,
+      args: args ?? {},
+    });
     res.json(result);
   } catch (err) {
     next(err);

@@ -82,6 +82,14 @@ import {
   writeInUserStyle,
 } from "../services/styleProfile.js";
 import { findDuplicates } from "../services/duplicateFinder.js";
+import {
+  launchApp,
+  controlWindow,
+  sendKeysToWindow,
+} from "../services/windowManager.js";
+import { deleteToRecycleBin } from "../services/fileOps.js";
+import { listServicesPs, controlService } from "../services/serviceManager.js";
+import { readScreenOcr } from "../services/ocr.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -1996,6 +2004,242 @@ else { $results | ConvertTo-Json -Compress }`.trim();
       : { success: false, error: `Aufgabe ${id} nicht gefunden.` };
   },
 
+  // ── v3.2.0 System Automation ─────────────────────────────────────────────────
+
+  launch_app: async (args) => {
+    const appName = ((args["app"] as string) ?? "").trim();
+    if (!appName) return { success: false, error: "App-Name fehlt." };
+
+    const argsArr = ((args["args"] as string) ?? "")
+      .split(" ")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const cmdLower = appName.toLowerCase();
+    if (BLOCKED_PATH_FRAGMENTS.some((b) => cmdLower.includes(b))) {
+      return {
+        success: false,
+        directive: true,
+        error: `"${appName}" liegt in einem gesperrten Systempfad.`,
+      };
+    }
+    const exeName = path.basename(cmdLower, ".exe");
+    if (BLOCKED_NAME_PATTERNS.some((b) => exeName.includes(b))) {
+      return {
+        success: false,
+        directive: true,
+        error: `"${appName}" ist ein gesperrtes Systemprogramm.`,
+      };
+    }
+
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `Programm "${appName}" starten?${argsArr.length ? ` (Argumente: ${argsArr.join(" ")})` : ""}`,
+      pendingAction: {
+        tool: "launch_app_confirmed",
+        args: { app: appName, args: argsArr },
+      },
+    };
+  },
+
+  launch_app_confirmed: async (args) => {
+    const appName = (args["app"] as string) ?? "";
+    const argsArr = (args["args"] as string[]) ?? [];
+    const result = launchApp(appName, argsArr);
+    trackToolUsage("launch_app", appName);
+    if (result.error) return { success: false, error: result.error };
+    return {
+      success: true,
+      output: `"${appName}" gestartet${result.pid ? ` (PID ${result.pid})` : ""}.`,
+    };
+  },
+
+  control_window: async (args) => {
+    const title = ((args["title"] as string) ?? "").trim();
+    const action = ((args["action"] as string) ?? "focus") as
+      | "focus"
+      | "minimize"
+      | "maximize"
+      | "close";
+
+    if (!title) return { success: false, error: "Fenstertitel fehlt." };
+
+    const validActions = ["focus", "minimize", "maximize", "close"];
+    if (!validActions.includes(action)) {
+      return {
+        success: false,
+        error: `Ungültige Aktion. Erlaubt: ${validActions.join(", ")}`,
+      };
+    }
+
+    if (action === "close") {
+      return {
+        success: false,
+        requiresConfirmation: true,
+        confirmationMessage: `Fenster "${title}" schließen? Nicht gespeicherte Daten gehen verloren.`,
+        pendingAction: {
+          tool: "control_window_confirmed",
+          args: { title, action },
+        },
+      };
+    }
+
+    const result = controlWindow(title, action);
+    trackToolUsage("control_window", `${action}:${title}`);
+    if (result.error) return { success: false, error: result.error };
+    return result.found > 0
+      ? {
+          success: true,
+          output: `Aktion "${action}" auf ${result.found} Fenster ausgeführt.`,
+        }
+      : { success: false, error: `Kein Fenster mit "${title}" gefunden.` };
+  },
+
+  control_window_confirmed: async (args) => {
+    const title = (args["title"] as string) ?? "";
+    const action = (args["action"] as "close") ?? "close";
+    const result = controlWindow(title, action);
+    trackToolUsage("control_window", `${action}:${title}`);
+    if (result.error) return { success: false, error: result.error };
+    return result.found > 0
+      ? { success: true, output: `${result.found} Fenster geschlossen.` }
+      : { success: false, error: `Kein Fenster mit "${title}" gefunden.` };
+  },
+
+  send_keys: async (args) => {
+    const keys = ((args["keys"] as string) ?? "").trim();
+    const window = ((args["window"] as string) ?? "").trim() || undefined;
+
+    if (!keys) return { success: false, error: "Tasteneingabe fehlt." };
+
+    const preview = keys.length > 30 ? `${keys.slice(0, 30)}…` : keys;
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `Eingabe "${preview}" senden${window ? ` an "${window}"` : " (aktives Fenster)"}?`,
+      pendingAction: { tool: "send_keys_confirmed", args: { keys, window } },
+    };
+  },
+
+  send_keys_confirmed: async (args) => {
+    const keys = (args["keys"] as string) ?? "";
+    const window = (args["window"] as string | undefined) ?? undefined;
+    const result = sendKeysToWindow(keys, window);
+    trackToolUsage("send_keys", window ?? "active");
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, output: "Tastatureingabe gesendet." };
+  },
+
+  delete_file: async (args) => {
+    const filePath = ((args["path"] as string) ?? "").trim();
+    if (!filePath) return { success: false, error: "Pfad fehlt." };
+
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `"${filePath}" in den Papierkorb verschieben?`,
+      pendingAction: {
+        tool: "delete_file_confirmed",
+        args: { path: filePath },
+      },
+    };
+  },
+
+  delete_file_confirmed: async (args) => {
+    const filePath = (args["path"] as string) ?? "";
+    const result = deleteToRecycleBin(filePath);
+    trackToolUsage("delete_file", filePath);
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      output: `"${filePath}" in den Papierkorb verschoben.`,
+    };
+  },
+
+  manage_service: async (args) => {
+    const action = ((args["action"] as string) ?? "list").toLowerCase();
+    const name = ((args["name"] as string) ?? "").trim();
+    const filter = ((args["filter"] as string) ?? "").trim() || undefined;
+
+    if (action === "list") {
+      const services = listServicesPs(filter);
+      trackToolUsage("manage_service", "list");
+      return { success: true, output: { count: services.length, services } };
+    }
+
+    if (!["start", "stop", "restart"].includes(action)) {
+      return {
+        success: false,
+        error: 'Aktion muss "list", "start", "stop" oder "restart" sein.',
+      };
+    }
+    if (!name) return { success: false, error: "Dienstname fehlt." };
+
+    const PROTECTED = [
+      "winlogon",
+      "lsass",
+      "services",
+      "smss",
+      "wininit",
+      "csrss",
+      "spooler",
+      "eventlog",
+      "plugplay",
+      "rpcss",
+      "dcomlaunch",
+    ];
+    if (PROTECTED.some((p) => name.toLowerCase().includes(p))) {
+      return {
+        success: false,
+        directive: true,
+        error: `Dienst "${name}" ist systemkritisch und kann nicht geändert werden.`,
+      };
+    }
+
+    const labels: Record<string, string> = {
+      start: "starten",
+      stop: "stoppen",
+      restart: "neu starten",
+    };
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `Dienst "${name}" ${labels[action]}?`,
+      pendingAction: {
+        tool: "manage_service_confirmed",
+        args: { name, action },
+      },
+    };
+  },
+
+  manage_service_confirmed: async (args) => {
+    const name = (args["name"] as string) ?? "";
+    const action = (args["action"] as "start" | "stop" | "restart") ?? "start";
+    const result = controlService(name, action);
+    trackToolUsage("manage_service", `${action}:${name}`);
+    if (!result.success) return { success: false, error: result.error };
+    const done: Record<string, string> = {
+      start: "gestartet",
+      stop: "gestoppt",
+      restart: "neu gestartet",
+    };
+    return { success: true, output: `Dienst "${name}" ${done[action]}.` };
+  },
+
+  read_screen: async () => {
+    try {
+      const text = await readScreenOcr();
+      trackToolUsage("read_screen", "ocr");
+      return { success: true, output: { text } };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
+
   pause_ella: async (args) => {
     const minutes = Math.min(120, Math.max(1, Number(args["minutes"]) || 10));
     const resumeAt = new Date(Date.now() + minutes * 60 * 1000).toISOString();
@@ -2037,7 +2281,8 @@ export const toolExecutor = {
     const name = call.tool;
 
     const { enabledTools } = getSettings();
-    if (!enabledTools.includes(name)) {
+    // _confirmed-Tools sind interne Callbacks nach Nutzer-Bestätigung — kein enabledTools-Check
+    if (!name.endsWith("_confirmed") && !enabledTools.includes(name)) {
       return {
         success: false,
         error: `Das kann ich gerade nicht — diese Funktion ist deaktiviert.`,

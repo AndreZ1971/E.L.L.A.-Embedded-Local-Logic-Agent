@@ -1315,5 +1315,144 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  // ── v3.2.0 System Automation ─────────────────────────────────────────────────
+  defs.push({
+    type: "function",
+    function: {
+      name: "launch_app",
+      description:
+        "Startet ein Programm auf dem Windows-System. Kann beliebige Apps per Name oder Pfad starten. " +
+        'Nutze dies wenn der Nutzer sagt "starte X", "öffne X" (wenn nicht in App-Liste), "starte Y mit Argument Z".',
+      parameters: {
+        type: "object",
+        properties: {
+          app: {
+            type: "string",
+            description:
+              'Programmname oder Pfad, z.B. "notepad", "chrome", "C:\\\\MeinApp\\\\app.exe"',
+          },
+          args: {
+            type: "string",
+            description: "Optionale Argumente, leerzeichen-getrennt (optional)",
+          },
+        },
+        required: ["app"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "control_window",
+      description:
+        "Steuert ein Fenster: in den Vordergrund bringen, minimieren, maximieren oder schließen. " +
+        "Sucht Fenster anhand des Titels (Teilstring).",
+      parameters: {
+        type: "object",
+        properties: {
+          title: {
+            type: "string",
+            description:
+              'Fenstertitel oder Teil davon, z.B. "Notepad", "Chrome", "Word"',
+          },
+          action: {
+            type: "string",
+            description:
+              '"focus" (in Vordergrund), "minimize", "maximize", "close"',
+          },
+        },
+        required: ["title", "action"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "send_keys",
+      description:
+        "Sendet Tastatureingaben an ein Fenster oder das aktuell aktive Fenster. " +
+        "Format: Text wird direkt getippt. Sondertasten: {ENTER}, {TAB}, {ESC}, {F1}–{F16}, {BACKSPACE}, {DELETE}. " +
+        "Modifikatoren: ^ = Ctrl, % = Alt, + = Shift. Beispiel: ^s = Ctrl+S, ^a{DELETE} = Alles markieren und löschen.",
+      parameters: {
+        type: "object",
+        properties: {
+          keys: {
+            type: "string",
+            description:
+              'Tastatureingabe im WScript.Shell-Format, z.B. "Hallo Welt{ENTER}" oder "^s"',
+          },
+          window: {
+            type: "string",
+            description:
+              "Zielfenster-Titel (optional — ohne Angabe: aktives Fenster)",
+          },
+        },
+        required: ["keys"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "delete_file",
+      description:
+        "Verschiebt eine Datei oder einen Ordner in den Windows-Papierkorb (KEIN permanentes Löschen). " +
+        "Systempfade sind gesperrt. Immer Bestätigung einholen.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description:
+              'Pfad zur Datei oder zum Ordner, z.B. "E:\\\\Temp\\\\alt.docx"',
+          },
+        },
+        required: ["path"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "manage_service",
+      description:
+        "Verwaltet Windows-Dienste: auflisten, starten, stoppen oder neu starten. " +
+        "Systemkritische Dienste sind geschützt.",
+      parameters: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            description: '"list" (Standard), "start", "stop", "restart"',
+          },
+          name: {
+            type: "string",
+            description:
+              'Dienstname (erforderlich für start/stop/restart), z.B. "Spooler", "wuauserv"',
+          },
+          filter: {
+            type: "string",
+            description: "Suchbegriff für action=list (optional)",
+          },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "read_screen",
+      description:
+        "Liest Text vom Bildschirm via lokalem OCR (Windows.Media.Ocr — offline, kein Cloud-Dienst). " +
+        "Im Gegensatz zu take_screenshot benötigt read_screen keinen OpenAI API-Key und gibt nur den erkannten Text zurück.",
+      parameters: { type: "object", properties: {} },
+    },
+  });
+
   return defs;
 }

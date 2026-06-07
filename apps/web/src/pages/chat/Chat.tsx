@@ -1397,24 +1397,22 @@ const Chat: React.FC = () => {
                   });
                   const result = (await res.json()) as {
                     success: boolean;
+                    output?: unknown;
                     error?: string;
                   };
+                  const msg = result.success
+                    ? typeof result.output === "string"
+                      ? result.output
+                      : "Aktion erfolgreich ausgeführt."
+                    : `Fehler: ${result.error ?? "Unbekannt"}`;
                   setMessages((p) => [
                     ...p,
-                    {
-                      role: "assistant",
-                      content: result.success
-                        ? "Laufwerk wurde erfolgreich formatiert."
-                        : `Fehler: ${result.error ?? "Unbekannt"}`,
-                    },
+                    { role: "assistant", content: msg },
                   ]);
                 } catch {
                   setMessages((p) => [
                     ...p,
-                    {
-                      role: "assistant",
-                      content: "Formatierung fehlgeschlagen.",
-                    },
+                    { role: "assistant", content: "Aktion fehlgeschlagen." },
                   ]);
                 } finally {
                   setConfirmationCard(null);
@@ -1433,7 +1431,7 @@ const Chat: React.FC = () => {
                 opacity: confirmBusy ? 0.6 : 1,
               }}
             >
-              {confirmBusy ? "Formatiere…" : "Ja, formatieren"}
+              {confirmBusy ? "Wird ausgeführt…" : "Ja, ausführen"}
             </button>
             <button
               disabled={confirmBusy}

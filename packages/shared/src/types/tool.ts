@@ -60,7 +60,18 @@ export type ToolName =
   | "add_task"
   | "list_tasks"
   | "complete_task"
-  | "delete_task";
+  | "delete_task"
+  | "launch_app"
+  | "launch_app_confirmed"
+  | "control_window"
+  | "control_window_confirmed"
+  | "send_keys"
+  | "send_keys_confirmed"
+  | "delete_file"
+  | "delete_file_confirmed"
+  | "manage_service"
+  | "manage_service_confirmed"
+  | "read_screen";
 
 export interface ToolCall {
   tool: ToolName;

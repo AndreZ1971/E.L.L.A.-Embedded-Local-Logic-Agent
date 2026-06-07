@@ -196,12 +196,18 @@ export async function runMigrations(): Promise<void> {
     `ALTER TABLE sessions ADD COLUMN IF NOT EXISTS profile_id INT NULL`,
   );
 
-  // Task-Regeln IDs 54–57
+  // Task-Regeln IDs 54–57 + System-Automation IDs 58–63
   for (const [id, name, tool_name] of [
     [54, "Aufgabe hinzufügen erlaubt", "add_task"],
     [55, "Aufgaben auflisten erlaubt", "list_tasks"],
     [56, "Aufgabe erledigen erlaubt", "complete_task"],
     [57, "Aufgabe löschen erlaubt", "delete_task"],
+    [58, "Programm starten erlaubt", "launch_app"],
+    [59, "Fenster steuern erlaubt", "control_window"],
+    [60, "Tastatureingaben senden erlaubt", "send_keys"],
+    [61, "Datei in Papierkorb erlaubt", "delete_file"],
+    [62, "Dienste verwalten erlaubt", "manage_service"],
+    [63, "Bildschirm lesen (OCR) erlaubt", "read_screen"],
   ] as const) {
     await exec(`
       INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)

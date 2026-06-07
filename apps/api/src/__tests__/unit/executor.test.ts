@@ -73,6 +73,28 @@ vi.mock("../../services/duplicateFinder.js", () => ({
     { hash: "dup_0", size: 1024000, files: ["a.pdf", "b.pdf"], wastedMB: 1.0 },
   ]),
 }));
+vi.mock("../../services/windowManager.js", () => ({
+  launchApp: vi.fn(() => ({ pid: 1234 })),
+  controlWindow: vi.fn(() => ({ found: 1 })),
+  sendKeysToWindow: vi.fn(() => ({ success: true })),
+}));
+vi.mock("../../services/fileOps.js", () => ({
+  deleteToRecycleBin: vi.fn(() => ({ success: true })),
+}));
+vi.mock("../../services/serviceManager.js", () => ({
+  listServicesPs: vi.fn(() => [
+    {
+      name: "Spooler",
+      displayName: "Print Spooler",
+      status: "Running",
+      startType: "Automatic",
+    },
+  ]),
+  controlService: vi.fn(() => ({ success: true })),
+}));
+vi.mock("../../services/ocr.js", () => ({
+  readScreenOcr: vi.fn(() => Promise.resolve("Hallo Welt OCR")),
+}));
 vi.mock("util", () => ({
   promisify: vi.fn((fn: unknown) =>
     vi.fn().mockResolvedValue({ stdout: "", stderr: "" }),
@@ -159,6 +181,17 @@ import {
   completeTask,
   deleteTask,
 } from "../../services/tasks.js";
+import {
+  launchApp,
+  controlWindow,
+  sendKeysToWindow,
+} from "../../services/windowManager.js";
+import { deleteToRecycleBin } from "../../services/fileOps.js";
+import {
+  listServicesPs,
+  controlService,
+} from "../../services/serviceManager.js";
+import { readScreenOcr } from "../../services/ocr.js";
 
 describe("toolExecutor", () => {
   beforeEach(() => {
@@ -747,6 +780,12 @@ const wowSettings = {
     "list_tasks",
     "complete_task",
     "delete_task",
+    "launch_app",
+    "control_window",
+    "send_keys",
+    "delete_file",
+    "manage_service",
+    "read_screen",
   ],
   apps: [],
   homeworkMode: { active: false, apps: [], pinHash: "" },
@@ -1045,5 +1084,241 @@ describe("delete_task", () => {
     });
     expect(result.success).toBe(true);
     expect(deleteTask).toHaveBeenCalledWith(5);
+  });
+});
+
+// ── v3.2.0 System Automation ─────────────────────────────────────────────────
+
+describe("launch_app", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(launchApp).mockClear();
+  });
+
+  it("Fehler wenn kein App-Name", async () => {
+    const result = await toolExecutor.execute({ tool: "launch_app", args: {} });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("blockiert gesperrten Systempfad", async () => {
+    const result = await toolExecutor.execute({
+      tool: "launch_app",
+      args: { app: "C:\\Windows\\System32\\cmd.exe" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.directive).toBe(true);
+  });
+
+  it("gibt Bestätigung für normales Programm zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "launch_app",
+      args: { app: "notepad" },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.pendingAction?.tool).toBe("launch_app_confirmed");
+  });
+
+  it("launch_app_confirmed startet App und gibt PID zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "launch_app_confirmed",
+      args: { app: "notepad", args: [] },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("1234");
+    expect(launchApp).toHaveBeenCalledWith("notepad", []);
+  });
+});
+
+describe("control_window", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(controlWindow).mockClear();
+  });
+
+  it("Fehler wenn kein Titel", async () => {
+    const result = await toolExecutor.execute({
+      tool: "control_window",
+      args: { action: "focus" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("focus führt direkt aus", async () => {
+    const result = await toolExecutor.execute({
+      tool: "control_window",
+      args: { title: "Notepad", action: "focus" },
+    });
+    expect(result.success).toBe(true);
+    expect(controlWindow).toHaveBeenCalledWith("Notepad", "focus");
+  });
+
+  it("close verlangt Bestätigung", async () => {
+    const result = await toolExecutor.execute({
+      tool: "control_window",
+      args: { title: "Chrome", action: "close" },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.pendingAction?.tool).toBe("control_window_confirmed");
+  });
+
+  it("Fehler wenn Fenster nicht gefunden", async () => {
+    vi.mocked(controlWindow).mockReturnValueOnce({ found: 0 });
+    const result = await toolExecutor.execute({
+      tool: "control_window",
+      args: { title: "XYZ-Gibts-Nicht", action: "minimize" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("gefunden");
+  });
+});
+
+describe("send_keys", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(sendKeysToWindow).mockClear();
+  });
+
+  it("Fehler wenn keine Tasteneingabe", async () => {
+    const result = await toolExecutor.execute({
+      tool: "send_keys",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("gibt Bestätigung zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "send_keys",
+      args: { keys: "^s", window: "Word" },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.pendingAction?.tool).toBe("send_keys_confirmed");
+    expect(result.confirmationMessage).toContain("Word");
+  });
+
+  it("send_keys_confirmed sendet Eingabe", async () => {
+    const result = await toolExecutor.execute({
+      tool: "send_keys_confirmed",
+      args: { keys: "^s", window: "Word" },
+    });
+    expect(result.success).toBe(true);
+    expect(sendKeysToWindow).toHaveBeenCalledWith("^s", "Word");
+  });
+});
+
+describe("delete_file", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(deleteToRecycleBin).mockClear();
+  });
+
+  it("Fehler wenn kein Pfad", async () => {
+    const result = await toolExecutor.execute({
+      tool: "delete_file",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("gibt Bestätigung zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "delete_file",
+      args: { path: "E:\\\\Temp\\\\alt.docx" },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.pendingAction?.tool).toBe("delete_file_confirmed");
+  });
+
+  it("delete_file_confirmed verschiebt in Papierkorb", async () => {
+    const result = await toolExecutor.execute({
+      tool: "delete_file_confirmed",
+      args: { path: "E:\\\\Temp\\\\alt.docx" },
+    });
+    expect(result.success).toBe(true);
+    expect(deleteToRecycleBin).toHaveBeenCalledWith("E:\\\\Temp\\\\alt.docx");
+  });
+});
+
+describe("manage_service", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(listServicesPs).mockClear();
+    vi.mocked(controlService).mockClear();
+  });
+
+  it("list gibt Dienstliste zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "manage_service",
+      args: { action: "list" },
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).count).toBe(1);
+    expect(listServicesPs).toHaveBeenCalled();
+  });
+
+  it("blockiert systemkritischen Dienst", async () => {
+    const result = await toolExecutor.execute({
+      tool: "manage_service",
+      args: { action: "stop", name: "lsass" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.directive).toBe(true);
+  });
+
+  it("stop gibt Bestätigung zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "manage_service",
+      args: { action: "stop", name: "BITS" },
+    });
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.pendingAction?.tool).toBe("manage_service_confirmed");
+  });
+
+  it("manage_service_confirmed stoppt Dienst", async () => {
+    const result = await toolExecutor.execute({
+      tool: "manage_service_confirmed",
+      args: { name: "BITS", action: "stop" },
+    });
+    expect(result.success).toBe(true);
+    expect(controlService).toHaveBeenCalledWith("BITS", "stop");
+  });
+});
+
+describe("read_screen", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(readScreenOcr).mockClear();
+  });
+
+  it("gibt erkannten Text zurück", async () => {
+    const result = await toolExecutor.execute({
+      tool: "read_screen",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).text).toBe("Hallo Welt OCR");
+    expect(readScreenOcr).toHaveBeenCalled();
+  });
+
+  it("Fehler wenn OCR fehlschlägt", async () => {
+    vi.mocked(readScreenOcr).mockRejectedValueOnce(
+      new Error("OCR Engine nicht verfügbar"),
+    );
+    const result = await toolExecutor.execute({
+      tool: "read_screen",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("OCR");
   });
 });
