@@ -44,7 +44,6 @@ $items = $inbox.Items
 $items.Sort('[ReceivedTime]', $true)
 $results = [System.Collections.ArrayList]::new()
 foreach ($item in $items) {
-  if (-not $item.UnRead) { continue }
   $body = if ($item.Body) { $item.Body } else { '' }
   $preview = if ($body.Length -gt 200) { $body.Substring(0, 200) } else { $body }
   $preview = $preview -replace '[\\r\\n\\t]+', ' '
@@ -55,7 +54,7 @@ foreach ($item in $items) {
     senderEmail  = if ($item.SenderEmailAddress) { $item.SenderEmailAddress } else { '' }
     received     = $item.ReceivedTime.ToString('yyyy-MM-dd HH:mm')
     preview      = $preview
-    unread       = $true
+    unread       = $item.UnRead
     source       = 'outlook'
   })
   if ($results.Count -ge ${limit}) { break }
@@ -73,7 +72,7 @@ if ($results.Count -eq 0) { Write-Output '[]' } else { $results | ConvertTo-Json
     senderEmail: String(m["senderEmail"] || ""),
     received: String(m["received"] || ""),
     preview: String(m["preview"] || ""),
-    unread: true,
+    unread: Boolean(m["unread"]),
     source: "outlook" as const,
   }));
 }

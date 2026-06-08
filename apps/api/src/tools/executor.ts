@@ -1415,22 +1415,12 @@ Write-Output '{"success":true}'
   explore_folder: async (args) => {
     const folderPath = ((args["path"] as string) ?? "").trim();
     if (!folderPath) return { success: false, error: "Pfad fehlt." };
-    const psExplore = `Start-Process explorer.exe -ArgumentList '${folderPath.replace(/'/g, "''")}'`;
-    const tmpExplore = path.join(os.tmpdir(), `ella-explore-${Date.now()}.ps1`);
-    const fsExplore = await import("fs");
-    try {
-      fsExplore.writeFileSync(tmpExplore, psExplore, "utf-8");
-      execSync(
-        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpExplore}"`,
-        { timeout: 10_000 },
-      );
-    } finally {
-      try {
-        fsExplore.unlinkSync(tmpExplore);
-      } catch {
-        // best effort
-      }
-    }
+    const { spawn } = await import("child_process");
+    const child = spawn("explorer.exe", [folderPath], {
+      detached: true,
+      stdio: "ignore",
+    });
+    child.unref();
     trackToolUsage("explore_folder", folderPath);
     return { success: true, output: `Explorer geöffnet: ${folderPath}` };
   },
@@ -2006,8 +1996,14 @@ else { $results | ConvertTo-Json -Compress }`.trim();
     const title = ((args["title"] as string) ?? "").trim();
     if (!title) return { success: false, error: "Aufgabentitel fehlt." };
 
-    const priority =
-      (args["priority"] as "low" | "normal" | "high") ?? "normal";
+    const rawPriority = (
+      (args["priority"] as string) ?? "normal"
+    ).toLowerCase();
+    const priority: "low" | "normal" | "high" = (
+      ["low", "normal", "high"] as const
+    ).includes(rawPriority as "low" | "normal" | "high")
+      ? (rawPriority as "low" | "normal" | "high")
+      : "normal";
     const dueDate = ((args["due_date"] as string) ?? "").trim() || undefined;
     const note = ((args["note"] as string) ?? "").trim() || undefined;
 
