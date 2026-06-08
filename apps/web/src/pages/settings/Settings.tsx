@@ -210,7 +210,9 @@ const Settings: React.FC = () => {
   const [scanning, setScanning] = useState(false);
   const [filter, setFilter] = useState("");
   const [selectedSetupId, setSelectedSetupId] = useState<string | null>(null);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [voices, setVoices] = useState<
+    Array<{ name: string; locale: string; gender: string }>
+  >([]);
   const [rules, setRules] = useState<Rule[]>([]);
   const [newRule, setNewRule] = useState<{
     name: string;
@@ -221,12 +223,16 @@ const Settings: React.FC = () => {
   const [ruleSaving, setRuleSaving] = useState(false);
 
   useEffect(() => {
-    const load = () => setVoices(window.speechSynthesis.getVoices());
-    load();
-    window.speechSynthesis.onvoiceschanged = load;
-    return () => {
-      window.speechSynthesis.onvoiceschanged = null;
-    };
+    fetch(`${API}/api/speech/voices`)
+      .then((r) => r.json())
+      .then(
+        (data: {
+          voices: Array<{ name: string; locale: string; gender: string }>;
+        }) => {
+          setVoices(data.voices ?? []);
+        },
+      )
+      .catch(() => {});
   }, []);
 
   // Hausaufgaben-Modus PIN-Formular
@@ -727,7 +733,7 @@ const Settings: React.FC = () => {
                     </option>
                     {voices.map((v) => (
                       <option key={v.name} value={v.name}>
-                        {v.name} ({v.lang})
+                        {v.name} ({v.locale})
                       </option>
                     ))}
                   </select>
