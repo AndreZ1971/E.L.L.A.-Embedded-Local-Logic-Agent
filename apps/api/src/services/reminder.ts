@@ -1,7 +1,10 @@
-import { execSync } from "child_process";
+import { exec, execSync } from "child_process";
+import { promisify } from "util";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+
+const execAsync = promisify(exec);
 
 function psTmpRun(script: string, timeout = 10_000): string {
   const tmp = path.join(os.tmpdir(), `ella-remind-${Date.now()}.ps1`);
@@ -20,19 +23,45 @@ function psTmpRun(script: string, timeout = 10_000): string {
   }
 }
 
-export function createReminder(id: string, message: string, at: Date): void {
+async function psTmpRunAsync(
+  script: string,
+  timeout = 30_000,
+): Promise<string> {
+  const tmp = path.join(os.tmpdir(), `ella-remind-${Date.now()}.ps1`);
+  try {
+    fs.writeFileSync(tmp, script, "utf-8");
+    const { stdout } = await execAsync(
+      `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmp}"`,
+      { encoding: "utf-8", timeout },
+    );
+    return stdout.trim();
+  } finally {
+    try {
+      fs.unlinkSync(tmp);
+    } catch {
+      // best effort
+    }
+  }
+}
+
+export async function createReminder(
+  id: string,
+  message: string,
+  at: Date,
+): Promise<void> {
   const time = at.toTimeString().slice(0, 5);
   const dateStr = at.toISOString().slice(0, 10);
   const safeMsg = message.replace(/'/g, "''");
 
   const ps = `
-$action  = New-ScheduledTaskAction -Execute 'powershell.exe' \`
-           -Argument '-NoProfile -WindowStyle Hidden -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show(''${safeMsg}'', ''E.L.L.A. Erinnerung'')"'
-$trigger = New-ScheduledTaskTrigger -Once -At '${dateStr} ${time}'
-Register-ScheduledTask -TaskName 'ELLA_${id}' -Action $action -Trigger $trigger -Force | Out-Null
+$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
+$action    = New-ScheduledTaskAction -Execute 'powershell.exe' \`
+             -Argument '-NoProfile -WindowStyle Hidden -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show(''${safeMsg}'', ''E.L.L.A. Erinnerung'')"'
+$trigger   = New-ScheduledTaskTrigger -Once -At '${dateStr} ${time}'
+Register-ScheduledTask -TaskName 'ELLA_${id}' -Action $action -Trigger $trigger -Principal $principal -Force | Out-Null
 Write-Output 'ok'`.trim();
 
-  psTmpRun(ps);
+  await psTmpRunAsync(ps, 30_000);
 }
 
 export function deleteReminder(id: string): void {

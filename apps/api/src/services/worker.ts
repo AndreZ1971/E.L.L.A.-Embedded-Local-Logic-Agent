@@ -622,6 +622,26 @@ async function tick() {
       // Laufwerke nicht verfügbar
     }
   }
+
+  // ── Wecker ────────────────────────────────────────────────────
+  try {
+    const nowD = new Date();
+    const timeNow = `${String(nowD.getHours()).padStart(2, "0")}:${String(nowD.getMinutes()).padStart(2, "0")}`;
+    const todayStr = nowD.toISOString().slice(0, 10);
+    const [rows] = await pool.execute(
+      `SELECT id, label FROM alarms WHERE active = TRUE AND time_hhmm = ? AND (last_fired IS NULL OR last_fired < ?)`,
+      [timeNow, todayStr],
+    );
+    for (const alarm of rows as Array<{ id: number; label: string }>) {
+      await pool.execute(`UPDATE alarms SET last_fired = ? WHERE id = ?`, [
+        todayStr,
+        alarm.id,
+      ]);
+      sendProactiveMessage(`⏰ Wecker: ${alarm.label}`, "alarm");
+    }
+  } catch {
+    // alarms-Tabelle noch nicht migriert
+  }
 }
 
 export const worker = {

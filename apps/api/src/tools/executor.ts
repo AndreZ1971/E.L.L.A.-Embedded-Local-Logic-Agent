@@ -1811,7 +1811,15 @@ $vol_obj = $null; $dev.Activate([ref]$iid, 23, [IntPtr]::Zero, [ref]$vol_obj) | 
     if (targetDate <= now) targetDate.setDate(targetDate.getDate() + 1);
 
     const id = `${Date.now()}`;
-    createReminder(id, message, targetDate);
+    try {
+      await createReminder(id, message, targetDate);
+    } catch {
+      return {
+        success: false,
+        error:
+          "Erinnerung konnte nicht gesetzt werden — Windows Task Scheduler nicht erreichbar.",
+      };
+    }
 
     const formatted = targetDate.toLocaleString("de-DE", {
       weekday: "long",
@@ -1825,6 +1833,39 @@ $vol_obj = $null; $dev.Activate([ref]$iid, 23, [IntPtr]::Zero, [ref]$vol_obj) | 
       success: true,
       output: `Erinnerung gesetzt: "${message}" — ${formatted}`,
     };
+  },
+
+  set_alarm: async (args) => {
+    const label = ((args["label"] as string) ?? "Wecker").trim() || "Wecker";
+    const timeStr = ((args["time"] as string) ?? "").trim();
+    if (!timeStr) return { success: false, error: "Uhrzeit fehlt." };
+    if (!/^\d{2}:\d{2}$/.test(timeStr))
+      return { success: false, error: "Uhrzeit im Format HH:MM angeben." };
+
+    await pool.execute(
+      `INSERT INTO alarms (label, time_hhmm, active) VALUES (?, ?, TRUE)`,
+      [label, timeStr],
+    );
+    return {
+      success: true,
+      output: `Wecker gestellt: "${label}" täglich um ${timeStr} Uhr.`,
+    };
+  },
+
+  list_alarms: async () => {
+    const [rows] = await pool.execute(
+      `SELECT id, label, time_hhmm, active FROM alarms ORDER BY time_hhmm`,
+    );
+    return { success: true, output: { alarms: rows } };
+  },
+
+  delete_alarm: async (args) => {
+    const id = Number(args["id"]);
+    if (!id) return { success: false, error: "ID fehlt." };
+    const [res] = await pool.execute(`DELETE FROM alarms WHERE id = ?`, [id]);
+    const affected = (res as { affectedRows: number }).affectedRows;
+    if (!affected) return { success: false, error: "Wecker nicht gefunden." };
+    return { success: true, output: "Wecker gelöscht." };
   },
 
   list_reminders: async () => {

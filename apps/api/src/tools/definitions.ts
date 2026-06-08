@@ -1149,6 +1149,57 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
   defs.push({
     type: "function",
     function: {
+      name: "set_alarm",
+      description:
+        "Stellt einen täglichen Wecker. E.L.L.A. meldet sich zur eingestellten Uhrzeit im Chat und liest ihn vor.",
+      parameters: {
+        type: "object",
+        properties: {
+          time: {
+            type: "string",
+            description: 'Uhrzeit im Format HH:MM, z.B. "07:00"',
+          },
+          label: {
+            type: "string",
+            description:
+              'Bezeichnung des Weckers, z.B. "Aufstehen" (optional, Standard: Wecker)',
+          },
+        },
+        required: ["time"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "list_alarms",
+      description: "Zeigt alle aktiven Wecker.",
+      parameters: { type: "object", properties: {} },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "delete_alarm",
+      description: "Löscht einen Wecker anhand seiner ID.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "Wecker-ID aus list_alarms",
+          },
+        },
+        required: ["id"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
       name: "take_screenshot",
       description:
         "Macht einen Screenshot und analysiert ihn mit KI. " +

@@ -227,6 +227,9 @@ export async function runMigrations(): Promise<void> {
     [80, "Text uebersetzen erlaubt", "translate_text"],
     [81, "Text zusammenfassen erlaubt", "summarize_text"],
     [82, "UI-Element klicken erlaubt", "click_element"],
+    [83, "Wecker stellen erlaubt", "set_alarm"],
+    [84, "Wecker auflisten erlaubt", "list_alarms"],
+    [85, "Wecker loeschen erlaubt", "delete_alarm"],
   ] as const) {
     await exec(`
       INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
@@ -234,6 +237,19 @@ export async function runMigrations(): Promise<void> {
       ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
     `);
   }
+
+  // Wecker-Tabelle
+  await exec(`
+    CREATE TABLE IF NOT EXISTS alarms (
+      id         INT AUTO_INCREMENT PRIMARY KEY,
+      profile_id INT NULL,
+      label      VARCHAR(255) NOT NULL DEFAULT 'Wecker',
+      time_hhmm  CHAR(5) NOT NULL,
+      active     BOOLEAN NOT NULL DEFAULT TRUE,
+      last_fired DATE NULL,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
 
   // Directive Audit-Log Tabelle
   await exec(`

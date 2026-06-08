@@ -57,7 +57,7 @@ vi.mock("../../services/tasks.js", () => ({
   deleteTask: vi.fn(() => Promise.resolve(true)),
 }));
 vi.mock("../../services/reminder.js", () => ({
-  createReminder: vi.fn(),
+  createReminder: vi.fn().mockResolvedValue(undefined),
   deleteReminder: vi.fn(),
   listReminders: vi.fn(() => []),
 }));
@@ -286,6 +286,7 @@ import {
   getWifiInfo,
 } from "../../services/systemComfort.js";
 import { translateText, summarizeText } from "../../services/textProcessing.js";
+import { pool } from "../../config/database.js";
 
 describe("toolExecutor", () => {
   beforeEach(() => {
@@ -899,6 +900,9 @@ const wowSettings = {
     "translate_text",
     "summarize_text",
     "click_element",
+    "set_alarm",
+    "list_alarms",
+    "delete_alarm",
   ],
   apps: [],
   homeworkMode: { active: false, apps: [], pinHash: "" },
@@ -2022,5 +2026,112 @@ describe("click_element", () => {
     });
     expect(result.success).toBe(true);
     expect(clickAt).toHaveBeenCalledWith(140, 62, "left", false);
+  });
+});
+
+// ── v3.4.1 Wecker ─────────────────────────────────────────────────────────────
+
+describe("set_alarm", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(pool.execute).mockClear();
+  });
+
+  it("Fehler wenn Uhrzeit fehlt", async () => {
+    const result = await toolExecutor.execute({
+      tool: "set_alarm",
+      args: { label: "Morgen" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Uhrzeit");
+  });
+
+  it("Fehler bei ungültigem Format", async () => {
+    const result = await toolExecutor.execute({
+      tool: "set_alarm",
+      args: { time: "8:00" },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("HH:MM");
+  });
+
+  it("stellt Wecker erfolgreich", async () => {
+    vi.mocked(pool.execute).mockResolvedValueOnce([{ insertId: 1 }, []]);
+    const result = await toolExecutor.execute({
+      tool: "set_alarm",
+      args: { time: "07:30", label: "Aufstehen" },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("07:30");
+    expect(result.output).toContain("Aufstehen");
+  });
+});
+
+describe("list_alarms", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+  });
+
+  it("gibt leere Liste zurück wenn keine Wecker", async () => {
+    vi.mocked(pool.execute).mockResolvedValueOnce([[], []]);
+    const result = await toolExecutor.execute({
+      tool: "list_alarms",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).alarms).toHaveLength(0);
+  });
+
+  it("gibt Wecker-Liste zurück", async () => {
+    vi.mocked(pool.execute).mockResolvedValueOnce([
+      [{ id: 1, label: "Aufstehen", time_hhmm: "07:30", active: true }],
+      [],
+    ]);
+    const result = await toolExecutor.execute({
+      tool: "list_alarms",
+      args: {},
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).alarms).toHaveLength(1);
+    expect((result.output as any).alarms[0].label).toBe("Aufstehen");
+  });
+});
+
+describe("delete_alarm", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue(wowSettings as any);
+    vi.mocked(pool.execute).mockClear();
+  });
+
+  it("Fehler wenn ID fehlt", async () => {
+    const result = await toolExecutor.execute({
+      tool: "delete_alarm",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("ID");
+  });
+
+  it("Fehler wenn Wecker nicht gefunden", async () => {
+    vi.mocked(pool.execute).mockResolvedValueOnce([{ affectedRows: 0 }, []]);
+    const result = await toolExecutor.execute({
+      tool: "delete_alarm",
+      args: { id: 99 },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("nicht gefunden");
+  });
+
+  it("löscht Wecker erfolgreich", async () => {
+    vi.mocked(pool.execute).mockResolvedValueOnce([{ affectedRows: 1 }, []]);
+    const result = await toolExecutor.execute({
+      tool: "delete_alarm",
+      args: { id: 1 },
+    });
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("gelöscht");
   });
 });
