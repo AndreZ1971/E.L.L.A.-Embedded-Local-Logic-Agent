@@ -12,6 +12,26 @@ import { getForegroundWindowTitle } from "../services/windowContext.js";
 import { compressSession } from "../services/sessionCompressor.js";
 import type { ToolName } from "@ella/shared";
 
+// Per-session mutex: serializes concurrent requests for the same session
+// prevents Read-Modify-Write races when two messages arrive simultaneously
+const sessionQueue = new Map<string, Promise<void>>();
+
+function withSessionLock<T>(
+  sessionId: string,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const prev = sessionQueue.get(sessionId) ?? Promise.resolve();
+  const next = prev.catch(() => {}).then(fn);
+  sessionQueue.set(
+    sessionId,
+    next.then(
+      () => {},
+      () => {},
+    ),
+  );
+  return next;
+}
+
 function resolveProvider(): "openai" | "ollama" {
   const { provider } = getSettings();
   if (provider === "openai") return "openai";
@@ -32,22 +52,22 @@ export const chatRouter = Router();
 
 chatRouter.post("/", async (req, res, next) => {
   recordActivity();
-  try {
-    const {
-      message,
-      sessionId = "default",
-      model,
-    } = req.body as {
-      message?: string;
-      sessionId?: string;
-      model?: string;
-    };
+  const {
+    message,
+    sessionId = "default",
+    model,
+  } = req.body as {
+    message?: string;
+    sessionId?: string;
+    model?: string;
+  };
 
-    if (!message) {
-      res.status(400).json({ error: "message required" });
-      return;
-    }
+  if (!message) {
+    res.status(400).json({ error: "message required" });
+    return;
+  }
 
+  withSessionLock(sessionId, async () => {
     const useOpenAI = resolveProvider() === "openai";
     const settings = getSettings();
     const activeModel = model ?? settings.ollamaModel ?? env.ollamaModel;
@@ -124,9 +144,7 @@ chatRouter.post("/", async (req, res, next) => {
     extractAndRemember(message, finalReply, sessionId);
 
     res.json({ reply: finalReply, sessionId });
-  } catch (err) {
-    next(err);
-  }
+  }).catch(next);
 });
 
 chatRouter.post("/stream", async (req, res) => {
@@ -153,144 +171,146 @@ chatRouter.post("/stream", async (req, res) => {
 
   const emit = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
-  try {
-    const useOpenAI = resolveProvider() === "openai";
-    const settings = getSettings();
-    const activeModel = model ?? settings.ollamaModel ?? env.ollamaModel;
-    const tools = activeToolDefs();
-    const history = await sessionStore.get(sessionId);
+  await withSessionLock(sessionId, async () => {
+    try {
+      const useOpenAI = resolveProvider() === "openai";
+      const settings = getSettings();
+      const activeModel = model ?? settings.ollamaModel ?? env.ollamaModel;
+      const tools = activeToolDefs();
+      const history = await sessionStore.get(sessionId);
 
-    // Kompression (Ollama-only, nie OpenAI — exfiltrate-Direktive)
-    if (
-      settings.sessionCompressionEnabled &&
-      !useOpenAI &&
-      history.length >= 15
-    ) {
-      const compressed = await compressSession(history);
-      if (compressed.length < history.length) {
-        await sessionStore.set(sessionId, compressed);
-        history.splice(0, history.length, ...compressed);
-      }
-    }
-
-    history.push({ role: "user", content: message });
-
-    let memories = await recall(message);
-    const userName = settings.userName?.trim() ?? "";
-
-    // Fenster-Kontext (opt-in, kein OpenAI)
-    if (settings.windowContextEnabled && !useOpenAI) {
-      const winTitle = getForegroundWindowTitle();
-      if (winTitle) memories = [`Aktives Fenster: ${winTitle}`, ...memories];
-    }
-
-    const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
-      history.map((m) => ({ ...m, id: "", createdAt: "" })),
-    );
-
-    let finalReply = "";
-    const MAX_ROUNDS = 5;
-
-    for (let round = 0; round < MAX_ROUNDS; round++) {
-      const stream = useOpenAI
-        ? openaiClient.chatStream(messages, tools, memories, userName)
-        : ollamaClient.chatStream(
-            messages,
-            tools,
-            activeModel,
-            memories,
-            userName,
-          );
-
-      let roundContent = "";
-      let roundToolCalls: OllamaMessage["tool_calls"] | undefined;
-
-      for await (const event of stream) {
-        if (event.type === "chunk") {
-          emit({ type: "chunk", text: event.text });
-          roundContent += event.text;
-        } else {
-          roundToolCalls = event.toolCalls;
+      // Kompression (Ollama-only, nie OpenAI — exfiltrate-Direktive)
+      if (
+        settings.sessionCompressionEnabled &&
+        !useOpenAI &&
+        history.length >= 15
+      ) {
+        const compressed = await compressSession(history);
+        if (compressed.length < history.length) {
+          await sessionStore.set(sessionId, compressed);
+          history.splice(0, history.length, ...compressed);
         }
       }
 
-      if (!roundToolCalls || roundToolCalls.length === 0) {
-        finalReply = roundContent;
-        break;
+      history.push({ role: "user", content: message });
+
+      let memories = await recall(message);
+      const userName = settings.userName?.trim() ?? "";
+
+      // Fenster-Kontext (opt-in, kein OpenAI)
+      if (settings.windowContextEnabled && !useOpenAI) {
+        const winTitle = getForegroundWindowTitle();
+        if (winTitle) memories = [`Aktives Fenster: ${winTitle}`, ...memories];
       }
 
-      messages.push({
-        role: "assistant",
-        content: roundContent,
-        tool_calls: roundToolCalls,
-      });
+      const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
+        history.map((m) => ({ ...m, id: "", createdAt: "" })),
+      );
 
-      for (const call of roundToolCalls) {
-        emit({ type: "tool", name: call.function.name });
-        const result = await toolExecutor.execute({
-          tool: call.function.name as ToolName,
-          args: call.function.arguments,
-        });
-        if (result.directive) {
-          emit({ type: "directive_deny", tool: call.function.name });
+      let finalReply = "";
+      const MAX_ROUNDS = 5;
+
+      for (let round = 0; round < MAX_ROUNDS; round++) {
+        const stream = useOpenAI
+          ? openaiClient.chatStream(messages, tools, memories, userName)
+          : ollamaClient.chatStream(
+              messages,
+              tools,
+              activeModel,
+              memories,
+              userName,
+            );
+
+        let roundContent = "";
+        let roundToolCalls: OllamaMessage["tool_calls"] | undefined;
+
+        for await (const event of stream) {
+          if (event.type === "chunk") {
+            emit({ type: "chunk", text: event.text });
+            roundContent += event.text;
+          } else {
+            roundToolCalls = event.toolCalls;
+          }
         }
-        if (result.requiresConfirmation) {
-          emit({
-            type: "confirmation_required",
-            message: result.confirmationMessage ?? "",
-            pendingAction: result.pendingAction,
-          });
-          emit({ type: "done" });
-          history.push({
-            role: "assistant",
-            content: result.confirmationMessage ?? "Bestätigung erforderlich.",
-          });
-          await sessionStore.set(sessionId, history);
-          res.end();
-          return;
+
+        if (!roundToolCalls || roundToolCalls.length === 0) {
+          finalReply = roundContent;
+          break;
         }
-        if (
-          call.function.name === "shutdown_system" &&
-          result.success &&
-          (result.output as Record<string, unknown>)?.exec_command
-        ) {
-          const out = result.output as Record<string, unknown>;
-          emit({
-            type: "shutdown",
-            cmd: out.exec_command,
-            delay: out.delay_seconds ?? 5,
-          });
-        }
-        if (
-          call.function.name === "pause_ella" &&
-          result.success &&
-          (result.output as Record<string, unknown>)?.paused
-        ) {
-          const out = result.output as Record<string, unknown>;
-          emit({ type: "pause", minutes: Number(out.minutes ?? 10) });
-        }
+
         messages.push({
-          role: "tool",
-          tool_call_id: call.id,
-          content: JSON.stringify(result),
+          role: "assistant",
+          content: roundContent,
+          tool_calls: roundToolCalls,
         });
-      }
-    }
 
-    if (!finalReply) {
-      finalReply = "Ich konnte keine Antwort generieren.";
-      emit({ type: "chunk", text: finalReply });
+        for (const call of roundToolCalls) {
+          emit({ type: "tool", name: call.function.name });
+          const result = await toolExecutor.execute({
+            tool: call.function.name as ToolName,
+            args: call.function.arguments,
+          });
+          if (result.directive) {
+            emit({ type: "directive_deny", tool: call.function.name });
+          }
+          if (result.requiresConfirmation) {
+            emit({
+              type: "confirmation_required",
+              message: result.confirmationMessage ?? "",
+              pendingAction: result.pendingAction,
+            });
+            emit({ type: "done" });
+            history.push({
+              role: "assistant",
+              content:
+                result.confirmationMessage ?? "Bestätigung erforderlich.",
+            });
+            await sessionStore.set(sessionId, history);
+            return; // lock releases → outer res.end() called
+          }
+          if (
+            call.function.name === "shutdown_system" &&
+            result.success &&
+            (result.output as Record<string, unknown>)?.exec_command
+          ) {
+            const out = result.output as Record<string, unknown>;
+            emit({
+              type: "shutdown",
+              cmd: out.exec_command,
+              delay: out.delay_seconds ?? 5,
+            });
+          }
+          if (
+            call.function.name === "pause_ella" &&
+            result.success &&
+            (result.output as Record<string, unknown>)?.paused
+          ) {
+            const out = result.output as Record<string, unknown>;
+            emit({ type: "pause", minutes: Number(out.minutes ?? 10) });
+          }
+          messages.push({
+            role: "tool",
+            tool_call_id: call.id,
+            content: JSON.stringify(result),
+          });
+        }
+      }
+
+      if (!finalReply) {
+        finalReply = "Ich konnte keine Antwort generieren.";
+        emit({ type: "chunk", text: finalReply });
+      }
+      emit({ type: "done" });
+      history.push({ role: "assistant", content: finalReply });
+      await sessionStore.set(sessionId, history);
+      extractAndRemember(message, finalReply, sessionId);
+    } catch (err) {
+      emit({
+        type: "error",
+        message: err instanceof Error ? err.message : "Unbekannter Fehler",
+      });
     }
-    emit({ type: "done" });
-    history.push({ role: "assistant", content: finalReply });
-    await sessionStore.set(sessionId, history);
-    extractAndRemember(message, finalReply, sessionId);
-  } catch (err) {
-    emit({
-      type: "error",
-      message: err instanceof Error ? err.message : "Unbekannter Fehler",
-    });
-  }
+  });
 
   res.end();
 });
