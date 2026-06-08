@@ -2467,7 +2467,7 @@ else { $results | ConvertTo-Json -Compress }`.trim();
   read_file_content: async (args) => {
     const filePath = ((args["path"] as string) ?? "").trim();
     if (!filePath) return { success: false, error: "Pfad fehlt." };
-    const result = readFileContent(filePath);
+    const result = await readFileContent(filePath);
     trackToolUsage("read_file_content", filePath);
     if (!result.success) return { success: false, error: result.error };
     return {

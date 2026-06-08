@@ -106,11 +106,13 @@ vi.mock("../../services/ocr.js", () => ({
   ),
 }));
 vi.mock("../../services/fileManager.js", () => ({
-  readFileContent: vi.fn(() => ({
-    success: true,
-    content: "Zeile 1\nZeile 2",
-    truncated: false,
-  })),
+  readFileContent: vi.fn(() =>
+    Promise.resolve({
+      success: true,
+      content: "Zeile 1\nZeile 2",
+      truncated: false,
+    }),
+  ),
   renameFile: vi.fn(() => ({ success: true, newPath: "E:\\Datei_neu.txt" })),
   copyFile: vi.fn(() => ({ success: true })),
   createFolder: vi.fn(() => ({ success: true })),
@@ -1661,7 +1663,7 @@ describe("read_file_content", () => {
   });
 
   it("Fehler wenn Service fehlschlägt", async () => {
-    vi.mocked(readFileContent).mockReturnValueOnce({
+    vi.mocked(readFileContent).mockResolvedValueOnce({
       success: false,
       error: "Datei nicht gefunden",
     });

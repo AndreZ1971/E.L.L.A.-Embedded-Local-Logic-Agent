@@ -2,6 +2,10 @@ import { execSync } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import mammoth from "mammoth";
+import pdfParse from "pdf-parse";
+import * as XLSX from "xlsx";
+import TurndownService from "turndown";
 
 const BLOCKED_PREFIXES = [
   "c:\\windows",
@@ -28,10 +32,19 @@ const READABLE_EXTENSIONS = new Set([
   ".py",
   ".js",
   ".ts",
-  ".html",
   ".css",
   ".env",
   ".sh",
+]);
+
+const RICH_EXTENSIONS = new Set([
+  ".docx",
+  ".doc",
+  ".pdf",
+  ".xlsx",
+  ".xls",
+  ".html",
+  ".htm",
 ]);
 
 const MAX_CONTENT_BYTES = 15_000;
@@ -58,12 +71,63 @@ function runPs(script: string, timeoutMs = 15_000): string {
   }
 }
 
-export function readFileContent(filePath: string): {
+function truncate(text: string): { content: string; truncated: boolean } {
+  const truncated = text.length > MAX_CONTENT_BYTES;
+  return { content: text.slice(0, MAX_CONTENT_BYTES), truncated };
+}
+
+async function convertDocx(filePath: string): Promise<string> {
+  const result = await mammoth.convertToHtml({ path: filePath });
+  const td = new TurndownService({
+    headingStyle: "atx",
+    bulletListMarker: "-",
+  });
+  return td.turndown(result.value);
+}
+
+async function convertPdf(filePath: string): Promise<string> {
+  const buffer = fs.readFileSync(filePath);
+  const data = await pdfParse(buffer);
+  return data.text;
+}
+
+function convertExcel(filePath: string): string {
+  const wb = XLSX.readFile(filePath);
+  const parts: string[] = [];
+  for (const sheetName of wb.SheetNames) {
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, {
+      header: 1,
+    }) as unknown[][];
+    if (rows.length === 0) continue;
+    const headers = (rows[0] as unknown[]).map((c) => String(c ?? ""));
+    parts.push(`## ${sheetName}\n`);
+    parts.push("| " + headers.join(" | ") + " |");
+    parts.push("| " + headers.map(() => "---").join(" | ") + " |");
+    for (const row of rows.slice(1) as unknown[][]) {
+      const cells = headers.map((_, i) => String((row as unknown[])[i] ?? ""));
+      parts.push("| " + cells.join(" | ") + " |");
+    }
+    parts.push("");
+  }
+  return parts.join("\n");
+}
+
+function convertHtml(filePath: string): string {
+  const raw = fs.readFileSync(filePath, "utf-8");
+  const td = new TurndownService({
+    headingStyle: "atx",
+    bulletListMarker: "-",
+  });
+  return td.turndown(raw);
+}
+
+export async function readFileContent(filePath: string): Promise<{
   success: boolean;
   content?: string;
   truncated?: boolean;
   error?: string;
-} {
+}> {
   if (!fs.existsSync(filePath))
     return { success: false, error: `Datei nicht gefunden: ${filePath}` };
 
@@ -76,23 +140,16 @@ export function readFileContent(filePath: string): {
     return { success: true, content, truncated };
   }
 
-  if (ext === ".docx" || ext === ".doc") {
-    const safe = filePath.replace(/'/g, "''");
-    const ps = `
-try {
-  $word = New-Object -ComObject Word.Application
-  $word.Visible = $false
-  $doc = $word.Documents.Open('${safe}', [ref]$false, [ref]$true)
-  $text = $doc.Content.Text
-  $doc.Close($false) | Out-Null
-  $word.Quit() | Out-Null
-  Write-Output $text.Substring(0, [Math]::Min($text.Length, ${MAX_CONTENT_BYTES}))
-} catch {
-  Write-Error $_.Exception.Message
-}`.trim();
+  if (RICH_EXTENSIONS.has(ext)) {
     try {
-      const content = runPs(ps);
-      return { success: true, content, truncated: false };
+      let raw: string;
+      if (ext === ".docx" || ext === ".doc") raw = await convertDocx(filePath);
+      else if (ext === ".pdf") raw = await convertPdf(filePath);
+      else if (ext === ".xlsx" || ext === ".xls") raw = convertExcel(filePath);
+      else raw = convertHtml(filePath);
+
+      const { content, truncated } = truncate(raw);
+      return { success: true, content, truncated };
     } catch (err) {
       return {
         success: false,
@@ -103,7 +160,7 @@ try {
 
   return {
     success: false,
-    error: `Dateityp "${ext}" nicht unterstützt. Unterstützt: txt, log, md, csv, json, docx und viele mehr.`,
+    error: `Dateityp "${ext}" nicht unterstützt. Unterstützt: txt, log, md, csv, json, docx, pdf, xlsx, html und viele mehr.`,
   };
 }
 
