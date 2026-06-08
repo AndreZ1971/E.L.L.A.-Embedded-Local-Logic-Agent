@@ -1,11 +1,16 @@
 import { execSync } from "child_process";
+import { createRequire } from "module";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import mammoth from "mammoth";
-import pdfParse from "pdf-parse";
 import * as XLSX from "xlsx";
 import TurndownService from "turndown";
+
+const _require = createRequire(import.meta.url);
+const pdfParse = _require("pdf-parse") as (
+  buffer: Buffer,
+) => Promise<{ text: string }>;
 
 const BLOCKED_PREFIXES = [
   "c:\\windows",
