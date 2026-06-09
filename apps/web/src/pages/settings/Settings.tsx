@@ -192,6 +192,8 @@ type Tab =
 const Settings: React.FC = () => {
   const [tab, setTab] = useState<Tab>("llm");
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [searchDrivesText, setSearchDrivesText] = useState("");
+  const [musicSearchPathsText, setMusicSearchPathsText] = useState("");
   const [models, setModels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -251,7 +253,11 @@ const Settings: React.FC = () => {
         .then((r) => r.json())
         .catch(() => []) as Promise<Rule[]>,
     ]).then(([s, m, r]) => {
-      if (s) setSettings(s);
+      if (s) {
+        setSettings(s);
+        setSearchDrivesText((s.searchDrives ?? ["C"]).join(", "));
+        setMusicSearchPathsText((s.musicSearchPaths ?? []).join("\n"));
+      }
       setModels(m.models ?? []);
       setRules(Array.isArray(r) ? r : []);
     });
@@ -1213,10 +1219,11 @@ const Settings: React.FC = () => {
                   Suchlaufwerke (kommagetrennt)
                 </label>
                 <input
-                  value={(settings.searchDrives ?? ["C"]).join(", ")}
-                  onChange={(e) =>
+                  value={searchDrivesText}
+                  onChange={(e) => setSearchDrivesText(e.target.value)}
+                  onBlur={() =>
                     patch({
-                      searchDrives: e.target.value
+                      searchDrives: searchDrivesText
                         .split(",")
                         .map((d) =>
                           d
@@ -1266,10 +1273,11 @@ const Settings: React.FC = () => {
                   Weitere Musikpfade (einer pro Zeile)
                 </label>
                 <textarea
-                  value={(settings.musicSearchPaths ?? []).join("\n")}
-                  onChange={(e) =>
+                  value={musicSearchPathsText}
+                  onChange={(e) => setMusicSearchPathsText(e.target.value)}
+                  onBlur={() =>
                     patch({
-                      musicSearchPaths: e.target.value
+                      musicSearchPaths: musicSearchPathsText
                         .split("\n")
                         .map((p) => p.trim())
                         .filter((p) => p.length > 0),
