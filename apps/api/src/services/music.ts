@@ -3,17 +3,6 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-const AUDIO_EXTENSIONS_GLOB = [
-  "*.mp3",
-  "*.flac",
-  "*.aac",
-  "*.wav",
-  "*.m4a",
-  "*.ogg",
-  "*.wma",
-  "*.opus",
-];
-
 const AUDIO_EXTENSIONS_DOT = [
   ".mp3",
   ".flac",
@@ -36,17 +25,15 @@ function searchInPath(
   libraryPath: string,
   query: string,
 ): MusicSearchResult | null {
-  const extGlob = AUDIO_EXTENSIONS_GLOB.map((e) => `'${e}'`).join(",");
   const extSql = AUDIO_EXTENSIONS_DOT.map((e) => `'${e}'`).join(",");
   const safeLib = libraryPath.replace(/\\/g, "/").replace(/\/+$/, "");
   const safeQuery = query.replace(/'/g, "''");
 
   const ps = `
-$libPs   = '${safeLib.replace(/\//g, "\\\\")}'
-$libWsi  = '${safeLib}/'
-$query   = '${safeQuery}'
-$extGlob = @(${extGlob})
-$extSql  = '${extSql}'
+$libPs  = '${safeLib.replace(/\//g, "\\\\")}'
+$libWsi = '${safeLib}/'
+$query  = '${safeQuery}'
+$extSql = '${extSql}'
 
 # ── Windows Search Index ──────────────────────────────────────────────────────
 try {
@@ -75,16 +62,18 @@ try {
   $r2.Close(); $conn.Close()
 } catch {}
 
-# ── GCI-Fallback: Tiefe 4 — kein voller Rekursiv-Scan ────────────────────────
-$folder = Get-ChildItem $libPs -Directory -Depth 4 -ErrorAction SilentlyContinue |
-  Where-Object { $_.Name -like "*$query*" } | Select-Object -First 1
+# ── GCI-Fallback: OS-Filter — deutlich schneller als Where-Object ─────────────
+$audioExts = @('.mp3','.flac','.aac','.wav','.m4a','.ogg','.wma','.opus')
+
+$folder = Get-ChildItem $libPs -Directory -Filter "*$query*" -Recurse -Depth 4 -ErrorAction SilentlyContinue |
+  Select-Object -First 1
 if ($folder) {
   [PSCustomObject]@{ path=$folder.FullName; title=$folder.Name; isFolder=$true } | ConvertTo-Json -Compress
   exit
 }
 
-$file = Get-ChildItem $libPs -Recurse -Depth 4 -Include $extGlob -ErrorAction SilentlyContinue |
-  Where-Object { $_.BaseName -like "*$query*" } | Select-Object -First 1
+$file = Get-ChildItem $libPs -Filter "*$query*" -Recurse -Depth 4 -ErrorAction SilentlyContinue |
+  Where-Object { $audioExts -contains $_.Extension.ToLower() } | Select-Object -First 1
 if ($file) {
   [PSCustomObject]@{ path=$file.FullName; title=$file.BaseName; isFolder=$false } | ConvertTo-Json -Compress
   exit

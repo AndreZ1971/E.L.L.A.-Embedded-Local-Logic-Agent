@@ -138,8 +138,8 @@ export async function contextAlign(rawText: string): Promise<string> {
   const trimmed = rawText.trim();
   if (trimmed.length < 3) return "";
 
+  // Versuch 1: Ollama
   const model = getSettings().ollamaModel || "llama3.1:8b";
-
   try {
     const res = await fetch(`${env.ollamaBaseUrl}/api/generate`, {
       method: "POST",
@@ -153,15 +153,47 @@ export async function contextAlign(rawText: string): Promise<string> {
       signal: AbortSignal.timeout(8_000),
     });
 
-    if (!res.ok) return trimmed;
-
-    const data = (await res.json()) as { response?: string };
-    const aligned = (data.response ?? "").trim();
-
-    if (!aligned || aligned === "KEIN_BEFEHL") return "";
-    return aligned;
+    if (res.ok) {
+      const data = (await res.json()) as { response?: string };
+      const aligned = (data.response ?? "").trim();
+      if (!aligned || aligned === "KEIN_BEFEHL") return "";
+      return aligned;
+    }
   } catch {
-    // Ollama offline oder Timeout → Raw-Text weitergeben
-    return trimmed;
+    // Ollama offline oder Modell nicht geladen
   }
+
+  // Versuch 2: OpenAI-Fallback (gpt-4o-mini — günstig + schnell)
+  const apiKey = getSettings().openaiApiKey || env.openaiApiKey;
+  if (apiKey) {
+    try {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: ALIGN_PROMPT + trimmed }],
+          temperature: 0,
+          max_tokens: 120,
+        }),
+        signal: AbortSignal.timeout(8_000),
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as {
+          choices?: { message?: { content?: string } }[];
+        };
+        const aligned = (data.choices?.[0]?.message?.content ?? "").trim();
+        if (!aligned || aligned === "KEIN_BEFEHL") return "";
+        return aligned;
+      }
+    } catch {
+      // OpenAI-Fallback fehlgeschlagen
+    }
+  }
+
+  return trimmed;
 }

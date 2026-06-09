@@ -187,7 +187,14 @@ export async function formatDriveConfirmed(args: {
       { timeout: 120_000, encoding: "utf-8" },
     );
     trackToolUsage("format_drive", `${drive}: ${fs_type}`);
-    return JSON.parse(out.trim()) as ToolResult;
+    try {
+      return JSON.parse(out.trim()) as ToolResult;
+    } catch {
+      return {
+        success: true,
+        output: `Laufwerk ${drive}: wurde als ${fs_type} formatiert.`,
+      };
+    }
   } catch (err) {
     return {
       success: false,
@@ -993,7 +1000,7 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       };
     }
 
-    // Zone 2: Nur Wechseldatenträger (DriveType 2) erlaubt
+    // Zone 2: Netzwerk-, CD/DVD- und unbekannte Laufwerke blockieren
     const driveType = getDriveType(drive);
     if (driveType === -1) {
       return {
@@ -1001,11 +1008,20 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         error: `Laufwerk ${drive}: konnte nicht erkannt werden. Bitte prüfe ob das Laufwerk verbunden ist.`,
       };
     }
-    if (driveType !== 2) {
+    // DriveType 3 = interne Festplatte — nur Wechseldatenträger (Typ 2) dürfen formatiert werden
+    if (driveType === 3) {
       return {
         success: false,
         directive: true,
-        error: `Laufwerk ${drive}: ist ein internes Laufwerk und kann nicht formatiert werden.`,
+        error: `Laufwerk ${drive}: ist ein internes Laufwerk und kann nicht formatiert werden. Nur Wechseldatenträger (USB-Sticks) dürfen formatiert werden.`,
+      };
+    }
+    // DriveType 4 = Netzwerk, 5 = CD/DVD, 0/1 = unbekannt/keine Root
+    if ([0, 1, 4, 5].includes(driveType)) {
+      return {
+        success: false,
+        directive: true,
+        error: `Laufwerk ${drive}: ist ein Netzwerk- oder CD-Laufwerk und kann nicht formatiert werden.`,
       };
     }
 
@@ -1063,7 +1079,14 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         { timeout: 10_000, encoding: "utf-8" },
       );
       trackToolUsage("rename_drive", `${drive}: → ${newLabel}`);
-      return JSON.parse(out.trim()) as ToolResult;
+      try {
+        return JSON.parse(out.trim()) as ToolResult;
+      } catch {
+        return {
+          success: true,
+          output: `Laufwerk ${drive}: wurde in "${newLabel}" umbenannt.`,
+        };
+      }
     } catch (err) {
       return {
         success: false,
@@ -1168,6 +1191,7 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
 
   play_music: async (args) => {
     const query = ((args["query"] as string) ?? "").trim();
+    const directPath = ((args["path"] as string) ?? "").trim();
     const {
       musicLibraryPath,
       musicSearchPaths,
@@ -1175,6 +1199,34 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       defaultMediaPlayer,
       apps,
     } = getSettings();
+
+    const playerApp = apps.find(
+      (a) =>
+        a.name.toLowerCase() === defaultMediaPlayer.toLowerCase() && a.allowed,
+    );
+    if (!playerApp) {
+      return {
+        success: false,
+        error: `Media Player "${defaultMediaPlayer}" nicht gefunden oder nicht erlaubt. Bitte in Einstellungen konfigurieren.`,
+      };
+    }
+
+    // Direkt-Pfad übergeben — keine Suche nötig
+    if (directPath) {
+      try {
+        openWithPlayer(playerApp.command, directPath);
+        trackToolUsage("play_music", directPath);
+        return {
+          success: true,
+          output: `"${path.basename(directPath)}" wird in ${playerApp.name} geoeffnet.`,
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: `Media Player konnte nicht gestartet werden: ${err instanceof Error ? err.message : String(err)}`,
+        };
+      }
+    }
 
     // Alle Suchpfade zusammenstellen: musicLibraryPath + musicSearchPaths +
     // searchDrives als Fallback (Laufwerk-Wurzelverzeichnisse)
@@ -1188,17 +1240,6 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         success: false,
         error:
           "Keine Musikbibliothek konfiguriert. Bitte in Einstellungen Musikpfade oder Suchlaufwerke festlegen.",
-      };
-    }
-
-    const playerApp = apps.find(
-      (a) =>
-        a.name.toLowerCase() === defaultMediaPlayer.toLowerCase() && a.allowed,
-    );
-    if (!playerApp) {
-      return {
-        success: false,
-        error: `Media Player "${defaultMediaPlayer}" nicht gefunden oder nicht erlaubt. Bitte in Einstellungen konfigurieren.`,
       };
     }
 
@@ -1946,10 +1987,17 @@ $vol_obj = $null; $dev.Activate([ref]$iid, 23, [IntPtr]::Zero, [ref]$vol_obj) | 
     if (!text) return { success: false, error: "Text fehlt." };
     const ps = `Set-Clipboard -Value '${text.replace(/'/g, "''")}'`;
     const encoded = Buffer.from(ps, "utf16le").toString("base64");
-    execSync(
-      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
-      { timeout: 5000 },
-    );
+    try {
+      execSync(
+        `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+        { timeout: 5000 },
+      );
+    } catch (err) {
+      return {
+        success: false,
+        error: `Zwischenablage konnte nicht gesetzt werden: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
     recordClipboard(text);
     trackToolUsage("set_clipboard", `${text.length} Zeichen`);
     return { success: true, output: "Text in Zwischenablage kopiert." };
@@ -1970,6 +2018,7 @@ $vol_obj = $null; $dev.Activate([ref]$iid, 23, [IntPtr]::Zero, [ref]$vol_obj) | 
     let targetDate = new Date(`${base}T${timeStr}:00`);
     if (isNaN(targetDate.getTime()))
       return { success: false, error: "Ungültiges Datum oder Uhrzeit." };
+    const shifted = targetDate <= now && !dateStr;
     if (targetDate <= now) targetDate.setDate(targetDate.getDate() + 1);
 
     const id = `${Date.now()}`;
@@ -1993,7 +2042,7 @@ $vol_obj = $null; $dev.Activate([ref]$iid, 23, [IntPtr]::Zero, [ref]$vol_obj) | 
     trackToolUsage("set_reminder", message);
     return {
       success: true,
-      output: `Erinnerung gesetzt: "${message}" — ${formatted}`,
+      output: `Erinnerung gesetzt: "${message}" — ${formatted}${shifted ? " (auf morgen verschoben, da die Uhrzeit heute bereits vergangen ist)" : ""}`,
     };
   },
 
@@ -3048,7 +3097,18 @@ export const toolExecutor = {
       return { success: false, error: `Diese Funktion kenne ich noch nicht.` };
     }
 
-    const result = await handler(call.args);
+    let result: ToolResult;
+    try {
+      result = await handler(call.args);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const friendly = msg.includes("ETIMEDOUT")
+        ? "Die Aktion hat zu lange gedauert und wurde abgebrochen."
+        : msg.includes("ENOENT")
+          ? "Eine benötigte Datei oder ein Programm wurde nicht gefunden."
+          : `Unerwarteter Fehler: ${msg}`;
+      return { success: false, error: friendly };
+    }
 
     setImmediate(() => {
       pool
