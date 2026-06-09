@@ -1267,9 +1267,11 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
 $q = '${safeQ}'
 $wsiOk = $false
 try {
+  Add-Type -AssemblyName System.Data -ErrorAction Stop
   $conn = New-Object System.Data.OleDb.OleDbConnection("Provider=Search.CollatorDSO;Extended Properties='Application=Windows'")
   $conn.Open()
   $cmd = $conn.CreateCommand()
+  $cmd.CommandTimeout = 20
   $cmd.CommandText = "SELECT TOP 20 System.ItemPathDisplay, System.FileName, System.Size, System.DateModified FROM SystemIndex WHERE System.FileName LIKE '%$q%' ${extWhereSQL} ${scopeClause}"
   $reader = $cmd.ExecuteReader()
   $results = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -1294,7 +1296,7 @@ if (-not $wsiOk) {
   $results = [System.Collections.Generic.List[PSCustomObject]]::new()
   foreach ($drv in $drives) {
     if (-not (Test-Path $drv)) { continue }
-    Get-ChildItem $drv -Recurse -Include $inc -ErrorAction SilentlyContinue |
+    Get-ChildItem $drv -Recurse -Depth 4 -Include $inc -ErrorAction SilentlyContinue |
       Where-Object { $_.Name -like "*$q*" -and -not ($blocked | Where-Object { $_.FullName.ToLower().Contains($_) }) } |
       Select-Object -First 20 |
       ForEach-Object {
@@ -1317,7 +1319,7 @@ if (-not $wsiOk) {
       fs.writeFileSync(tmpFile, ps, "utf-8");
       const out = execSync(
         `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
-        { encoding: "utf-8", timeout: 30_000 },
+        { encoding: "utf-8", timeout: 60_000 },
       ).trim();
 
       const files = JSON.parse(!out || out === "[]" ? "[]" : out) as Array<{
@@ -1462,6 +1464,78 @@ Write-Output '{"success":true}'
     return { success: true, output: `Explorer geöffnet: ${folderPath}` };
   },
 
+  list_folder: async (args) => {
+    const folderPath = ((args["path"] as string) ?? "").trim();
+    const showHidden = (args["show_hidden"] as boolean) ?? false;
+    if (!folderPath) return { success: false, error: "Pfad fehlt." };
+
+    const safePath = folderPath.replace(/'/g, "''");
+    const hiddenFilter = showHidden
+      ? ""
+      : "| Where-Object { -not $_.Attributes.HasFlag([System.IO.FileAttributes]::Hidden) }";
+    const ps = `
+$p = '${safePath}'
+if (-not (Test-Path $p)) { Write-Output '{"error":"Pfad nicht gefunden."}'; exit }
+$items = Get-ChildItem $p -ErrorAction SilentlyContinue ${hiddenFilter} | Sort-Object @{e={$_.PSIsContainer};d=$true}, Name
+$result = $items | ForEach-Object {
+  [PSCustomObject]@{
+    name    = $_.Name
+    type    = if ($_.PSIsContainer) { 'folder' } else { 'file' }
+    size_kb = if ($_.PSIsContainer) { $null } else { [math]::Round($_.Length / 1KB, 1) }
+    modified = $_.LastWriteTime.ToString('yyyy-MM-dd HH:mm')
+    ext     = if ($_.PSIsContainer) { '' } else { $_.Extension.ToLower() }
+  }
+}
+if ($null -eq $result -or @($result).Count -eq 0) { Write-Output '[]' }
+else { @($result) | ConvertTo-Json -Compress -Depth 2 }
+`.trim();
+
+    const tmpFile = path.join(os.tmpdir(), `ella-ls-${Date.now()}.ps1`);
+    try {
+      const fs = await import("fs");
+      fs.writeFileSync(tmpFile, ps, "utf-8");
+      const out = execSync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+        { encoding: "utf-8", timeout: 15_000 },
+      ).trim();
+
+      if (out.startsWith('{"error"')) {
+        const e = JSON.parse(out) as { error: string };
+        return { success: false, error: e.error };
+      }
+
+      type Item = {
+        name: string;
+        type: "file" | "folder";
+        size_kb: number | null;
+        modified: string;
+        ext: string;
+      };
+      const items = JSON.parse(!out || out === "[]" ? "[]" : out) as Item[];
+      const folders = items.filter((i) => i.type === "folder");
+      const files = items.filter((i) => i.type === "file");
+
+      trackToolUsage("list_folder", folderPath);
+      return {
+        success: true,
+        output: {
+          path: folderPath,
+          total: items.length,
+          folders: folders.length,
+          files: files.length,
+          items,
+        },
+      };
+    } finally {
+      try {
+        const fs = await import("fs");
+        fs.unlinkSync(tmpFile);
+      } catch {
+        /* best effort */
+      }
+    }
+  },
+
   create_document: async (args) => {
     const docType = ((args["type"] as string) ?? "word").toLowerCase();
     const fileName = ((args["name"] as string) ?? "").trim();
@@ -1482,7 +1556,16 @@ Write-Output '{"success":true}'
         try {
           fs.writeFileSync(
             tmpFile,
-            `Start-Process "WINWORD.EXE" -ArgumentList "/w"\nWrite-Output '{"success":true}'`,
+            `$paths = @(
+  "$env:ProgramFiles\\Microsoft Office\\root\\Office16\\WINWORD.EXE",
+  "$env:ProgramFiles\\Microsoft Office\\root\\Office15\\WINWORD.EXE",
+  "${String.raw`$env:ProgramFiles(x86)`}\\Microsoft Office\\root\\Office16\\WINWORD.EXE",
+  "$env:ProgramFiles\\Microsoft Office\\Office16\\WINWORD.EXE"
+)
+$exe = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+if ($exe) { Start-Process $exe -ArgumentList "/w" }
+else { Start-Process "WINWORD.EXE" -ArgumentList "/w" }
+Write-Output '{"success":true}'`,
             "utf-8",
           );
           execSync(

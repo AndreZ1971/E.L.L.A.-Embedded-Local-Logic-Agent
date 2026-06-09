@@ -783,6 +783,54 @@ describe("explore_folder", () => {
   });
 });
 
+describe("list_folder", () => {
+  beforeEach(() => {
+    vi.mocked(evaluateRules).mockResolvedValue("allow");
+    vi.mocked(getSettings).mockReturnValue({
+      ...prodToolSettings,
+      enabledTools: [...prodToolSettings.enabledTools, "list_folder"],
+    } as any);
+  });
+
+  it("list_folder — Fehler wenn kein Pfad", async () => {
+    const result = await toolExecutor.execute({
+      tool: "list_folder",
+      args: {},
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("fehlt");
+  });
+
+  it("list_folder — gibt Ordnerinhalt zurück", async () => {
+    vi.mocked(execSync).mockReturnValue(
+      JSON.stringify([
+        {
+          name: "Musik",
+          type: "folder",
+          size_kb: null,
+          modified: "2026-01-01 10:00",
+          ext: "",
+        },
+        {
+          name: "track.mp3",
+          type: "file",
+          size_kb: 4096,
+          modified: "2026-01-01 11:00",
+          ext: ".mp3",
+        },
+      ]) as any,
+    );
+    const result = await toolExecutor.execute({
+      tool: "list_folder",
+      args: { path: "H:\\" },
+    });
+    expect(result.success).toBe(true);
+    expect((result.output as any).total).toBe(2);
+    expect((result.output as any).folders).toBe(1);
+    expect((result.output as any).files).toBe(1);
+  });
+});
+
 describe("dictate_to_document", () => {
   beforeEach(() => {
     vi.mocked(evaluateRules).mockResolvedValue("allow");

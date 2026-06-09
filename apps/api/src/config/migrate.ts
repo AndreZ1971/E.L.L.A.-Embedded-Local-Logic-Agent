@@ -231,6 +231,7 @@ export async function runMigrations(): Promise<void> {
     [83, "Wecker stellen erlaubt", "set_alarm"],
     [84, "Wecker auflisten erlaubt", "list_alarms"],
     [85, "Wecker loeschen erlaubt", "delete_alarm"],
+    [86, "Ordner auflisten erlaubt", "list_folder"],
   ] as const) {
     await exec(`
       INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)

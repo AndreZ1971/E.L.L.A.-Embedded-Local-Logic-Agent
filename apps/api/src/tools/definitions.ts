@@ -927,6 +927,30 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
   defs.push({
     type: "function",
     function: {
+      name: "list_folder",
+      description:
+        "Listet den Inhalt eines Ordners oder Laufwerks auf (nicht rekursiv). Zeigt Dateien und Unterordner mit Größe und Datum. Verwende dies wenn der Nutzer fragt was sich auf einem Laufwerk oder in einem Ordner befindet.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description:
+              'Pfad zum Ordner oder Laufwerk, z.B. "H:\\\\" oder "C:\\\\Users\\\\Andre\\\\Documents"',
+          },
+          show_hidden: {
+            type: "boolean",
+            description: "Versteckte Dateien anzeigen (Standard: false)",
+          },
+        },
+        required: ["path"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
       name: "create_document",
       description:
         "Erstellt ein neues Dokument. Word oder Textdatei. Optional mit Inhalt vorbefüllen.",

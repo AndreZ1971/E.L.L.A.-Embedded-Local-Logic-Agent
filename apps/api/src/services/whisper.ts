@@ -52,7 +52,7 @@ async function transcribeOpenAI(audioBuffer: Buffer): Promise<string> {
   const form = new FormData();
   form.append(
     "file",
-    new Blob([audioBuffer], { type: "audio/webm" }),
+    new Blob([new Uint8Array(audioBuffer)], { type: "audio/webm" }),
     "audio.webm",
   );
   form.append("model", "whisper-1");

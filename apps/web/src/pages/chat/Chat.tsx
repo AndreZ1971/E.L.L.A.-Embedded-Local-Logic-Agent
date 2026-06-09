@@ -161,11 +161,16 @@ const Chat: React.FC = () => {
   const ttsEnabledRef = useRef(false);
   const ttsVoiceRef = useRef("");
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const currentAbortRef = useRef<AbortController | null>(null);
   useEffect(() => {
     ttsEnabledRef.current = ttsEnabled;
   }, [ttsEnabled]);
 
   const stopCurrentAudio = useCallback(() => {
+    if (currentAbortRef.current) {
+      currentAbortRef.current.abort();
+      currentAbortRef.current = null;
+    }
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
       currentAudioRef.current = null;
@@ -178,15 +183,20 @@ const Chat: React.FC = () => {
       const clean = cleanTextForTTS(text);
       if (!clean) return;
       stopCurrentAudio();
+      const abort = new AbortController();
+      currentAbortRef.current = abort;
       try {
         const voice = ttsVoiceRef.current || "de-DE-KatjaNeural";
         const res = await fetch(`${API}/api/speech/synthesize`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: clean, voice }),
+          signal: abort.signal,
         });
+        if (abort.signal.aborted) return;
         if (!res.ok) throw new Error(`TTS HTTP ${res.status}`);
         const blob = await res.blob();
+        if (abort.signal.aborted) return;
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
         currentAudioRef.current = audio;
@@ -200,7 +210,7 @@ const Chat: React.FC = () => {
         };
         await audio.play();
       } catch {
-        // silent fail — no fallback to a different voice engine
+        // silent fail — kein Fallback auf andere TTS-Engine
       }
     },
     [stopCurrentAudio],
@@ -440,7 +450,7 @@ const Chat: React.FC = () => {
     async (text: string) => {
       if (!text || loadingRef.current) return;
       loadingRef.current = true; // sofort sperren — verhindert parallele Aufrufe vor React-Re-Render
-      window.speechSynthesis.cancel();
+      stopCurrentAudio();
       setMessages((p) => [...p, { role: "user", content: text }]);
       setInput("");
       setLoading(true);
@@ -833,7 +843,7 @@ const Chat: React.FC = () => {
               const next = !ttsEnabled;
               setTtsEnabled(next);
               ttsEnabledRef.current = next;
-              if (!next) window.speechSynthesis.cancel();
+              if (!next) stopCurrentAudio();
               fetch(`${API}/api/settings`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },

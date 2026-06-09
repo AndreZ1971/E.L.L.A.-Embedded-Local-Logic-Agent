@@ -99,7 +99,8 @@ export type ToolName =
   | "translate_text"
   | "summarize_text"
   | "click_element"
-  | "click_element_confirmed";
+  | "click_element_confirmed"
+  | "list_folder";
 
 export interface ToolCall {
   tool: ToolName;

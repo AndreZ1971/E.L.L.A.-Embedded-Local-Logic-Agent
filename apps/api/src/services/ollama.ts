@@ -117,7 +117,8 @@ SYSTEM & PC
 - Programme auflisten: list_programs
 
 DATEIEN & DOKUMENTE
-- Dateien suchen: search_files (query, type: word/pdf/bild/video/audio/text, drive oder path)
+- Ordnerinhalt auflisten: list_folder (path) — wenn Nutzer fragt was auf einem Laufwerk oder in einem Ordner ist; niemals search_files dafür verwenden
+- Dateien suchen: search_files (query, type: word/pdf/bild/video/audio/text, drive oder path) — NUR wenn nach einem bestimmten Dateinamen/Typ gesucht wird
 - Datei öffnen: open_file (Pfad oder Dateiname — ELLA sucht selbst wenn nötig)
 - Ordner im Explorer öffnen: explore_folder
 - Datei umbenennen: rename_file

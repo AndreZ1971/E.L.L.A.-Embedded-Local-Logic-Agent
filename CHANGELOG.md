@@ -4,6 +4,22 @@ Alle wesentlichen Änderungen an E.L.L.A. Detaillierte Entscheidungsbegründunge
 
 ---
 
+## [3.5.4] — 09.06.2026
+
+### Hinzugefügt
+
+- **`list_folder`** — neues Tool: listet Inhalt eines Laufwerks oder Ordners auf (nicht rekursiv, schnell auch auf großen Laufwerken wie H:\); System-Prompt weist LLM an, dieses Tool statt `search_files` für "was ist auf Laufwerk X" zu verwenden
+
+### Behoben
+
+- **TTS Stummschalten** — Mute-Button und neuer Chat-Input rufen jetzt `stopCurrentAudio()` auf statt nur `speechSynthesis.cancel()`; ELLA stoppt sofort
+- **TTS 2 Stimmen / Race Condition** — `AbortController` bricht laufenden TTS-Fetch ab wenn ein neuer Aufruf kommt; zwei gleichzeitige Antworten spielen nie mehr parallel
+- **`create_document` (leeres Word)** — Word-Exe wird jetzt an bekannten Installationspfaden gesucht bevor Fallback auf `WINWORD.EXE` im PATH
+- **Settings → Modus-Tab** — "Proaktive Intelligenz"-Block war als separater zweiter `{tab === "modus"}` Block implementiert, was zu Überlappung führte; in einzige Section zusammengeführt
+- **`search_files` Timeout** — `CommandTimeout = 20` auf OleDb-Command; GCI-Fallback auf `-Depth 4` begrenzt; execSync-Timeout 30s → 60s
+
+---
+
 ## [3.5.1] — 09.06.2026
 
 ### Verbessert
