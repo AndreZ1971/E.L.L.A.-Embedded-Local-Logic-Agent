@@ -57,6 +57,7 @@ interface Settings {
   ttsEngine: "system" | "kokoro";
   sessionCompressionEnabled: boolean;
   clipboardPatternEnabled: boolean;
+  accessibilityMode: "none" | "blind" | "deaf";
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -1515,6 +1516,65 @@ const Settings: React.FC = () => {
                   </option>
                 </select>
               </div>
+            </Section>
+
+            <Section title="Barrierefreiheit">
+              <div
+                style={{
+                  marginBottom: 6,
+                  fontSize: "0.75rem",
+                  color: "#64748b",
+                }}
+              >
+                Passt ELLAs Verhalten an die Bedürfnisse des Nutzers an.
+              </div>
+              {(
+                [
+                  {
+                    value: "none" as const,
+                    label: "Kein Modus",
+                    desc: "Standard — kein spezielles Verhalten",
+                  },
+                  {
+                    value: "blind" as const,
+                    label: "Blind-Modus",
+                    desc: "Sprachausgabe immer aktiv, TTS-optimierte Antworten (kein Markdown), Audio-Feedback bei Zustandswechseln",
+                  },
+                  {
+                    value: "deaf" as const,
+                    label: "Gehörlos-Modus",
+                    desc: "Keine Sprachausgabe, keine Töne — alles läuft über den Chat-Text",
+                  },
+                ] as const
+              ).map(({ value, label, desc }) => (
+                <label
+                  key={value}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 12,
+                    marginBottom: 14,
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="accessibilityMode"
+                    value={value}
+                    checked={(settings.accessibilityMode ?? "none") === value}
+                    onChange={() => patch({ accessibilityMode: value })}
+                    style={{ marginTop: 3, accentColor: "#7c6af7" }}
+                  />
+                  <div>
+                    <div style={{ fontSize: "0.85rem", color: "#e2e8f0" }}>
+                      {label}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                      {desc}
+                    </div>
+                  </div>
+                </label>
+              ))}
             </Section>
           </div>
         )}

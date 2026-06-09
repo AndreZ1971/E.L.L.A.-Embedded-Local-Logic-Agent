@@ -43,6 +43,7 @@ settingsRouter.put("/", async (req, res, next) => {
       sessionCompressionEnabled,
       activeProfileId,
       clipboardPatternEnabled,
+      accessibilityMode,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -63,6 +64,7 @@ settingsRouter.put("/", async (req, res, next) => {
       sessionCompressionEnabled?: boolean;
       activeProfileId?: number;
       clipboardPatternEnabled?: boolean;
+      accessibilityMode?: "none" | "blind" | "deaf";
     };
 
     const raw = {
@@ -83,6 +85,7 @@ settingsRouter.put("/", async (req, res, next) => {
       sessionCompressionEnabled,
       activeProfileId,
       clipboardPatternEnabled,
+      accessibilityMode,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(

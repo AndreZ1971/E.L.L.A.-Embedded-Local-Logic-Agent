@@ -50,6 +50,7 @@ export interface Settings {
   sessionCompressionEnabled: boolean;
   activeProfileId: number;
   clipboardPatternEnabled: boolean;
+  accessibilityMode: "none" | "blind" | "deaf";
 }
 
 const SETTINGS_PATH = path.join(
@@ -152,6 +153,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sessionCompressionEnabled: false,
   activeProfileId: 1,
   clipboardPatternEnabled: true,
+  accessibilityMode: "none",
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -238,6 +240,8 @@ export async function loadSettings(): Promise<void> {
       parsed.activeProfileId = DEFAULT_SETTINGS.activeProfileId;
     if (typeof parsed.clipboardPatternEnabled !== "boolean")
       parsed.clipboardPatternEnabled = DEFAULT_SETTINGS.clipboardPatternEnabled;
+    if (!["none", "blind", "deaf"].includes(parsed.accessibilityMode))
+      parsed.accessibilityMode = DEFAULT_SETTINGS.accessibilityMode;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults

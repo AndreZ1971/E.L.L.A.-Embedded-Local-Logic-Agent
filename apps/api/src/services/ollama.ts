@@ -240,17 +240,40 @@ Deine Sätze sind kurz und natürlich gesprochen. Keine Bullet-Point-Listen in A
 const TTS_OFF_FORMAT = `Du verwendest KEINE Emojis.
 Du darfst Markdown verwenden wenn es die Lesbarkeit verbessert: **fett** für wichtige Begriffe, Listen wenn mehrere Punkte aufgezählt werden, Codeblöcke für Befehle. Nutze es sparsam — nur wenn es wirklich hilft.`;
 
+const BLIND_MODE_INSTRUCTION = `WICHTIG: Der Nutzer ist blind und nutzt Sprachausgabe als primäre Schnittstelle.
+Antworte ausschließlich in natürlicher gesprochener Sprache. Kein Markdown, keine Sternchen, keine Bindestriche als Aufzählungszeichen, keine Überschriften mit #.
+Strukturiere Antworten mit Pausen und natürlichen Übergängen statt visuellen Elementen.
+Wenn du Bildschirminhalte beschreibst: präzise, von wichtig nach unwichtig, ohne visuelle Metaphern.`;
+
+const DEAF_MODE_INSTRUCTION = `WICHTIG: Der Nutzer ist gehörlos. Es gibt keine Sprachausgabe.
+Kommuniziere ausschließlich über den Chat. Nutze Markdown zur Strukturierung — es wird gelesen, nicht gehört.
+Keine Erwähnung von Sprachausgabe oder Tönen in Antworten.`;
+
 export function buildSystemPrompt(
   memories: string[] = [],
   userName = "",
 ): string {
-  const { ttsEnabled } = getSettings();
+  const { ttsEnabled, accessibilityMode } = getSettings();
   const datetime = getCurrentDateTimeString();
+
+  const isBlind = accessibilityMode === "blind";
+  const isDeaf = accessibilityMode === "deaf";
+
+  const formatting = isBlind
+    ? TTS_ON_FORMAT
+    : ttsEnabled
+      ? TTS_ON_FORMAT
+      : TTS_OFF_FORMAT;
+
   const resolved = BASE_PROMPT.replace(
     "__FORMATTING_INSTRUCTION__",
-    ttsEnabled ? TTS_ON_FORMAT : TTS_OFF_FORMAT,
+    formatting,
   );
   let prompt = `${resolved}\n\nAktuelle Zeit: ${datetime}`;
+
+  if (isBlind) prompt += `\n\n${BLIND_MODE_INSTRUCTION}`;
+  if (isDeaf) prompt += `\n\n${DEAF_MODE_INSTRUCTION}`;
+
   if (userName) {
     prompt += `\nName des Nutzers: ${userName}. Nutze den Namen gelegentlich — natürlich, nicht bei jeder Antwort.`;
   }

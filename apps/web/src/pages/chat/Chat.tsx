@@ -160,6 +160,7 @@ const Chat: React.FC = () => {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const ttsEnabledRef = useRef(false);
   const ttsVoiceRef = useRef("");
+  const accessibilityModeRef = useRef<"none" | "blind" | "deaf">("none");
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const currentAbortRef = useRef<AbortController | null>(null);
   useEffect(() => {
@@ -216,9 +217,38 @@ const Chat: React.FC = () => {
     [stopCurrentAudio],
   );
 
+  // Web Audio API — kurze Töne für Blind-Modus-Feedback
+  const playTone = useCallback(
+    (frequency: number, durationMs: number, volume = 0.12) => {
+      if (accessibilityModeRef.current !== "blind") return;
+      try {
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = frequency;
+        osc.type = "sine";
+        gain.gain.setValueAtTime(volume, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(
+          0.001,
+          ctx.currentTime + durationMs / 1000,
+        );
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + durationMs / 1000);
+        osc.onended = () => ctx.close();
+      } catch {
+        // Audio API nicht verfügbar
+      }
+    },
+    [],
+  );
+
   const speak = useCallback(
     (text: string) => {
-      if (!ttsEnabledRef.current) return;
+      if (accessibilityModeRef.current === "deaf") return;
+      if (!ttsEnabledRef.current && accessibilityModeRef.current !== "blind")
+        return;
       speakEdge(text);
     },
     [speakEdge],
@@ -550,6 +580,7 @@ const Chat: React.FC = () => {
               ]);
               setStreaming("");
               setToolStatus("");
+              playTone(440, 200); // Blind-Modus: Ton → Antwort fertig
               speak(full);
               break outer;
             } else if (ev.type === "error") throw new Error(ev.message);
@@ -588,6 +619,7 @@ const Chat: React.FC = () => {
 
   /* ── Whisper-basierte Spracheingabe ── */
   const startRecording = useCallback(async () => {
+    playTone(880, 120); // Blind-Modus: Ton → ELLA hört jetzt zu
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mr = new MediaRecorder(stream);
@@ -624,7 +656,7 @@ const Chat: React.FC = () => {
       console.error("[MIC] getUserMedia fehlgeschlagen:", err);
       setTimeout(() => setMicStatus(""), 5000);
     }
-  }, []);
+  }, [playTone]);
 
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
@@ -760,6 +792,7 @@ const Chat: React.FC = () => {
         voiceMode?: VoiceMode;
         ttsEnabled?: boolean;
         ttsVoice?: string;
+        accessibilityMode?: "none" | "blind" | "deaf";
       }>,
       fetch(`${API}/api/homework/status`).then((r) => r.json()) as Promise<{
         active: boolean;
@@ -771,6 +804,7 @@ const Chat: React.FC = () => {
         ttsEnabledRef.current = s.ttsEnabled ?? false;
         setTtsEnabled(s.ttsEnabled ?? false);
         ttsVoiceRef.current = s.ttsVoice ?? "";
+        accessibilityModeRef.current = s.accessibilityMode ?? "none";
         setHomeworkActive(h.active);
         setHomeworkConfigured(h.configured);
       })
