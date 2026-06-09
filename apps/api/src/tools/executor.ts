@@ -1168,13 +1168,26 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
 
   play_music: async (args) => {
     const query = ((args["query"] as string) ?? "").trim();
-    const { musicLibraryPath, defaultMediaPlayer, apps } = getSettings();
+    const {
+      musicLibraryPath,
+      musicSearchPaths,
+      searchDrives,
+      defaultMediaPlayer,
+      apps,
+    } = getSettings();
 
-    if (!musicLibraryPath) {
+    // Alle Suchpfade zusammenstellen: musicLibraryPath + musicSearchPaths +
+    // searchDrives als Fallback (Laufwerk-Wurzelverzeichnisse)
+    const extraPaths = [
+      ...(musicSearchPaths ?? []),
+      ...(searchDrives ?? []).map((d) => `${d.replace(/:$/, "")}:\\`),
+    ];
+
+    if (!musicLibraryPath && extraPaths.every((p) => !p.trim())) {
       return {
         success: false,
         error:
-          "Keine Musikbibliothek konfiguriert. Bitte in Einstellungen den Musikpfad festlegen.",
+          "Keine Musikbibliothek konfiguriert. Bitte in Einstellungen Musikpfade oder Suchlaufwerke festlegen.",
       };
     }
 
@@ -1193,7 +1206,7 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     let description = "Musikbibliothek";
 
     if (query) {
-      const result = searchMusic(musicLibraryPath, query);
+      const result = searchMusic(musicLibraryPath ?? "", query, extraPaths);
       if (!result) {
         return {
           success: false,
@@ -1249,12 +1262,15 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       ? dotExts.map((e) => `'*${e}'`).join(",")
       : "'*.*'";
 
-    const { protectedDrives } = getSettings();
+    const { protectedDrives, searchDrives } = getSettings();
+    const configuredDrives = (searchDrives ?? ["C"]).map(
+      (d) => `${d.replace(/:?\\?$/, "")}:\\`,
+    );
     const drivesToSearch = searchPath
       ? [searchPath]
       : drive
         ? [`${drive}:\\`]
-        : ["C:\\", "D:\\", "E:\\", "H:\\", "Z:\\"].filter(
+        : configuredDrives.filter(
             (d) => !protectedDrives.includes(d[0]!) || d[0] === "C",
           );
 
@@ -1289,10 +1305,11 @@ try {
   }
   $reader.Close()
   $conn.Close()
-  $wsiOk = $true
-  if ($results.Count -eq 0) { Write-Output '[]' } else { $results | ConvertTo-Json -Compress -Depth 2 }
+  $wsiOk = ($results.Count -gt 0)
+  if ($results.Count -gt 0) { $results | ConvertTo-Json -Compress -Depth 2 }
 } catch { $wsiOk = $false }
 
+# GCI-Fallback: wenn WSI fehlschlug ODER 0 Ergebnisse (nicht indizierte Laufwerke)
 if (-not $wsiOk) {
   $drives  = @(${drivesToSearch.map((d) => `'${d}'`).join(",")})
   $inc     = @(${gcIncludes})

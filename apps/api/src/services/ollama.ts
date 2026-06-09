@@ -118,7 +118,7 @@ SYSTEM & PC
 
 DATEIEN & DOKUMENTE
 - Ordnerinhalt auflisten: list_folder (path) — wenn Nutzer fragt was auf einem Laufwerk oder in einem Ordner ist; niemals search_files dafür verwenden
-- Dateien suchen: search_files (query, type: word/pdf/bild/video/audio/text, drive oder path) — NUR wenn nach einem bestimmten Dateinamen/Typ gesucht wird
+- Dateien suchen: search_files (query, type: word/pdf/bild/video/audio/text, drive oder path) — NUR wenn nach einem bestimmten Dateinamen/Typ gesucht wird; durchsucht automatisch alle konfigurierten Suchlaufwerke (searchDrives in Settings)
 - Datei öffnen: open_file (Pfad oder Dateiname — ELLA sucht selbst wenn nötig)
 - Ordner im Explorer öffnen: explore_folder
 - Datei umbenennen: rename_file
@@ -152,7 +152,7 @@ ZWISCHENABLAGE
 - Text setzen: set_clipboard
 
 MUSIK
-- Musik spielen: play_music (query nach Künstler, Album oder Titel — ELLA durchsucht die Bibliothek)
+- Musik spielen: play_music (query nach Künstler, Album oder Titel — ELLA durchsucht Musikbibliothek UND alle konfigurierten Suchlaufwerke)
 
 SCREENSHOT & VISION
 - Screenshot + KI-Analyse: take_screenshot — analysiert den aktuellen Bildschirm mit GPT-4o (nur wenn OpenAI verfügbar)

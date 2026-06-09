@@ -52,12 +52,14 @@ interface Settings {
   googleConnected: boolean;
   googleUserEmail: string;
   musicLibraryPath: string;
+  musicSearchPaths: string[];
   defaultMediaPlayer: string;
   windowContextEnabled: boolean;
   ttsEngine: "system" | "kokoro";
   sessionCompressionEnabled: boolean;
   clipboardPatternEnabled: boolean;
   accessibilityMode: "none" | "blind" | "deaf";
+  searchDrives: string[];
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -1208,12 +1210,24 @@ const Settings: React.FC = () => {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
-                  Musikbibliothek
+                  Suchlaufwerke (kommagetrennt)
                 </label>
                 <input
-                  value={settings.musicLibraryPath ?? ""}
-                  onChange={(e) => patch({ musicLibraryPath: e.target.value })}
-                  placeholder="z.B. H:\ oder H:\Musik"
+                  value={(settings.searchDrives ?? ["C"]).join(", ")}
+                  onChange={(e) =>
+                    patch({
+                      searchDrives: e.target.value
+                        .split(",")
+                        .map((d) =>
+                          d
+                            .trim()
+                            .replace(/[:\\/]+$/, "")
+                            .toUpperCase(),
+                        )
+                        .filter((d) => d.length > 0),
+                    })
+                  }
+                  placeholder="z.B. C, E, H"
                   style={{
                     background: "#1e2538",
                     border: "1px solid #2d3148",
@@ -1221,6 +1235,57 @@ const Settings: React.FC = () => {
                     padding: "8px 12px",
                     color: "#e2e8f0",
                     fontSize: "0.85rem",
+                  }}
+                />
+                <div style={{ fontSize: "0.72rem", color: "#475569" }}>
+                  Diese Laufwerke durchsucht ELLA bei Datei- und Musiksuche
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
+                  Musikbibliothek (primärer Pfad)
+                </label>
+                <input
+                  value={settings.musicLibraryPath ?? ""}
+                  onChange={(e) => patch({ musicLibraryPath: e.target.value })}
+                  placeholder="z.B. H:\Musik"
+                  style={{
+                    background: "#1e2538",
+                    border: "1px solid #2d3148",
+                    borderRadius: 6,
+                    padding: "8px 12px",
+                    color: "#e2e8f0",
+                    fontSize: "0.85rem",
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
+                  Weitere Musikpfade (einer pro Zeile)
+                </label>
+                <textarea
+                  value={(settings.musicSearchPaths ?? []).join("\n")}
+                  onChange={(e) =>
+                    patch({
+                      musicSearchPaths: e.target.value
+                        .split("\n")
+                        .map((p) => p.trim())
+                        .filter((p) => p.length > 0),
+                    })
+                  }
+                  placeholder={"H:\\Musik\\Rock\nE:\\Alben"}
+                  rows={3}
+                  style={{
+                    background: "#1e2538",
+                    border: "1px solid #2d3148",
+                    borderRadius: 6,
+                    padding: "8px 12px",
+                    color: "#e2e8f0",
+                    fontSize: "0.85rem",
+                    resize: "vertical",
+                    fontFamily: "inherit",
                   }}
                 />
               </div>

@@ -44,6 +44,7 @@ export interface Settings {
   googleConnected: boolean;
   googleUserEmail: string;
   musicLibraryPath: string;
+  musicSearchPaths: string[];
   defaultMediaPlayer: string;
   windowContextEnabled: boolean;
   ttsEngine: "system" | "kokoro";
@@ -51,6 +52,7 @@ export interface Settings {
   activeProfileId: number;
   clipboardPatternEnabled: boolean;
   accessibilityMode: "none" | "blind" | "deaf";
+  searchDrives: string[];
 }
 
 const SETTINGS_PATH = path.join(
@@ -147,6 +149,7 @@ export const DEFAULT_SETTINGS: Settings = {
   googleConnected: false,
   googleUserEmail: "",
   musicLibraryPath: "",
+  musicSearchPaths: [],
   defaultMediaPlayer: "vlc",
   windowContextEnabled: false,
   ttsEngine: "system",
@@ -154,6 +157,7 @@ export const DEFAULT_SETTINGS: Settings = {
   activeProfileId: 1,
   clipboardPatternEnabled: true,
   accessibilityMode: "none",
+  searchDrives: ["C"],
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -242,6 +246,10 @@ export async function loadSettings(): Promise<void> {
       parsed.clipboardPatternEnabled = DEFAULT_SETTINGS.clipboardPatternEnabled;
     if (!["none", "blind", "deaf"].includes(parsed.accessibilityMode))
       parsed.accessibilityMode = DEFAULT_SETTINGS.accessibilityMode;
+    if (!Array.isArray(parsed.musicSearchPaths))
+      parsed.musicSearchPaths = DEFAULT_SETTINGS.musicSearchPaths;
+    if (!Array.isArray(parsed.searchDrives))
+      parsed.searchDrives = DEFAULT_SETTINGS.searchDrives;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults

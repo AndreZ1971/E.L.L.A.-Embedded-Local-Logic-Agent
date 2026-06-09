@@ -44,6 +44,8 @@ settingsRouter.put("/", async (req, res, next) => {
       activeProfileId,
       clipboardPatternEnabled,
       accessibilityMode,
+      searchDrives,
+      musicSearchPaths,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -65,6 +67,8 @@ settingsRouter.put("/", async (req, res, next) => {
       activeProfileId?: number;
       clipboardPatternEnabled?: boolean;
       accessibilityMode?: "none" | "blind" | "deaf";
+      searchDrives?: string[];
+      musicSearchPaths?: string[];
     };
 
     const raw = {
@@ -86,6 +90,8 @@ settingsRouter.put("/", async (req, res, next) => {
       activeProfileId,
       clipboardPatternEnabled,
       accessibilityMode,
+      searchDrives,
+      musicSearchPaths,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(
