@@ -100,7 +100,10 @@ export type ToolName =
   | "summarize_text"
   | "click_element"
   | "click_element_confirmed"
-  | "list_folder";
+  | "list_folder"
+  | "describe_screen"
+  | "describe_image"
+  | "describe_webpage";
 
 export interface ToolCall {
   tool: ToolName;

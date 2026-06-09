@@ -1873,5 +1873,71 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  defs.push({
+    type: "function",
+    function: {
+      name: "describe_screen",
+      description:
+        "Macht einen Screenshot und beschreibt was auf dem Bildschirm zu sehen ist. Ideal für Nutzer mit Sehbehinderung oder wenn gefragt wird was gerade auf dem Bildschirm ist. Nutzt GPT-4o Vision (online) oder LLaVA (offline).",
+      parameters: {
+        type: "object",
+        properties: {
+          question: {
+            type: "string",
+            description:
+              "Optionale spezifische Frage zum Bildschirminhalt, z.B. 'Was steht in der Fehlermeldung?'",
+          },
+        },
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "describe_image",
+      description:
+        "Beschreibt den Inhalt einer Bilddatei. Unterstützt PNG, JPG, JPEG, GIF, WebP, BMP. Für Sehbehinderte oder zum Verstehen von Bildinhalten.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description:
+              "Vollständiger Dateipfad zum Bild, z.B. C:\\\\Users\\\\Andre\\\\Bilder\\\\foto.jpg",
+          },
+          question: {
+            type: "string",
+            description: "Optionale spezifische Frage zum Bild",
+          },
+        },
+        required: ["path"],
+      },
+    },
+  });
+
+  defs.push({
+    type: "function",
+    function: {
+      name: "describe_webpage",
+      description:
+        "Beschreibt den visuellen Inhalt und Aufbau einer Webseite. Macht einen Screenshot des aktuellen Browsers. Optional mit URL für zusätzlichen Textkontext.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: {
+            type: "string",
+            description: "Optionale URL der Webseite für zusätzlichen Kontext",
+          },
+          question: {
+            type: "string",
+            description:
+              "Optionale spezifische Frage zur Webseite, z.B. 'Wo ist der Anmelde-Button?'",
+          },
+        },
+      },
+    },
+  });
+
   return defs;
 }

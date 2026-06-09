@@ -76,7 +76,11 @@ import {
   deleteReminder,
   listReminders,
 } from "../services/reminder.js";
-import { analyzeScreenshot } from "../services/vision.js";
+import {
+  analyzeScreenshot,
+  describeImageFile,
+  describeWebpage,
+} from "../services/vision.js";
 import {
   buildStyleProfile,
   writeInUserStyle,
@@ -2934,6 +2938,62 @@ else { $results | ConvertTo-Json -Compress }`.trim();
       success: true,
       output: `RAM: ${fmt(after)} frei von ${fmt(total)}${freed > 10 * 1024 * 1024 ? ` (${fmt(freed)} freigegeben)` : ""}.`,
     };
+  },
+
+  // ── v3.6.0 Barrierefreiheit / Vision ─────────────────────────────────────────
+
+  describe_screen: async (args) => {
+    const question = ((args["question"] as string) ?? "").trim();
+    try {
+      const description = await analyzeScreenshot(
+        question ||
+          "Beschreibe detailliert was auf dem Bildschirm zu sehen ist. Was ist der Hauptinhalt, welche Anwendungen sind geöffnet, welcher Text ist sichtbar?",
+      );
+      trackToolUsage("describe_screen", "accessibility");
+      return { success: true, output: { description } };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
+
+  describe_image: async (args) => {
+    const filePath = ((args["path"] as string) ?? "").trim();
+    const question = ((args["question"] as string) ?? "").trim();
+    if (!filePath) return { success: false, error: "Dateipfad fehlt." };
+    try {
+      const description = await describeImageFile(
+        filePath,
+        question || undefined,
+      );
+      trackToolUsage("describe_image", path.basename(filePath));
+      return { success: true, output: { description, path: filePath } };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
+
+  describe_webpage: async (args) => {
+    const url = ((args["url"] as string) ?? "").trim() || undefined;
+    const question = ((args["question"] as string) ?? "").trim() || undefined;
+    try {
+      const description = await describeWebpage(url, question);
+      trackToolUsage("describe_webpage", url ?? "aktueller Bildschirm");
+      return {
+        success: true,
+        output: { description, url: url ?? "aktueller Bildschirm" },
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
   },
 };
 

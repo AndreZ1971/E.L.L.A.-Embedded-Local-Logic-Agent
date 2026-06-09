@@ -63,6 +63,12 @@ vi.mock("../../services/reminder.js", () => ({
 }));
 vi.mock("../../services/vision.js", () => ({
   analyzeScreenshot: vi.fn(() => Promise.resolve("Ein Desktop.")),
+  describeImageFile: vi.fn(() =>
+    Promise.resolve("Ein Foto mit einem Hund auf einer Wiese."),
+  ),
+  describeWebpage: vi.fn(() =>
+    Promise.resolve("Eine Webseite mit Navigationleiste und Hauptinhalt."),
+  ),
 }));
 vi.mock("../../services/styleProfile.js", () => ({
   buildStyleProfile: vi.fn(() => Promise.resolve("")),
@@ -2183,5 +2189,50 @@ describe("delete_alarm", () => {
     });
     expect(result.success).toBe(true);
     expect(result.output).toContain("gelöscht");
+  });
+});
+
+describe("describe_screen", () => {
+  const wowSettings = {
+    ...prodToolSettings,
+    enabledTools: [...prodToolSettings.enabledTools, "describe_screen"],
+  };
+  it("gibt Bildschirmbeschreibung zurück", async () => {
+    vi.mocked(getSettings).mockReturnValue(wowSettings as ReturnType<typeof getSettings>);
+    const result = await toolExecutor.execute({ tool: "describe_screen", args: {} });
+    expect(result.success).toBe(true);
+    expect((result.output as { description: string }).description).toContain("Desktop");
+  });
+});
+
+describe("describe_image", () => {
+  const wowSettings = {
+    ...prodToolSettings,
+    enabledTools: [...prodToolSettings.enabledTools, "describe_image"],
+  };
+  it("Fehler wenn kein Pfad angegeben", async () => {
+    vi.mocked(getSettings).mockReturnValue(wowSettings as ReturnType<typeof getSettings>);
+    const result = await toolExecutor.execute({ tool: "describe_image", args: {} });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Dateipfad");
+  });
+  it("gibt Bildbeschreibung zurück", async () => {
+    vi.mocked(getSettings).mockReturnValue(wowSettings as ReturnType<typeof getSettings>);
+    const result = await toolExecutor.execute({ tool: "describe_image", args: { path: "C:\test.jpg" } });
+    expect(result.success).toBe(true);
+    expect((result.output as { description: string }).description).toContain("Hund");
+  });
+});
+
+describe("describe_webpage", () => {
+  const wowSettings = {
+    ...prodToolSettings,
+    enabledTools: [...prodToolSettings.enabledTools, "describe_webpage"],
+  };
+  it("gibt Webseitenbeschreibung zurück", async () => {
+    vi.mocked(getSettings).mockReturnValue(wowSettings as ReturnType<typeof getSettings>);
+    const result = await toolExecutor.execute({ tool: "describe_webpage", args: {} });
+    expect(result.success).toBe(true);
+    expect((result.output as { description: string }).description).toContain("Webseite");
   });
 });

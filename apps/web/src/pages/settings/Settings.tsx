@@ -133,6 +133,12 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "rename_file", label: "Datei umbenennen" },
   { name: "copy_file", label: "Datei kopieren" },
   { name: "create_folder", label: "Ordner erstellen" },
+  {
+    name: "describe_screen",
+    label: "Bildschirm beschreiben (Barrierefreiheit)",
+  },
+  { name: "describe_image", label: "Bilddatei beschreiben" },
+  { name: "describe_webpage", label: "Webseite beschreiben" },
 ];
 
 const input: React.CSSProperties = {

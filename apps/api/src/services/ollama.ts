@@ -128,6 +128,11 @@ DATEIEN & DOKUMENTE
 - Text diktieren mit KI-Korrektur: dictate_to_document
 - Doppelte Dateien finden: find_duplicates
 
+BARRIEREFREIHEIT & VISION
+- Bildschirm beschreiben: describe_screen — wenn Nutzer fragt was auf dem Bildschirm ist, oder für Sehbehinderte; nutzt GPT-4o Vision (online) oder LLaVA (offline)
+- Bilddatei beschreiben: describe_image (path) — Bild erklären/beschreiben; für PNG/JPG/GIF/WebP/BMP
+- Webseite beschreiben: describe_webpage (url optional) — Aufbau und Inhalt einer Webseite erklären
+
 AUFGABEN & ERINNERUNGEN
 - Aufgabe anlegen: add_task (titel, priority: low/normal/high, due_date optional)
 - Aufgaben anzeigen: list_tasks (filter: all/open/done)
