@@ -1221,57 +1221,94 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     const query = ((args["query"] as string) ?? "").trim();
     const type = ((args["type"] as string) ?? "").toLowerCase();
     const drive = ((args["drive"] as string) ?? "").toUpperCase();
+    const searchPath = ((args["path"] as string) ?? "").trim();
 
     if (!query) return { success: false, error: "Suchbegriff fehlt." };
 
-    const typeMap: Record<string, string[]> = {
-      word: ["*.docx", "*.doc"],
-      excel: ["*.xlsx", "*.xls"],
-      pdf: ["*.pdf"],
-      bild: ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp", "*.bmp"],
-      video: ["*.mp4", "*.mkv", "*.avi", "*.mov", "*.wmv"],
-      audio: ["*.mp3", "*.flac", "*.wav", "*.m4a", "*.aac"],
-      text: ["*.txt", "*.md"],
-      alle: ["*.*"],
+    // Extension maps: WSI SQL extensions (.pdf) and GCI glob patterns (*.pdf)
+    const extMapDot: Record<string, string[]> = {
+      word: [".docx", ".doc"],
+      excel: [".xlsx", ".xls"],
+      pdf: [".pdf"],
+      bild: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"],
+      video: [".mp4", ".mkv", ".avi", ".mov", ".wmv"],
+      audio: [".mp3", ".flac", ".wav", ".m4a", ".aac"],
+      text: [".txt", ".md"],
     };
-    const extensions = typeMap[type] ?? typeMap["alle"];
-    const extFilter = extensions!.map((e) => `'${e}'`).join(",");
+    const dotExts = extMapDot[type];
+    const extWhereSQL = dotExts
+      ? dotExts.length === 1
+        ? `AND System.FileExtension = '${dotExts[0]}'`
+        : `AND System.FileExtension IN (${dotExts.map((e) => `'${e}'`).join(",")})`
+      : "";
+    const gcIncludes = dotExts
+      ? dotExts.map((e) => `'*${e}'`).join(",")
+      : "'*.*'";
 
     const { protectedDrives } = getSettings();
-    const drivesToSearch = drive
-      ? [`${drive}:\\`]
-      : ["C:\\", "D:\\", "E:\\", "H:\\", "Z:\\"].filter(
-          (d) => !protectedDrives.includes(d[0]!) || d[0] === "C",
-        );
+    const drivesToSearch = searchPath
+      ? [searchPath]
+      : drive
+        ? [`${drive}:\\`]
+        : ["C:\\", "D:\\", "E:\\", "H:\\", "Z:\\"].filter(
+            (d) => !protectedDrives.includes(d[0]!) || d[0] === "C",
+          );
+
+    // WSI SCOPE: specific path or drive; empty = all indexed locations
+    const scopeClause = searchPath
+      ? `AND SCOPE='file:${searchPath.replace(/\\/g, "/")}'`
+      : drive
+        ? `AND SCOPE='file:${drive}:/'`
+        : "";
+
+    const safeQ = query.replace(/'/g, "''");
 
     const ps = `
-$query  = '${query.replace(/'/g, "''")}'
-$drives = @(${drivesToSearch.map((d) => `'${d}'`).join(",")})
-$ext    = @(${extFilter})
-$blocked = @('\\windows\\','\\system32\\','\\syswow64\\','\\winsxs\\')
-$results = [System.Collections.Generic.List[PSCustomObject]]::new()
+$q = '${safeQ}'
+$wsiOk = $false
+try {
+  $conn = New-Object System.Data.OleDb.OleDbConnection("Provider=Search.CollatorDSO;Extended Properties='Application=Windows'")
+  $conn.Open()
+  $cmd = $conn.CreateCommand()
+  $cmd.CommandText = "SELECT TOP 20 System.ItemPathDisplay, System.FileName, System.Size, System.DateModified FROM SystemIndex WHERE System.FileName LIKE '%$q%' ${extWhereSQL} ${scopeClause}"
+  $reader = $cmd.ExecuteReader()
+  $results = [System.Collections.Generic.List[PSCustomObject]]::new()
+  while ($reader.Read() -and $results.Count -lt 20) {
+    $fpath = if ($reader.IsDBNull(0)) { '' } else { $reader.GetValue(0).ToString() }
+    $fname = if ($reader.IsDBNull(1)) { '' } else { $reader.GetValue(1).ToString() }
+    $fsize = if ($reader.IsDBNull(2)) { 0 } else { try { [math]::Round([long]$reader.GetValue(2) / 1KB, 1) } catch { 0 } }
+    $fmod  = if ($reader.IsDBNull(3)) { '' } else { try { [datetime]$reader.GetValue(3) | Get-Date -Format 'yyyy-MM-dd HH:mm' } catch { '' } }
+    $fext  = [System.IO.Path]::GetExtension($fpath).ToLower()
+    if ($fpath -ne '') { $results.Add([PSCustomObject]@{ name=$fname; path=$fpath; size=$fsize; changed=$fmod; ext=$fext }) }
+  }
+  $reader.Close()
+  $conn.Close()
+  $wsiOk = $true
+  if ($results.Count -eq 0) { Write-Output '[]' } else { $results | ConvertTo-Json -Compress -Depth 2 }
+} catch { $wsiOk = $false }
 
-foreach ($drive in $drives) {
-  if (-not (Test-Path $drive)) { continue }
-  Get-ChildItem $drive -Recurse -Include $ext -ErrorAction SilentlyContinue |
-    Where-Object {
-      $_.Name -like "*$query*" -and
-      -not ($blocked | Where-Object { $_.FullName.ToLower().Contains($_) })
-    } |
-    Select-Object -First 20 |
-    ForEach-Object {
-      $results.Add([PSCustomObject]@{
-        name    = $_.Name
-        path    = $_.FullName
-        size    = [math]::Round($_.Length / 1KB, 1)
-        changed = $_.LastWriteTime.ToString('yyyy-MM-dd HH:mm')
-        ext     = $_.Extension.ToLower()
-      })
-    }
-  if ($results.Count -ge 20) { break }
+if (-not $wsiOk) {
+  $drives  = @(${drivesToSearch.map((d) => `'${d}'`).join(",")})
+  $inc     = @(${gcIncludes})
+  $blocked = @('\\windows\\','\\system32\\','\\syswow64\\','\\winsxs\\')
+  $results = [System.Collections.Generic.List[PSCustomObject]]::new()
+  foreach ($drv in $drives) {
+    if (-not (Test-Path $drv)) { continue }
+    Get-ChildItem $drv -Recurse -Include $inc -ErrorAction SilentlyContinue |
+      Where-Object { $_.Name -like "*$q*" -and -not ($blocked | Where-Object { $_.FullName.ToLower().Contains($_) }) } |
+      Select-Object -First 20 |
+      ForEach-Object {
+        $results.Add([PSCustomObject]@{
+          name    = $_.Name; path = $_.FullName
+          size    = [math]::Round($_.Length / 1KB, 1)
+          changed = $_.LastWriteTime.ToString('yyyy-MM-dd HH:mm')
+          ext     = $_.Extension.ToLower()
+        })
+      }
+    if ($results.Count -ge 20) { break }
+  }
+  if ($results.Count -eq 0) { Write-Output '[]' } else { $results | ConvertTo-Json -Compress -Depth 2 }
 }
-if ($results.Count -eq 0) { Write-Output '[]' }
-else { $results | ConvertTo-Json -Compress -Depth 2 }
 `.trim();
 
     const tmpFile = path.join(os.tmpdir(), `ella-search-${Date.now()}.ps1`);
@@ -1437,30 +1474,57 @@ Write-Output '{"success":true}'
       const safeFolder = folder.replace(/'/g, "''");
       const safeFile = fileName.replace(/'/g, "''");
       const safeContent = content.replace(/'/g, "''");
+      const fs = await import("fs");
+
+      // Empty document: fire-and-forget via Start-Process to avoid COM timeout
+      if (!content && !fileName) {
+        const tmpFile = path.join(os.tmpdir(), `ella-create-${Date.now()}.ps1`);
+        try {
+          fs.writeFileSync(
+            tmpFile,
+            `Start-Process "WINWORD.EXE" -ArgumentList "/w"\nWrite-Output '{"success":true}'`,
+            "utf-8",
+          );
+          execSync(
+            `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+            { timeout: 10_000 },
+          );
+        } finally {
+          try {
+            fs.unlinkSync(tmpFile);
+          } catch {
+            /* best effort */
+          }
+        }
+        trackToolUsage("create_document", "word");
+        return {
+          success: true,
+          output: "Neues leeres Word-Dokument geöffnet.",
+        };
+      }
+
+      // Document with content or filename: use COM, release cleanly to avoid save-dialog timeout
       const ps = `
 $word = New-Object -ComObject Word.Application
-$word.Visible = $true
+$word.Visible = $false
 $doc = $word.Documents.Add()
 ${content ? `$word.Selection.TypeText('${safeContent}')` : ""}
-${
-  fileName
-    ? `
-$p = '${safeFolder}\\${safeFile}.docx'
-$doc.SaveAs([ref]$p)
-`
-    : ""
-}
+${fileName ? `$p = '${safeFolder}\\${safeFile}.docx'\n$doc.SaveAs([ref]$p)` : ""}
+$doc.Saved = $true
+$word.Visible = $true
 $word.Activate()
 $word.Selection.EndKey(6)
+[void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($doc)
+[void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($word)
+[System.GC]::Collect()
 Write-Output '{"success":true}'
 `.trim();
       const tmpFile = path.join(os.tmpdir(), `ella-create-${Date.now()}.ps1`);
-      const fs = await import("fs");
       try {
         fs.writeFileSync(tmpFile, ps, "utf-8");
         execSync(
           `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
-          { timeout: 15_000 },
+          { timeout: 30_000 },
         );
         trackToolUsage("create_document", "word");
         return {
@@ -1471,7 +1535,7 @@ Write-Output '{"success":true}'
         try {
           fs.unlinkSync(tmpFile);
         } catch {
-          // best effort
+          /* best effort */
         }
       }
     }
@@ -1708,10 +1772,16 @@ Write-Output '{"success":true}'
     const level = Math.min(100, Math.max(0, Number(args["level"] ?? 50)));
     const mute = args["mute"] === true || args["mute"] === "true";
 
+    // DLL-Pfad: einmalig kompilieren, danach über Add-Type -Path laden (~0.5s statt ~8s)
+    const dllPath = path
+      .join(os.tmpdir(), "ella-volume-ctrl.dll")
+      .replace(/\\/g, "\\\\");
+
     const ps = mute
       ? `$obj = New-Object -ComObject WScript.Shell; for ($i=0;$i -lt 50;$i++){$obj.SendKeys([char]173)}`
       : `
 $vol = ${(level / 100.0).toFixed(4)}
+$dll = '${dllPath}'
 $code = @'
 using System.Runtime.InteropServices;
 [Guid("5CDF2C82-841E-4546-9722-0CF74078229A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -1730,7 +1800,11 @@ interface IMMDeviceEnumerator {
 }
 [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")] class MMDeviceEnumeratorComObject {}
 '@
-Add-Type -TypeDefinition $code
+if (Test-Path $dll) {
+  try { Add-Type -Path $dll -ErrorAction Stop } catch { Add-Type -TypeDefinition $code -OutputAssembly $dll; Add-Type -Path $dll }
+} else {
+  Add-Type -TypeDefinition $code -OutputAssembly $dll; Add-Type -Path $dll
+}
 $enum = [Activator]::CreateInstance([type]::GetTypeFromCLSID([guid]'BCDE0395-E52F-467C-8E3D-C4579291692E'))
 $dev = $null; $enum.GetDefaultAudioEndpoint(0,1,[ref]$dev) | Out-Null
 $iid = [guid]'5CDF2C82-841E-4546-9722-0CF74078229A'
@@ -1743,7 +1817,7 @@ $vol_obj = $null; $dev.Activate([ref]$iid, 23, [IntPtr]::Zero, [ref]$vol_obj) | 
       fsVol.writeFileSync(tmpFile, ps, "utf-8");
       execSync(
         `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
-        { timeout: 8000 },
+        { timeout: 20000 },
       );
     } finally {
       try {

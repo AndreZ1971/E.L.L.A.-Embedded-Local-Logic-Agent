@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v3.1.0**
+**Aktueller Stand: v3.5.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -44,34 +44,42 @@ database/
 
 ---
 
-## Was läuft (vollständig implementiert — v3.1.0)
+## Was läuft (vollständig implementiert — v3.5.0)
 
 ### Kern
 
 - Dual-LLM (Ollama/OpenAI), SSE-Streaming, Tool-Loop max. 5 Runden
-- 57 Tools mit Handlern + Audit-Log (`tool_executions`)
+- 85 Tools mit Handlern + Audit-Log (`tool_executions`)
 - Rule Engine: Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → allow
 - **Directive-Denial UI:** roter Badge im Chat bei Regel-Ablehnung
 - ML Memory: nomic-embed-text, cosine similarity, 3 Typen (user/system/note)
-- **Nutzerprofile** (v3.1.0): Profil-isoliertes Gedächtnis, PBKDF2+Salt PIN-Hash
+- **Nutzerprofile:** Profil-isoliertes Gedächtnis, PBKDF2+Salt PIN-Hash
+- **Per-session Mutex:** Race-Condition bei parallelen Anfragen verhindert
 
 ### Voice & UI
 
 - Voice: Wakeword "ella" (Python/ONNX + openWakeWord), manuell, TTS
-- **Kokoro TTS** (v3.1.0): `scripts/tts_server.py` — lokale neuronale Stimme, Port 3003, 127.0.0.1-only
+- **Kokoro TTS:** `scripts/tts_server.py` — lokale neuronale Stimme, Port 3003, 127.0.0.1-only
+- **TTS-Steuerung:** `currentAudioRef` stoppt laufende Wiedergabe vor neuer; kein Web-Speech-Fallback
 - Proaktive TTS: Alert/Device-Events und proaktive Nachrichten werden vorgelesen
 - **Proaktive Nachrichten:** ELLA schreibt von sich aus in den Chat (SSE `proactive_message`)
-- **Feedback-Buttons** (v3.1.0): Daumen hoch/runter auf jeder Assistenten-Antwort (DB-only, kein LLM-Kontext)
+- **Feedback-Buttons:** Daumen hoch/runter → Ollama extrahiert Nutzerpräferenzen → `user`-Memory
+- **Markdown-Rendering:** Chat-Antworten via `marked.js`, TTS-bewusstes System-Prompt
+- **Tool-Log:** verwendete Tools als Chips unter jeder Assistenten-Antwort (63 Labels)
+- **Ollama-Offline-Banner:** `GET /api/health` + `OllamaBanner`-Komponente, 30s Polling
+- **Favicon:** SVG "E." Design + Electron-Icon (RGBA, transparente Ecken)
+- **Externe Links:** `shell.openExternal` — Browser statt Electron
 - System Tray: typisierte Balloon-Alerts (warning/error/info/device) mit Schweregrad-Sound
 
 ### Produktivität
 
-- **Dateien:** `search_files`, `open_file` (inkl. Word-Cursor-Ende), `explore_folder`
-- **Dokumente:** `create_document` (Word + TXT), `dictate_to_document` (KI-Korrektur)
-- **Aufgabenliste** (v3.1.0): `add_task`, `list_tasks`, `complete_task`, `delete_task` — persistente TODOs in MariaDB
+- **Dateien:** `search_files` (Windows Search Index primär, Get-ChildItem Fallback), `open_file`, `explore_folder`
+- **Dokumente:** `create_document` (Word + TXT), `read_file_content` (.docx/.pdf/.xlsx/.html), `dictate_to_document`
+- **Aufgabenliste:** `add_task`, `list_tasks`, `complete_task`, `delete_task` — persistente TODOs in MariaDB
+- **Wecker:** `set_alarm`, `list_alarms`, `delete_alarm` — DB-basiert, täglicher Worker-Check
 - **Musik:** `play_music` → Bibliothek durchsuchen (Künstler/Album/Titel), Media Player öffnen
 - **Prozesse:** `list_processes`, `kill_process` (systemkritische gesperrt)
-- **Systemsteuerung:** `set_volume`, `get_clipboard`/`set_clipboard` (+ Historie, 3s Polling)
+- **Systemsteuerung:** `set_volume` (DLL-Cache ~0.5s), `get_clipboard`/`set_clipboard` (+ Historie, 3s Polling)
 - **Erinnerungen:** `set_reminder`/`list_reminders`/`delete_reminder` via Windows Task Scheduler
 - **Vision:** `take_screenshot` → GDI+ Screenshot + GPT-4o Vision Analyse
 - **Schreibstil:** `write_for_me` → Stilprofil aus E-Mail-Historie + Text im Nutzerstil
@@ -85,24 +93,24 @@ database/
 
 ### Monitoring & Proaktiv
 
-- Background Worker (60s): Disk/RAM/Ollama-Alerts, PnP, ARP, TCP, Firewall/WiFi/DNS
-- Clipboard-Polling (3s): History + **Muster-Erkennung** (v3.1.0): IBAN, Paketnummer, Telefon, URL, E-Mail
-- **Gesprächskompression** (v3.1.0): `sessionCompressor.ts` — Ollama-only, älteste 10 Messages → Summary ab 15 Nachrichten
-- **Fenster-Kontext** (v3.1.0): `windowContext.ts` — GetForegroundWindow, sensible Titel gefiltert, Ollama-only, opt-in
+- Background Worker (60s): Disk/RAM/Ollama-Alerts, PnP, ARP, TCP, Firewall/WiFi/DNS, Alarm-Check
+- Clipboard-Polling (3s): History + Muster-Erkennung: IBAN, Paketnummer, Telefon, URL, E-Mail
+- **Gesprächskompression:** `sessionCompressor.ts` — Ollama-only, älteste 10 Messages → Summary ab 15 Nachrichten
+- **Fenster-Kontext:** `windowContext.ts` — GetForegroundWindow, sensible Titel gefiltert, Ollama-only, opt-in
 - `recordActivity()` → Comeback-Briefing; Meeting-Prep, Tagesabschluss (+fällige Tasks), Pause-Reminder
 - Rhythmus-Analyse (12 Uhr), Duplikat-Scan (So 10 Uhr)
 
 ### Infrastruktur
 
 - **Onboarding:** 6-Schritt-Flow — Name, Directive-Acceptance, Hardware-Scan, Stimme, Standort
-- Auto-Migration: schema.sql idempotent, **57 Default-Rules** (IDs 1–57)
-- **DB v3.1.0:** `profiles`, `tasks`, `user_feedback` + `ALTER memories/sessions` (profile_id)
+- Auto-Migration: schema.sql idempotent, **85 Default-Rules** (IDs 1–85)
+- **DB v3.5.0:** `alarms`-Tabelle + Regeln 83–85
 - **Nutzerprofile:** `routes/profiles.ts`, `services/profiles.ts` — PBKDF2+Salt (100k Iterations)
-- **Feedback-Route:** `routes/feedback.ts` — POST /api/feedback (nie in LLM-Kontext)
+- **Feedback-Route:** `routes/feedback.ts` — POST /api/feedback + Ollama-Memory-Extraktion
 - Homework Mode: SHA-256 PIN (Homework), PBKDF2 (Profile), Emergency-Reset
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
-- **132 Tests — alle grün** (Vitest Unit + Integration)
+- **205 Tests — alle grün** (Vitest Unit + Integration)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 
 ---
@@ -206,8 +214,6 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 ```
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
-
-
 
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 

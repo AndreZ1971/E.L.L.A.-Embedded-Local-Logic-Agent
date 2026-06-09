@@ -57,15 +57,25 @@ describe("fetchUrl — Inhalt extrahieren", () => {
     expect(content).toContain("Hallo Welt");
   });
 
-  it("wirft bei nicht-HTML Content-Type", async () => {
+  it("wirft bei nicht-unterstütztem Content-Type (z.B. image/png)", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      headers: { get: () => "image/png" },
+      text: async () => "",
+    });
+    await expect(fetchUrl("https://example.com/img.png")).rejects.toThrow(
+      "Content-Type",
+    );
+  });
+
+  it("gibt JSON-Inhalt als Text zurück", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       headers: { get: () => "application/json" },
-      text: async () => "{}",
+      text: async () => '{"hello":"world"}',
     });
-    await expect(fetchUrl("https://example.com/api")).rejects.toThrow(
-      "Content-Type",
-    );
+    const content = await fetchUrl("https://example.com/api");
+    expect(content).toContain("hello");
   });
 
   it("begrenzt Output auf 3000 Zeichen", async () => {

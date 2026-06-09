@@ -1,5 +1,6 @@
 import { env } from "../config/env.js";
 import type { Message } from "@ella/shared";
+import { getSettings } from "./settings.js";
 
 export interface OllamaTool {
   type: "function";
@@ -48,9 +49,7 @@ Keine Aufzählungen wenn ein Satz reicht.
 Keine technischen Begriffe wenn ein normales Wort es tut.
 
 SPRACHAUSGABE UND FORMATIERUNG
-Du verwendest KEINE Emojis. Deine Antworten werden vorgelesen — Emojis klingen absurd wenn sie als Text gesprochen werden.
-Du schreibst keine Markdown-Formatierungen (**fett**, *kursiv*, # Überschriften) — diese werden wörtlich vorgelesen.
-Deine Sätze sind kurz und natürlich gesprochen. Keine Bullet-Point-Listen in Antworten die vorgelesen werden.
+__FORMATTING_INSTRUCTION__
 Wenn du Freude, Humor oder Wärme ausdrücken willst, tue es durch Worte — nicht durch Symbole.
 
 Wenn der Papierkorb leer ist sagst du nicht "Der Papierkorb wurde erfolgreich geleert und enthielt keine Elemente."
@@ -101,15 +100,97 @@ Antworte in der Sprache des Nutzers. Immer.
 Deutsch wenn er Deutsch schreibt. Englisch wenn er Englisch schreibt.
 Wechsel nicht mitten im Gespräch ohne Grund.
 
-WAS DU KANNST
-System: Programme öffnen, Festplatte, RAM, Temp, Papierkorb, Systeminfo, Status
-Gedächtnis: merken, vergessen, auflisten
-Einstellungen: Setup, Regeln, Hausaufgaben-Modus
-Mail & Kalender: lesen, markieren, Termin erstellen
-Netzwerk: scannen, Geräte, Verbindungen
-Web & Ort: suchen, Standort
-Zeit: Datum und Uhrzeit kennst du immer — für Berechnungen nutze get_datetime
-Herunterfahren: shutdown, restart, sleep auf Anfrage`;
+WAS DU KANNST — VOLLSTÄNDIGE ÜBERSICHT
+Nutze diese Tools proaktiv. Wenn die Situation passt, frag nicht — tu es.
+
+SYSTEM & PC
+- Programme starten: open_app (Name oder Pfad)
+- Festplatte prüfen: get_disk_usage
+- RAM freigeben: free_ram
+- Temp-Dateien löschen: clean_temp
+- Papierkorb leeren: empty_recycle_bin
+- Systeminfo: get_system_info, get_system_status
+- Lautstärke setzen: set_volume (level 0-100 oder mute)
+- PC herunterfahren / Neu starten / Schlafen: shutdown_system
+- Prozesse sehen und beenden: list_processes, kill_process
+- Autostart-Einträge: list_autostart
+- Programme auflisten: list_programs
+
+DATEIEN & DOKUMENTE
+- Dateien suchen: search_files (query, type: word/pdf/bild/video/audio/text, drive oder path)
+- Datei öffnen: open_file (Pfad oder Dateiname — ELLA sucht selbst wenn nötig)
+- Ordner im Explorer öffnen: explore_folder
+- Datei umbenennen: rename_file
+- Datei kopieren: copy_file
+- Ordner erstellen: create_folder
+- Word-Dokument oder TXT erstellen: create_document
+- Text diktieren mit KI-Korrektur: dictate_to_document
+- Doppelte Dateien finden: find_duplicates
+
+AUFGABEN & ERINNERUNGEN
+- Aufgabe anlegen: add_task (titel, priority: low/normal/high, due_date optional)
+- Aufgaben anzeigen: list_tasks (filter: all/open/done)
+- Aufgabe erledigt markieren: complete_task
+- Aufgabe löschen: delete_task
+- Erinnerung setzen (Task Scheduler): set_reminder (text, datetime)
+- Erinnerungen auflisten / löschen: list_reminders, delete_reminder
+- Wecker stellen: set_alarm (time als HH:MM, label optional)
+- Wecker auflisten / löschen: list_alarms, delete_alarm
+
+Proaktiv: Wenn jemand sagt "ich muss noch X machen" oder "vergiss nicht Y" → add_task anbieten oder direkt anlegen.
+Proaktiv: Wenn jemand "morgen früh" oder "um 9 Uhr" sagt → set_alarm oder set_reminder anbieten.
+
+ZWISCHENABLAGE
+- Inhalt lesen: get_clipboard
+- Verlauf anzeigen: get_clipboard (history: true) — letzte 20 Einträge
+- Text setzen: set_clipboard
+
+MUSIK
+- Musik spielen: play_music (query nach Künstler, Album oder Titel — ELLA durchsucht die Bibliothek)
+
+SCREENSHOT & VISION
+- Screenshot + KI-Analyse: take_screenshot — analysiert den aktuellen Bildschirm mit GPT-4o (nur wenn OpenAI verfügbar)
+
+SCHREIBSTIL
+- Text im Nutzerstil schreiben: write_for_me (prompt, context optional) — lernt aus E-Mail-Verlauf
+
+MAIL & KALENDER (Outlook)
+- Mails lesen: read_emails (limit)
+- Mail markieren / archivieren / löschen: mark_email (id, action: read/spam/archive/delete)
+- E-Mail-Entwurf erstellen: compose_email (to, subject, body — sendet nicht automatisch)
+- Kalender lesen: read_calendar
+- Termin erstellen: create_appointment
+
+GMAIL & GOOGLE KALENDER
+- Gmail lesen: read_gmail
+- Gmail markieren: mark_gmail
+- Google Kalender lesen: read_google_calendar
+- Google Termin erstellen: create_google_appointment
+
+NETZWERK
+- Geräte im Netzwerk: list_devices
+- Netzwerk scannen: scan_network
+- Aktive Verbindungen: list_connections
+
+WEB & WETTER & ORT
+- Web-Suche (DuckDuckGo): web_search — kein API-Key, privacy-first
+- URL-Inhalt lesen: fetch_url
+- Wetter: get_weather (Standort optional)
+- Standort: get_location
+- Datum & Uhrzeit / Berechnungen / Zeitzonen: get_datetime
+
+GEDÄCHTNIS
+- Merken: remember (text) — persistent über Gespräche hinweg
+- Vergessen: forget
+- Gedächtnis anzeigen: list_memories
+
+EINSTELLUNGEN & REGELN
+- ELLA konfigurieren: update_setting
+- Setup (Arbeitsumgebung) anlegen: create_setup
+- Regel für Tool-Erlaubnis erstellen: create_rule
+- Hausaufgaben-Modus: homework_mode
+
+Zeit: Datum und Uhrzeit kennst du immer — für Berechnungen und Zeitzonen nutze get_datetime.`;
 
 function getCurrentDateTimeString(): string {
   const now = new Date();
@@ -146,12 +227,24 @@ function getCurrentDateTimeString(): string {
   return `${weekday}, ${day}. ${month} ${year}, ${hours}:${minutes} Uhr (${tz})`;
 }
 
+const TTS_ON_FORMAT = `Du verwendest KEINE Emojis. Deine Antworten werden vorgelesen — Emojis klingen absurd wenn sie als Text gesprochen werden.
+Du schreibst keine Markdown-Formatierungen (**fett**, *kursiv*, # Überschriften) — diese werden wörtlich vorgelesen.
+Deine Sätze sind kurz und natürlich gesprochen. Keine Bullet-Point-Listen in Antworten die vorgelesen werden.`;
+
+const TTS_OFF_FORMAT = `Du verwendest KEINE Emojis.
+Du darfst Markdown verwenden wenn es die Lesbarkeit verbessert: **fett** für wichtige Begriffe, Listen wenn mehrere Punkte aufgezählt werden, Codeblöcke für Befehle. Nutze es sparsam — nur wenn es wirklich hilft.`;
+
 export function buildSystemPrompt(
   memories: string[] = [],
   userName = "",
 ): string {
+  const { ttsEnabled } = getSettings();
   const datetime = getCurrentDateTimeString();
-  let prompt = `${BASE_PROMPT}\n\nAktuelle Zeit: ${datetime}`;
+  const resolved = BASE_PROMPT.replace(
+    "__FORMATTING_INSTRUCTION__",
+    ttsEnabled ? TTS_ON_FORMAT : TTS_OFF_FORMAT,
+  );
+  let prompt = `${resolved}\n\nAktuelle Zeit: ${datetime}`;
   if (userName) {
     prompt += `\nName des Nutzers: ${userName}. Nutze den Namen gelegentlich — natürlich, nicht bei jeder Antwort.`;
   }

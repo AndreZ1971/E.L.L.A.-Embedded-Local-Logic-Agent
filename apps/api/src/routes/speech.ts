@@ -97,11 +97,9 @@ speechRouter.post("/kokoro", async (req, res, next) => {
       res.json({ ok: true });
     } catch {
       clearTimeout(timeout);
-      res
-        .status(503)
-        .json({
-          error: "Kokoro TTS nicht erreichbar — Fallback auf System-TTS.",
-        });
+      res.status(503).json({
+        error: "Kokoro TTS nicht erreichbar — Fallback auf System-TTS.",
+      });
     }
   } catch (e) {
     next(e);

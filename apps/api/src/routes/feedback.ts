@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { pool } from "../config/database.js";
+import { processFeedbackMemory } from "../services/memory.js";
 
 export const feedbackRouter = Router();
 
@@ -22,12 +23,9 @@ feedbackRouter.post("/", async (req, res, next) => {
     };
 
     if (!messageExcerpt || !["positive", "negative"].includes(feedback)) {
-      res
-        .status(400)
-        .json({
-          error:
-            "messageExcerpt und feedback (positive|negative) erforderlich.",
-        });
+      res.status(400).json({
+        error: "messageExcerpt und feedback (positive|negative) erforderlich.",
+      });
       return;
     }
 
@@ -47,6 +45,8 @@ feedbackRouter.post("/", async (req, res, next) => {
         ],
       )
       .catch(() => {});
+
+    processFeedbackMemory(excerpt, feedback, toolName);
 
     res.json({ ok: true });
   } catch (e) {

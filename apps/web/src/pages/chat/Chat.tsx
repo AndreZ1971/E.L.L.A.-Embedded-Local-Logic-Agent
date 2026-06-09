@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { marked } from "marked";
 import { AudioVAD, encodeWav } from "../../utils/audioVAD.js";
 
 type VoiceMode = "off" | "manual" | "wakeword";
@@ -31,6 +32,7 @@ interface Message {
   content: string;
   toolName?: string;
   proactive?: boolean;
+  usedTools?: string[];
 }
 interface PendingAction {
   tool: string;
@@ -56,32 +58,72 @@ const API = import.meta.env.VITE_API_BASE ?? "";
 
 const TOOL_LABELS: Record<string, string> = {
   open_app: "App öffnen",
-  get_disk_usage: "Festplattennutzung abrufen",
+  get_disk_usage: "Festplattennutzung",
   clean_temp: "Temp-Dateien bereinigen",
   empty_recycle_bin: "Papierkorb leeren",
   remember: "Erinnerung speichern",
   forget: "Erinnerung löschen",
   list_memories: "Erinnerungen auflisten",
   homework_mode: "Hausaufgaben-Modus",
-  get_system_info: "Systeminfo abrufen",
+  get_system_info: "Systeminfo",
   create_setup: "Setup anlegen",
   update_setting: "Einstellung ändern",
   create_rule: "Regel erstellen",
   free_ram: "RAM freigeben",
   read_emails: "E-Mails lesen",
   mark_email: "E-Mail markieren",
+  compose_email: "E-Mail verfassen",
   read_calendar: "Kalender lesen",
   create_appointment: "Termin erstellen",
   list_devices: "Geräte auflisten",
   scan_network: "Netzwerk scannen",
   list_connections: "Verbindungen auflisten",
-  get_system_status: "System-Status abrufen",
+  get_system_status: "System-Status",
   search_web: "Web-Suche",
+  web_search: "Web-Suche",
+  fetch_url: "URL abrufen",
+  get_weather: "Wetter abrufen",
   get_location: "Standort ermitteln",
+  get_datetime: "Datum & Uhrzeit",
   delete_files: "Dateien löschen",
   load_setup: "Setup laden",
   format_drive: "Laufwerk formatieren",
   rename_drive: "Laufwerk umbenennen",
+  list_programs: "Programme auflisten",
+  pause_ella: "ELLA pausieren",
+  shutdown_system: "PC herunterfahren",
+  play_music: "Musik spielen",
+  search_files: "Dateien suchen",
+  open_file: "Datei öffnen",
+  explore_folder: "Ordner öffnen",
+  rename_file: "Datei umbenennen",
+  copy_file: "Datei kopieren",
+  create_folder: "Ordner erstellen",
+  create_document: "Dokument erstellen",
+  dictate_to_document: "Text diktieren",
+  list_processes: "Prozesse auflisten",
+  kill_process: "Prozess beenden",
+  set_volume: "Lautstärke setzen",
+  get_clipboard: "Zwischenablage lesen",
+  set_clipboard: "Zwischenablage setzen",
+  set_reminder: "Erinnerung setzen",
+  list_reminders: "Erinnerungen auflisten",
+  delete_reminder: "Erinnerung löschen",
+  set_alarm: "Wecker stellen",
+  list_alarms: "Wecker auflisten",
+  delete_alarm: "Wecker löschen",
+  take_screenshot: "Screenshot",
+  write_for_me: "Text schreiben",
+  find_duplicates: "Duplikate suchen",
+  list_autostart: "Autostart auflisten",
+  read_gmail: "Gmail lesen",
+  mark_gmail: "Gmail markieren",
+  read_google_calendar: "Google Kalender",
+  create_google_appointment: "Google Termin",
+  add_task: "Aufgabe anlegen",
+  list_tasks: "Aufgaben auflisten",
+  complete_task: "Aufgabe erledigt",
+  delete_task: "Aufgabe löschen",
 };
 
 /* ── Component ───────────────────────────────────────────────────────── */
@@ -99,6 +141,7 @@ const Chat: React.FC = () => {
   } | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const usedToolsRef = useRef<string[]>([]);
 
   /* Hausaufgaben-Modus */
   const [homeworkActive, setHomeworkActive] = useState(false);
@@ -117,29 +160,24 @@ const Chat: React.FC = () => {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const ttsEnabledRef = useRef(false);
   const ttsVoiceRef = useRef("");
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   useEffect(() => {
     ttsEnabledRef.current = ttsEnabled;
   }, [ttsEnabled]);
 
-  const speakProactive = useCallback((text: string) => {
+  const stopCurrentAudio = useCallback(() => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
     window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(cleanTextForTTS(text));
-    utt.lang = "de-DE";
-    const voices = window.speechSynthesis.getVoices();
-    const saved = ttsVoiceRef.current;
-    const match =
-      voices.find((v) => v.name === saved) ??
-      voices.find((v) => v.lang.startsWith("de"));
-    if (match) utt.voice = match;
-    utt.rate = 1.0;
-    utt.volume = 0.9;
-    window.speechSynthesis.speak(utt);
   }, []);
 
   const speakEdge = useCallback(
     async (text: string) => {
       const clean = cleanTextForTTS(text);
       if (!clean) return;
+      stopCurrentAudio();
       try {
         const voice = ttsVoiceRef.current || "de-DE-KatjaNeural";
         const res = await fetch(`${API}/api/speech/synthesize`, {
@@ -151,17 +189,21 @@ const Chat: React.FC = () => {
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
-        audio.onended = () => URL.revokeObjectURL(url);
+        currentAudioRef.current = audio;
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+          if (currentAudioRef.current === audio) currentAudioRef.current = null;
+        };
         audio.onerror = () => {
           URL.revokeObjectURL(url);
-          speakProactive(clean);
+          if (currentAudioRef.current === audio) currentAudioRef.current = null;
         };
         await audio.play();
       } catch {
-        speakProactive(clean);
+        // silent fail — no fallback to a different voice engine
       }
     },
-    [speakProactive],
+    [stopCurrentAudio],
   );
 
   const speak = useCallback(
@@ -404,6 +446,7 @@ const Chat: React.FC = () => {
       setError("");
       setStreaming("");
       setToolStatus("");
+      usedToolsRef.current = [];
 
       try {
         const res = await fetch(`${API}/api/chat/stream`, {
@@ -442,6 +485,8 @@ const Chat: React.FC = () => {
               setDirectiveDeny(null);
             } else if (ev.type === "tool") {
               setToolStatus(TOOL_LABELS[ev.name] ?? ev.name);
+              if (!usedToolsRef.current.includes(ev.name))
+                usedToolsRef.current.push(ev.name);
             } else if (ev.type === "directive_deny") {
               setDirectiveDeny(ev.tool);
               setToolStatus("");
@@ -482,7 +527,16 @@ const Chat: React.FC = () => {
               setToolStatus("");
               break outer;
             } else if (ev.type === "done") {
-              setMessages((p) => [...p, { role: "assistant", content: full }]);
+              const tools = [...usedToolsRef.current];
+              usedToolsRef.current = [];
+              setMessages((p) => [
+                ...p,
+                {
+                  role: "assistant",
+                  content: full,
+                  usedTools: tools.length > 0 ? tools : undefined,
+                },
+              ]);
               setStreaming("");
               setToolStatus("");
               speak(full);
@@ -1051,10 +1105,48 @@ const Chat: React.FC = () => {
                 maxWidth: "75%",
                 fontSize: "0.9rem",
                 lineHeight: 1.6,
-                whiteSpace: "pre-wrap",
+                whiteSpace: m.role === "user" ? "pre-wrap" : "normal",
               }}
             >
-              {m.content}
+              {m.role === "user" ? (
+                m.content
+              ) : (
+                <div
+                  className="ella-md"
+                  dangerouslySetInnerHTML={{
+                    __html: marked(m.content, { async: false }) as string,
+                  }}
+                />
+              )}
+              {m.role === "assistant" &&
+                m.usedTools &&
+                m.usedTools.length > 0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 4,
+                      marginTop: 8,
+                    }}
+                  >
+                    {m.usedTools.map((t) => (
+                      <span
+                        key={t}
+                        title={t}
+                        style={{
+                          fontSize: "0.68rem",
+                          background: "#0f1117",
+                          border: "1px solid #2d3148",
+                          borderRadius: 4,
+                          padding: "1px 6px",
+                          color: "#64748b",
+                        }}
+                      >
+                        {TOOL_LABELS[t] ?? t}
+                      </span>
+                    ))}
+                  </div>
+                )}
               {m.role === "assistant" && !m.proactive && (
                 <div
                   style={{

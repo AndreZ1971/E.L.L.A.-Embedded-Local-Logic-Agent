@@ -1,4 +1,10 @@
-import React, { useState, useEffect, createContext, useContext } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  createContext,
+  useContext,
+} from "react";
 import {
   HashRouter,
   Routes,
@@ -95,6 +101,64 @@ export function useBootContext() {
   return useContext(BootContext);
 }
 
+function OllamaBanner() {
+  const [offline, setOffline] = useState(false);
+  const [checking, setChecking] = useState(false);
+
+  const check = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/api/health`);
+      const d = (await r.json()) as { ollama: boolean; provider: string };
+      setOffline(d.provider !== "openai" && !d.ollama);
+    } catch {
+      // API itself offline — don't spam banner
+    }
+  }, []);
+
+  useEffect(() => {
+    check();
+    const id = setInterval(check, 30_000);
+    return () => clearInterval(id);
+  }, [check]);
+
+  if (!offline) return null;
+  return (
+    <div
+      style={{
+        background: "#78350f",
+        color: "#fef3c7",
+        fontSize: "0.78rem",
+        padding: "6px 16px",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        borderBottom: "1px solid #92400e",
+      }}
+    >
+      <span>Ollama ist offline — KI-Funktionen nicht verfügbar.</span>
+      <button
+        disabled={checking}
+        onClick={async () => {
+          setChecking(true);
+          await check();
+          setChecking(false);
+        }}
+        style={{
+          background: "transparent",
+          border: "1px solid #fef3c7",
+          borderRadius: 4,
+          color: "#fef3c7",
+          cursor: "pointer",
+          fontSize: "0.75rem",
+          padding: "2px 10px",
+        }}
+      >
+        {checking ? "Prüfe..." : "Erneut prüfen"}
+      </button>
+    </div>
+  );
+}
+
 function AppShell() {
   const location = useLocation();
   const [boot, setBoot] = useState<BootStatus | null>(null);
@@ -145,6 +209,7 @@ function AppShell() {
     <BootContext.Provider value={{ boot, setBoot }}>
       <div className="ella-root">
         <TitleBar />
+        <OllamaBanner />
         <div className="ella-layout">
           <nav className="ella-sidebar">
             <h1 className="ella-logo">E.L.L.A.</h1>

@@ -6,6 +6,7 @@ import {
   nativeImage,
   ipcMain,
   session,
+  shell,
 } from "electron";
 import type { Event as ElectronEvent } from "electron";
 import { spawn, exec } from "child_process";
@@ -127,20 +128,49 @@ function buildPngIcon(size: number): Buffer {
     return Buffer.concat([len, t, data, crc]);
   };
 
+  const s = size / 32;
+  const r = 7 * s;
+
+  const inRound = (px: number, py: number): boolean => {
+    const cx = Math.min(Math.max(px, r), size - 1 - r);
+    const cy = Math.min(Math.max(py, r), size - 1 - r);
+    return (px - cx) ** 2 + (py - cy) ** 2 <= r * r;
+  };
+
+  const isWhite = (px: number, py: number): boolean => {
+    const x = px / s;
+    const y = py / s;
+    if (x >= 5.5 && x < 9.5 && y >= 7 && y < 26) return true;
+    if (x >= 9.5 && x < 20 && y >= 7 && y < 11) return true;
+    if (x >= 9.5 && x < 18.5 && y >= 14.5 && y < 18.5) return true;
+    if (x >= 9.5 && x < 20 && y >= 22 && y < 26) return true;
+    const dx = px - 25.5 * s;
+    const dy = py - 23.5 * s;
+    return dx * dx + dy * dy < (2.5 * s) ** 2;
+  };
+
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(size, 0);
   ihdr.writeUInt32BE(size, 4);
   ihdr[8] = 8;
-  ihdr[9] = 2;
+  ihdr[9] = 6; // RGBA
 
-  const raw = Buffer.alloc(size * (1 + size * 3));
+  const raw = Buffer.alloc(size * (1 + size * 4));
   for (let y = 0; y < size; y++) {
-    const off = y * (1 + size * 3);
+    const off = y * (1 + size * 4);
     raw[off] = 0;
     for (let x = 0; x < size; x++) {
-      raw[off + 1 + x * 3] = 124;
-      raw[off + 1 + x * 3 + 1] = 58;
-      raw[off + 1 + x * 3 + 2] = 237;
+      const p = off + 1 + x * 4;
+      if (!inRound(x, y)) {
+        raw[p] = raw[p + 1] = raw[p + 2] = raw[p + 3] = 0;
+      } else if (isWhite(x, y)) {
+        raw[p] = raw[p + 1] = raw[p + 2] = raw[p + 3] = 255;
+      } else {
+        raw[p] = 124;
+        raw[p + 1] = 106;
+        raw[p + 2] = 247;
+        raw[p + 3] = 255;
+      }
     }
   }
 
@@ -184,6 +214,20 @@ function createWindow(): void {
   if (isDev) {
     mainWindow.webContents.openDevTools({ mode: "detach" });
   }
+
+  // Externe Links im System-Browser öffnen, nicht in Electron
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
+  mainWindow.webContents.on("will-navigate", (e, url) => {
+    const internal =
+      url.startsWith("http://127.0.0.1") || url.startsWith("file://");
+    if (!internal) {
+      e.preventDefault();
+      shell.openExternal(url);
+    }
+  });
 
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show();

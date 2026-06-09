@@ -70,8 +70,22 @@ export async function fetchUrl(url: string): Promise<string> {
   if (!res.ok) throw new Error(`HTTP ${res.status} für ${url}`);
 
   const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.includes("text/html")) {
+  const isHtml = contentType.includes("text/html");
+  const isJson =
+    contentType.includes("application/json") ||
+    contentType.includes("text/json");
+  const isText =
+    contentType.includes("text/plain") ||
+    contentType.includes("text/xml") ||
+    contentType.includes("application/xml");
+
+  if (!isHtml && !isJson && !isText) {
     throw new Error(`Nicht unterstützter Content-Type: ${contentType}`);
+  }
+
+  if (!isHtml) {
+    const text = await res.text();
+    return text.slice(0, 3000);
   }
 
   const html = await res.text();

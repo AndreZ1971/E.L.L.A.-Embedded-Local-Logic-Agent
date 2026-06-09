@@ -4,7 +4,7 @@
 
 Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automatisierung — vollständig offline via Ollama, optional mit OpenAI GPT-4o.
 
-**Version:** v3.1.0 · Windows 10/11 (x64) · 132 Tests grün
+**Version:** v3.5.0 · Windows 10/11 (x64) · 205 Tests grün
 
 _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -32,8 +32,9 @@ _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 | Netzwerk             | LAN-Scan via ARP, TCP-Verbindungen, DNS/Firewall/WiFi-Überwachung                  |
 | Selbstkonfiguration  | Setups, Regeln, Einstellungen per Gespräch ändern                                  |
 | Musik                | Bibliothek durchsuchen (Künstler/Album/Titel) im Media Player öffnen               |
-| Dateien              | Alle Laufwerke durchsuchen (Typ-Filter), Dateien und Ordner öffnen                 |
-| Dokumente            | Word-Dokumente und Textdateien erstellen                                           |
+| Dateien              | Alle Laufwerke durchsuchen (Windows Search Index, ms-schnell), Dateien öffnen      |
+| Dokumente            | Word/TXT erstellen, .docx/.pdf/.xlsx/.html lesen (mammoth/pdf-parse/SheetJS)       |
+| Wecker               | DB-basierte Wecker mit täglichem Check, proaktive Auslösung im Background-Worker   |
 | Diktat               | Spracheingabe direkt in Word, KI korrigiert Grammatik und Zeichensetzung           |
 | E-Mail verfassen     | Outlook-Entwurf mit KI-korrigiertem Text öffnen (sendet nicht automatisch)         |
 | Prozesse             | Laufende Prozesse anzeigen, CPU-/RAM-Fresser beenden (systemkritische geschützt)   |
@@ -45,7 +46,7 @@ _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 | Autostart            | Programme beim Windows-Start auflisten                                             |
 | Aufgabenliste        | Persistente TODOs mit Priorität und Fälligkeit, im Tagesabschluss integriert       |
 | Proaktiv             | Meeting-Vorbereitung, Tagesabschluss, Comeback, Pause-Reminder, Clipboard-Muster   |
-| Feedback-Loop        | Daumen hoch/runter auf jede Antwort — gespeichert für Analyse, nie im LLM-Kontext  |
+| Feedback-Loop        | Daumen hoch/runter → Ollama extrahiert Nutzerpräferenzen → Langzeitgedächtnis      |
 | Fenster-Kontext      | ELLA kennt die aktive Anwendung beim Chat (opt-in, Ollama-only)                    |
 | Gesprächskompression | Lange Sessions automatisch komprimieren (lokales Ollama)                           |
 | Nutzerprofile        | Eigenes Gedächtnis und Gesprächsverlauf pro Profil, PBKDF2-gesicherter PIN-Wechsel |
@@ -251,7 +252,7 @@ MariaDB (Port 3306)
 
 ---
 
-## Tools (57 Default-Regeln)
+## Tools (85 Default-Regeln)
 
 ### System & Hardware
 
@@ -331,14 +332,15 @@ MariaDB (Port 3306)
 
 ### Dateien & Dokumente
 
-| Tool                  | Funktion                                          |
-| --------------------- | ------------------------------------------------- |
-| `search_files`        | Dateien auf allen Laufwerken suchen (Typ-Filter)  |
-| `open_file`           | Datei öffnen (optional: Word mit Cursor ans Ende) |
-| `explore_folder`      | Ordner im Windows Explorer öffnen                 |
-| `create_document`     | Neues Word-Dokument oder Textdatei erstellen      |
-| `dictate_to_document` | Text in Word diktieren (KI-Korrektur automatisch) |
-| `find_duplicates`     | Doppelte Dateien nach Größe+Name finden           |
+| Tool                  | Funktion                                                                |
+| --------------------- | ----------------------------------------------------------------------- |
+| `search_files`        | Dateien suchen (Windows Search Index, ms-schnell + Fallback)            |
+| `open_file`           | Datei öffnen (optional: Word mit Cursor ans Ende)                       |
+| `explore_folder`      | Ordner im Windows Explorer öffnen                                       |
+| `create_document`     | Neues Word-Dokument oder Textdatei erstellen                            |
+| `read_file_content`   | .docx/.pdf/.xlsx/.html lesen (mammoth / pdf-parse / SheetJS / Turndown) |
+| `dictate_to_document` | Text in Word diktieren (KI-Korrektur automatisch)                       |
+| `find_duplicates`     | Doppelte Dateien nach Größe+Name finden                                 |
 
 ### Zwischenablage & Erinnerungen
 
@@ -349,6 +351,9 @@ MariaDB (Port 3306)
 | `set_reminder`    | Erinnerung via Windows Task Scheduler setzen      |
 | `list_reminders`  | Alle ELLA-Erinnerungen anzeigen                   |
 | `delete_reminder` | Erinnerung löschen                                |
+| `set_alarm`       | Täglichen Wecker stellen (DB-basiert, HH:MM)      |
+| `list_alarms`     | Alle aktiven Wecker anzeigen                      |
+| `delete_alarm`    | Wecker löschen                                    |
 
 ### KI-gestützte Funktionen
 

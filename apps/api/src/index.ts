@@ -17,7 +17,7 @@ import { profilesRouter } from "./routes/profiles.js";
 import { loadWakewordModels } from "./services/wakewordDetector.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { env } from "./config/env.js";
-import { loadSettings } from "./services/settings.js";
+import { loadSettings, getSettings } from "./services/settings.js";
 import { runMigrations } from "./config/migrate.js";
 import { worker } from "./services/worker.js";
 
@@ -53,6 +53,22 @@ app.use("/api/wakeword", wakewordRouter);
 app.use("/api/google", googleRouter);
 app.use("/api/feedback", feedbackRouter);
 app.use("/api/profiles", profilesRouter);
+
+app.get("/api/health", async (_req, res) => {
+  const { provider, ollamaModel } = getSettings();
+  let ollamaOk = false;
+  if (provider !== "openai") {
+    try {
+      const r = await fetch(`${env.ollamaBaseUrl}/api/tags`, {
+        signal: AbortSignal.timeout(3000),
+      });
+      ollamaOk = r.ok;
+    } catch {
+      ollamaOk = false;
+    }
+  }
+  res.json({ api: true, ollama: ollamaOk, model: ollamaModel, provider });
+});
 
 app.use(errorHandler);
 

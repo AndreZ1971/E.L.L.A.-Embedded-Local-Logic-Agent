@@ -138,6 +138,7 @@ export async function runMigrations(): Promise<void> {
       VALUES (${id}, '${name}', '${tool_name}', '${trigger}', '${action}', TRUE)
       ON DUPLICATE KEY UPDATE
         name = VALUES(name),
+        tool_name = VALUES(tool_name),
         action = VALUES(action),
         enabled = TRUE
     `);

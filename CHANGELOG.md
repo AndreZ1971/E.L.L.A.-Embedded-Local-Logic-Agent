@@ -4,6 +4,40 @@ Alle wesentlichen Änderungen an E.L.L.A. Detaillierte Entscheidungsbegründunge
 
 ---
 
+## [3.5.0] — 09.06.2026
+
+### Hinzugefügt
+
+- **Wecker** — `set_alarm`, `list_alarms`, `delete_alarm`: DB-basierte Wecker in MariaDB (`alarms`-Tabelle), täglicher Check im Background-Worker (60s), `last_fired` verhindert doppeltes Auslösen
+- **Dokument-Konvertierung** — `read_file_content` versteht strukturierte Formate: `.docx/.doc` → mammoth → Markdown, `.pdf` → pdf-parse, `.xlsx/.xls` → SheetJS → Markdown-Tabellen, `.html/.htm` → Turndown
+- **Favicon** — SVG "E." Design (lila `#7c6af7` + weißes E-Letterform + Punkt), Electron-Icon auf RGBA aktualisiert (transparente Ecken, pixelgetreues E.-Design)
+- **Externe Links** — `shell.openExternal` in Electron-Main: alle externen URLs öffnen im System-Browser statt in der App
+- **Ollama-Offline-Banner** — `GET /api/health` Endpoint + `OllamaBanner`-Komponente im Chat-Header (30s Polling, Retry-Button)
+- **Markdown-Rendering** — Assistenten-Antworten werden via `marked.js` als Markdown gerendert
+- **TTS-bewusstes System-Prompt** — `buildSystemPrompt()` liest `ttsEnabled`, wählt zwischen Markdown- und Plaintext-Formatierungsanweisung
+- **Tool-Log im Chat** — verwendete Tools werden als Chips unter jeder Assistenten-Antwort angezeigt (63 Labels)
+- **Feedback→Memory** — Daumen-Feedback extrahiert via Ollama Nutzerpräferenzen und speichert als `user`-Memory (`source: "feedback"`)
+- **System-Prompt** — vollständige Beschreibung aller 57+ Tools mit proaktiven Hinweisen
+
+### Verbessert
+
+- **`set_volume`** — C#-DLL-Cache in `%TEMP%\ella-volume-ctrl.dll`: einmalige Kompilierung, Folgeaufrufe ~0.5s statt 8s
+- **`search_files`** — Windows Search Index (OleDb/SystemIndex) als primärer Pfad (Millisekunden), Get-ChildItem-Rekursion als Fallback
+- **Per-session Mutex** — Race-Condition bei überlappenden Chat-Anfragen verhindert
+- **Stimmenauswahl** — nutzt `/api/speech/voices` statt Browser-API
+
+### Behoben
+
+- **TTS-Überlappung** — `currentAudioRef` stoppt laufende Wiedergabe bevor neue startet
+- **TTS-Stimme** — kein Fallback auf Browser-Web-Speech-API (erklärt die "andere Stimme")
+- **`create_document` Word** — COM-Timeout behoben: leere Docs via `Start-Process WINWORD.EXE /w` (fire-and-forget), Docs mit Inhalt via `$doc.Saved=$true` vor COM-Release
+- **`migrate.ts`** — `ON DUPLICATE KEY UPDATE tool_name = VALUES(tool_name)` korrigiert Tool-Namen in Regeln 31+32 in bestehenden DBs
+- **`search_files`** — `searchPath`-Parameter wurde ignoriert, jetzt als `SCOPE`-Clause in SQL übergeben
+- **`fetch_url`** — JSON, XML und Plain-Text Content-Types werden unterstützt (statt nur HTML)
+- **Build** — Test-Dateien aus `tsc`-Produktions-Check und Vitest-Durchlauf excludiert
+
+---
+
 ## [1.0.0] — 28.05.2026
 
 ### Hinzugefügt

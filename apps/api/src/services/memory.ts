@@ -118,6 +118,46 @@ Assistent: ${assistantMsg}`;
   });
 }
 
+// Aus positivem/negativem Feedback eine Präferenz-Memory extrahieren.
+// Fire-and-forget — blockiert nie den API-Response.
+export function processFeedbackMemory(
+  excerpt: string,
+  feedback: "positive" | "negative",
+  toolName?: string,
+): void {
+  setImmediate(async () => {
+    try {
+      const valence = feedback === "positive" ? "POSITIV" : "NEGATIV";
+      const toolHint = toolName ? `\nVerwendetes Tool: ${toolName}` : "";
+      const prompt = `Generiere eine einzige kurze Gedächtnisnotiz über die Vorlieben des Nutzers basierend auf diesem Feedback.
+
+Feedback: ${valence}${toolHint}
+Nachrichtenausschnitt: "${excerpt.slice(0, 300)}"
+
+Antworte mit genau einem deutschen Satz der mit "Nutzer bevorzugt" (bei POSITIV) oder "Nutzer mag nicht" (bei NEGATIV) beginnt. Keine Erklärung. Nur der Satz. Antworte mit "NICHTS" wenn kein sinnvoller Schluss möglich ist.`;
+
+      const r = await fetch(`${env.ollamaBaseUrl}/api/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: getSettings().ollamaModel,
+          prompt,
+          stream: false,
+          options: { temperature: 0.1, num_predict: 60 },
+        }),
+      });
+      if (!r.ok) return;
+      const data = (await r.json()) as { response?: string };
+      const fact = data.response?.trim();
+      if (!fact || fact.toUpperCase().startsWith("NICHTS")) return;
+
+      await remember("user", fact, "feedback");
+    } catch {
+      // Fehler in Feedback-Verarbeitung sind nicht kritisch
+    }
+  });
+}
+
 // Wird nach open_app / load_setup aufgerufen um Nutzungsverhalten zu lernen
 export function trackToolUsage(tool: string, detail: string): void {
   setImmediate(async () => {
