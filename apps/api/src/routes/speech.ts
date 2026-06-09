@@ -15,7 +15,7 @@ const upload = multer({
 export const speechRouter = Router();
 
 speechRouter.get("/status", (_req, res) => {
-  res.json({ ready: isWhisperReady(), model: "Xenova/whisper-tiny" });
+  res.json({ ready: isWhisperReady(), model: "Xenova/whisper-small" });
 });
 
 speechRouter.post(

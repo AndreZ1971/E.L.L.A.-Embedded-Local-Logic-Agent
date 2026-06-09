@@ -5,6 +5,8 @@ import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
 import { createRequire } from "module";
+import { getSettings } from "./settings.js";
+import { env } from "../config/env.js";
 
 const execAsync = promisify(exec);
 
@@ -20,7 +22,8 @@ type ASRPipeline = Awaited<ReturnType<typeof pipeline>>;
 let _pipe: ASRPipeline | null = null;
 let _loading: Promise<ASRPipeline> | null = null;
 
-const MODEL = "Xenova/whisper-base";
+// whisper-small: deutlich besser als base (~244 MB, einmalig geladen)
+const MODEL = "Xenova/whisper-small";
 
 export async function getWhisperPipeline(): Promise<ASRPipeline> {
   if (_pipe) return _pipe;
@@ -43,10 +46,34 @@ export async function getWhisperPipeline(): Promise<ASRPipeline> {
   return _loading;
 }
 
-export async function transcribe(audioBuffer: Buffer): Promise<string> {
+// OpenAI Whisper API — wenn API-Key konfiguriert (whisper-1 ≈ large-v2, beste Genauigkeit)
+async function transcribeOpenAI(audioBuffer: Buffer): Promise<string> {
+  const apiKey = getSettings().openaiApiKey || env.openaiApiKey;
+  const form = new FormData();
+  form.append(
+    "file",
+    new Blob([audioBuffer], { type: "audio/webm" }),
+    "audio.webm",
+  );
+  form.append("model", "whisper-1");
+  form.append("language", "de");
+
+  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: form,
+    signal: AbortSignal.timeout(20_000),
+  });
+
+  if (!res.ok) throw new Error(`OpenAI Whisper HTTP ${res.status}`);
+  const data = (await res.json()) as { text: string };
+  return (data.text ?? "").trim();
+}
+
+// Lokales Whisper (Xenova/whisper-small) — Fallback ohne API-Key
+async function transcribeLocal(audioBuffer: Buffer): Promise<string> {
   const pipe = await getWhisperPipeline();
 
-  // Node.js hat kein AudioContext — Audio via ffmpeg zu raw PCM f32le @ 16kHz dekodieren
   const tmpInput = path.join(os.tmpdir(), `ella-audio-${Date.now()}.webm`);
   try {
     await fs.writeFile(tmpInput, audioBuffer);
@@ -74,6 +101,18 @@ export async function transcribe(audioBuffer: Buffer): Promise<string> {
   } finally {
     await fs.unlink(tmpInput).catch(() => {});
   }
+}
+
+export async function transcribe(audioBuffer: Buffer): Promise<string> {
+  const apiKey = getSettings().openaiApiKey || env.openaiApiKey;
+  if (apiKey) {
+    try {
+      return await transcribeOpenAI(audioBuffer);
+    } catch {
+      // Fallback auf lokales Modell wenn OpenAI nicht erreichbar
+    }
+  }
+  return transcribeLocal(audioBuffer);
 }
 
 export function isWhisperReady(): boolean {

@@ -4,6 +4,18 @@ Alle wesentlichen Änderungen an E.L.L.A. Detaillierte Entscheidungsbegründunge
 
 ---
 
+## [3.5.1] — 09.06.2026
+
+### Verbessert
+
+- **Spracheingabe** — `whisper-base` → `whisper-small` (244 MB, lokal, deutlich bessere Genauigkeit bei Deutsch); OpenAI `whisper-1` wenn API-Key gesetzt (cloud, beste Qualität, ~0.006$/min) mit automatischem Fallback auf lokal
+
+### Behoben
+
+- **`play_music`** — `Get-ChildItem "$lib\*" -Recurse -Include` statt `$lib`: PS-Bug der Dateien im Root-Ordner der Musikbibliothek übersprang; Timeout 15s → 45s für große Bibliotheken
+
+---
+
 ## [3.5.0] — 09.06.2026
 
 ### Hinzugefügt

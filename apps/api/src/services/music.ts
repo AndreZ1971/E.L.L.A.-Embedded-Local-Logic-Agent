@@ -30,7 +30,7 @@ export function searchMusic(
     const safeQuery = query.replace(/'/g, "''");
 
     const ps = `
-$lib   = '${safeLib}'
+$lib   = '${safeLib}'.TrimEnd('\\')
 $query = '${safeQuery}'
 $ext   = @(${ext})
 
@@ -44,7 +44,8 @@ if ($folder) {
   exit
 }
 
-$file = Get-ChildItem $lib -Recurse -Include $ext -ErrorAction SilentlyContinue |
+# "$lib\\*" behebt PS-Bug: ohne \\* werden Dateien direkt im Root-Ordner uebergangen
+$file = Get-ChildItem "$lib\\*" -Recurse -Include $ext -ErrorAction SilentlyContinue |
   Where-Object { $_.BaseName -like "*$query*" } |
   Select-Object -First 1
 
@@ -63,7 +64,7 @@ Write-Output 'null'
       fs.writeFileSync(tmpFile, ps, "utf-8");
       const out = execSync(
         `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
-        { encoding: "utf-8", timeout: 15_000 },
+        { encoding: "utf-8", timeout: 45_000 },
       ).trim();
 
       if (!out || out === "null") return null;
