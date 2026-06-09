@@ -1470,24 +1470,18 @@ Write-Output '{"success":true}'
     if (!folderPath) return { success: false, error: "Pfad fehlt." };
 
     const safePath = folderPath.replace(/'/g, "''");
-    const hiddenFilter = showHidden
-      ? ""
-      : "| Where-Object { -not $_.Attributes.HasFlag([System.IO.FileAttributes]::Hidden) }";
+    // Ordner und Dateien getrennt abfragen — kein Sort über alle Dateien nötig
+    // Select-Object -First 150 VOR Sort verhindert Timeout bei großen Laufwerken
     const ps = `
 $p = '${safePath}'
 if (-not (Test-Path $p)) { Write-Output '{"error":"Pfad nicht gefunden."}'; exit }
-$items = Get-ChildItem $p -ErrorAction SilentlyContinue ${hiddenFilter} | Sort-Object @{e={$_.PSIsContainer};d=$true}, Name
-$result = $items | ForEach-Object {
-  [PSCustomObject]@{
-    name    = $_.Name
-    type    = if ($_.PSIsContainer) { 'folder' } else { 'file' }
-    size_kb = if ($_.PSIsContainer) { $null } else { [math]::Round($_.Length / 1KB, 1) }
-    modified = $_.LastWriteTime.ToString('yyyy-MM-dd HH:mm')
-    ext     = if ($_.PSIsContainer) { '' } else { $_.Extension.ToLower() }
-  }
-}
-if ($null -eq $result -or @($result).Count -eq 0) { Write-Output '[]' }
-else { @($result) | ConvertTo-Json -Compress -Depth 2 }
+$folders = @(Get-ChildItem $p -Directory -ErrorAction SilentlyContinue${showHidden ? "" : " | Where-Object { -not ($_.Attributes -band 2) }"} | Select-Object -First 150 | Sort-Object Name)
+$files   = @(Get-ChildItem $p -File    -ErrorAction SilentlyContinue${showHidden ? "" : " | Where-Object { -not ($_.Attributes -band 2) }"} | Select-Object -First 150 | Sort-Object Name)
+$result  = @(
+  $folders | ForEach-Object { [PSCustomObject]@{ name=$_.Name; type='folder'; size_kb=$null; modified=$_.LastWriteTime.ToString('yyyy-MM-dd HH:mm'); ext='' } }
+  $files   | ForEach-Object { [PSCustomObject]@{ name=$_.Name; type='file'; size_kb=[math]::Round($_.Length/1KB,1); modified=$_.LastWriteTime.ToString('yyyy-MM-dd HH:mm'); ext=$_.Extension.ToLower() } }
+)
+if ($result.Count -eq 0) { Write-Output '[]' } else { $result | ConvertTo-Json -Compress -Depth 2 }
 `.trim();
 
     const tmpFile = path.join(os.tmpdir(), `ella-ls-${Date.now()}.ps1`);
@@ -1496,7 +1490,7 @@ else { @($result) | ConvertTo-Json -Compress -Depth 2 }
       fs.writeFileSync(tmpFile, ps, "utf-8");
       const out = execSync(
         `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
-        { encoding: "utf-8", timeout: 15_000 },
+        { encoding: "utf-8", timeout: 30_000 },
       ).trim();
 
       if (out.startsWith('{"error"')) {
