@@ -438,7 +438,8 @@ const Chat: React.FC = () => {
   /* ── sendText ── */
   const sendText = useCallback(
     async (text: string) => {
-      if (!text || loading) return;
+      if (!text || loadingRef.current) return;
+      loadingRef.current = true; // sofort sperren — verhindert parallele Aufrufe vor React-Re-Render
       window.speechSynthesis.cancel();
       setMessages((p) => [...p, { role: "user", content: text }]);
       setInput("");
@@ -549,6 +550,7 @@ const Chat: React.FC = () => {
         setStreaming("");
         setToolStatus("");
       } finally {
+        loadingRef.current = false;
         setLoading(false);
       }
     },
