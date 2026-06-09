@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import {
   transcribe,
+  contextAlign,
   isWhisperReady,
   getWhisperPipeline,
 } from "../services/whisper.js";
@@ -27,7 +28,8 @@ speechRouter.post(
         res.status(400).json({ error: "Keine Audio-Datei" });
         return;
       }
-      const text = await transcribe(req.file.buffer);
+      const raw = await transcribe(req.file.buffer);
+      const text = await contextAlign(raw);
       res.json({ text });
     } catch (err) {
       next(err);

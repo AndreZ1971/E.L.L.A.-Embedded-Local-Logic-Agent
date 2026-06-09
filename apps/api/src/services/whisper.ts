@@ -118,3 +118,50 @@ export async function transcribe(audioBuffer: Buffer): Promise<string> {
 export function isWhisperReady(): boolean {
   return _pipe !== null;
 }
+
+const ALIGN_PROMPT = `Du bist ein Sprachbefehl-Extraktor für ELLA (KI-Assistent).
+Extrahiere aus dem Transkript NUR den Befehl des Nutzers.
+Entferne: Stottern, Versprecher, Wiederholungen, Füllwörter (äh/ähm/also/halt/sozusagen), Musik-Lyrics, TV-Dialog, andere Stimmen.
+Kein klarer Befehl erkennbar → antworte exakt: KEIN_BEFEHL
+Antworte NUR mit dem bereinigten Befehl oder KEIN_BEFEHL. Keine Erklärung.
+
+Beispiele:
+"äh ella öffne öffne mal den Explorer" → Öffne den Explorer
+"Bohemian Rhapsody is this the real life is this just fantasy" → KEIN_BEFEHL
+"ella spiel mir was von Rammstein is this the real life" → Spiel mir was von Rammstein
+"ella setze den wecker auf halb" → Setze den Wecker auf halb
+"ich ich ich will wissen was auf Laufwerk H ist" → Was ist auf Laufwerk H
+
+Transkript: `;
+
+export async function contextAlign(rawText: string): Promise<string> {
+  const trimmed = rawText.trim();
+  if (trimmed.length < 3) return "";
+
+  const model = getSettings().ollamaModel || "llama3.1:8b";
+
+  try {
+    const res = await fetch(`${env.ollamaBaseUrl}/api/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        prompt: ALIGN_PROMPT + trimmed,
+        stream: false,
+        options: { temperature: 0, num_predict: 120, num_ctx: 512 },
+      }),
+      signal: AbortSignal.timeout(8_000),
+    });
+
+    if (!res.ok) return trimmed;
+
+    const data = (await res.json()) as { response?: string };
+    const aligned = (data.response ?? "").trim();
+
+    if (!aligned || aligned === "KEIN_BEFEHL") return "";
+    return aligned;
+  } catch {
+    // Ollama offline oder Timeout → Raw-Text weitergeben
+    return trimmed;
+  }
+}
