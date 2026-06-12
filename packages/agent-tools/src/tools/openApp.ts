@@ -1,37 +1,37 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { findAppPath } from './listPrograms.js';
-import type { ToolResult } from '@ella/shared';
+import { exec } from "child_process";
+import { promisify } from "util";
+import { findAppPath } from "./listPrograms.js";
+import type { ToolResult } from "@ella/shared";
 
 const execAsync = promisify(exec);
 
 export const DEFAULT_APP_MAP: Record<string, string> = {
-  vscode: 'code',
-  notepad: 'notepad.exe',
-  explorer: 'explorer.exe',
-  terminal: 'wt.exe',
-  chrome: 'chrome.exe',
-  edge: 'msedge.exe',
-  firefox: 'firefox.exe',
-  vlc: 'vlc.exe',
-  winrar: 'winrar.exe',
-  '7zip': '7zFM.exe',
-  paint: 'mspaint.exe',
-  calculator: 'calc.exe',
-  wordpad: 'wordpad.exe',
-  spotify: 'Spotify.exe',
-  discord: 'Discord.exe',
-  steam: 'steam.exe',
-  obs: 'obs64.exe',
+  vscode: "code",
+  notepad: "notepad.exe",
+  explorer: "explorer.exe",
+  terminal: "wt.exe",
+  chrome: "chrome.exe",
+  edge: "msedge.exe",
+  firefox: "firefox.exe",
+  vlc: "vlc.exe",
+  winrar: "winrar.exe",
+  "7zip": "7zFM.exe",
+  paint: "mspaint.exe",
+  calculator: "calc.exe",
+  wordpad: "wordpad.exe",
+  spotify: "Spotify.exe",
+  discord: "Discord.exe",
+  steam: "steam.exe",
+  obs: "obs64.exe",
 };
 
 export async function openApp(
   args: { name: string },
   map: Record<string, string> = DEFAULT_APP_MAP,
 ): Promise<ToolResult> {
-  const name = (args.name ?? '').toLowerCase().trim();
+  const name = (args.name ?? "").toLowerCase().trim();
   if (!name) {
-    return { success: false, error: 'Kein App-Name angegeben.' };
+    return { success: false, error: "Kein App-Name angegeben." };
   }
 
   // 1. Bekannte Map (direkte Befehle wie 'code', 'notepad.exe')
@@ -69,7 +69,7 @@ export async function openApp(
   }
 
   // 3. Nicht gefunden
-  const known = Object.keys(map).join(', ');
+  const known = Object.keys(map).join(", ");
   return {
     success: false,
     error: `"${args.name}" nicht gefunden. Direkt bekannte Apps: ${known}. Oder frage mich "Welche Programme sind installiert?"`,

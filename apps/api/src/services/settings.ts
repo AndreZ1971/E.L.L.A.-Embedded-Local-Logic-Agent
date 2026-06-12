@@ -28,7 +28,7 @@ export interface Settings {
   sessionLimit: number;
   openaiApiKey: string;
   apps: AppEntry[];
-  voiceMode: "off" | "manual" | "wakeword";
+  voiceMode: "off" | "manual" | "wakeword" | "always";
   setups: Setup[];
   homeworkMode: HomeworkModeConfig;
   ttsEnabled: boolean;
@@ -36,6 +36,7 @@ export interface Settings {
   onboardingComplete: boolean;
   eulaAccepted: boolean;
   userName: string;
+  userCity: string;
   emergencyResetAt: string | null;
   protectedDrives: string[];
   customProgramPaths: string[];
@@ -53,6 +54,11 @@ export interface Settings {
   clipboardPatternEnabled: boolean;
   accessibilityMode: "none" | "blind" | "deaf";
   searchDrives: string[];
+  voiceOllamaModel: string;
+  licenseActivated: boolean;
+  licenseKey: string;
+  licenseToken: string;
+  licenseProduct: string;
 }
 
 const SETTINGS_PATH = path.join(
@@ -88,7 +94,6 @@ export const DEFAULT_SETTINGS: Settings = {
     "get_system_status",
     "search_web",
     "get_location",
-    "delete_files",
     "get_datetime",
     "web_search",
     "fetch_url",
@@ -130,6 +135,10 @@ export const DEFAULT_SETTINGS: Settings = {
     "write_for_me",
     "find_duplicates",
     "list_autostart",
+    "list_folder",
+    "describe_screen",
+    "describe_image",
+    "describe_webpage",
   ],
   sessionLimit: 20,
   openaiApiKey: "",
@@ -141,8 +150,9 @@ export const DEFAULT_SETTINGS: Settings = {
   onboardingComplete: false,
   eulaAccepted: false,
   userName: "",
+  userCity: "",
   emergencyResetAt: null,
-  protectedDrives: ["C", "D"],
+  protectedDrives: ["C", "D", "E"],
   customProgramPaths: [],
   googleClientId: "",
   googleClientSecret: "",
@@ -158,6 +168,11 @@ export const DEFAULT_SETTINGS: Settings = {
   clipboardPatternEnabled: true,
   accessibilityMode: "none",
   searchDrives: ["C"],
+  voiceOllamaModel: "llama3.1:8b",
+  licenseActivated: false,
+  licenseKey: "",
+  licenseToken: "",
+  licenseProduct: "",
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -250,6 +265,12 @@ export async function loadSettings(): Promise<void> {
       parsed.musicSearchPaths = DEFAULT_SETTINGS.musicSearchPaths;
     if (!Array.isArray(parsed.searchDrives))
       parsed.searchDrives = DEFAULT_SETTINGS.searchDrives;
+    if (
+      typeof parsed.voiceOllamaModel !== "string" ||
+      !parsed.voiceOllamaModel ||
+      parsed.voiceOllamaModel === "llama3.2:3b"
+    )
+      parsed.voiceOllamaModel = DEFAULT_SETTINGS.voiceOllamaModel;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults

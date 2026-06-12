@@ -414,11 +414,11 @@ Token wird lokal in `google-token.json` gespeichert, nie committed.
 
 Die Drei-Zonen-Logik verhindert irreversiblen Schaden:
 
-| Zone | Laufwerk-Typ                           | Reaktion                                  |
-| ---- | -------------------------------------- | ----------------------------------------- |
-| 1    | C:, `protectedDrives`, ELLA-Laufwerk   | **Permanent blockiert** (directive: true) |
-| 2    | Interne Festplatten (DriveType ≠ 2)    | **Blockiert** (directive: true)           |
-| 3    | USB-Stick, externe HDD (DriveType = 2) | **Confirmation Card** → Nutzer bestätigt  |
+| Zone | Laufwerk-Typ                                     | Reaktion                                  |
+| ---- | ------------------------------------------------ | ----------------------------------------- |
+| 1    | C:, `protectedDrives`, ELLA-Laufwerk             | **Permanent blockiert** (directive: true) |
+| 2    | Netzwerk- und CD/DVD-Laufwerke, unbekannte Typen | **Blockiert** (directive: true)           |
+| 3    | Alle anderen (auch interne HDDs)                 | **Confirmation Card** → Nutzer bestätigt  |
 
 Geschützte Laufwerke sind in `settings.protectedDrives` konfigurierbar. C: ist hardcoded.
 

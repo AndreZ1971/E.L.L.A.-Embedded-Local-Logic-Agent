@@ -56,10 +56,12 @@ chatRouter.post("/", async (req, res, next) => {
     message,
     sessionId = "default",
     model,
+    isVoice,
   } = req.body as {
     message?: string;
     sessionId?: string;
     model?: string;
+    isVoice?: boolean;
   };
 
   if (!message) {
@@ -70,7 +72,13 @@ chatRouter.post("/", async (req, res, next) => {
   withSessionLock(sessionId, async () => {
     const useOpenAI = resolveProvider() === "openai";
     const settings = getSettings();
-    const activeModel = model ?? settings.ollamaModel ?? env.ollamaModel;
+    const activeModel =
+      model ??
+      (isVoice && settings.voiceOllamaModel
+        ? settings.voiceOllamaModel
+        : null) ??
+      settings.ollamaModel ??
+      env.ollamaModel;
     const tools = activeToolDefs();
     const history = await sessionStore.get(sessionId);
 

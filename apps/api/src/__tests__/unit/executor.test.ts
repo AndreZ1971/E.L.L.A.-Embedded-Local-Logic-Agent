@@ -401,8 +401,8 @@ describe("format_drive", () => {
   });
 
   it("blockiert internes Laufwerk DriveType 3 — directive:true", async () => {
-    // wmic-Format: "DriveType=3\r\n"
-    vi.mocked(execSync).mockReturnValue("DriveType=3\r\n" as any);
+    // PowerShell Get-CimInstance gibt nur die Zahl zurück
+    vi.mocked(execSync).mockReturnValue("3" as any);
     const result = await toolExecutor.execute({
       tool: "format_drive",
       args: { drive: "F" },
@@ -414,7 +414,7 @@ describe("format_drive", () => {
 
   it("gibt requiresConfirmation für USB-Stick (DriveType 2)", async () => {
     vi.mocked(execSync)
-      .mockReturnValueOnce("DriveType=2\r\n" as any) // getDriveType
+      .mockReturnValueOnce("2" as any) // getDriveType → PowerShell gibt "2" zurück
       .mockReturnValueOnce("8589934592" as any); // getDriveSizeLabel (8 GB)
     const result = await toolExecutor.execute({
       tool: "format_drive",
@@ -2198,10 +2198,17 @@ describe("describe_screen", () => {
     enabledTools: [...prodToolSettings.enabledTools, "describe_screen"],
   };
   it("gibt Bildschirmbeschreibung zurück", async () => {
-    vi.mocked(getSettings).mockReturnValue(wowSettings as ReturnType<typeof getSettings>);
-    const result = await toolExecutor.execute({ tool: "describe_screen", args: {} });
+    vi.mocked(getSettings).mockReturnValue(
+      wowSettings as ReturnType<typeof getSettings>,
+    );
+    const result = await toolExecutor.execute({
+      tool: "describe_screen",
+      args: {},
+    });
     expect(result.success).toBe(true);
-    expect((result.output as { description: string }).description).toContain("Desktop");
+    expect((result.output as { description: string }).description).toContain(
+      "Desktop",
+    );
   });
 });
 
@@ -2211,16 +2218,28 @@ describe("describe_image", () => {
     enabledTools: [...prodToolSettings.enabledTools, "describe_image"],
   };
   it("Fehler wenn kein Pfad angegeben", async () => {
-    vi.mocked(getSettings).mockReturnValue(wowSettings as ReturnType<typeof getSettings>);
-    const result = await toolExecutor.execute({ tool: "describe_image", args: {} });
+    vi.mocked(getSettings).mockReturnValue(
+      wowSettings as ReturnType<typeof getSettings>,
+    );
+    const result = await toolExecutor.execute({
+      tool: "describe_image",
+      args: {},
+    });
     expect(result.success).toBe(false);
     expect(result.error).toContain("Dateipfad");
   });
   it("gibt Bildbeschreibung zurück", async () => {
-    vi.mocked(getSettings).mockReturnValue(wowSettings as ReturnType<typeof getSettings>);
-    const result = await toolExecutor.execute({ tool: "describe_image", args: { path: "C:\test.jpg" } });
+    vi.mocked(getSettings).mockReturnValue(
+      wowSettings as ReturnType<typeof getSettings>,
+    );
+    const result = await toolExecutor.execute({
+      tool: "describe_image",
+      args: { path: "C:\test.jpg" },
+    });
     expect(result.success).toBe(true);
-    expect((result.output as { description: string }).description).toContain("Hund");
+    expect((result.output as { description: string }).description).toContain(
+      "Hund",
+    );
   });
 });
 
@@ -2230,9 +2249,16 @@ describe("describe_webpage", () => {
     enabledTools: [...prodToolSettings.enabledTools, "describe_webpage"],
   };
   it("gibt Webseitenbeschreibung zurück", async () => {
-    vi.mocked(getSettings).mockReturnValue(wowSettings as ReturnType<typeof getSettings>);
-    const result = await toolExecutor.execute({ tool: "describe_webpage", args: {} });
+    vi.mocked(getSettings).mockReturnValue(
+      wowSettings as ReturnType<typeof getSettings>,
+    );
+    const result = await toolExecutor.execute({
+      tool: "describe_webpage",
+      args: {},
+    });
     expect(result.success).toBe(true);
-    expect((result.output as { description: string }).description).toContain("Webseite");
+    expect((result.output as { description: string }).description).toContain(
+      "Webseite",
+    );
   });
 });

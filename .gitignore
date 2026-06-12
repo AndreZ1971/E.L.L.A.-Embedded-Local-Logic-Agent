@@ -10,6 +10,7 @@ apps/api/whisper-cache/
 apps/api/wakeword-models/
 scripts/wakeword_training_data/
 apps/desktop/dist-installer/
+vendor/
 .claude/
 .vscode/
 

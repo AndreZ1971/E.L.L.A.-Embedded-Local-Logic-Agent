@@ -306,7 +306,7 @@ let ollamaWasDown = false;
 export let lastActivityTime = Date.now();
 let wasInactive = false;
 const INACTIVE_THRESHOLD_MS = 30 * 60 * 1000;
-let lastBreakReminder = 0;
+let lastBreakReminder = Date.now();
 const BREAK_INTERVAL_MS = 90 * 60 * 1000;
 
 export function recordActivity(): void {
@@ -351,64 +351,35 @@ async function tick() {
     const m = getDiskMetric(drive);
     if (!m) continue;
 
-    const id = await writeEvent("disk", {
+    await writeEvent("disk", {
       drive: m.drive,
       usedPct: m.usedPct,
       freeBytes: m.freeBytes,
       totalBytes: m.totalBytes,
     });
 
-    emit({
-      id,
-      type: "disk",
-      payload: { drive: m.drive, usedPct: m.usedPct },
-      created_at: now,
-    });
-
     if (m.usedPct >= DISK_ALERT_THRESHOLD) {
-      const alertId = await writeEvent("alert", {
+      await writeEvent("alert", {
         severity: "warning",
         message: `Disk ${drive}: ${m.usedPct}% belegt`,
         drive: m.drive,
         usedPct: m.usedPct,
-      });
-      emit({
-        id: alertId,
-        type: "alert",
-        payload: {
-          severity: "warning",
-          message: `Disk ${drive}: ${m.usedPct}% belegt`,
-        },
-        created_at: now,
       });
     }
   }
 
   // ── RAM ───────────────────────────────────────────────────────
   const ram = ramMetric();
-  const ramId = await writeEvent("ram", ram);
-  emit({ id: ramId, type: "ram", payload: ram, created_at: now });
+  await writeEvent("ram", ram);
 
   // ── Ollama ────────────────────────────────────────────────────
   const ollamaOk = await checkOllama();
-  const ollamaId = await writeEvent("ollama", { ok: ollamaOk });
-  emit({
-    id: ollamaId,
-    type: "ollama",
-    payload: { ok: ollamaOk },
-    created_at: now,
-  });
+  await writeEvent("ollama", { ok: ollamaOk });
 
   if (!ollamaOk && !ollamaWasDown) {
-    const alertId = await writeEvent("alert", {
+    await writeEvent("alert", {
       severity: "error",
       message: "Ollama nicht erreichbar",
-    });
-    emit({
-      id: alertId,
-      type: "alert",
-      payload: { severity: "error", message: "Ollama nicht erreichbar" },
-      created_at: now,
     });
   }
   ollamaWasDown = !ollamaOk;
@@ -495,19 +466,11 @@ async function tick() {
   } else {
     for (const port of currentPorts) {
       if (!lastListeningPorts.has(port)) {
-        const alertId = await writeEvent("alert", {
+        // Nur ins Log schreiben — kein SSE-Emit, kein Toast, kein TTS
+        await writeEvent("alert", {
           severity: "warning",
           message: `Neuer lauschender Port geöffnet: ${port}`,
           port,
-        });
-        emit({
-          id: alertId,
-          type: "alert",
-          payload: {
-            severity: "warning",
-            message: `Neuer lauschender Port geöffnet: ${port}`,
-          },
-          created_at: now,
         });
       }
     }
@@ -517,19 +480,10 @@ async function tick() {
   const nowDisabled = new Set(checkFirewallDisabled());
   for (const profile of nowDisabled) {
     if (!disabledFirewallProfiles.has(profile)) {
-      const alertId = await writeEvent("alert", {
+      await writeEvent("alert", {
         severity: "error",
         message: `Firewall deaktiviert: ${profile}`,
         profile,
-      });
-      emit({
-        id: alertId,
-        type: "alert",
-        payload: {
-          severity: "error",
-          message: `Firewall deaktiviert: ${profile}`,
-        },
-        created_at: now,
       });
     }
   }
@@ -537,36 +491,18 @@ async function tick() {
 
   const wifiOpen = checkOpenWifi();
   if (wifiOpen && !openWifiAlerted) {
-    const alertId = await writeEvent("alert", {
+    await writeEvent("alert", {
       severity: "warning",
       message: "Offenes WLAN ohne Verschlüsselung erkannt",
-    });
-    emit({
-      id: alertId,
-      type: "alert",
-      payload: {
-        severity: "warning",
-        message: "Offenes WLAN ohne Verschlüsselung erkannt",
-      },
-      created_at: now,
     });
   }
   openWifiAlerted = wifiOpen;
 
   const currentDns = getDnsServers();
   if (lastDnsServers && currentDns && currentDns !== lastDnsServers) {
-    const alertId = await writeEvent("alert", {
+    await writeEvent("alert", {
       severity: "warning",
       message: "DNS-Server haben sich geändert",
-    });
-    emit({
-      id: alertId,
-      type: "alert",
-      payload: {
-        severity: "warning",
-        message: "DNS-Server haben sich geändert",
-      },
-      created_at: now,
     });
   }
   if (currentDns) lastDnsServers = currentDns;

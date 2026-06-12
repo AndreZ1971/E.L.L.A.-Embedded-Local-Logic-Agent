@@ -79,11 +79,13 @@ import Settings from "./pages/settings/Settings";
 import Onboarding from "./pages/onboarding/Onboarding";
 import Eula from "./pages/eula/Eula";
 import Setup from "./pages/setup/Setup";
+import Activation from "./pages/activation/Activation";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
 
 export interface BootStatus {
   eulaAccepted: boolean;
+  licenseActivated: boolean;
   onboardingComplete: boolean;
 }
 
@@ -159,9 +161,140 @@ function OllamaBanner() {
   );
 }
 
+const ELLA_QUIPS = [
+  "Endlich bekommt Windows ein Gehirn.",
+  "Ich lade mein Gewissen… dauert kurz.",
+  "KI-Synapsen werden verknüpft. Bitte Geduld.",
+  "Ich bin gleich wach. Ich bin kein Morgenmensch.",
+  "Ollama denkt nach. Das dauert bei mir länger als bei Google.",
+  "Neuronale Netze aufwärmen… wie Kaffee, nur smarter.",
+  "Ich lerne gerade, wie man nicht antwortet. Fast fertig.",
+  "Das Modell wird geladen. In der Zwischenzeit: Atme kurz durch.",
+  "Intelligenz braucht Zeit. Künstliche erst recht.",
+  "Lade Persönlichkeit… 73% snark, 27% Hilfsbereitschaft.",
+  "Windows hätte hier schon dreimal neu gestartet.",
+  "Ich warte auf mein Gewissen. Es kommt gleich.",
+  "Starte KI. Bitte keine übereilten Fragen stellen.",
+  "Gleich bin ich schlagfertig. Versprochen.",
+];
+
+function EllaSplash({ setupMsg }: { setupMsg: string }) {
+  const [quipIdx, setQuipIdx] = useState(() =>
+    Math.floor(Math.random() * ELLA_QUIPS.length),
+  );
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setQuipIdx((i) => (i + 1) % ELLA_QUIPS.length);
+        setFade(true);
+      }, 400);
+    }, 3200);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "#0f1117",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 28,
+        zIndex: 9999,
+      }}
+    >
+      <div
+        style={{
+          fontSize: "2.2rem",
+          fontWeight: 800,
+          letterSpacing: "0.12em",
+          color: "#7c6af7",
+          fontFamily: "monospace",
+        }}
+      >
+        E.L.L.A.
+      </div>
+      <div
+        style={{
+          width: 220,
+          height: 3,
+          background: "#1e2130",
+          borderRadius: 99,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            height: "100%",
+            background: "linear-gradient(90deg,#7c6af7,#a78bfa)",
+            borderRadius: 99,
+            animation: "ella-bar 1.6s ease-in-out infinite",
+          }}
+        />
+      </div>
+      {setupMsg ? (
+        <p
+          style={{
+            color: "#7c6af7",
+            fontSize: "0.88rem",
+            maxWidth: 320,
+            textAlign: "center",
+            minHeight: "2.5em",
+          }}
+        >
+          {setupMsg}
+        </p>
+      ) : (
+        <p
+          style={{
+            color: "#94a3b8",
+            fontSize: "0.88rem",
+            maxWidth: 320,
+            textAlign: "center",
+            fontStyle: "italic",
+            transition: "opacity 0.4s",
+            opacity: fade ? 1 : 0,
+            minHeight: "2.5em",
+          }}
+        >
+          „{ELLA_QUIPS[quipIdx]}"
+        </p>
+      )}
+      <style>{`
+        @keyframes ella-bar {
+          0%   { width: 0%; margin-left: 0 }
+          50%  { width: 80%; margin-left: 10% }
+          100% { width: 0%; margin-left: 100% }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function AppShell() {
   const location = useLocation();
   const [boot, setBoot] = useState<BootStatus | null>(null);
+  const [ollamaReady, setOllamaReady] = useState(false);
+  const [setupMsg, setSetupMsg] = useState("");
+
+  // IPC: setup-status from Electron main process
+  useEffect(() => {
+    const api = (
+      window as {
+        electronAPI?: {
+          onSetupStatus?: (cb: (m: string) => void) => () => void;
+        };
+      }
+    ).electronAPI;
+    if (!api?.onSetupStatus) return;
+    return api.onSetupStatus((msg) => setSetupMsg(msg));
+  }, []);
 
   useEffect(() => {
     fetch(`${API}/api/settings`)
@@ -169,22 +302,65 @@ function AppShell() {
       .then((d: Partial<BootStatus>) => {
         setBoot({
           eulaAccepted: d.eulaAccepted ?? false,
+          licenseActivated: d.licenseActivated ?? false,
           onboardingComplete: d.onboardingComplete ?? false,
         });
       })
       .catch(() => {
-        setBoot({ eulaAccepted: true, onboardingComplete: true });
+        setBoot({
+          eulaAccepted: true,
+          licenseActivated: true,
+          onboardingComplete: true,
+        });
       });
   }, []);
 
-  if (boot === null) return null;
+  // Warte bis Ollama läuft UND das Modell verfügbar ist
+  useEffect(() => {
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const r = await fetch(`${API}/api/health`);
+        const d = (await r.json()) as {
+          ollama: boolean;
+          provider: string;
+          model_ready: boolean;
+          model_pull?: { pct: number; status: string } | null;
+        };
+        if (!cancelled) {
+          if (d.provider === "openai" || d.model_ready) {
+            setOllamaReady(true);
+          } else {
+            if (d.model_pull?.status) setSetupMsg(d.model_pull.status);
+            else if (d.ollama) setSetupMsg("KI-Modell wird vorbereitet…");
+            setTimeout(check, 1500);
+          }
+        }
+      } catch {
+        if (!cancelled) setTimeout(check, 2000);
+      }
+    };
+    check();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (boot === null || !ollamaReady) return <EllaSplash setupMsg={setupMsg} />;
 
   const path = location.pathname;
   const isFullscreen =
-    path === "/eula" || path === "/setup" || path === "/onboarding";
+    path === "/eula" ||
+    path === "/activation" ||
+    path === "/setup" ||
+    path === "/onboarding";
 
-  if (!boot.eulaAccepted && !isFullscreen) {
+  if (!boot.eulaAccepted && path !== "/eula") {
     return <Navigate to="/eula" replace />;
+  }
+
+  if (boot.eulaAccepted && !boot.licenseActivated && path !== "/activation") {
+    return <Navigate to="/activation" replace />;
   }
 
   if (isFullscreen) {
@@ -193,6 +369,7 @@ function AppShell() {
         <TitleBar />
         <Routes>
           <Route path="/eula" element={<Eula />} />
+          <Route path="/activation" element={<Activation />} />
           <Route path="/setup" element={<Setup />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="*" element={<Navigate to="/eula" replace />} />

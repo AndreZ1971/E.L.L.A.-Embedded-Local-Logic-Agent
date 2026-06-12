@@ -46,6 +46,7 @@ settingsRouter.put("/", async (req, res, next) => {
       accessibilityMode,
       searchDrives,
       musicSearchPaths,
+      voiceOllamaModel,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -53,7 +54,7 @@ settingsRouter.put("/", async (req, res, next) => {
       sessionLimit?: number;
       openaiApiKey?: string;
       apps?: { name: string; command: string; allowed: boolean }[];
-      voiceMode?: "off" | "manual" | "wakeword";
+      voiceMode?: "off" | "manual" | "wakeword" | "always";
       setups?: { id: string; name: string; open: string[]; close: string[] }[];
       homeworkMode?: { apps?: string[] };
       ttsEnabled?: boolean;
@@ -69,6 +70,7 @@ settingsRouter.put("/", async (req, res, next) => {
       accessibilityMode?: "none" | "blind" | "deaf";
       searchDrives?: string[];
       musicSearchPaths?: string[];
+      voiceOllamaModel?: string;
     };
 
     const raw = {
@@ -92,6 +94,7 @@ settingsRouter.put("/", async (req, res, next) => {
       accessibilityMode,
       searchDrives,
       musicSearchPaths,
+      voiceOllamaModel,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(

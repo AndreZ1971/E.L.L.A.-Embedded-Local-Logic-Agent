@@ -5,62 +5,6 @@ export const TOOL_DEFINITIONS: OllamaTool[] = [
   {
     type: "function",
     function: {
-      name: "format_drive",
-      description:
-        "Formatiert ein USB-Laufwerk oder einen externen Datenträger. Systemlaufwerke (C:) sind gesperrt. Nur für Wechseldatenträger (USB-Sticks, externe Festplatten). Immer Bestätigung einholen bevor du formatierst!",
-      parameters: {
-        type: "object",
-        properties: {
-          drive: {
-            type: "string",
-            description:
-              'Laufwerksbuchstabe, z.B. "E" oder "F" — niemals C oder D',
-          },
-          label: {
-            type: "string",
-            description:
-              'Name/Label des Laufwerks nach dem Formatieren, z.B. "MeinUSB" (max 11 Zeichen)',
-          },
-          filesystem: {
-            type: "string",
-            description:
-              '"FAT32" (Standard, kompatibel), "NTFS" (Windows, große Dateien), "exFAT" (Cross-Platform)',
-          },
-          quick: {
-            type: "boolean",
-            description:
-              "true für Quick-Format (Standard), false für vollständiges Format",
-          },
-        },
-        required: ["drive"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "rename_drive",
-      description:
-        "Benennt ein USB-Laufwerk oder externen Datenträger um (ändert das Volume-Label). Systemlaufwerke (C:) sind gesperrt.",
-      parameters: {
-        type: "object",
-        properties: {
-          drive: {
-            type: "string",
-            description: 'Laufwerksbuchstabe, z.B. "E" oder "F"',
-          },
-          label: {
-            type: "string",
-            description: "Neuer Name für das Laufwerk",
-          },
-        },
-        required: ["drive", "label"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
       name: "list_programs",
       description:
         "Zeigt alle installierten Programme die gestartet werden können. " +
@@ -837,6 +781,8 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
         "Spielt Musik aus der konfigurierten Musikbibliothek. " +
         "Ohne Suchbegriff: oeffnet die gesamte Bibliothek im Media Player. " +
         "Mit Suchbegriff: sucht nach Kuenstler, Album oder Titel und oeffnet den Treffer. " +
+        "Wenn der Nutzer ein konkretes Laufwerk oder einen Pfad nennt (z.B. 'auf Laufwerk H', 'H:\\\\Billy Idol'), " +
+        "'path' direkt setzen statt zu suchen. " +
         "Beispiele: 'spiel Musik', 'spiel etwas von AC/DC', 'oeffne meine Jazz-Playlist'.",
       parameters: {
         type: "object",
@@ -845,6 +791,11 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
             type: "string",
             description:
               "Kuenstler, Album oder Titel — weglassen fuer gesamte Bibliothek",
+          },
+          path: {
+            type: "string",
+            description:
+              "Direkter Pfad zu Datei oder Ordner — wenn bekannt, Suche ueberspringen (z.B. H:\\\\Billy Idol)",
           },
         },
       },

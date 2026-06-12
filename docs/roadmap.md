@@ -1,6 +1,6 @@
 # Roadmap — E.L.L.A. Entwicklungshistorie & offene Punkte
 
-Stand: v3.4.0 · Juni 2026
+Stand: v3.5.0 · Juni 2026
 
 ---
 
@@ -54,6 +54,9 @@ Stand: v3.4.0 · Juni 2026
 | Medien (WinRT)              | v3.4.0    | control*media (VK_MEDIA*\*), get_now_playing (Windows.Media.Control)                 |
 | KI-Textverarbeitung         | v3.4.0    | translate_text, summarize_text — Ollama/OpenAI, gleiche Provider-Logik               |
 | Semantischer OCR-Klick      | v3.4.0    | click_element — Screenshot → WinRT OCR → 3-Pass-Match → confirm                      |
+| KI-Textkorrektur + Stil     | v3.5.0    | correct_text, write_in_style — Grammatikkorrektur und Schreibstil per Ollama/OpenAI  |
+| Dienstverwaltung getrennt   | v3.5.0    | list_services + control_service als separate Tools (statt manage_service)            |
+| Regeln auf IDs 1–85 erweit. | v3.5.0    | Default-Regeln IDs 83–85 ergänzt; alarms-Tabelle + DB v3.5.0                         |
 
 ---
 

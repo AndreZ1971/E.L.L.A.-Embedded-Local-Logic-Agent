@@ -29,7 +29,7 @@ speechRouter.post(
         return;
       }
       const raw = await transcribe(req.file.buffer);
-      const text = await contextAlign(raw);
+      const text = req.query.raw === "true" ? raw : await contextAlign(raw);
       res.json({ text });
     } catch (err) {
       next(err);

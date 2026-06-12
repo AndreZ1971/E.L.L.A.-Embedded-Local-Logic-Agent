@@ -12,6 +12,7 @@ import type { Event as ElectronEvent } from "electron";
 import { spawn, exec } from "child_process";
 import type { ChildProcess } from "child_process";
 import * as net from "net";
+import * as fs from "fs";
 import { deflateSync } from "zlib";
 import * as path from "path";
 
@@ -24,6 +25,135 @@ let tray: Tray | null = null;
 let isQuitting = false;
 let apiProcess: ChildProcess | null = null;
 let ttsProcess: ChildProcess | null = null;
+let mariadbProcess: ChildProcess | null = null;
+let ollamaProcess: ChildProcess | null = null;
+
+// In production: process.resourcesPath = <install>/resources
+// In dev: fall back to vendor/ folder in repo root
+function vendorPath(...parts: string[]): string {
+  const base =
+    process.resourcesPath ??
+    path.join(app.getAppPath(), "..", "..", "..", "vendor");
+  return path.join(base, ...parts);
+}
+
+function sendSetupStatus(msg: string): void {
+  mainWindow?.webContents.send("ella:setup", msg);
+}
+
+// ── MariaDB (portable) ────────────────────────────────────────────────────────
+
+async function startMariaDB(): Promise<void> {
+  const mysqld = vendorPath("mariadb", "bin", "mysqld.exe");
+  if (!fs.existsSync(mysqld)) {
+    console.log("[MariaDB] Binary nicht gefunden — überspringe.");
+    return;
+  }
+
+  const dataDir = path.join(app.getPath("userData"), "mariadb-data");
+
+  if (!fs.existsSync(path.join(dataDir, "mysql"))) {
+    console.log("[MariaDB] Erststart — initialisiere Datenverzeichnis…");
+    sendSetupStatus("Datenbank wird eingerichtet…");
+    await new Promise<void>((resolve, reject) => {
+      const init = spawn(
+        mysqld,
+        ["--initialize-insecure", `--datadir=${dataDir}`],
+        {
+          stdio: "pipe",
+        },
+      );
+      init.on("close", (code) =>
+        code === 0
+          ? resolve()
+          : reject(new Error(`mysqld --initialize exit ${code}`)),
+      );
+      init.on("error", reject);
+    });
+  }
+
+  sendSetupStatus("Datenbank wird gestartet…");
+  mariadbProcess = spawn(
+    mysqld,
+    [
+      `--datadir=${dataDir}`,
+      "--port=3306",
+      "--bind-address=127.0.0.1",
+      "--skip-networking=OFF",
+      "--console",
+    ],
+    { stdio: "pipe" },
+  );
+  mariadbProcess.stderr?.on("data", (d: Buffer) =>
+    console.error("[MariaDB]", d.toString().trimEnd()),
+  );
+  mariadbProcess.on("exit", (code) =>
+    console.log("[MariaDB] Prozess beendet, Code:", code),
+  );
+
+  await waitForPort(3306, 30_000);
+  // Give MariaDB a moment to finish startup after port is open
+  await new Promise((r) => setTimeout(r, 800));
+
+  // First-run: create ella user + database
+  const mysql = vendorPath("mariadb", "bin", "mysql.exe");
+  const credFile = path.join(app.getPath("userData"), ".db-init");
+  if (!fs.existsSync(credFile) && fs.existsSync(mysql)) {
+    console.log("[MariaDB] Ersteinrichtung: Datenbank und Nutzer anlegen…");
+    await new Promise<void>((resolve) => {
+      const sql =
+        "CREATE DATABASE IF NOT EXISTS ella;" +
+        "CREATE USER IF NOT EXISTS 'ella'@'127.0.0.1' IDENTIFIED BY '';" +
+        "GRANT ALL ON ella.* TO 'ella'@'127.0.0.1';" +
+        "FLUSH PRIVILEGES;";
+      const proc = spawn(
+        mysql,
+        ["-u", "root", "-h", "127.0.0.1", "-P", "3306", "-e", sql],
+        {
+          stdio: "pipe",
+        },
+      );
+      proc.on("close", () => {
+        try {
+          fs.writeFileSync(credFile, "done");
+        } catch {}
+        resolve();
+      });
+      proc.on("error", () => resolve());
+    });
+  }
+  console.log("[MariaDB] Bereit.");
+}
+
+// ── Ollama (portable) ─────────────────────────────────────────────────────────
+
+async function startOllama(): Promise<void> {
+  const ollamaExe = vendorPath("ollama", "ollama.exe");
+  if (!fs.existsSync(ollamaExe)) {
+    console.log("[Ollama] Binary nicht gefunden — überspringe.");
+    return;
+  }
+
+  sendSetupStatus("KI-Motor wird gestartet…");
+  const modelsDir = path.join(app.getPath("userData"), "ollama-models");
+  fs.mkdirSync(modelsDir, { recursive: true });
+
+  ollamaProcess = spawn(ollamaExe, ["serve"], {
+    stdio: "pipe",
+    env: { ...process.env, OLLAMA_MODELS: modelsDir },
+  });
+  ollamaProcess.stderr?.on("data", (d: Buffer) =>
+    console.error("[Ollama]", d.toString().trimEnd()),
+  );
+  ollamaProcess.on("exit", (code) =>
+    console.log("[Ollama] Prozess beendet, Code:", code),
+  );
+
+  await waitForPort(11434, 30_000);
+  console.log("[Ollama] Server bereit.");
+}
+
+// ── KokoroTTS ─────────────────────────────────────────────────────────────────
 
 function startKokoroTts(): void {
   const settingsPath = path.join(app.getPath("userData"), "settings.json");
@@ -229,6 +359,9 @@ function createWindow(): void {
     }
   });
 
+  // Kein Throttling im Hintergrund — ELLA muss immer zuhören
+  mainWindow.webContents.setBackgroundThrottling(false);
+
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show();
     mainWindow?.focus();
@@ -334,11 +467,16 @@ function createTray(): void {
   tray.setToolTip("E.L.L.A. — Embedded Local Logic Agent");
   tray.setContextMenu(buildTrayMenu());
   tray.on("click", () => {
-    if (mainWindow?.isVisible()) {
-      mainWindow.hide();
-      mainWindow.setSkipTaskbar(true);
-    } else {
+    const isBackground =
+      !mainWindow?.isVisible() || (mainWindow?.getPosition()[0] ?? 0) < -1000;
+    if (isBackground) {
       showWindow();
+    } else {
+      // Gleicher Trick wie minimize — 1x1px statt hide() damit AudioContext läuft
+      mainWindow?.setPosition(-9999, -9999);
+      mainWindow?.setSize(1, 1);
+      mainWindow?.setSkipTaskbar(true);
+      mainWindow?.webContents.send("ella:background", true);
     }
   });
 }
@@ -454,8 +592,17 @@ app.whenReady().then(async () => {
     (_wc, permission) => permission === "media",
   );
 
+  registerIpc();
+  createWindow(); // Splash sofort sichtbar während Dienste starten
+  createTray();
+
   if (!isDev) {
     await freePort(API_PORT);
+    await startMariaDB().catch((e) =>
+      console.error("[ELLA] MariaDB-Fehler:", e),
+    );
+    await startOllama().catch((e) => console.error("[ELLA] Ollama-Fehler:", e));
+    sendSetupStatus("Starte E.L.L.A.…");
     startApi();
     startKokoroTts();
     try {
@@ -467,9 +614,6 @@ app.whenReady().then(async () => {
     }
   }
 
-  registerIpc();
-  createWindow();
-  createTray();
   setTimeout(() => greetUser(), 2500);
 });
 
@@ -479,11 +623,8 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", () => {
   isQuitting = true;
-  if (apiProcess && !apiProcess.killed) {
-    apiProcess.kill();
-  }
-  if (ttsProcess && !ttsProcess.killed) {
-    ttsProcess.kill();
+  for (const proc of [apiProcess, ttsProcess, ollamaProcess, mariadbProcess]) {
+    if (proc && !proc.killed) proc.kill();
   }
 });
 

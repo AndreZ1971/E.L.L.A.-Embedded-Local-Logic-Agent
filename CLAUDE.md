@@ -77,12 +77,14 @@ database/
 - **Dokumente:** `create_document` (Word + TXT), `read_file_content` (.docx/.pdf/.xlsx/.html), `dictate_to_document`
 - **Aufgabenliste:** `add_task`, `list_tasks`, `complete_task`, `delete_task` — persistente TODOs in MariaDB
 - **Wecker:** `set_alarm`, `list_alarms`, `delete_alarm` — DB-basiert, täglicher Worker-Check
-- **Musik:** `play_music` → Bibliothek durchsuchen (Künstler/Album/Titel), Media Player öffnen
+- **Musik:** `play_music` → Bibliothek durchsuchen (Künstler/Album/Titel), Media Player öffnen; `path`-Parameter für direkten Zugriff wenn Pfad bekannt
 - **Prozesse:** `list_processes`, `kill_process` (systemkritische gesperrt)
+- **Dienste:** `list_services`, `control_service` — Windows-Dienste auflisten und steuern
 - **Systemsteuerung:** `set_volume` (DLL-Cache ~0.5s), `get_clipboard`/`set_clipboard` (+ Historie, 3s Polling)
 - **Erinnerungen:** `set_reminder`/`list_reminders`/`delete_reminder` via Windows Task Scheduler
-- **Vision:** `take_screenshot` → GDI+ Screenshot + GPT-4o Vision Analyse
-- **Schreibstil:** `write_for_me` → Stilprofil aus E-Mail-Historie + Text im Nutzerstil
+- **Vision:** `take_screenshot` → GDI+ Screenshot + GPT-4o Vision Analyse; `describe_screen`, `describe_image`, `describe_webpage`
+- **Schreibstil:** `write_for_me`, `write_in_style` → Stilprofil aus E-Mail-Historie + Text im Nutzerstil
+- **Textverarbeitung:** `translate_text`, `summarize_text`, `correct_text` — Ollama/OpenAI
 - **Duplikate:** `find_duplicates`, **Autostart:** `list_autostart`
 
 ### Kommunikation
@@ -108,6 +110,7 @@ database/
 - **Nutzerprofile:** `routes/profiles.ts`, `services/profiles.ts` — PBKDF2+Salt (100k Iterations)
 - **Feedback-Route:** `routes/feedback.ts` — POST /api/feedback + Ollama-Memory-Extraktion
 - Homework Mode: SHA-256 PIN (Homework), PBKDF2 (Profile), Emergency-Reset
+- **format_drive 3-Zonen-Regel:** Zone 1 = C:, ELLA-Laufwerk (auto via `process.cwd()[0]`), `protectedDrives` → directive; Zone 2 = Netzwerk/CD/Unbekannt → directive; Zone 3 = alle anderen inkl. interne HDDs → Bestätigungsdialog
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
 - **205 Tests — alle grün** (Vitest Unit + Integration)
@@ -122,7 +125,7 @@ Jedes neue Tool braucht alle folgenden Schritte:
 1. **`packages/shared/src/types/tool.ts`** — ToolName-Union ergänzen
 2. **`apps/api/src/tools/definitions.ts`** — Tool-Definition (type, function, parameters)
 3. **`apps/api/src/tools/executor.ts`** — Handler implementieren (Import + HANDLERS-Eintrag)
-4. **`apps/api/src/config/migrate.ts`** — Default-Regel (nächste freie ID ab 58, `always`, `allow`) + ggf. CREATE TABLE
+4. **`apps/api/src/config/migrate.ts`** — Default-Regel (nächste freie ID ab 86, `always`, `allow`) + ggf. CREATE TABLE
 5. **`apps/api/src/routes/settings.ts`** — Falls neue Settings-Felder: in PUT-Route Destructuring UND `raw`-Objekt eintragen (sonst beim Speichern ignoriert!)
 6. **`apps/api/src/services/settings.ts`** — Falls neue Settings-Felder: Interface, DEFAULT_SETTINGS, loadSettings-Migration
 7. **`apps/api/src/index.ts`** — Falls neue Route: Router importieren + `app.use(...)` eintragen
@@ -175,7 +178,7 @@ cd apps/desktop && node build-main.mjs && cd ../..
 $env:ELLA_DEV = "1"; cd apps\desktop; .\node_modules\electron\dist\electron.exe .
 
 # Tests
-npm test                       # 132 Unit + Integration Tests (Vitest)
+npm test                       # 205 Unit + Integration Tests (Vitest)
 npm run lint
 
 # Ollama prüfen
@@ -216,11 +219,17 @@ https://github.com/AndreZ1971/E.L.L.A.git
 ```
 
 
+
+
+
+
+
+
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-06-09T10:51:52.915Z._
+_Last synced: 2026-06-12T16:46:31.597Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).

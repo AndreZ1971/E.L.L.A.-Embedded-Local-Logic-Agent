@@ -43,7 +43,7 @@ export default function Eula() {
         body: JSON.stringify({ eulaAccepted: true }),
       });
       setBoot((prev) => (prev ? { ...prev, eulaAccepted: true } : prev));
-      navigate("/onboarding");
+      navigate("/activation");
     } catch {
       setSaving(false);
     }

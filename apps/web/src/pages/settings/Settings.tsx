@@ -33,14 +33,24 @@ interface Rule {
   updated_at: string;
 }
 
+interface Profile {
+  id: number;
+  name: string;
+  color: string;
+  hasPin: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
 interface Settings {
   provider: "auto" | "openai" | "ollama";
   ollamaModel: string;
+  voiceOllamaModel: string;
   enabledTools: string[];
   sessionLimit: number;
   openaiApiKey: string;
   apps: AppEntry[];
-  voiceMode: "off" | "manual" | "wakeword";
+  voiceMode: "off" | "manual" | "wakeword" | "always";
   setups: Setup[];
   homeworkMode: HomeworkModeConfig;
   ttsEnabled: boolean;
@@ -212,6 +222,25 @@ const Settings: React.FC = () => {
   }>({ name: "", tool_name: "*", trigger: "always", action: "allow" });
   const [ruleSaving, setRuleSaving] = useState(false);
 
+  // Profile-States
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [newProfileName, setNewProfileName] = useState("");
+  const [newProfileColor, setNewProfileColor] = useState("#7c6af7");
+  const [newProfilePin, setNewProfilePin] = useState("");
+  const [profileMsg, setProfileMsg] = useState<{
+    ok: boolean;
+    text: string;
+  } | null>(null);
+  const [switchPins, setSwitchPins] = useState<Record<number, string>>({});
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  const loadProfiles = async () => {
+    const data = (await fetch(`${API}/api/profiles`).then((r) =>
+      r.json(),
+    )) as Profile[];
+    setProfiles(Array.isArray(data) ? data : []);
+  };
+
   useEffect(() => {
     fetch(`${API}/api/speech/voices`)
       .then((r) => r.json())
@@ -252,7 +281,10 @@ const Settings: React.FC = () => {
       fetch(`${API}/api/rules`)
         .then((r) => r.json())
         .catch(() => []) as Promise<Rule[]>,
-    ]).then(([s, m, r]) => {
+      fetch(`${API}/api/profiles`)
+        .then((r) => r.json())
+        .catch(() => []) as Promise<Profile[]>,
+    ]).then(([s, m, r, p]) => {
       if (s) {
         setSettings(s);
         setSearchDrivesText((s.searchDrives ?? ["C"]).join(", "));
@@ -260,6 +292,7 @@ const Settings: React.FC = () => {
       }
       setModels(m.models ?? []);
       setRules(Array.isArray(r) ? r : []);
+      setProfiles(Array.isArray(p) ? p : []);
     });
   }, []);
 
@@ -484,7 +517,9 @@ const Settings: React.FC = () => {
     programme: `Programme (${allowedCount})`,
     modus: settings.homeworkMode?.active ? "🔒 Modus" : "Modus",
     regeln: `Regeln (${rules.length})`,
-    google: settings.googleConnected ? "Google ✓" : "Google",
+    google: settings.googleConnected
+      ? "Google & Profile ✓"
+      : "Google & Profile",
   };
 
   const rowLabel: React.CSSProperties = {
@@ -576,16 +611,17 @@ const Settings: React.FC = () => {
             key={t}
             onClick={() => setTab(t)}
             style={{
-              padding: "8px 18px",
+              padding: "8px 14px",
               background: "transparent",
               border: "none",
               borderBottom:
                 tab === t ? "2px solid #7c6af7" : "2px solid transparent",
               color: tab === t ? "#e2e8f0" : "#64748b",
               cursor: "pointer",
-              fontSize: "0.9rem",
+              fontSize: "0.85rem",
               fontWeight: tab === t ? 600 : 400,
               marginBottom: -1,
+              whiteSpace: "nowrap",
             }}
           >
             {TAB_LABELS[t]}
@@ -632,7 +668,7 @@ const Settings: React.FC = () => {
               ))}
             </Section>
 
-            <Section title="Ollama-Modell">
+            <Section title="Ollama-Modell (Chat)">
               <select
                 value={settings.ollamaModel ?? ""}
                 onChange={(e) => patch({ ollamaModel: e.target.value })}
@@ -641,6 +677,34 @@ const Settings: React.FC = () => {
                 {models.length === 0 && (
                   <option value={settings.ollamaModel ?? ""}>
                     {settings.ollamaModel ?? ""}
+                  </option>
+                )}
+                {models.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </Section>
+
+            <Section title="Ollama-Modell (Sprache)">
+              <p
+                style={{
+                  fontSize: "0.78rem",
+                  color: "#64748b",
+                  marginBottom: 8,
+                }}
+              >
+                Schnelleres Modell für Sprachbefehle — empfohlen: llama3.2:3b
+              </p>
+              <select
+                value={settings.voiceOllamaModel ?? "llama3.2:3b"}
+                onChange={(e) => patch({ voiceOllamaModel: e.target.value })}
+                style={{ ...input, width: "100%" }}
+              >
+                {models.length === 0 && (
+                  <option value={settings.voiceOllamaModel ?? "llama3.2:3b"}>
+                    {settings.voiceOllamaModel ?? "llama3.2:3b"}
                   </option>
                 )}
                 {models.map((m) => (
@@ -784,7 +848,7 @@ const Settings: React.FC = () => {
             </Section>
 
             <Section title="Spracheingabe">
-              {(["off", "manual", "wakeword"] as const).map((m) => (
+              {(["off", "manual", "wakeword", "always"] as const).map((m) => (
                 <label
                   key={m}
                   style={{
@@ -802,7 +866,10 @@ const Settings: React.FC = () => {
                   />
                   {m === "off" && "Aus — nur Tastatur"}
                   {m === "manual" && "Manuell — Mikrofon-Taste im Chat"}
-                  {m === "wakeword" && 'Immer aktiv — Aktivierungswort "ella"'}
+                  {m === "wakeword" &&
+                    'Aktivierungswort — sag "ella" zum Starten'}
+                  {m === "always" &&
+                    "Freihändig — ELLA hört immer zu, kein Wakeword"}
                 </label>
               ))}
               {settings.voiceMode === "wakeword" && (
@@ -1973,6 +2040,302 @@ const Settings: React.FC = () => {
               </button>
             )}
           </div>
+        )}
+        {/* ── Profile — direkt unter Google (selber Tab) ───────── */}
+        {tab === "google" && (
+          <React.Fragment>
+            <Section title="Profile verwalten">
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+              >
+                {profiles.map((p) => (
+                  <div
+                    key={p.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 14px",
+                      borderRadius: 8,
+                      background: p.isActive ? "#1e1b3a" : "#12141e",
+                      border: p.isActive
+                        ? "1px solid #7c6af7"
+                        : "1px solid #2d3148",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 14,
+                        height: 14,
+                        borderRadius: "50%",
+                        background: p.color,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: "0.9rem",
+                        color: "#e2e8f0",
+                        fontWeight: p.isActive ? 600 : 400,
+                      }}
+                    >
+                      {p.name}
+                      {p.isActive && (
+                        <span
+                          style={{
+                            marginLeft: 8,
+                            fontSize: "0.75rem",
+                            color: "#7c6af7",
+                          }}
+                        >
+                          aktiv
+                        </span>
+                      )}
+                      {p.hasPin && (
+                        <span
+                          style={{
+                            marginLeft: 6,
+                            fontSize: "0.75rem",
+                            color: "#64748b",
+                          }}
+                        >
+                          🔒
+                        </span>
+                      )}
+                    </span>
+                    {!p.isActive && (
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {p.hasPin && (
+                          <input
+                            type="password"
+                            placeholder="PIN"
+                            maxLength={8}
+                            value={switchPins[p.id] ?? ""}
+                            onChange={(e) =>
+                              setSwitchPins((prev) => ({
+                                ...prev,
+                                [p.id]: e.target.value,
+                              }))
+                            }
+                            style={{ ...input, width: 70, padding: "4px 8px" }}
+                          />
+                        )}
+                        <button
+                          disabled={profileLoading}
+                          onClick={async () => {
+                            setProfileLoading(true);
+                            setProfileMsg(null);
+                            try {
+                              const res = await fetch(
+                                `${API}/api/profiles/${p.id}/activate`,
+                                {
+                                  method: "PUT",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({
+                                    pin: switchPins[p.id] ?? "",
+                                  }),
+                                },
+                              );
+                              if (res.ok) {
+                                await loadProfiles();
+                                setSwitchPins({});
+                                setProfileMsg({
+                                  ok: true,
+                                  text: `Profil "${p.name}" aktiviert.`,
+                                });
+                              } else {
+                                const err = (await res.json()) as {
+                                  error?: string;
+                                };
+                                setProfileMsg({
+                                  ok: false,
+                                  text: err.error ?? "Fehler",
+                                });
+                              }
+                            } finally {
+                              setProfileLoading(false);
+                            }
+                          }}
+                          style={{
+                            padding: "4px 12px",
+                            borderRadius: 6,
+                            background: "#7c6af7",
+                            color: "#fff",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "0.82rem",
+                          }}
+                        >
+                          Aktivieren
+                        </button>
+                        {p.id !== 1 && (
+                          <button
+                            disabled={profileLoading}
+                            onClick={async () => {
+                              if (
+                                !window.confirm(
+                                  `Profil "${p.name}" wirklich löschen?`,
+                                )
+                              )
+                                return;
+                              setProfileLoading(true);
+                              setProfileMsg(null);
+                              try {
+                                const res = await fetch(
+                                  `${API}/api/profiles/${p.id}`,
+                                  { method: "DELETE" },
+                                );
+                                if (res.ok) {
+                                  await loadProfiles();
+                                  setProfileMsg({
+                                    ok: true,
+                                    text: "Profil gelöscht.",
+                                  });
+                                } else {
+                                  const err = (await res.json()) as {
+                                    error?: string;
+                                  };
+                                  setProfileMsg({
+                                    ok: false,
+                                    text: err.error ?? "Fehler",
+                                  });
+                                }
+                              } finally {
+                                setProfileLoading(false);
+                              }
+                            }}
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: 6,
+                              background: "transparent",
+                              color: "#f87171",
+                              border: "1px solid #7f1d1d",
+                              cursor: "pointer",
+                              fontSize: "0.82rem",
+                            }}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {profiles.length === 0 && (
+                  <div style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                    Keine Profile gefunden.
+                  </div>
+                )}
+              </div>
+            </Section>
+
+            <Section title="Neues Profil erstellen">
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+              >
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <input
+                    type="text"
+                    placeholder="Name"
+                    value={newProfileName}
+                    onChange={(e) => setNewProfileName(e.target.value)}
+                    style={{ ...input, flex: 1 }}
+                  />
+                  <input
+                    type="color"
+                    value={newProfileColor}
+                    onChange={(e) => setNewProfileColor(e.target.value)}
+                    title="Profilfarbe"
+                    style={{
+                      width: 40,
+                      height: 36,
+                      border: "1px solid #2d3148",
+                      borderRadius: 6,
+                      background: "transparent",
+                      cursor: "pointer",
+                      padding: 2,
+                    }}
+                  />
+                </div>
+                <input
+                  type="password"
+                  placeholder="PIN (optional, 4–8 Ziffern)"
+                  maxLength={8}
+                  value={newProfilePin}
+                  onChange={(e) => setNewProfilePin(e.target.value)}
+                  style={input}
+                />
+                <button
+                  disabled={profileLoading || !newProfileName.trim()}
+                  onClick={async () => {
+                    setProfileLoading(true);
+                    setProfileMsg(null);
+                    try {
+                      const res = await fetch(`${API}/api/profiles`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          name: newProfileName.trim(),
+                          color: newProfileColor,
+                          pin: newProfilePin || undefined,
+                        }),
+                      });
+                      if (res.ok) {
+                        await loadProfiles();
+                        setNewProfileName("");
+                        setNewProfilePin("");
+                        setNewProfileColor("#7c6af7");
+                        setProfileMsg({
+                          ok: true,
+                          text: "Profil erstellt.",
+                        });
+                      } else {
+                        const err = (await res.json()) as { error?: string };
+                        setProfileMsg({
+                          ok: false,
+                          text: err.error ?? "Fehler beim Erstellen",
+                        });
+                      }
+                    } finally {
+                      setProfileLoading(false);
+                    }
+                  }}
+                  style={{
+                    padding: "9px 20px",
+                    borderRadius: 6,
+                    background:
+                      !newProfileName.trim() || profileLoading
+                        ? "#2d3148"
+                        : "#7c6af7",
+                    color: "#fff",
+                    border: "none",
+                    cursor:
+                      !newProfileName.trim() || profileLoading
+                        ? "not-allowed"
+                        : "pointer",
+                    fontSize: "0.88rem",
+                    fontWeight: 600,
+                    opacity: !newProfileName.trim() ? 0.5 : 1,
+                  }}
+                >
+                  {profileLoading ? "…" : "Profil erstellen"}
+                </button>
+                {profileMsg && (
+                  <div
+                    style={{
+                      fontSize: "0.82rem",
+                      color: profileMsg.ok ? "#4ade80" : "#f87171",
+                    }}
+                  >
+                    {profileMsg.text}
+                  </div>
+                )}
+              </div>
+            </Section>
+          </React.Fragment>
         )}
       </div>
       {/* Ende scrollbarer Bereich */}

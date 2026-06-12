@@ -2,15 +2,27 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { marked } from "marked";
 import { AudioVAD, encodeWav } from "../../utils/audioVAD.js";
 
-type VoiceMode = "off" | "manual" | "wakeword";
+type VoiceMode = "off" | "manual" | "wakeword" | "always";
 
 const WAKEWORD_RE = /el+a+[,.\s!?]*/i;
 // Whisper-tiny hallucinations — skip these segments entirely
 const HALLUCINATION_RE =
-  /^\[.*\]$|^\(.*\)$|wir sehen uns wieder|bis zum nächsten|vielen dank für|untertitel|copyright/i;
+  /^\[.*\]$|^\(.*\)$|wir sehen uns wieder|bis zum nächsten|vielen dank für|untertitel|copyright|^https?:\/\/\S+$|^\S+\.(com|de|org|net|io)\b/i;
 
 function cleanTextForTTS(text: string): string {
-  return text
+  // Zähle Listen-artige Zeilen (Ports, IPs, Pfade, Prozesse etc.)
+  const lines = text.split("\n");
+  const listLineRe =
+    /^\s*[-*+\d.]*\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|:\d{2,5}|[A-Za-z]:\\|\/[a-z]|PID|TCP|UDP|\d{4,})/i;
+  const listLines = lines.filter((l) => listLineRe.test(l));
+
+  let processed = text;
+  if (listLines.length > 4) {
+    const nonListLines = lines.filter((l) => !listLineRe.test(l));
+    processed = nonListLines.join(" ");
+  }
+
+  return processed
     .replace(/\*\*([^*]+)\*\*/g, "$1")
     .replace(/\*([^*]+)\*/g, "$1")
     .replace(/`([^`]+)`/g, "$1")
@@ -23,7 +35,8 @@ function cleanTextForTTS(text: string): string {
     .replace(/‍/gu, "")
     .replace(/https?:\/\/\S+/g, "")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    .substring(0, 400); // Absolute Obergrenze: 400 Zeichen gesprochen
 }
 
 /* ── Message + stream types ──────────────────────────────────────────── */
@@ -163,6 +176,9 @@ const Chat: React.FC = () => {
   const accessibilityModeRef = useRef<"none" | "blind" | "deaf">("none");
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const currentAbortRef = useRef<AbortController | null>(null);
+  const ttsQueueRef = useRef<string[]>([]);
+  const ttsQueueBusyRef = useRef(false);
+  const ttsQueueAbortRef = useRef<AbortController | null>(null);
   useEffect(() => {
     ttsEnabledRef.current = ttsEnabled;
   }, [ttsEnabled]);
@@ -176,6 +192,11 @@ const Chat: React.FC = () => {
       currentAudioRef.current.pause();
       currentAudioRef.current = null;
     }
+    // Stop stream TTS queue
+    ttsQueueAbortRef.current?.abort();
+    ttsQueueAbortRef.current = null;
+    ttsQueueRef.current = [];
+    ttsQueueBusyRef.current = false;
     window.speechSynthesis.cancel();
   }, []);
 
@@ -254,6 +275,63 @@ const Chat: React.FC = () => {
     [speakEdge],
   );
 
+  // Stream TTS: play sentences back-to-back as they arrive from the LLM stream
+  const drainTTSQueue = useCallback(async () => {
+    if (ttsQueueBusyRef.current) return;
+    ttsQueueBusyRef.current = true;
+    const abort = new AbortController();
+    ttsQueueAbortRef.current = abort;
+    while (ttsQueueRef.current.length > 0 && !abort.signal.aborted) {
+      const sentence = ttsQueueRef.current.shift()!;
+      const clean = sentence
+        .replace(/[*_`#>~]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (!clean) continue;
+      try {
+        const voice = ttsVoiceRef.current || "de-DE-KatjaNeural";
+        const res = await fetch(`${API}/api/speech/synthesize`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: clean, voice }),
+          signal: abort.signal,
+        });
+        if (!res.ok || abort.signal.aborted) break;
+        const blob = await res.blob();
+        if (abort.signal.aborted) break;
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        currentAudioRef.current = audio;
+        await new Promise<void>((resolve) => {
+          audio.onended = () => {
+            URL.revokeObjectURL(url);
+            resolve();
+          };
+          audio.onerror = () => {
+            URL.revokeObjectURL(url);
+            resolve();
+          };
+          audio.play().catch(() => resolve());
+        });
+      } catch {
+        // skip sentence on error
+      }
+    }
+    ttsQueueBusyRef.current = false;
+    ttsQueueAbortRef.current = null;
+  }, []);
+
+  const enqueueTTS = useCallback(
+    (sentence: string) => {
+      if (accessibilityModeRef.current === "deaf") return;
+      if (!ttsEnabledRef.current && accessibilityModeRef.current !== "blind")
+        return;
+      ttsQueueRef.current.push(sentence);
+      void drainTTSQueue();
+    },
+    [drainTTSQueue],
+  );
+
   /* Pause-Modus */
   const [isPaused, setIsPaused] = useState(false);
   const [pauseEndsAt, setPauseEndsAt] = useState<Date | null>(null);
@@ -276,6 +354,8 @@ const Chat: React.FC = () => {
   const awaitingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [wakeListening, setWakeListening] = useState(false);
   const loadingRef = useRef(false);
+  const lastWakewordTimeRef = useRef<number>(0);
+  const segmentProcessingRef = useRef(false);
 
   /* ── Worker-Events (Alerts) ── */
   useEffect(() => {
@@ -296,7 +376,9 @@ const Chat: React.FC = () => {
           () => setToasts((prev) => prev.filter((t) => t.id !== toastId)),
           8000,
         );
-        speakEdge(message);
+        // Port-Alerts und reine Zahlen-Meldungen nicht vorlesen — nur kritische Fehler
+        const isPortAlert = /port|firewall/i.test(message);
+        if (!isPortAlert) speakEdge(message);
         (
           window as unknown as {
             electronAPI?: {
@@ -396,15 +478,15 @@ const Chat: React.FC = () => {
       }
     ).electronAPI?.onSpeak?.((text) => speakEdge(text));
 
-    // Hintergrund-Modus: Wakeword erzwingen wenn Fenster versteckt
+    // Hintergrund-Modus: nur UI-Signal — kein Modewechsel, VAD läuft durch
     const removeBackground = (
       window as unknown as {
         electronAPI?: {
           onBackground?: (cb: (v: boolean) => void) => () => void;
         };
       }
-    ).electronAPI?.onBackground?.((isBackground) => {
-      if (isBackground) setVoiceMode("wakeword");
+    ).electronAPI?.onBackground?.((_isBackground) => {
+      // Absichtlich leer — ELLA hört immer, egal ob Tray oder Fenster
     });
 
     return () => {
@@ -450,7 +532,7 @@ const Chat: React.FC = () => {
       setPauseCountdown(fmt(endsAt));
       pauseTickRef.current = setInterval(
         () => setPauseCountdown(fmt(endsAt)),
-        10000,
+        1000,
       );
 
       pauseTimerRef.current = setTimeout(
@@ -489,11 +571,20 @@ const Chat: React.FC = () => {
       setToolStatus("");
       usedToolsRef.current = [];
 
+      const isVoice = voiceMode === "always" || voiceMode === "wakeword";
+      const streamAbort = new AbortController();
+      const streamTimeout = setTimeout(() => streamAbort.abort(), 90_000);
+      let sentenceBuffer = "";
       try {
         const res = await fetch(`${API}/api/chat/stream`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text, sessionId: SESSION_ID }),
+          body: JSON.stringify({
+            message: text,
+            sessionId: SESSION_ID,
+            isVoice,
+          }),
+          signal: streamAbort.signal,
         });
         if (!res.ok) {
           const err = (await res.json()) as { error?: string };
@@ -524,6 +615,17 @@ const Chat: React.FC = () => {
               setStreaming(full);
               setToolStatus("");
               setDirectiveDeny(null);
+              // Stream TTS: enqueue complete sentences as they arrive
+              sentenceBuffer += ev.text;
+              const sentenceRe = /[^.!?]*[.!?]+(?:\s|$)/g;
+              let m: RegExpExecArray | null;
+              let consumed = 0;
+              while ((m = sentenceRe.exec(sentenceBuffer)) !== null) {
+                const s = m[0].trim();
+                if (s.length >= 8) enqueueTTS(s);
+                consumed = m.index + m[0].length;
+              }
+              if (consumed > 0) sentenceBuffer = sentenceBuffer.slice(consumed);
             } else if (ev.type === "tool") {
               setToolStatus(TOOL_LABELS[ev.name] ?? ev.name);
               if (!usedToolsRef.current.includes(ev.name))
@@ -580,22 +682,36 @@ const Chat: React.FC = () => {
               ]);
               setStreaming("");
               setToolStatus("");
-              playTone(440, 200); // Blind-Modus: Ton → Antwort fertig
-              speak(full);
+              playTone(440, 200);
+              // Flush remaining sentence buffer, then fall back to speak() if queue unused
+              if (sentenceBuffer.trim().length >= 2)
+                enqueueTTS(sentenceBuffer.trim());
+              sentenceBuffer = "";
+              if (
+                ttsQueueRef.current.length === 0 &&
+                !ttsQueueBusyRef.current
+              ) {
+                speak(full);
+              }
               break outer;
             } else if (ev.type === "error") throw new Error(ev.message);
           }
         }
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Unbekannter Fehler");
+        if (e instanceof Error && e.name === "AbortError") {
+          setError("Keine Antwort — bitte nochmal versuchen.");
+        } else {
+          setError(e instanceof Error ? e.message : "Unbekannter Fehler");
+        }
         setStreaming("");
         setToolStatus("");
       } finally {
+        clearTimeout(streamTimeout);
         loadingRef.current = false;
         setLoading(false);
       }
     },
-    [speak],
+    [speak, voiceMode, activatePause, enqueueTTS],
   );
 
   const send = useCallback(() => sendText(input.trim()), [input, sendText]);
@@ -639,9 +755,15 @@ const Chat: React.FC = () => {
             body: form,
           });
           const { text } = (await r.json()) as { text: string };
-          if (text) setInput(text);
+          if (text) {
+            setInput(text);
+          } else {
+            setMicStatus("Nicht verstanden — bitte nochmal");
+            setTimeout(() => setMicStatus(""), 3000);
+          }
         } catch {
-          /* Fehler still ignorieren */
+          setMicStatus("Transkription fehlgeschlagen — bitte nochmal");
+          setTimeout(() => setMicStatus(""), 3000);
         }
         setMicStatus("");
         setMicActive(false);
@@ -674,12 +796,82 @@ const Chat: React.FC = () => {
 
   /* ── Wakeword-Loop (AudioVAD + Whisper) ── */
   useEffect(() => {
-    if (voiceMode !== "wakeword") {
+    if (voiceMode !== "wakeword" && voiceMode !== "always") {
       vadRef.current?.stop();
       vadRef.current = null;
       setWakeListening(false);
       setMicStatus("");
       return;
+    }
+
+    /* ── Always-on mode: no wakeword, direct transcription ── */
+    if (voiceMode === "always") {
+      const vad = new AudioVAD();
+      vadRef.current = vad;
+
+      let processing = false;
+      let pending: { audio: Float32Array; sr: number } | null = null;
+
+      const processSegment = async (audio: Float32Array, sr: number) => {
+        processing = true;
+        setMicStatus("Transkribiere…");
+        try {
+          const blob = encodeWav(audio, sr);
+          const form = new FormData();
+          form.append("audio", blob, "segment.wav");
+          const r = await fetch(`${API}/api/speech/transcribe?raw=true`, {
+            method: "POST",
+            body: form,
+          });
+          const { text } = (await r.json()) as { text: string };
+          const clean = (text ?? "").trim();
+          // Mindestlänge 4 Wörter — filtert Musik/Hintergrundgeräusche
+          const wordCount = clean.split(/\s+/).filter(Boolean).length;
+          if (clean && wordCount >= 2 && !HALLUCINATION_RE.test(clean)) {
+            sendText(clean);
+          }
+        } catch {
+          // ignore transient errors
+        } finally {
+          processing = false;
+          setMicStatus("");
+          // If a newer segment arrived while we were busy, process it now
+          if (pending) {
+            const next = pending;
+            pending = null;
+            void processSegment(next.audio, next.sr);
+          }
+        }
+      };
+
+      vad
+        .start({
+          onSpeechStart: () => setMicStatus("Erkenne…"),
+          onSegment: (audio, sampleRate) => {
+            if (loadingRef.current) {
+              setMicStatus("");
+              return;
+            }
+            if (processing) {
+              // Replace queued segment with the latest one
+              pending = { audio, sr: sampleRate };
+              return;
+            }
+            void processSegment(audio, sampleRate);
+          },
+        })
+        .then(() => setWakeListening(true))
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.name : "Unbekannt";
+          setMicStatus(`Mikrofon: ${msg}`);
+          setTimeout(() => setMicStatus(""), 5000);
+        });
+
+      return () => {
+        vad.stop();
+        setWakeListening(false);
+        setMicStatus("");
+      };
     }
 
     const vad = new AudioVAD();
@@ -693,6 +885,7 @@ const Chat: React.FC = () => {
             setMicStatus("");
             return;
           }
+          // Skip if previous segment is still being processed
           const blob = encodeWav(audio, sampleRate);
           const form = new FormData();
           form.append("audio", blob, "segment.wav");
@@ -706,17 +899,29 @@ const Chat: React.FC = () => {
                 awaitingTimerRef.current = null;
               }
               setMicStatus("Transkribiere…");
-              const r = await fetch(`${API}/api/speech/transcribe`, {
-                method: "POST",
-                body: form,
-              });
-              const { text } = (await r.json()) as { text: string };
-              const clean = (text ?? "").trim();
+              let clean = "";
+              try {
+                const r = await fetch(`${API}/api/speech/transcribe`, {
+                  method: "POST",
+                  body: form,
+                });
+                const { text } = (await r.json()) as { text: string };
+                clean = (text ?? "").trim();
+              } catch {
+                setMicStatus("Transkription fehlgeschlagen — bitte nochmal");
+                setTimeout(() => setMicStatus(""), 3000);
+                return;
+              }
               console.log(
                 "[WAKEWORD Phase 2] transkribiert:",
                 JSON.stringify(clean),
               );
-              if (clean && !HALLUCINATION_RE.test(clean)) sendText(clean);
+              if (clean && !HALLUCINATION_RE.test(clean)) {
+                sendText(clean);
+              } else {
+                setMicStatus("Nicht verstanden — bitte nochmal");
+                setTimeout(() => setMicStatus(""), 3000);
+              }
               return;
             }
 
@@ -734,6 +939,14 @@ const Chat: React.FC = () => {
             );
 
             if (!detected) return;
+
+            // Cooldown: ignore repeated wakewords within 3 seconds
+            const now = Date.now();
+            if (now - lastWakewordTimeRef.current < 3000) {
+              console.log("[WAKEWORD] Cooldown aktiv — ignoriert");
+              return;
+            }
+            lastWakewordTimeRef.current = now;
 
             // Wakeword confirmed — transcribe same audio for inline command
             const form2 = new FormData();
@@ -756,16 +969,18 @@ const Chat: React.FC = () => {
             // No inline command — wait for next segment
             awaitingCommandRef.current = true;
             setAwaitingCommand(true);
+            lastWakewordTimeRef.current = Date.now();
             setMicStatus("");
             awaitingTimerRef.current = setTimeout(() => {
               awaitingCommandRef.current = false;
               setAwaitingCommand(false);
               awaitingTimerRef.current = null;
             }, 15000);
-          } catch {
-            /* Segment ignorieren */
+          } catch (err) {
+            console.error("[WAKEWORD] Segment-Fehler:", err);
+            awaitingCommandRef.current = false;
+            setAwaitingCommand(false);
           } finally {
-            // "Bereit…" bleibt sichtbar, solange ELLA auf den Folgebefehl wartet
             if (!awaitingCommandRef.current) setMicStatus("");
           }
         },
@@ -1390,106 +1605,107 @@ const Chat: React.FC = () => {
       )}
 
       {/* Sprachstatus-Anzeige */}
-      {voiceMode === "wakeword" && wakeListening && (
-        <div style={{ minHeight: 28 }}>
-          {awaitingCommand ? (
-            /* "Jetzt sprechen" — grün, prominent, mit Ablauf-Balken */
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-              }}
-            >
+      {(voiceMode === "wakeword" || voiceMode === "always") &&
+        wakeListening && (
+          <div style={{ minHeight: 28 }}>
+            {awaitingCommand ? (
+              /* "Jetzt sprechen" — grün, prominent, mit Ablauf-Balken */
               <div
                 style={{
                   display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontSize: "0.85rem",
-                  fontWeight: 600,
-                  color: "#22c55e",
-                }}
-              >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    display: "inline-block",
-                    background: "#22c55e",
-                    animation: "pulse 0.8s ease-in-out infinite",
-                  }}
-                />
-                Jetzt sprechen…
-              </div>
-              <div
-                style={{
-                  height: 2,
-                  background: "#1e2d3d",
-                  borderRadius: 1,
-                  overflow: "hidden",
+                  flexDirection: "column",
+                  gap: 4,
                 }}
               >
                 <div
                   style={{
-                    height: "100%",
-                    background: "#22c55e",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    color: "#22c55e",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      display: "inline-block",
+                      background: "#22c55e",
+                      animation: "pulse 0.8s ease-in-out infinite",
+                    }}
+                  />
+                  Jetzt sprechen…
+                </div>
+                <div
+                  style={{
+                    height: 2,
+                    background: "#1e2d3d",
                     borderRadius: 1,
-                    animation: "countdown 15s linear forwards",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      background: "#22c55e",
+                      borderRadius: 1,
+                      animation: "countdown 15s linear forwards",
+                    }}
+                  />
+                </div>
+              </div>
+            ) : micStatus ? (
+              /* Aktiver Mic-Status: Erkenne / Transkribiere */
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: "0.78rem",
+                  color: "#7c6af7",
+                }}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    background: "#7c6af7",
+                    animation: "pulse 1.2s ease-in-out infinite",
                   }}
                 />
+                {micStatus}
               </div>
-            </div>
-          ) : micStatus ? (
-            /* Aktiver Mic-Status: Erkenne / Transkribiere */
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: "0.78rem",
-                color: "#7c6af7",
-              }}
-            >
-              <span
+            ) : (
+              /* Idle — lauscht */
+              <div
                 style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  display: "inline-block",
-                  background: "#7c6af7",
-                  animation: "pulse 1.2s ease-in-out infinite",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: "0.78rem",
+                  color: "#475569",
                 }}
-              />
-              {micStatus}
-            </div>
-          ) : (
-            /* Idle — lauscht */
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: "0.78rem",
-                color: "#475569",
-              }}
-            >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  display: "inline-block",
-                  background: "#475569",
-                  animation: "pulse 2.5s ease-in-out infinite",
-                }}
-              />
-              ELLA lauscht…
-            </div>
-          )}
-        </div>
-      )}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    background: "#475569",
+                    animation: "pulse 2.5s ease-in-out infinite",
+                  }}
+                />
+                ELLA lauscht…
+              </div>
+            )}
+          </div>
+        )}
 
       {/* Confirmation Card */}
       {confirmationCard && (

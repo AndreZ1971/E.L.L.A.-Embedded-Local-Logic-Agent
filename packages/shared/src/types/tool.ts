@@ -4,6 +4,7 @@ export type ToolName =
   | "clean_temp"
   | "empty_recycle_bin"
   | "format_drive"
+  | "format_drive_confirmed"
   | "rename_drive"
   | "list_programs"
   | "load_setup"

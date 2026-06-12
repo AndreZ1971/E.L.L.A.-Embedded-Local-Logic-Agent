@@ -35,6 +35,7 @@ onboardingRouter.post("/complete", async (req, res, next) => {
     await saveSettings({
       onboardingComplete: true,
       userName: userName?.trim() ?? "",
+      ...(location?.trim() ? { userCity: location.trim() } : {}),
     });
     res.json({ ok: true });
   } catch (err) {

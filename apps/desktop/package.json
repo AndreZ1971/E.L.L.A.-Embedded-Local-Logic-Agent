@@ -51,6 +51,20 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "../../vendor/mariadb",
+        "to": "mariadb",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../../vendor/ollama",
+        "to": "ollama",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {

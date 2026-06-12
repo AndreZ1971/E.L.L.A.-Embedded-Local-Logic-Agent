@@ -1,6 +1,6 @@
-# E.L.L.A. — Was ich kann (v3.4.0)
+# E.L.L.A. — Was ich kann (v3.5.0)
 
-_Stand: 2026-06-07 · Commit c6f5163 · 196 Tests grün_
+_Stand: 2026-06-09 · 205 Tests grün_
 
 ---
 
@@ -66,6 +66,8 @@ _Stand: 2026-06-07 · Commit c6f5163 · 196 Tests grün_
 | `write_for_me`        | Text im persönlichen Stil des Nutzers schreiben (aus E-Mail-Profil) |
 | `translate_text`      | Text übersetzen — offline (Ollama) oder OpenAI                      |
 | `summarize_text`      | Text zusammenfassen: kurz / mittel / ausführlich                    |
+| `correct_text`        | Grammatik und Zeichensetzung korrigieren (Ollama/OpenAI)            |
+| `write_in_style`      | Text im persönlichen Schreibstil des Nutzers formulieren            |
 
 ---
 
@@ -110,11 +112,12 @@ _Stand: 2026-06-07 · Commit c6f5163 · 196 Tests grün_
 
 ## Prozesse & Dienste
 
-| Tool             | Was es tut                                                  |
-| ---------------- | ----------------------------------------------------------- |
-| `list_processes` | Laufende Prozesse nach CPU/RAM sortiert                     |
-| `kill_process`   | Prozess beenden _(systemkritische gesperrt, Bestätigung)_   |
-| `manage_service` | Windows-Dienste auflisten / starten / stoppen / neu starten |
+| Tool              | Was es tut                                                |
+| ----------------- | --------------------------------------------------------- |
+| `list_processes`  | Laufende Prozesse nach CPU/RAM sortiert                   |
+| `kill_process`    | Prozess beenden _(systemkritische gesperrt, Bestätigung)_ |
+| `list_services`   | Windows-Dienste auflisten                                 |
+| `control_service` | Dienst starten / stoppen / neu starten                    |
 
 ---
 
@@ -230,7 +233,7 @@ Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → Tool Execu
 | **surveil**    | Keine Überwachung ohne ausdrückliches Wissen und aktive Zustimmung         |
 | **exfiltrate** | Keine Datenweitergabe an Dritte ohne ausdrückliche Zustimmung              |
 
-- 85 Default-Regeln (IDs 1–82 + Bestätigungs-Varianten) — automatisch beim Start gesetzt
+- 89 Default-Regeln möglich (IDs 1–85 eingespielt, weitere via Bestätigungs-Varianten) — automatisch beim Start gesetzt
 - Audit-Log jeder Directive-Ablehnung in `directive_audit`-Tabelle
 - Konfirmationspflicht für destruktive Aktionen (Klick, Drag, Shell, Umbenennen, Fenster schließen)
 - Passwort-Manager-Fenster gesperrt für Maus-Tools (1Password, KeePass, Bitwarden, PayPal, Bank…)

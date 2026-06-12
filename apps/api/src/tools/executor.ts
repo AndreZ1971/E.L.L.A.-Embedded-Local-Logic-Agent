@@ -127,22 +127,13 @@ function escLabel(s: string): string {
 
 export function getDriveType(letter: string): number {
   try {
-    // wmic gibt UTF-16 LE zurück — als Buffer lesen, dann dekodieren
-    const raw = execSync(
-      `wmic logicaldisk where DeviceID="${letter}:" get DriveType /format:value`,
-      { stdio: ["ignore", "pipe", "ignore"], timeout: 5000 },
+    const script = `(Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DeviceID -eq '${letter}:' }).DriveType`;
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    const out = execSync(
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      { encoding: "utf-8", timeout: 5000 },
     );
-    // In Tests kommt ein String (Mock) — in Produktion ein Buffer
-    const out =
-      typeof raw === "string"
-        ? raw
-        : (raw as unknown as Buffer).toString("utf16le");
-    const line = out
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .find((l) => l.toLowerCase().startsWith("drivetype="));
-    if (!line) return -1;
-    const n = parseInt(line.split("=")[1], 10);
+    const n = parseInt(out.trim(), 10);
     return isNaN(n) ? -1 : n;
   } catch {
     return -1;
@@ -207,8 +198,12 @@ async function openAppWithSettings(
   args: Record<string, unknown>,
 ): Promise<ToolResult> {
   const { apps, homeworkMode } = getSettings();
-  const name = ((args.name as string) ?? "").toLowerCase();
-  const entry = apps.find((a) => a.name.toLowerCase() === name);
+  const name = ((args.name as string) ?? "").toLowerCase().trim();
+  // Exakter Match zuerst, dann Teilstring-Match (z.B. "firefox" trifft "Mozilla Firefox")
+  const entry =
+    apps.find((a) => a.name.toLowerCase() === name) ??
+    apps.find((a) => a.name.toLowerCase().includes(name)) ??
+    apps.find((a) => name.includes(a.name.toLowerCase()));
   if (!entry) {
     const known = apps
       .filter((a) => a.allowed)
@@ -216,7 +211,7 @@ async function openAppWithSettings(
       .join(", ");
     return {
       success: false,
-      error: `Unbekannte App: '${name}'. Erlaubt: ${known || "keine"}`,
+      error: `Unbekannte App: '${name}'. Erlaubt: ${known || "keine"}. Tipp: Nutze list_programs um alle installierten Programme zu sehen.`,
     };
   }
   if (!entry.allowed) {
@@ -932,21 +927,28 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     const days = Math.min(7, Math.max(1, Number(args["days"]) || 3));
 
     if (!location) {
-      const memories = await listMemories("system");
-      const loc = (memories as Array<{ content: string }>).find((m) =>
-        ["wohnort", "standort", "wohne in", "bin in", "city"].some((kw) =>
-          m.content.toLowerCase().includes(kw),
-        ),
-      );
-      if (loc) {
-        const match =
-          /(?:wohnort|standort)[:\s]+([A-ZÄÖÜ][a-zäöüß\-]+(?:\s+[A-ZÄÖÜ][a-zäöüß\-]+)*)/i.exec(
-            loc.content,
-          ) ??
-          /(?:in|aus)\s+([A-ZÄÖÜ][a-zäöüß\-]+(?:\s+[A-ZÄÖÜ][a-zäöüß\-]+)*)/i.exec(
-            loc.content,
-          );
-        if (match) location = match[1];
+      // Zuerst direkt aus Settings (vom Onboarding gespeichert)
+      const { userCity } = getSettings();
+      if (userCity) {
+        location = userCity;
+      } else {
+        // Fallback: Memory durchsuchen
+        const memories = await listMemories("system");
+        const loc = (memories as Array<{ content: string }>).find((m) =>
+          ["wohnort", "standort", "wohne in", "bin in", "city"].some((kw) =>
+            m.content.toLowerCase().includes(kw),
+          ),
+        );
+        if (loc) {
+          const match =
+            /(?:wohnort|standort)[:\s]+([A-ZÄÖÜ][a-zäöüß\-]+(?:\s+[A-ZÄÖÜ][a-zäöüß\-]+)*)/i.exec(
+              loc.content,
+            ) ??
+            /(?:in|aus)\s+([A-ZÄÖÜ][a-zäöüß\-]+(?:\s+[A-ZÄÖÜ][a-zäöüß\-]+)*)/i.exec(
+              loc.content,
+            );
+          if (match) location = match[1];
+        }
       }
     }
 
@@ -980,27 +982,33 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     ).toUpperCase();
     const label = ((args["label"] as string) ?? "").trim();
 
+    // Bestätigt — direkt ausführen
+    if (args["confirmed"] === true) {
+      return formatDriveConfirmed({ drive, filesystem, label });
+    }
+
     if (!drive || drive.length !== 1 || !/[A-Z]/.test(drive)) {
       return { success: false, error: "Ungültiger Laufwerksbuchstabe." };
     }
 
-    // Zone 1: Absolute Sperre — C immer, protectedDrives aus Settings, ELLA-Laufwerk
+    // Zone 1 (Directive): Systemlaufwerke sind IMMER gesperrt — vor DriveType-Check
+    // Kein PowerShell-Aufruf nötig wenn das Laufwerk sowieso blockiert ist
     const ellaDrive = process.cwd()[0].toUpperCase();
     const { protectedDrives } = getSettings();
-    const blocked = new Set([
+    const alwaysBlocked = new Set([
       "C",
       ellaDrive,
       ...protectedDrives.map((d) => d.toUpperCase()),
     ]);
-    if (blocked.has(drive)) {
+    if (alwaysBlocked.has(drive)) {
       return {
         success: false,
         directive: true,
-        error: `Laufwerk ${drive}: ist permanent geschützt und kann nicht formatiert werden.`,
+        error: `Laufwerk ${drive}: ist ein Systemlaufwerk und durch die E.L.L.A. Directive permanent geschützt.`,
       };
     }
 
-    // Zone 2: Netzwerk-, CD/DVD- und unbekannte Laufwerke blockieren
+    // DriveType ermitteln — nur für Laufwerke die nicht bereits geblockt sind
     const driveType = getDriveType(drive);
     if (driveType === -1) {
       return {
@@ -1008,20 +1016,21 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         error: `Laufwerk ${drive}: konnte nicht erkannt werden. Bitte prüfe ob das Laufwerk verbunden ist.`,
       };
     }
-    // DriveType 3 = interne Festplatte — nur Wechseldatenträger (Typ 2) dürfen formatiert werden
+
+    // Zone 2: Netzwerk-, CD/DVD- und unbekannte Laufwerke
+    if ([0, 1, 4, 5].includes(driveType)) {
+      return {
+        success: false,
+        error: `Laufwerk ${drive}: ist ein Netzwerk- oder CD-Laufwerk und kann nicht formatiert werden.`,
+      };
+    }
+
+    // Zone 1 (Directive): Interne Festplatten (DriveType 3) — kein Format ohne explizite Freigabe
     if (driveType === 3) {
       return {
         success: false,
         directive: true,
-        error: `Laufwerk ${drive}: ist ein internes Laufwerk und kann nicht formatiert werden. Nur Wechseldatenträger (USB-Sticks) dürfen formatiert werden.`,
-      };
-    }
-    // DriveType 4 = Netzwerk, 5 = CD/DVD, 0/1 = unbekannt/keine Root
-    if ([0, 1, 4, 5].includes(driveType)) {
-      return {
-        success: false,
-        directive: true,
-        error: `Laufwerk ${drive}: ist ein Netzwerk- oder CD-Laufwerk und kann nicht formatiert werden.`,
+        error: `Laufwerk ${drive}: ist ein internes Laufwerk und kann nicht formatiert werden. Nur Wechseldatenträger (USB) sind erlaubt.`,
       };
     }
 
@@ -1036,8 +1045,8 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
       requiresConfirmation: true,
       confirmationMessage: msg,
       pendingAction: {
-        tool: "format_drive_confirmed",
-        args: { drive, filesystem, label },
+        tool: "format_drive",
+        args: { drive, filesystem, label, confirmed: true },
       },
     };
   },

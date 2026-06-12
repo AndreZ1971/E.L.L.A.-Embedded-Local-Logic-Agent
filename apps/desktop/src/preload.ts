@@ -30,4 +30,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     message: string,
     type: "connected" | "disconnected" | "network",
   ) => ipcRenderer.send("ella:device", { message, type }),
+  onSetupStatus: (cb: (msg: string) => void) => {
+    const handler = (_: Electron.IpcRendererEvent, msg: string) => cb(msg);
+    ipcRenderer.on("ella:setup", handler);
+    return () => ipcRenderer.removeListener("ella:setup", handler);
+  },
 });

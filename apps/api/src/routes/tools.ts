@@ -29,7 +29,11 @@ toolsRouter.post("/confirm", async (req, res, next) => {
       tool: string;
       args: Record<string, unknown>;
     };
-    if (!tool || !tool.endsWith("_confirmed")) {
+    // Erlaubt: _confirmed-Tools ODER Tools die confirmed:true im args haben
+    const isAllowed =
+      tool.endsWith("_confirmed") ||
+      (typeof args === "object" && args !== null && args["confirmed"] === true);
+    if (!tool || !isAllowed) {
       res.status(400).json({ success: false, error: "Nicht erlaubt." });
       return;
     }

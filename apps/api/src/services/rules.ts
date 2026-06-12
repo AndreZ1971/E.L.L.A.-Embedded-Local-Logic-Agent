@@ -61,8 +61,8 @@ export interface Rule {
 // Erweiterbar wenn neue destruktive Tool-Kategorien entstehen.
 export const DIRECTIVE_DENY = new Set<string>([
   // Prohibition I — harm: destruktive Systemoperationen
+  // format_drive ist NICHT hier — Sicherheit läuft über 3-Zonen-Regel im Handler
   "delete_files",
-  "format_drive",
   "run_script",
   "registry_edit",
   "disable_firewall",

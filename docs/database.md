@@ -1,4 +1,4 @@
-# Datenbank — v3.4.0
+# Datenbank — v3.5.0
 
 **System:** MariaDB 12.2.2
 **Datenbankname:** `ella`
@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS rules (
 
 **Hinweis:** `` `trigger` `` muss mit Backticks geschrieben werden — `trigger` ist ein reserviertes SQL-Keyword.
 
-**Default-Regeln (IDs 1–82):** Per `INSERT IGNORE` beim Start eingespielt. `clean_temp` und `empty_recycle_bin` haben bewusst keine Default-Regel — müssen explizit freigeschaltet werden.
+**Default-Regeln (IDs 1–85):** Per `INSERT IGNORE` beim Start eingespielt. `clean_temp` und `empty_recycle_bin` haben bewusst keine Default-Regel — müssen explizit freigeschaltet werden.
 
 ---
 

@@ -19,8 +19,8 @@ class VADProcessor extends AudioWorkletProcessor {
     let rms = 0;
     for (let i = 0; i < ch.length; i++) rms += ch[i] * ch[i];
     rms = Math.sqrt(rms / ch.length);
-    const SILENCE_FRAMES = 200;
-    const MIN_SPEECH_FRAMES = 12;
+    const SILENCE_FRAMES = 80;
+    const MIN_SPEECH_FRAMES = 8;
     // Adaptive threshold: speech must be 3.5x above measured noise floor.
     // Minimum 0.015 so quiet environments don't become hair-trigger.
     const threshold = Math.max(0.015, this._noiseFloor * 3.5);
@@ -77,8 +77,21 @@ export class AudioVAD {
   private blobUrl: string | null = null;
 
   async start(callbacks: VADCallbacks): Promise<void> {
-    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    this.stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: false,
+      },
+    });
     this.ctx = new AudioContext();
+
+    // Auto-resume wenn Electron/Browser den AudioContext suspendiert (Stille-Timeout)
+    this.ctx.onstatechange = () => {
+      if (this.ctx && this.ctx.state === "suspended") {
+        this.ctx.resume().catch(() => {});
+      }
+    };
 
     // Blob-URL: kein HTTP-Fetch nötig — funktioniert in http:// und Electron file://
     const blob = new Blob([VAD_PROCESSOR_CODE], {

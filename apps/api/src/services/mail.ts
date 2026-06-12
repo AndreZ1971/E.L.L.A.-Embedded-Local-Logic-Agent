@@ -236,7 +236,6 @@ function parseMbox(filePath: string, limit: number): MailItem[] {
     if (!statusHex) continue;
     const status = parseInt(statusHex, 16);
     if (status & 0x0008) continue; // gelöscht
-    if (status & 0x0001) continue; // bereits gelesen
 
     const subject = decodeMimeWord(headers["subject"] ?? "(kein Betreff)");
     const fromRaw = decodeMimeWord(headers["from"] ?? "");
@@ -256,7 +255,7 @@ function parseMbox(filePath: string, limit: number): MailItem[] {
       senderEmail,
       received: headers["date"] ?? "",
       preview: bodyLines.join(" ").slice(0, 200),
-      unread: true,
+      unread: !(status & 0x0001),
       source: "thunderbird",
     });
   }
