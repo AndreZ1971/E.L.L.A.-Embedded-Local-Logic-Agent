@@ -307,11 +307,25 @@ function AppShell() {
         });
       })
       .catch(() => {
-        setBoot({
-          eulaAccepted: true,
-          licenseActivated: true,
-          onboardingComplete: true,
-        });
+        // API noch nicht bereit — nach 3s nochmal versuchen, niemals Setup überspringen
+        setTimeout(() => {
+          fetch(`${API}/api/settings`)
+            .then((r) => r.json())
+            .then((d: Partial<BootStatus>) =>
+              setBoot({
+                eulaAccepted: d.eulaAccepted ?? false,
+                licenseActivated: d.licenseActivated ?? false,
+                onboardingComplete: d.onboardingComplete ?? false,
+              }),
+            )
+            .catch(() =>
+              setBoot({
+                eulaAccepted: false,
+                licenseActivated: false,
+                onboardingComplete: false,
+              }),
+            );
+        }, 3000);
       });
   }, []);
 

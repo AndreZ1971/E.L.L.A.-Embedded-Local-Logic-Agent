@@ -84,8 +84,14 @@ async function startMariaDB(): Promise<void> {
     ],
     { stdio: "pipe" },
   );
+  mariadbProcess.stdout?.on("data", (d: Buffer) =>
+    console.log("[MariaDB]", d.toString().trimEnd()),
+  );
   mariadbProcess.stderr?.on("data", (d: Buffer) =>
     console.error("[MariaDB]", d.toString().trimEnd()),
+  );
+  mariadbProcess.on("error", (e) =>
+    console.error("[MariaDB] spawn error:", e.message),
   );
   mariadbProcess.on("exit", (code) =>
     console.log("[MariaDB] Prozess beendet, Code:", code),
@@ -198,7 +204,11 @@ function startApi(): void {
   const apiDir = path.join(app.getAppPath(), "../api");
   console.log("[ELLA] Starte API in:", apiDir);
 
-  apiProcess = spawn("node", ["dist/index.js"], {
+  // Gebündeltes Node.js bevorzugen, System-Node als Fallback
+  const bundledNode = vendorPath("node", "node.exe");
+  const nodeExe = fs.existsSync(bundledNode) ? bundledNode : "node";
+
+  apiProcess = spawn(nodeExe, ["dist/index.js"], {
     cwd: apiDir,
     stdio: "pipe",
   });

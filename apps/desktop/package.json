@@ -65,6 +65,13 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "../../vendor/node",
+        "to": "node",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
