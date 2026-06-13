@@ -160,6 +160,47 @@ Repo: `github.com/AndreZ1971/The-E.L.L.A.-Directive-` (privat, Tag v1.0.0)
 
 ---
 
+## Installer-Build (Windows NSIS)
+
+Der Installer bündelt alle Abhängigkeiten — Nutzer braucht nichts vorinstalliert.
+
+### Gebündelte Binaries (vendor/)
+
+```
+vendor/mariadb/    MariaDB 11.4.5 portable
+vendor/ollama/     Ollama v0.30.7 portable
+vendor/node/       Node.js 22 portable (node.exe)
+```
+
+```powershell
+.\scripts\download-vendor-deps.ps1    # Einmalig herunterladen
+.\scripts\prepare-api-deps.ps1        # Production node_modules (~8MB)
+.\scripts\build-installer.ps1         # Alles bauen → dist-installer/*.exe
+```
+
+**KRITISCH:** API und Web VOR Desktop-Build kompilieren — sonst alter Stand im Installer.
+
+### Startup-Sequenz (Electron Main)
+
+`createWindow()` → `startMariaDB()` → `startOllama()` → `startApi()` (node.exe dist/bundle.cjs)
+
+Startup-Log: `%APPDATA%\ELLA\ella-startup.log`
+
+### Erste-Start-Flow
+
+EULA → Lizenzaktivierung (`ELLA-XXXX-XXXX-XXXX-XXXX`) → Onboarding → Chat
+
+Lizenzserver: `49.13.26.248:3010` — Hardware-Fingerprint (SHA256 hostname+CPU+MACs), offline-tolerant
+
+### esbuild Bundle (apps/api/build-bundle.mjs)
+
+CJS-Format, 370KB App-Code. Externe Pakete in `prod-node-modules/node_modules/`:
+`dotenv`, `express`, `mysql2`, `pdf-parse`, `cheerio`, `googleapis`, `mammoth`, `msedge-tts`, `multer`, `turndown`, `xlsx`, `ffmpeg-static`, `@xenova/transformers`
+
+`@ella/*` Workspace-Pakete werden direkt eingebettet.
+
+---
+
 ## Wichtige Befehle
 
 ```powershell
@@ -173,7 +214,7 @@ npm run dev --workspace=apps/web     # Web auf :5173
 # Build-Reihenfolge (wichtig: shared → agent-tools → api → web)
 npm run build
 
-# Desktop
+# Desktop (Dev)
 cd apps/desktop && node build-main.mjs && cd ../..
 $env:ELLA_DEV = "1"; cd apps\desktop; .\node_modules\electron\dist\electron.exe .
 
@@ -187,8 +228,8 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 
 ## MariaDB
 
-- Server: `E:\MariaDB\server`, Daten: `E:\MariaDB\data`
-- Windows-Service: `sc start MariaDB` / `sc stop MariaDB`
+- **Dev:** `E:\MariaDB\server`, Daten: `E:\MariaDB\data`, Service: `sc start MariaDB`
+- **Installer:** portable in `vendor/mariadb/`, Daten: `%APPDATA%\ELLA\mariadb-data\`
 - Port: 3306
 
 ---
@@ -217,13 +258,6 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 ```
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
-
-
-
-
-
-
-
 
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
