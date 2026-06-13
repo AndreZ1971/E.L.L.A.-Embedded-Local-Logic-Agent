@@ -329,9 +329,13 @@ function AppShell() {
       });
   }, []);
 
-  // Warte bis Ollama läuft UND das Modell verfügbar ist
+  // Warte bis API antwortet — Ollama-Status wird danach per Banner gezeigt
   useEffect(() => {
     let cancelled = false;
+    let attempts = 0;
+    const MAX_WAIT_MS = 120_000; // 2 Minuten Timeout als Failsafe
+    const startTime = Date.now();
+
     const check = async () => {
       try {
         const r = await fetch(`${API}/api/health`);
@@ -342,16 +346,21 @@ function AppShell() {
           model_pull?: { pct: number; status: string } | null;
         };
         if (!cancelled) {
-          if (d.provider === "openai" || d.model_ready) {
-            setOllamaReady(true);
-          } else {
-            if (d.model_pull?.status) setSetupMsg(d.model_pull.status);
-            else if (d.ollama) setSetupMsg("KI-Modell wird vorbereitet…");
-            setTimeout(check, 1500);
-          }
+          // API ist oben — Splash weg, OllamaBanner übernimmt Ollama-Status
+          if (d.model_pull?.status) setSetupMsg(d.model_pull.status);
+          setOllamaReady(true);
         }
       } catch {
-        if (!cancelled) setTimeout(check, 2000);
+        if (!cancelled) {
+          attempts++;
+          if (Date.now() - startTime > MAX_WAIT_MS) {
+            // Failsafe: nach 2 Min trotzdem App zeigen
+            setOllamaReady(true);
+          } else {
+            const delay = Math.min(500 * attempts, 3000);
+            setTimeout(check, delay);
+          }
+        }
       }
     };
     check();

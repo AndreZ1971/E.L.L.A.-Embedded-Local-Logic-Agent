@@ -35,11 +35,12 @@
         "from": "../../apps/api/dist",
         "to": "api/dist",
         "filter": [
-          "**/*"
+          "bundle.cjs",
+          "*.node"
         ]
       },
       {
-        "from": "../../apps/api/node_modules",
+        "from": "../../apps/api/prod-node-modules/node_modules",
         "to": "api/node_modules",
         "filter": [
           "**/*"

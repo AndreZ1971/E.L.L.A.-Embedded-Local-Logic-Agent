@@ -1,6 +1,6 @@
 param(
   [string]$MariaDbVersion = "11.4.5",
-  [string]$OllamaVersion  = "0.5.12"
+  [string]$OllamaVersion  = "0.30.7"
 )
 
 $ErrorActionPreference = "Stop"
@@ -46,14 +46,26 @@ if (-not (Test-Path (Join-Path $mariaDir "bin\mysqld.exe"))) {
   Write-Host "`n[1/2] MariaDB already present - skipped." -ForegroundColor DarkGray
 }
 
-# Ollama binary
+# Ollama binary (ZIP since v0.2+)
 $ollamaDir = Join-Path $vendor "ollama"
 $ollamaExe = Join-Path $ollamaDir "ollama.exe"
 if (-not (Test-Path $ollamaExe)) {
   Write-Host "`n[2/2] Ollama $OllamaVersion ..." -ForegroundColor Yellow
   New-Item -ItemType Directory -Force -Path $ollamaDir | Out-Null
-  $url = "https://github.com/ollama/ollama/releases/download/v$OllamaVersion/ollama-windows-amd64.exe"
-  Download-File $url $ollamaExe
+  $zipPath = Join-Path $vendor "ollama.zip"
+  $url = "https://github.com/ollama/ollama/releases/download/v$OllamaVersion/ollama-windows-amd64.zip"
+  Download-File $url $zipPath
+
+  Write-Host "  Extracting..." -ForegroundColor Cyan
+  $tmpExtract = Join-Path $vendor "ollama-extract"
+  if (Test-Path $tmpExtract) { Remove-Item $tmpExtract -Recurse -Force }
+  Expand-Archive -Path $zipPath -DestinationPath $tmpExtract -Force
+
+  # Copy all extracted files into ollamaDir
+  Get-ChildItem $tmpExtract | ForEach-Object { Copy-Item $_.FullName $ollamaDir -Recurse -Force }
+
+  Remove-Item $tmpExtract -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
   Write-Host "  Ollama OK: $ollamaExe" -ForegroundColor Green
 } else {
   Write-Host "`n[2/2] Ollama already present - skipped." -ForegroundColor DarkGray

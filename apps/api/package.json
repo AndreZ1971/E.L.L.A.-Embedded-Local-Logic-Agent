@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc && node build-bundle.mjs",
     "start": "node dist/index.js",
     "test": "vitest run"
   },
@@ -34,6 +34,7 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/turndown": "^5.0.6",
     "@vitest/coverage-v8": "^3.2.4",
+    "esbuild": "^0.28.1",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
     "vitest": "^3.2.4"

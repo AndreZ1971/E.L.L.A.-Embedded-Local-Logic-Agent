@@ -16,9 +16,35 @@ import * as fs from "fs";
 import { deflateSync } from "zlib";
 import * as path from "path";
 
+// Sauberen userData-Pfad setzen bevor app.getPath() genutzt wird
+// Standard "@ella/desktop" enthält einen Schrägstrich → Probleme auf Windows
+if (!process.env.ELLA_DEV) {
+  app.setPath(
+    "userData",
+    require("path").join(require("os").homedir(), "AppData", "Roaming", "ELLA"),
+  );
+}
+
 const isDev = process.env.ELLA_DEV === "1";
 const FRONTEND_URL = "http://127.0.0.1:5173";
 const API_PORT = 3002;
+
+// Startup-Log für Fehlerdiagnose
+let logStream: fs.WriteStream | null = null;
+function initLog(): void {
+  try {
+    const logPath = path.join(app.getPath("userData"), "ella-startup.log");
+    logStream = fs.createWriteStream(logPath, { flags: "a" });
+    logStream.write(`\n\n=== ELLA Start ${new Date().toISOString()} ===\n`);
+  } catch {}
+}
+function log(msg: string): void {
+  const line = `[${new Date().toISOString()}] ${msg}`;
+  console.log(line);
+  try {
+    logStream?.write(line + "\n");
+  } catch {}
+}
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -55,20 +81,28 @@ async function startMariaDB(): Promise<void> {
   if (!fs.existsSync(path.join(dataDir, "mysql"))) {
     console.log("[MariaDB] Erststart — initialisiere Datenverzeichnis…");
     sendSetupStatus("Datenbank wird eingerichtet…");
+    fs.mkdirSync(dataDir, { recursive: true });
     await new Promise<void>((resolve, reject) => {
       const init = spawn(
         mysqld,
         ["--initialize-insecure", `--datadir=${dataDir}`],
-        {
-          stdio: "pipe",
-        },
+        { stdio: "pipe" },
       );
-      init.on("close", (code) =>
+      // Timeout: nach 3 Minuten abbrechen — bei manchen Systemen hängt initialize
+      const timer = setTimeout(() => {
+        init.kill();
+        reject(new Error("mysqld --initialize Timeout nach 3 Minuten"));
+      }, 180_000);
+      init.on("close", (code) => {
+        clearTimeout(timer);
         code === 0
           ? resolve()
-          : reject(new Error(`mysqld --initialize exit ${code}`)),
-      );
-      init.on("error", reject);
+          : reject(new Error(`mysqld --initialize exit ${code}`));
+      });
+      init.on("error", (e) => {
+        clearTimeout(timer);
+        reject(e);
+      });
     });
   }
 
@@ -202,26 +236,25 @@ function freePort(port: number): Promise<void> {
 
 function startApi(): void {
   const apiDir = path.join(app.getAppPath(), "../api");
-  console.log("[ELLA] Starte API in:", apiDir);
-
-  // Gebündeltes Node.js bevorzugen, System-Node als Fallback
   const bundledNode = vendorPath("node", "node.exe");
   const nodeExe = fs.existsSync(bundledNode) ? bundledNode : "node";
+  log(`[API] Starte: ${nodeExe} dist/bundle.cjs  cwd=${apiDir}`);
 
-  apiProcess = spawn(nodeExe, ["dist/index.js"], {
+  apiProcess = spawn(nodeExe, ["dist/bundle.cjs"], {
     cwd: apiDir,
     stdio: "pipe",
   });
 
-  apiProcess.stdout?.on("data", (d: Buffer) =>
-    console.log("[API]", d.toString().trimEnd()),
-  );
+  apiProcess.stdout?.on("data", (d: Buffer) => {
+    log("[API] " + d.toString().trimEnd());
+  });
   apiProcess.stderr?.on("data", (d: Buffer) =>
-    console.error("[API]", d.toString().trimEnd()),
+    log("[API-ERR] " + d.toString().trimEnd()),
   );
   apiProcess.on("exit", (code: number | null) =>
-    console.log("[API] Prozess beendet, Code:", code),
+    log(`[API] Prozess beendet, Code: ${code}`),
   );
+  apiProcess.on("error", (e) => log(`[API] spawn error: ${e.message}`));
 }
 
 function waitForPort(port: number, timeout = 20000): Promise<void> {
@@ -602,25 +635,38 @@ app.whenReady().then(async () => {
     (_wc, permission) => permission === "media",
   );
 
+  initLog();
+  log(`resourcesPath=${process.resourcesPath}`);
+  log(`appPath=${app.getAppPath()}`);
+  log(`userData=${app.getPath("userData")}`);
+
   registerIpc();
-  createWindow(); // Splash sofort sichtbar während Dienste starten
+  createWindow();
   createTray();
 
   if (!isDev) {
     await freePort(API_PORT);
-    await startMariaDB().catch((e) =>
-      console.error("[ELLA] MariaDB-Fehler:", e),
-    );
-    await startOllama().catch((e) => console.error("[ELLA] Ollama-Fehler:", e));
+
+    const mysqldPath = vendorPath("mariadb", "bin", "mysqld.exe");
+    const ollamaPath = vendorPath("ollama", "ollama.exe");
+    const nodePath = vendorPath("node", "node.exe");
+    const apiDistPath = path.join(app.getAppPath(), "../api/dist/bundle.cjs");
+    log(`mysqld exists: ${fs.existsSync(mysqldPath)} (${mysqldPath})`);
+    log(`ollama exists: ${fs.existsSync(ollamaPath)} (${ollamaPath})`);
+    log(`node exists:   ${fs.existsSync(nodePath)} (${nodePath})`);
+    log(`api/dist:      ${fs.existsSync(apiDistPath)} (${apiDistPath})`);
+
+    await startMariaDB().catch((e) => log(`[MariaDB] FEHLER: ${e}`));
+    await startOllama().catch((e) => log(`[Ollama] FEHLER: ${e}`));
     sendSetupStatus("Starte E.L.L.A.…");
     startApi();
     startKokoroTts();
     try {
-      console.log(`[ELLA] Warte auf API :${API_PORT}…`);
+      log(`Warte auf API :${API_PORT}…`);
       await waitForPort(API_PORT);
-      console.log("[ELLA] API bereit.");
+      log("API bereit.");
     } catch (e) {
-      console.error("[ELLA] API-Start fehlgeschlagen:", e);
+      log(`API-Start fehlgeschlagen: ${e}`);
     }
   }
 

@@ -11,6 +11,7 @@ apps/api/wakeword-models/
 scripts/wakeword_training_data/
 apps/desktop/dist-installer/
 vendor/
+apps/api/prod-node-modules/
 .claude/
 .vscode/
 

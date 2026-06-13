@@ -32,20 +32,26 @@ export default function Eula() {
   const { setBoot } = useBootContext();
   const [accepted, setAccepted] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   async function confirm() {
     if (!accepted || saving) return;
     setSaving(true);
+    setError("");
     try {
-      await fetch(`${API}/api/settings`, {
+      const r = await fetch(`${API}/api/settings`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ eulaAccepted: true }),
       });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setBoot((prev) => (prev ? { ...prev, eulaAccepted: true } : prev));
       navigate("/activation");
-    } catch {
+    } catch (e) {
       setSaving(false);
+      setError(
+        "E.L.L.A.-Dienst nicht erreichbar. Bitte warte kurz und versuche es erneut.",
+      );
     }
   }
 
@@ -78,6 +84,18 @@ export default function Eula() {
           </span>
         </label>
 
+        {error && (
+          <p
+            style={{
+              color: "#f87171",
+              fontSize: "0.85rem",
+              marginBottom: "1rem",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </p>
+        )}
         <button
           onClick={confirm}
           disabled={!accepted || saving}
