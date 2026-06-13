@@ -1,25 +1,17 @@
 import { build } from "esbuild";
 import { existsSync } from "fs";
 
-// Drittanbieter-Pakete sind extern (werden als node_modules mitgeliefert)
-// Workspace-Pakete (@ella/*) werden direkt eingebettet
+// Nur Pakete mit nativen Bindings oder Binaries bleiben extern.
+// Pure-JS-Pakete (express, dotenv, cheerio, …) werden direkt eingebettet —
+// das macht node_modules im Installer überflüssig und kleiner.
 const external = [
-  "cheerio",
-  "dotenv",
-  "express",
-  "googleapis",
-  "mammoth",
+  "mysql2", // native bindings
+  "ffmpeg-static", // binary
+  "@xenova/transformers", // ONNX + native
+  "sharp", // native
+  "onnxruntime-node", // native
+  // msedge-tts nutzt dynamic require für optionale native deps
   "msedge-tts",
-  "multer",
-  "mysql2",
-  "pdf-parse",
-  "turndown",
-  "xlsx",
-  "ffmpeg-static",
-  "@xenova/transformers",
-  // Transitive die ebenfalls dynamic require nutzen
-  "sharp",
-  "onnxruntime-node",
 ];
 
 await build({
