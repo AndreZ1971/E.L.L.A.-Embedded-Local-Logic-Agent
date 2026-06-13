@@ -5,7 +5,6 @@ import { existsSync } from "fs";
 // Pure-JS-Pakete (express, dotenv, cheerio, …) werden direkt eingebettet —
 // das macht node_modules im Installer überflüssig und kleiner.
 const external = [
-  "mysql2", // native bindings
   "ffmpeg-static", // binary
   "@xenova/transformers", // ONNX + native
   "sharp", // native
