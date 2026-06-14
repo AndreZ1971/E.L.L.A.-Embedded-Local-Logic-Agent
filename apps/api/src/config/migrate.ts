@@ -3,10 +3,14 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 import { pool } from "./database.js";
 
-const SCHEMA_PATH = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../../../database/schema.sql",
-);
+// Im Installer: ELLA_RESOURCES = process.resourcesPath (gesetzt von Electron main.ts)
+// Im Dev-Modus: relativer Pfad vom Quellverzeichnis
+const SCHEMA_PATH = process.env.ELLA_RESOURCES
+  ? path.join(process.env.ELLA_RESOURCES, "database", "schema.sql")
+  : path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "../../../../database/schema.sql",
+    );
 
 async function exec(sql: string): Promise<void> {
   try {

@@ -243,6 +243,7 @@ function startApi(): void {
   apiProcess = spawn(nodeExe, ["dist/bundle.cjs"], {
     cwd: apiDir,
     stdio: "pipe",
+    env: { ...process.env, ELLA_RESOURCES: process.resourcesPath },
   });
 
   apiProcess.stdout?.on("data", (d: Buffer) => {

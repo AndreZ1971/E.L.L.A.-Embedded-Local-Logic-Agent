@@ -73,6 +73,10 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "../../database/schema.sql",
+        "to": "database/schema.sql"
       }
     ],
     "win": {
