@@ -36,12 +36,34 @@ import { worker } from "./services/worker.js";
 // Model-Pull-Fortschritt — gelesen von /api/health
 export let modelPullProgress: { pct: number; status: string } | null = null;
 
+async function waitForOllama(maxWaitMs = 60_000): Promise<boolean> {
+  const start = Date.now();
+  while (Date.now() - start < maxWaitMs) {
+    try {
+      const r = await fetch(`${env.ollamaBaseUrl}/api/tags`, {
+        signal: AbortSignal.timeout(5_000),
+      });
+      if (r.ok) return true;
+    } catch {}
+    await new Promise((r) => setTimeout(r, 3_000));
+  }
+  return false;
+}
+
 async function pullModelIfNeeded(): Promise<void> {
   const { provider, ollamaModel } = getSettings();
   if (provider === "openai") return;
+
+  // Warte bis Ollama antwortet (max. 60 Sekunden nach API-Start)
+  const ollamaReady = await waitForOllama(60_000);
+  if (!ollamaReady) {
+    console.error("[API] Ollama nicht erreichbar nach 60s — kein Auto-Pull");
+    return;
+  }
+
   try {
     const tagsResp = await fetch(`${env.ollamaBaseUrl}/api/tags`, {
-      signal: AbortSignal.timeout(5_000),
+      signal: AbortSignal.timeout(10_000),
     });
     if (!tagsResp.ok) return;
     const tags = (await tagsResp.json()) as {
