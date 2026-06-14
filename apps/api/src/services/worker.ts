@@ -28,7 +28,10 @@ interface DiskMetric {
 }
 
 function psEncode(script: string): string {
-  return Buffer.from(script, "utf16le").toString("base64");
+  return Buffer.from(
+    `$ProgressPreference='SilentlyContinue'\n${script}`,
+    "utf16le",
+  ).toString("base64");
 }
 
 function psSync(script: string): string {
@@ -591,9 +594,8 @@ export const worker = {
     clipboardTimer = setInterval(() => {
       try {
         const ps = "Get-Clipboard -Raw";
-        const encoded = Buffer.from(ps, "utf16le").toString("base64");
         const clip = execSync(
-          `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+          `powershell -NoProfile -NonInteractive -EncodedCommand ${psEncode(ps)}`,
           { encoding: "utf-8", timeout: 2000 },
         ).trim();
         if (clip && clip !== lastClip && clip.length < 50000) {

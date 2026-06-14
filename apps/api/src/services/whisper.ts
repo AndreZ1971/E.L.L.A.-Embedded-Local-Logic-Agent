@@ -121,7 +121,23 @@ export async function transcribe(audioBuffer: Buffer): Promise<string> {
       // Fallback auf lokales Modell wenn OpenAI nicht erreichbar
     }
   }
-  return transcribeLocal(audioBuffer);
+  try {
+    return await transcribeLocal(audioBuffer);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (
+      msg.includes("ERR_MODULE_NOT_FOUND") ||
+      msg.includes("@xenova") ||
+      msg.includes("Cannot find package")
+    ) {
+      const e = new Error(
+        "Spracherkennung nicht verfügbar. Bitte einen OpenAI-Key in den Einstellungen eintragen.",
+      ) as Error & { status?: number };
+      e.status = 503;
+      throw e;
+    }
+    throw err;
+  }
 }
 
 export function isWhisperReady(): boolean {

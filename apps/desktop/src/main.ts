@@ -87,11 +87,9 @@ async function startMariaDB(): Promise<void> {
     const installDb = vendorPath("mariadb", "bin", "mysql_install_db.exe");
     const initErrorLog = path.join(app.getPath("userData"), "mariadb-init.log");
     await new Promise<void>((resolve, reject) => {
-      const init = spawn(
-        installDb,
-        [`--datadir=${dataDir}`, `--service=ELLA_MariaDB`],
-        { stdio: "pipe" },
-      );
+      const init = spawn(installDb, [`--datadir=${dataDir}`], {
+        stdio: "pipe",
+      });
       // mysqld-Ausgabe ins Startup-Log für Fehlerdiagnose
       init.stderr?.on("data", (d: Buffer) =>
         log(`[MariaDB-init] ${d.toString().trimEnd()}`),
@@ -139,16 +137,14 @@ async function startMariaDB(): Promise<void> {
     { stdio: "pipe" },
   );
   mariadbProcess.stdout?.on("data", (d: Buffer) =>
-    console.log("[MariaDB]", d.toString().trimEnd()),
+    log(`[MariaDB] ${d.toString().trimEnd()}`),
   );
   mariadbProcess.stderr?.on("data", (d: Buffer) =>
-    console.error("[MariaDB]", d.toString().trimEnd()),
+    log(`[MariaDB] ${d.toString().trimEnd()}`),
   );
-  mariadbProcess.on("error", (e) =>
-    console.error("[MariaDB] spawn error:", e.message),
-  );
+  mariadbProcess.on("error", (e) => log(`[MariaDB] spawn error: ${e.message}`));
   mariadbProcess.on("exit", (code) =>
-    console.log("[MariaDB] Prozess beendet, Code:", code),
+    log(`[MariaDB] Prozess beendet, Code: ${code}`),
   );
 
   await waitForPort(3306, 30_000);
