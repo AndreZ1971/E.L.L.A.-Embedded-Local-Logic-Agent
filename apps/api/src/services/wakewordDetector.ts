@@ -5,12 +5,19 @@ import * as fs from "fs/promises";
 import { existsSync } from "fs";
 import * as os from "os";
 import * as path from "path";
-import { createRequire } from "module";
 import { fileURLToPath } from "url";
 
 const execAsync = promisify(exec);
-const _require = createRequire(import.meta.url);
-const ffmpegBin: string = _require("ffmpeg-static");
+
+// ffmpeg-static lazy laden — kein Crash beim Start wenn Binary fehlt
+let _ffmpegBin: string | null = null;
+function getFfmpegBin(): string {
+  if (!_ffmpegBin) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    _ffmpegBin = require("ffmpeg-static") as string;
+  }
+  return _ffmpegBin;
+}
 
 const __dir = path.dirname(fileURLToPath(import.meta.url));
 const MODEL_DIR = path.join(__dir, "../../wakeword-models");
@@ -115,7 +122,7 @@ export async function detectWakeword(
     // Convert to 16kHz float32 WAV
     const wavFile = tmpFile.replace(".wav", "_16k.wav");
     await execAsync(
-      `"${ffmpegBin}" -y -i "${tmpFile}" -ar 16000 -ac 1 "${wavFile}"`,
+      `"${getFfmpegBin()}" -y -i "${tmpFile}" -ar 16000 -ac 1 "${wavFile}"`,
       { timeout: 10000 },
     );
 
