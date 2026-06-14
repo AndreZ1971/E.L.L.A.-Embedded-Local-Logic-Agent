@@ -396,8 +396,7 @@ function AppShell() {
     };
   }, []);
 
-  if (boot === null || !ollamaReady || modelPulling)
-    return <EllaSplash setupMsg={setupMsg} />;
+  if (boot === null || !ollamaReady) return <EllaSplash setupMsg={setupMsg} />;
 
   const path = location.pathname;
   const isFullscreen =
@@ -414,10 +413,57 @@ function AppShell() {
     return <Navigate to="/activation" replace />;
   }
 
+  const modelPullBanner =
+    modelPulling && setupMsg ? (
+      <div
+        style={{
+          background: "linear-gradient(90deg,#1e1b4b,#2d1f6e)",
+          borderBottom: "1px solid #4c3d9e",
+          padding: "8px 20px",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          fontSize: "0.8rem",
+          color: "#c4b5fd",
+          flexShrink: 0,
+        }}
+      >
+        <span style={{ fontSize: "1rem" }}>⬇</span>
+        <span style={{ fontWeight: 600, color: "#a78bfa" }}>
+          KI-Modell wird geladen
+        </span>
+        <span style={{ color: "#94a3b8", flex: 1 }}>
+          {setupMsg.split("\n").find((l) => l.match(/\d+%/)) ??
+            "Bitte warten — das passiert nur einmal beim ersten Start."}
+        </span>
+        <span
+          style={{
+            width: 100,
+            height: 4,
+            background: "#1e1b4b",
+            borderRadius: 99,
+            overflow: "hidden",
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              display: "block",
+              height: "100%",
+              background: "linear-gradient(90deg,#7c6af7,#a78bfa)",
+              borderRadius: 99,
+              animation: "ella-bar 1.6s ease-in-out infinite",
+            }}
+          />
+        </span>
+      </div>
+    ) : null;
+
   if (isFullscreen) {
     return (
       <BootContext.Provider value={{ boot, setBoot }}>
         <TitleBar />
+        {modelPullBanner}
         <Routes>
           <Route path="/eula" element={<Eula />} />
           <Route path="/activation" element={<Activation />} />
@@ -437,6 +483,7 @@ function AppShell() {
     <BootContext.Provider value={{ boot, setBoot }}>
       <div className="ella-root">
         <TitleBar />
+        {modelPullBanner}
         <OllamaBanner />
         <div className="ella-layout">
           <nav className="ella-sidebar">
