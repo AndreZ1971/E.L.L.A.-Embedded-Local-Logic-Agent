@@ -733,48 +733,93 @@ const Chat: React.FC = () => {
     [feedback],
   );
 
-  /* ── Whisper-basierte Spracheingabe ── */
-  const startRecording = useCallback(async () => {
+  /* ── Spracheingabe (Web Speech API, kein OpenAI nötig) ── */
+  const startRecording = useCallback(() => {
     playTone(880, 120); // Blind-Modus: Ton → ELLA hört jetzt zu
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
-      chunksRef.current = [];
-      mr.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR =
+      (window as any).SpeechRecognition ??
+      (window as any).webkitSpeechRecognition;
+    if (SR) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const recog: any = new SR();
+      recog.lang = "de-DE";
+      recog.continuous = false;
+      recog.interimResults = false;
+      recog.onstart = () => {
+        setMicActive(true);
+        setMicStatus("Höre zu…");
       };
-      mr.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        setMicStatus("Transkription…");
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        const form = new FormData();
-        form.append("audio", blob, "recording.webm");
-        try {
-          const r = await fetch(`${API}/api/speech/transcribe`, {
-            method: "POST",
-            body: form,
-          });
-          const data = (await r.json()) as { text?: string; error?: string };
-          if (!r.ok) {
-            setMicStatus(data.error ?? "Spracherkennung nicht verfügbar");
-            setTimeout(() => setMicStatus(""), 6000);
-          } else if (data.text) {
-            setInput(data.text);
-          } else {
-            setMicStatus("Nicht verstanden — bitte nochmal");
+      recog.onresult = (
+        ev: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any,
+      ) => {
+        const text = ev.results[0][0].transcript.trim();
+        if (text) setInput(text);
+      };
+      recog.onerror = (
+        ev: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any,
+      ) => {
+        const msg =
+          ev.error === "no-speech" ? "Nichts gehört" : `Mikrofon: ${ev.error}`;
+        setMicStatus(msg);
+        setTimeout(() => setMicStatus(""), 3000);
+      };
+      recog.onend = () => {
+        setMicActive(false);
+        setMicStatus("");
+      };
+      try {
+        recog.start();
+        mediaRecorderRef.current = null;
+      } catch {
+        setMicStatus("Spracherkennung konnte nicht gestartet werden");
+        setTimeout(() => setMicStatus(""), 3000);
+      }
+      return;
+    }
+    // Fallback: MediaRecorder + Backend (braucht OpenAI-Key)
+    try {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+        const mr = new MediaRecorder(stream);
+        chunksRef.current = [];
+        mr.ondataavailable = (e) => {
+          if (e.data.size > 0) chunksRef.current.push(e.data);
+        };
+        mr.onstop = async () => {
+          stream.getTracks().forEach((t) => t.stop());
+          setMicStatus("Transkription…");
+          const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+          const form = new FormData();
+          form.append("audio", blob, "recording.webm");
+          try {
+            const r = await fetch(`${API}/api/speech/transcribe`, {
+              method: "POST",
+              body: form,
+            });
+            const data = (await r.json()) as { text?: string; error?: string };
+            if (!r.ok) {
+              setMicStatus(data.error ?? "Spracherkennung nicht verfügbar");
+              setTimeout(() => setMicStatus(""), 6000);
+            } else if (data.text) {
+              setInput(data.text);
+            } else {
+              setMicStatus("Nicht verstanden — bitte nochmal");
+              setTimeout(() => setMicStatus(""), 3000);
+            }
+          } catch {
+            setMicStatus("Transkription fehlgeschlagen — bitte nochmal");
             setTimeout(() => setMicStatus(""), 3000);
           }
-        } catch {
-          setMicStatus("Transkription fehlgeschlagen — bitte nochmal");
-          setTimeout(() => setMicStatus(""), 3000);
-        }
-        setMicStatus("");
-        setMicActive(false);
-      };
-      mr.start();
-      mediaRecorderRef.current = mr;
-      setMicActive(true);
-      setMicStatus("Aufnahme…");
+          setMicStatus("");
+          setMicActive(false);
+        };
+        mr.start();
+        mediaRecorderRef.current = mr;
+        setMicActive(true);
+        setMicStatus("Aufnahme…");
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.name : "Unbekannt";
       setMicStatus(`Mikrofon: ${msg}`);
@@ -807,79 +852,74 @@ const Chat: React.FC = () => {
       return;
     }
 
-    /* ── Always-on mode: no wakeword, direct transcription ── */
+    /* ── Always-on mode: Web Speech API (kein OpenAI nötig) ── */
     if (voiceMode === "always") {
-      const vad = new AudioVAD();
-      vadRef.current = vad;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const SR =
+        (window as any).SpeechRecognition ??
+        (window as any).webkitSpeechRecognition;
+      if (!SR) {
+        setMicStatus("Spracherkennung nicht unterstützt");
+        setTimeout(() => setMicStatus(""), 5000);
+        return;
+      }
 
-      let processing = false;
-      let pending: { audio: Float32Array; sr: number } | null = null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const recog: any = new SR();
+      recog.lang = "de-DE";
+      recog.continuous = true;
+      recog.interimResults = false;
+      recog.maxAlternatives = 1;
+      let stopped = false;
 
-      const processSegment = async (audio: Float32Array, sr: number) => {
-        processing = true;
-        setMicStatus("Transkribiere…");
-        try {
-          const blob = encodeWav(audio, sr);
-          const form = new FormData();
-          form.append("audio", blob, "segment.wav");
-          const r = await fetch(`${API}/api/speech/transcribe?raw=true`, {
-            method: "POST",
-            body: form,
-          });
-          const data = (await r.json()) as { text?: string; error?: string };
-          if (!r.ok) {
-            // Spracherkennung nicht verfügbar (z.B. kein OpenAI-Key) — VAD stoppen
-            setMicStatus(data.error ?? "Spracherkennung nicht verfügbar");
-            setTimeout(() => setMicStatus(""), 8000);
-            vad.stop();
-            setWakeListening(false);
-            return;
-          }
-          const clean = (data.text ?? "").trim();
-          // Mindestlänge 2 Wörter — filtert Musik/Hintergrundgeräusche
-          const wordCount = clean.split(/\s+/).filter(Boolean).length;
-          if (clean && wordCount >= 2 && !HALLUCINATION_RE.test(clean)) {
-            sendText(clean);
-          }
-        } catch {
-          // ignore transient errors
-        } finally {
-          processing = false;
-          setMicStatus("");
-          // If a newer segment arrived while we were busy, process it now
-          if (pending) {
-            const next = pending;
-            pending = null;
-            void processSegment(next.audio, next.sr);
+      recog.onstart = () => {
+        setWakeListening(true);
+        setMicStatus("");
+      };
+      recog.onresult = (
+        ev: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any,
+      ) => {
+        const text = ev.results[ev.results.length - 1][0].transcript.trim();
+        if (text && !loadingRef.current) {
+          sendText(text);
+        }
+      };
+      recog.onerror = (
+        ev: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any,
+      ) => {
+        if (ev.error !== "no-speech" && ev.error !== "aborted") {
+          setMicStatus(`Mikrofon: ${ev.error}`);
+          setTimeout(() => setMicStatus(""), 4000);
+        }
+      };
+      recog.onend = () => {
+        // Automatisch neu starten solange Freihand-Modus aktiv
+        if (!stopped) {
+          try {
+            recog.start();
+          } catch {
+            /* ignorieren */
           }
         }
       };
 
-      vad
-        .start({
-          onSpeechStart: () => setMicStatus("Erkenne…"),
-          onSegment: (audio, sampleRate) => {
-            if (loadingRef.current) {
-              setMicStatus("");
-              return;
-            }
-            if (processing) {
-              // Replace queued segment with the latest one
-              pending = { audio, sr: sampleRate };
-              return;
-            }
-            void processSegment(audio, sampleRate);
-          },
-        })
-        .then(() => setWakeListening(true))
-        .catch((err: unknown) => {
-          const msg = err instanceof Error ? err.name : "Unbekannt";
-          setMicStatus(`Mikrofon: ${msg}`);
-          setTimeout(() => setMicStatus(""), 5000);
-        });
+      try {
+        recog.start();
+      } catch {
+        setMicStatus("Spracherkennung konnte nicht gestartet werden");
+        setTimeout(() => setMicStatus(""), 5000);
+      }
 
       return () => {
-        vad.stop();
+        stopped = true;
+        recog.onend = null;
+        try {
+          recog.stop();
+        } catch {
+          /* ignorieren */
+        }
         setWakeListening(false);
         setMicStatus("");
       };

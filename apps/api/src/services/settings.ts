@@ -149,7 +149,7 @@ export const DEFAULT_SETTINGS: Settings = {
   voiceMode: "off",
   setups: [],
   homeworkMode: { pinHash: "", apps: [], active: false },
-  ttsEnabled: false,
+  ttsEnabled: true,
   ttsVoice: "",
   onboardingComplete: false,
   eulaAccepted: false,
