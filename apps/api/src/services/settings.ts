@@ -72,7 +72,7 @@ const SETTINGS_PATH = process.env.ELLA_USERDATA
 
 export const DEFAULT_SETTINGS: Settings = {
   provider: "auto",
-  ollamaModel: "llama3.1:8b",
+  ollamaModel: "llama3.2:3b",
   enabledTools: [
     "open_app",
     "get_disk_usage",
@@ -172,7 +172,7 @@ export const DEFAULT_SETTINGS: Settings = {
   clipboardPatternEnabled: true,
   accessibilityMode: "none",
   searchDrives: ["C"],
-  voiceOllamaModel: "llama3.1:8b",
+  voiceOllamaModel: "llama3.2:3b",
   licenseActivated: false,
   licenseKey: "",
   licenseToken: "",
@@ -275,6 +275,11 @@ export async function loadSettings(): Promise<void> {
       parsed.voiceOllamaModel === "llama3.2:3b"
     )
       parsed.voiceOllamaModel = DEFAULT_SETTINGS.voiceOllamaModel;
+    // Migrate: llama3.1:8b → llama3.2:3b (zu groß für Standard-Hardware)
+    if (parsed.ollamaModel === "llama3.1:8b")
+      parsed.ollamaModel = "llama3.2:3b";
+    if (parsed.voiceOllamaModel === "llama3.1:8b")
+      parsed.voiceOllamaModel = "llama3.2:3b";
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults
