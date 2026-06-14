@@ -4,6 +4,40 @@ Alle wesentlichen Änderungen an E.L.L.A. Detaillierte Entscheidungsbegründunge
 
 ---
 
+## [1.0.0-rc] — 14.06.2026
+
+### Hinzugefügt
+
+- **Zero-Config Windows Installer** — NSIS-Installer bündelt MariaDB 11.4, Ollama und Node.js 22 als portable Vendored Binaries; keine externen Abhängigkeiten nötig
+- **Portable MariaDB** — `mysql_install_db.exe` initialisiert Datenverzeichnis bei Erststart in `%APPDATA%\ELLA\mariadb-data` (kein Admin, kein Windows-Dienst)
+- **API-Bundle** — esbuild CJS-Bundle (`bundle.cjs`, ~42 MB) mit allen npm-Abhängigkeiten inline; läuft via portable Node.js
+- **Web Speech API STT** — Freihand- und Manuell-Modus nutzen `window.SpeechRecognition` (Chromium built-in, kein API-Key, de-DE)
+- **Microsoft Edge TTS** — `msedge-tts` als primäre Sprachausgabe (kein API-Key, kostenloser Microsoft-Dienst, `de-DE-KatjaNeural`); `ttsEnabled: true` als Default
+- **USB-Erkennung mit TTS-Ansage** — PnP-Worker meldet USB-Laufwerke proaktiv im Chat und liest sie vor
+- **Lizenzaktivierungs-Flow** — EULA → Aktivierung → Onboarding → Chat
+
+### Geändert
+
+- **Electron → API**: übergibt `ELLA_RESOURCES` und `ELLA_USERDATA` als Umgebungsvariablen; API schreibt Settings/Logs in `%APPDATA%\ELLA` statt in Program Files
+- **`ttsEnabled` Default**: `false` → `true`
+- **PowerShell-Worker**: `$ProgressPreference='SilentlyContinue'` in allen PS-Aufrufen — unterdrückt CLIXML-Spam in Logs
+
+### Behoben
+
+- **`mysql_install_db.exe --service`** — `--service=ELLA_MariaDB` entfernt (erforderte Admin/OpenSCManager, schlug mit exit 5 fehl)
+- **`mysqld --initialize-insecure`** — MariaDB kennt diesen MySQL-Flag nicht; auf `mysql_install_db.exe` gewechselt
+- **`Cannot find module 'mysql2/promise'`** — alle npm-Pakete in bundle.cjs inline (electron-builder `!**/node_modules` schließt extraResources node_modules aus)
+- **`Cannot find module 'pdf-parse'`** — `_require("pdf-parse")` auf statischen Import umgestellt
+- **`ReferenceError: DOMMatrix`** — Browser-Globals als Stub im esbuild-Banner
+- **`Cannot find module '@xenova/transformers'`** — lazy `import()` statt Top-Level-Import; 503-Fallback statt 500-Crash
+- **`ENOENT schema.sql`** — Pfad-Auflösung via `ELLA_RESOURCES` statt `fileURLToPath(import.meta.url)`
+- **`EPERM settings.json`** — Settings in `%APPDATA%\ELLA` statt read-only Program Files
+- **Whisper-Loop** — Frontend wiederholt Transcribe-Request nicht mehr bei 503; zeigt Fehlermeldung und stoppt VAD
+- **MariaDB-Logs** — stdout/stderr jetzt in `ella-startup.log` sichtbar (war `console.log`, unsichtbar)
+- **errorHandler** — respektiert `err.status`; loggt nur 5xx-Fehler auf Konsole
+
+---
+
 ## [3.5.4] — 09.06.2026
 
 ### Hinzugefügt
