@@ -250,6 +250,100 @@ function freePort(port: number): Promise<void> {
   });
 }
 
+// ── Ollama Model Download ─────────────────────────────────────────────────────
+
+async function getOllamaModel(): Promise<string> {
+  // Read configured model from settings.json (userData)
+  try {
+    const settingsPath = path.join(app.getPath("userData"), "settings.json");
+    if (fs.existsSync(settingsPath)) {
+      const s = JSON.parse(fs.readFileSync(settingsPath, "utf-8")) as {
+        ollamaModel?: string;
+        provider?: string;
+      };
+      if (s.provider === "openai") return "";
+      return s.ollamaModel || "llama3.1:8b";
+    }
+  } catch {}
+  return "llama3.1:8b";
+}
+
+async function ensureOllamaModel(): Promise<void> {
+  const modelName = await getOllamaModel();
+  if (!modelName) return; // OpenAI mode — skip
+
+  const ollamaExe = vendorPath("ollama", "ollama.exe");
+  if (!fs.existsSync(ollamaExe)) return;
+
+  // Check if model is already present
+  log(`[Ollama] Prüfe Modell: ${modelName}`);
+  const modelBase = modelName.split(":")[0];
+  try {
+    const listOut = await new Promise<string>((resolve, reject) => {
+      const proc = spawn(ollamaExe, ["list"], {
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      let out = "";
+      proc.stdout?.on("data", (d: Buffer) => (out += d.toString()));
+      proc.on("close", () => resolve(out));
+      proc.on("error", reject);
+      setTimeout(() => {
+        proc.kill();
+        reject(new Error("timeout"));
+      }, 10_000);
+    });
+    if (listOut.toLowerCase().includes(modelBase.toLowerCase())) {
+      log(
+        `[Ollama] Modell ${modelName} bereits vorhanden — kein Download nötig.`,
+      );
+      return;
+    }
+  } catch {
+    log(`[Ollama] 'ollama list' fehlgeschlagen — versuche Pull trotzdem.`);
+  }
+
+  // Model not found — pull it with progress shown in UI
+  log(`[Ollama] Modell ${modelName} nicht gefunden — starte Download.`);
+  sendSetupStatus(
+    `KI-Modell wird erstmalig geladen (${modelName})…\nDas dauert je nach Internetgeschwindigkeit 10–30 Minuten.`,
+  );
+
+  await new Promise<void>((resolve) => {
+    const proc = spawn(ollamaExe, ["pull", modelName], {
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    proc.stdout?.on("data", (d: Buffer) => {
+      const line = d.toString().trim();
+      if (line) {
+        log(`[Ollama-Pull] ${line}`);
+        // Forward progress lines to UI (e.g. "pulling manifest", "42% ...")
+        sendSetupStatus(`Lade Modell ${modelName}…\n${line}`);
+      }
+    });
+    proc.stderr?.on("data", (d: Buffer) => {
+      const line = d.toString().trim();
+      if (line) log(`[Ollama-Pull-ERR] ${line}`);
+    });
+    proc.on("close", (code) => {
+      if (code === 0) {
+        log(`[Ollama] Modell ${modelName} erfolgreich geladen.`);
+        sendSetupStatus(`Modell geladen. Starte E.L.L.A.…`);
+      } else {
+        log(`[Ollama] Pull beendet mit Code ${code} — ELLA startet trotzdem.`);
+        sendSetupStatus(
+          `Modell-Download fehlgeschlagen (${code}). ELLA startet ohne KI.`,
+        );
+      }
+      resolve();
+    });
+    proc.on("error", (e) => {
+      log(`[Ollama] Pull spawn error: ${e.message}`);
+      resolve();
+    });
+  });
+}
+
 let apiRestartCount = 0;
 const API_MAX_RESTARTS = 5;
 
@@ -695,6 +789,9 @@ app.whenReady().then(async () => {
 
     await startMariaDB().catch((e) => log(`[MariaDB] FEHLER: ${e}`));
     await startOllama().catch((e) => log(`[Ollama] FEHLER: ${e}`));
+    await ensureOllamaModel().catch((e) =>
+      log(`[Ollama] Modell-Check Fehler: ${e}`),
+    );
     sendSetupStatus("Starte E.L.L.A.…");
     startApi();
     startKokoroTts();

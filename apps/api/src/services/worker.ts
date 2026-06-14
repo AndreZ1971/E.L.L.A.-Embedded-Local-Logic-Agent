@@ -1,5 +1,5 @@
 import os from "os";
-import { execSync, exec } from "child_process";
+import { execSync, exec, spawn } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
@@ -41,6 +41,29 @@ function psSync(script: string): string {
   );
 }
 
+// Async version — does NOT block the Node event loop (important during Ollama streaming)
+function psAsync(script: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(
+      "powershell",
+      ["-NoProfile", "-NonInteractive", "-EncodedCommand", psEncode(script)],
+      { stdio: ["ignore", "pipe", "ignore"] },
+    );
+    let out = "";
+    proc.stdout?.on("data", (d: Buffer) => (out += d.toString()));
+    const timer = setTimeout(() => {
+      proc.kill();
+      reject(new Error("psAsync timeout"));
+    }, 8000);
+    proc.on("close", (code: number | null) => {
+      clearTimeout(timer);
+      if (code !== 0 && !out.trim()) reject(new Error(`PS exit ${code}`));
+      else resolve(out);
+    });
+    proc.on("error", reject);
+  });
+}
+
 export function getDiskMetric(drive: string): DiskMetric | null {
   try {
     const script = `Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='${drive}:'" | Select-Object FreeSpace,Size | ConvertTo-Json -Compress`;
@@ -76,6 +99,45 @@ function getLogicalDrives(): string[] {
     return drives.length > 0 ? drives : ["C"];
   } catch {
     return ["C"];
+  }
+}
+
+// Async variants used in tick() so the event loop stays free during Ollama streaming
+async function getLogicalDrivesAsync(): Promise<string[]> {
+  try {
+    const script = `Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -in 2,3 } | Select-Object DeviceID | ConvertTo-Json -Compress`;
+    const raw = (await psAsync(script)).trim();
+    if (!raw) return ["C"];
+    const parsed = JSON.parse(raw) as
+      | { DeviceID: string }
+      | { DeviceID: string }[];
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    const drives = items
+      .map((i) => i.DeviceID.replace(":", "").trim().toUpperCase())
+      .filter((l) => l.length === 1);
+    return drives.length > 0 ? drives : ["C"];
+  } catch {
+    return ["C"];
+  }
+}
+
+async function getDiskMetricAsync(drive: string): Promise<DiskMetric | null> {
+  try {
+    const script = `Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='${drive}:'" | Select-Object FreeSpace,Size | ConvertTo-Json -Compress`;
+    const raw = (await psAsync(script)).trim();
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { FreeSpace: number; Size: number };
+    const free = Number(parsed.FreeSpace);
+    const total = Number(parsed.Size);
+    if (!total) return null;
+    return {
+      drive,
+      usedPct: Math.round(((total - free) / total) * 100),
+      freeBytes: free,
+      totalBytes: total,
+    };
+  } catch {
+    return null;
   }
 }
 
@@ -127,6 +189,30 @@ export function getPnPSnapshot(): Map<string, PnPDevice> {
     }
   } catch {
     // PnP query failed — return empty snapshot
+  }
+  return map;
+}
+
+async function getPnPSnapshotAsync(): Promise<Map<string, PnPDevice>> {
+  const map = new Map<string, PnPDevice>();
+  try {
+    const script =
+      "Get-PnpDevice -Class Camera,Image,DiskDrive,USB -Status OK | Select-Object InstanceId,FriendlyName,Class | ConvertTo-Json -Compress";
+    const raw = (await psAsync(script)).trim();
+    if (!raw) return map;
+    const parsed: unknown = JSON.parse(raw);
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    for (const item of items as Array<Record<string, unknown>>) {
+      const id = (item["InstanceId"] as string) ?? "";
+      if (!id) continue;
+      map.set(id, {
+        instanceId: id,
+        name: (item["FriendlyName"] as string) ?? "Unbekanntes Gerät",
+        class: (item["Class"] as string) ?? "",
+      });
+    }
+  } catch {
+    // PnP query failed
   }
   return map;
 }
