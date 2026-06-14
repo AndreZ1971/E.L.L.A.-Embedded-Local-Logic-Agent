@@ -754,9 +754,12 @@ const Chat: React.FC = () => {
             method: "POST",
             body: form,
           });
-          const { text } = (await r.json()) as { text: string };
-          if (text) {
-            setInput(text);
+          const data = (await r.json()) as { text?: string; error?: string };
+          if (!r.ok) {
+            setMicStatus(data.error ?? "Spracherkennung nicht verfügbar");
+            setTimeout(() => setMicStatus(""), 6000);
+          } else if (data.text) {
+            setInput(data.text);
           } else {
             setMicStatus("Nicht verstanden — bitte nochmal");
             setTimeout(() => setMicStatus(""), 3000);
@@ -823,9 +826,17 @@ const Chat: React.FC = () => {
             method: "POST",
             body: form,
           });
-          const { text } = (await r.json()) as { text: string };
-          const clean = (text ?? "").trim();
-          // Mindestlänge 4 Wörter — filtert Musik/Hintergrundgeräusche
+          const data = (await r.json()) as { text?: string; error?: string };
+          if (!r.ok) {
+            // Spracherkennung nicht verfügbar (z.B. kein OpenAI-Key) — VAD stoppen
+            setMicStatus(data.error ?? "Spracherkennung nicht verfügbar");
+            setTimeout(() => setMicStatus(""), 8000);
+            vad.stop();
+            setWakeListening(false);
+            return;
+          }
+          const clean = (data.text ?? "").trim();
+          // Mindestlänge 2 Wörter — filtert Musik/Hintergrundgeräusche
           const wordCount = clean.split(/\s+/).filter(Boolean).length;
           if (clean && wordCount >= 2 && !HALLUCINATION_RE.test(clean)) {
             sendText(clean);
@@ -905,8 +916,16 @@ const Chat: React.FC = () => {
                   method: "POST",
                   body: form,
                 });
-                const { text } = (await r.json()) as { text: string };
-                clean = (text ?? "").trim();
+                const data = (await r.json()) as {
+                  text?: string;
+                  error?: string;
+                };
+                if (!r.ok) {
+                  setMicStatus(data.error ?? "Spracherkennung nicht verfügbar");
+                  setTimeout(() => setMicStatus(""), 6000);
+                  return;
+                }
+                clean = (data.text ?? "").trim();
               } catch {
                 setMicStatus("Transkription fehlgeschlagen — bitte nochmal");
                 setTimeout(() => setMicStatus(""), 3000);
@@ -955,8 +974,16 @@ const Chat: React.FC = () => {
               method: "POST",
               body: form2,
             });
-            const { text } = (await trR.json()) as { text: string };
-            const clean = (text ?? "").trim();
+            const trData = (await trR.json()) as {
+              text?: string;
+              error?: string;
+            };
+            if (!trR.ok) {
+              setMicStatus(trData.error ?? "Spracherkennung nicht verfügbar");
+              setTimeout(() => setMicStatus(""), 6000);
+              return;
+            }
+            const clean = (trData.text ?? "").trim();
 
             if (clean && !HALLUCINATION_RE.test(clean)) {
               const command = clean.replace(/^.*?el+a+[,.\s!?]*/i, "").trim();
