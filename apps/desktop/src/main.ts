@@ -250,6 +250,9 @@ function freePort(port: number): Promise<void> {
   });
 }
 
+let apiRestartCount = 0;
+const API_MAX_RESTARTS = 5;
+
 function startApi(): void {
   const apiDir = path.join(app.getAppPath(), "../api");
   const bundledNode = vendorPath("node", "node.exe");
@@ -272,9 +275,22 @@ function startApi(): void {
   apiProcess.stderr?.on("data", (d: Buffer) =>
     log("[API-ERR] " + d.toString().trimEnd()),
   );
-  apiProcess.on("exit", (code: number | null) =>
-    log(`[API] Prozess beendet, Code: ${code}`),
-  );
+  apiProcess.on("exit", (code: number | null) => {
+    log(`[API] Prozess beendet, Code: ${code}`);
+    if (isQuitting) return;
+    if (apiRestartCount >= API_MAX_RESTARTS) {
+      log(`[API] Zu viele Neustarts (${API_MAX_RESTARTS}) — gebe auf.`);
+      return;
+    }
+    apiRestartCount++;
+    const delay = Math.min(3000 * apiRestartCount, 15000);
+    log(
+      `[API] Neustart in ${delay / 1000}s… (Versuch ${apiRestartCount}/${API_MAX_RESTARTS})`,
+    );
+    setTimeout(() => {
+      if (!isQuitting) startApi();
+    }, delay);
+  });
   apiProcess.on("error", (e) => log(`[API] spawn error: ${e.message}`));
 }
 
