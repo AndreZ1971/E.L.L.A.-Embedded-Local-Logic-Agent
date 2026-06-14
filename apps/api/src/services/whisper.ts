@@ -1,49 +1,58 @@
-import { pipeline, env as xenv } from "@xenova/transformers";
 import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
-import { createRequire } from "module";
 import { getSettings } from "./settings.js";
 import { env } from "../config/env.js";
 
 const execAsync = promisify(exec);
 
-// ffmpeg-static liefert ffmpeg.exe gebündelt — kein System-Install nötig
-const _require = createRequire(import.meta.url);
-const ffmpegBin: string = _require("ffmpeg-static");
+// ffmpeg-static: lazy geladen damit kein Crash beim Start wenn Binary fehlt
+let _ffmpegBin: string | null = null;
+function getFfmpegBin(): string {
+  if (!_ffmpegBin) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    _ffmpegBin = require("ffmpeg-static") as string;
+  }
+  return _ffmpegBin;
+}
 
-// Modell lokal im API-Verzeichnis cachen statt im globalen HuggingFace-Pfad
-xenv.cacheDir = "./whisper-cache";
-
-type ASRPipeline = Awaited<ReturnType<typeof pipeline>>;
+// Xenova-Typen — nur für Laufzeit-Cast, kein Top-Level-Import
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ASRPipeline = (audio: unknown, opts: unknown) => Promise<unknown>;
 
 let _pipe: ASRPipeline | null = null;
 let _loading: Promise<ASRPipeline> | null = null;
 
-// whisper-small: deutlich besser als base (~244 MB, einmalig geladen)
 const MODEL = "Xenova/whisper-small";
 
 export async function getWhisperPipeline(): Promise<ASRPipeline> {
   if (_pipe) return _pipe;
   if (_loading) return _loading;
 
+  // @xenova/transformers lazy laden — nicht beim API-Start, nur wenn Whisper gebraucht wird
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { pipeline, env: xenv } = (await import("@xenova/transformers")) as any;
+  xenv.cacheDir = "./whisper-cache";
+
   _loading = pipeline("automatic-speech-recognition", MODEL, {
-    progress_callback: (p: { status: string; progress?: number }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    progress_callback: (p: any) => {
       if (p.status === "downloading") {
         const pct = Math.round(p.progress ?? 0);
         process.stdout.write(`\r[WHISPER] Lade Modell: ${pct}%   `);
       }
     },
-  }).then((p) => {
-    _pipe = p;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }).then((p: any) => {
+    _pipe = p as ASRPipeline;
     _loading = null;
     process.stdout.write("\n[WHISPER] Modell bereit.\n");
-    return p;
+    return _pipe;
   });
 
-  return _loading;
+  return _loading as Promise<ASRPipeline>;
 }
 
 // OpenAI Whisper API — wenn API-Key konfiguriert (whisper-1 ≈ large-v2, beste Genauigkeit)
@@ -79,7 +88,7 @@ async function transcribeLocal(audioBuffer: Buffer): Promise<string> {
     await fs.writeFile(tmpInput, audioBuffer);
 
     const { stdout: pcm } = await execAsync(
-      `"${ffmpegBin}" -y -i "${tmpInput}" -ar 16000 -ac 1 -f f32le -`,
+      `"${getFfmpegBin()}" -y -i "${tmpInput}" -ar 16000 -ac 1 -f f32le -`,
       { encoding: "buffer", maxBuffer: 10 * 1024 * 1024, timeout: 15000 },
     );
 
