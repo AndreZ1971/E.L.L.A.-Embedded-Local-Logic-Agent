@@ -82,11 +82,23 @@ async function startMariaDB(): Promise<void> {
     console.log("[MariaDB] Erststart — initialisiere Datenverzeichnis…");
     sendSetupStatus("Datenbank wird eingerichtet…");
     fs.mkdirSync(dataDir, { recursive: true });
+    const baseDir = vendorPath("mariadb");
     await new Promise<void>((resolve, reject) => {
       const init = spawn(
         mysqld,
-        ["--initialize-insecure", `--datadir=${dataDir}`],
+        [
+          "--initialize-insecure",
+          `--basedir=${baseDir}`,
+          `--datadir=${dataDir}`,
+        ],
         { stdio: "pipe" },
+      );
+      // mysqld-Ausgabe ins Startup-Log für Fehlerdiagnose
+      init.stderr?.on("data", (d: Buffer) =>
+        log(`[MariaDB-init] ${d.toString().trimEnd()}`),
+      );
+      init.stdout?.on("data", (d: Buffer) =>
+        log(`[MariaDB-init] ${d.toString().trimEnd()}`),
       );
       // Timeout: nach 3 Minuten abbrechen — bei manchen Systemen hängt initialize
       const timer = setTimeout(() => {
