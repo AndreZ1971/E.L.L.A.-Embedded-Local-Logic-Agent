@@ -239,17 +239,30 @@ function EllaSplash({ setupMsg }: { setupMsg: string }) {
         />
       </div>
       {setupMsg ? (
-        <p
+        <div
           style={{
-            color: "#7c6af7",
-            fontSize: "0.88rem",
-            maxWidth: 320,
+            maxWidth: 380,
             textAlign: "center",
-            minHeight: "2.5em",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
           }}
         >
-          {setupMsg}
-        </p>
+          {setupMsg.split("\n").map((line, i) => (
+            <p
+              key={i}
+              style={{
+                color: i === 0 ? "#a78bfa" : "#94a3b8",
+                fontSize: i === 0 ? "0.95rem" : "0.82rem",
+                fontWeight: i === 0 ? 600 : 400,
+                margin: 0,
+                fontStyle: i > 0 && !line.match(/\d/) ? "italic" : "normal",
+              }}
+            >
+              {line}
+            </p>
+          ))}
+        </div>
       ) : (
         <p
           style={{
@@ -282,6 +295,20 @@ function AppShell() {
   const [boot, setBoot] = useState<BootStatus | null>(null);
   const [ollamaReady, setOllamaReady] = useState(false);
   const [setupMsg, setSetupMsg] = useState("");
+  const [modelPulling, setModelPulling] = useState(false);
+
+  // IPC: model-pull-state — keeps splash visible during first-time download
+  useEffect(() => {
+    const api = (
+      window as {
+        electronAPI?: {
+          onModelPullState?: (cb: (active: boolean) => void) => () => void;
+        };
+      }
+    ).electronAPI;
+    if (!api?.onModelPullState) return;
+    return api.onModelPullState((active) => setModelPulling(active));
+  }, []);
 
   // IPC: setup-status from Electron main process
   useEffect(() => {
@@ -369,7 +396,8 @@ function AppShell() {
     };
   }, []);
 
-  if (boot === null || !ollamaReady) return <EllaSplash setupMsg={setupMsg} />;
+  if (boot === null || !ollamaReady || modelPulling)
+    return <EllaSplash setupMsg={setupMsg} />;
 
   const path = location.pathname;
   const isFullscreen =

@@ -67,6 +67,10 @@ function sendSetupStatus(msg: string): void {
   mainWindow?.webContents.send("ella:setup", msg);
 }
 
+function sendModelPullState(active: boolean): void {
+  mainWindow?.webContents.send("ella:model-pull-state", active);
+}
+
 // ── MariaDB (portable) ────────────────────────────────────────────────────────
 
 async function startMariaDB(): Promise<void> {
@@ -305,8 +309,10 @@ async function ensureOllamaModel(): Promise<void> {
   // Model not found — pull it with progress shown in UI
   log(`[Ollama] Modell ${modelName} nicht gefunden — starte Download.`);
   sendSetupStatus(
-    `KI-Modell wird erstmalig geladen (${modelName})…\nDas dauert je nach Internetgeschwindigkeit 10–30 Minuten.`,
+    `Hallo! Ich bin E.L.L.A. — deine lokale KI.\n\nBevor wir loslegen, lade ich mein Gehirn herunter.\nDas passiert nur einmal und dauert je nach Internet 10–30 Minuten.\n\nBitte lass das Fenster offen — ich melde mich wenn ich bereit bin.`,
   );
+
+  sendModelPullState(true);
 
   await new Promise<void>((resolve) => {
     const proc = spawn(ollamaExe, ["pull", modelName], {
@@ -317,8 +323,12 @@ async function ensureOllamaModel(): Promise<void> {
       const line = d.toString().trim();
       if (line) {
         log(`[Ollama-Pull] ${line}`);
-        // Forward progress lines to UI (e.g. "pulling manifest", "42% ...")
-        sendSetupStatus(`Lade Modell ${modelName}…\n${line}`);
+        // Parse percentage out of lines like "pulling abc123... 42%"
+        const pctMatch = line.match(/(\d+)%/);
+        const pct = pctMatch ? ` (${pctMatch[1]}%)` : "";
+        sendSetupStatus(
+          `Ich lade gerade mein KI-Modell herunter${pct}\n\nBitte warten — das passiert nur beim ersten Start.\n${line}`,
+        );
       }
     });
     proc.stderr?.on("data", (d: Buffer) => {
@@ -328,17 +338,21 @@ async function ensureOllamaModel(): Promise<void> {
     proc.on("close", (code) => {
       if (code === 0) {
         log(`[Ollama] Modell ${modelName} erfolgreich geladen.`);
-        sendSetupStatus(`Modell geladen. Starte E.L.L.A.…`);
+        sendSetupStatus(
+          `Mein Gehirn ist geladen — ich bin jetzt vollständig bereit!\n\nE.L.L.A. startet…`,
+        );
       } else {
         log(`[Ollama] Pull beendet mit Code ${code} — ELLA startet trotzdem.`);
         sendSetupStatus(
-          `Modell-Download fehlgeschlagen (${code}). ELLA startet ohne KI.`,
+          `Modell-Download unterbrochen (Code ${code}).\nE.L.L.A. startet — du kannst den Download in den Einstellungen wiederholen.`,
         );
       }
+      sendModelPullState(false);
       resolve();
     });
     proc.on("error", (e) => {
       log(`[Ollama] Pull spawn error: ${e.message}`);
+      sendModelPullState(false);
       resolve();
     });
   });
@@ -789,12 +803,13 @@ app.whenReady().then(async () => {
 
     await startMariaDB().catch((e) => log(`[MariaDB] FEHLER: ${e}`));
     await startOllama().catch((e) => log(`[Ollama] FEHLER: ${e}`));
-    await ensureOllamaModel().catch((e) =>
-      log(`[Ollama] Modell-Check Fehler: ${e}`),
-    );
-    sendSetupStatus("Starte E.L.L.A.…");
+
+    // API und Modell-Download parallel starten — API antwortet sofort,
+    // Modell wird im Hintergrund geladen (Status via IPC ins UI)
     startApi();
     startKokoroTts();
+    ensureOllamaModel().catch((e) => log(`[Ollama] Modell-Check Fehler: ${e}`));
+
     try {
       log(`Warte auf API :${API_PORT}…`);
       await waitForPort(API_PORT);
