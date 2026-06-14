@@ -83,6 +83,7 @@ async function startMariaDB(): Promise<void> {
     sendSetupStatus("Datenbank wird eingerichtet…");
     fs.mkdirSync(dataDir, { recursive: true });
     const baseDir = vendorPath("mariadb");
+    const initErrorLog = path.join(app.getPath("userData"), "mariadb-init.log");
     await new Promise<void>((resolve, reject) => {
       const init = spawn(
         mysqld,
@@ -90,6 +91,7 @@ async function startMariaDB(): Promise<void> {
           "--initialize-insecure",
           `--basedir=${baseDir}`,
           `--datadir=${dataDir}`,
+          `--log-error=${initErrorLog}`,
         ],
         { stdio: "pipe" },
       );
@@ -107,9 +109,18 @@ async function startMariaDB(): Promise<void> {
       }, 180_000);
       init.on("close", (code) => {
         clearTimeout(timer);
-        code === 0
-          ? resolve()
-          : reject(new Error(`mysqld --initialize exit ${code}`));
+        if (code === 0) {
+          resolve();
+        } else {
+          // Init-Log auslesen für bessere Fehlerdiagnose
+          try {
+            const errLog = fs.readFileSync(initErrorLog, "utf-8");
+            log(`[MariaDB-init-log]\n${errLog.slice(-2000)}`);
+          } catch {
+            /* Log-Datei evtl. nicht erstellt */
+          }
+          reject(new Error(`mysqld --initialize exit ${code}`));
+        }
       });
       init.on("error", (e) => {
         clearTimeout(timer);

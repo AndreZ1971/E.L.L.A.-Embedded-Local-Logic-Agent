@@ -175,6 +175,10 @@ app.use(errorHandler);
 
 loadSettings()
   .then(runMigrations)
+  .catch((err: unknown) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[ELLA] DB nicht verfügbar (${msg}) — starte ohne DB`);
+  })
   .then(() => {
     app.listen(env.port, () => {
       console.log(`E.L.L.A. API  →  http://localhost:${env.port}`);
