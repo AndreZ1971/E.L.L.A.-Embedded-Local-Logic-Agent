@@ -282,16 +282,11 @@ export async function getTcpConnections(): Promise<TcpConnection[]> {
   }
 }
 
-function getListeningPorts(): Set<number> {
+async function getListeningPorts(): Promise<Set<number>> {
   try {
     const script =
       "Get-NetTCPConnection -State Listen | Select-Object -ExpandProperty LocalPort | Sort-Object -Unique | ConvertTo-Json -Compress";
-    const encoded = Buffer.from(script, "utf16le").toString("base64");
-    const out = execSync(
-      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
-      { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8", timeout: 8000 },
-    );
-    const raw = out.trim();
+    const raw = (await psAsync(script)).trim();
     if (!raw) return new Set();
     const parsed: unknown = JSON.parse(raw);
     const items = Array.isArray(parsed) ? parsed : [parsed];
@@ -301,16 +296,11 @@ function getListeningPorts(): Set<number> {
   }
 }
 
-function checkFirewallDisabled(): string[] {
+async function checkFirewallDisabled(): Promise<string[]> {
   try {
     const script =
       "Get-NetFirewallProfile | Where-Object { -not $_.Enabled } | Select-Object -ExpandProperty Name | ConvertTo-Json -Compress";
-    const encoded = Buffer.from(script, "utf16le").toString("base64");
-    const out = execSync(
-      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
-      { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8", timeout: 8000 },
-    );
-    const raw = out.trim();
+    const raw = (await psAsync(script)).trim();
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as string[]) : [parsed as string];
@@ -319,13 +309,12 @@ function checkFirewallDisabled(): string[] {
   }
 }
 
-function checkOpenWifi(): boolean {
+async function checkOpenWifi(): Promise<boolean> {
   try {
-    const out = execSync("netsh wlan show interfaces", {
-      stdio: ["ignore", "pipe", "ignore"],
-      encoding: "utf-8",
+    const { stdout } = await execAsync("netsh wlan show interfaces", {
+      timeout: 5000,
     });
-    const authLine = out
+    const authLine = stdout
       .split("\n")
       .find((l) => l.toLowerCase().includes("authentication"));
     return !!authLine && authLine.toLowerCase().includes(": open");
@@ -334,16 +323,11 @@ function checkOpenWifi(): boolean {
   }
 }
 
-function getDnsServers(): string {
+async function getDnsServers(): Promise<string> {
   try {
     const script =
       "Get-DnsClientServerAddress -AddressFamily IPv4 | Select-Object -ExpandProperty ServerAddresses | Where-Object { $_ } | Sort-Object -Unique | ConvertTo-Json -Compress";
-    const encoded = Buffer.from(script, "utf16le").toString("base64");
-    const out = execSync(
-      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
-      { stdio: ["ignore", "pipe", "ignore"], encoding: "utf-8", timeout: 8000 },
-    );
-    return out.trim();
+    return (await psAsync(script)).trim();
   } catch {
     return "";
   }
@@ -436,8 +420,8 @@ async function tick() {
   const now = new Date().toISOString();
 
   // ── Disk ──────────────────────────────────────────────────────
-  for (const drive of getLogicalDrives()) {
-    const m = getDiskMetric(drive);
+  for (const drive of await getLogicalDrivesAsync()) {
+    const m = await getDiskMetricAsync(drive);
     if (!m) continue;
 
     await writeEvent("disk", {
@@ -474,7 +458,7 @@ async function tick() {
   ollamaWasDown = !ollamaOk;
 
   // ── PnP Delta-Detection ───────────────────────────────────────
-  const currentDevices = getPnPSnapshot();
+  const currentDevices = await getPnPSnapshotAsync();
 
   if (!devicesInitialized) {
     lastDevices = currentDevices;
@@ -548,7 +532,7 @@ async function tick() {
     lastArpIps = currentArpIps;
   }
 
-  const currentPorts = getListeningPorts();
+  const currentPorts = await getListeningPorts();
   if (!portsInitialized) {
     lastListeningPorts = currentPorts;
     portsInitialized = true;
@@ -566,7 +550,7 @@ async function tick() {
     lastListeningPorts = currentPorts;
   }
 
-  const nowDisabled = new Set(checkFirewallDisabled());
+  const nowDisabled = new Set(await checkFirewallDisabled());
   for (const profile of nowDisabled) {
     if (!disabledFirewallProfiles.has(profile)) {
       await writeEvent("alert", {
@@ -578,7 +562,7 @@ async function tick() {
   }
   disabledFirewallProfiles = nowDisabled;
 
-  const wifiOpen = checkOpenWifi();
+  const wifiOpen = await checkOpenWifi();
   if (wifiOpen && !openWifiAlerted) {
     await writeEvent("alert", {
       severity: "warning",
@@ -587,7 +571,7 @@ async function tick() {
   }
   openWifiAlerted = wifiOpen;
 
-  const currentDns = getDnsServers();
+  const currentDns = await getDnsServers();
   if (lastDnsServers && currentDns && currentDns !== lastDnsServers) {
     await writeEvent("alert", {
       severity: "warning",
