@@ -61,10 +61,14 @@ export interface Settings {
   licenseProduct: string;
 }
 
-const SETTINGS_PATH = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../settings.json",
-);
+// Im Installer: ELLA_USERDATA = %APPDATA%\ELLA (gesetzt von Electron main.ts)
+// Im Dev-Modus: relativer Pfad vom API-Verzeichnis
+const SETTINGS_PATH = process.env.ELLA_USERDATA
+  ? path.join(process.env.ELLA_USERDATA, "settings.json")
+  : path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "../../settings.json",
+    );
 
 export const DEFAULT_SETTINGS: Settings = {
   provider: "auto",

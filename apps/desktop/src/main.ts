@@ -83,16 +83,13 @@ async function startMariaDB(): Promise<void> {
     sendSetupStatus("Datenbank wird eingerichtet…");
     fs.mkdirSync(dataDir, { recursive: true });
     const baseDir = vendorPath("mariadb");
+    // MariaDB nutzt mysql_install_db.exe für Initialisierung (nicht mysqld --initialize-insecure wie MySQL)
+    const installDb = vendorPath("mariadb", "bin", "mysql_install_db.exe");
     const initErrorLog = path.join(app.getPath("userData"), "mariadb-init.log");
     await new Promise<void>((resolve, reject) => {
       const init = spawn(
-        mysqld,
-        [
-          "--initialize-insecure",
-          `--basedir=${baseDir}`,
-          `--datadir=${dataDir}`,
-          `--log-error=${initErrorLog}`,
-        ],
+        installDb,
+        [`--datadir=${dataDir}`, `--service=ELLA_MariaDB`],
         { stdio: "pipe" },
       );
       // mysqld-Ausgabe ins Startup-Log für Fehlerdiagnose
@@ -266,7 +263,11 @@ function startApi(): void {
   apiProcess = spawn(nodeExe, ["dist/bundle.cjs"], {
     cwd: apiDir,
     stdio: "pipe",
-    env: { ...process.env, ELLA_RESOURCES: process.resourcesPath },
+    env: {
+      ...process.env,
+      ELLA_RESOURCES: process.resourcesPath,
+      ELLA_USERDATA: app.getPath("userData"),
+    },
   });
 
   apiProcess.stdout?.on("data", (d: Buffer) => {
