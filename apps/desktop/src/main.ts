@@ -54,13 +54,13 @@ let ttsProcess: ChildProcess | null = null;
 let mariadbProcess: ChildProcess | null = null;
 let ollamaProcess: ChildProcess | null = null;
 
-// In production: process.resourcesPath = <install>/resources
-// In dev: process.resourcesPath points to electron's own dist/resources (no vendor binaries there),
-// so we must use the repo vendor/ folder explicitly when isDev.
+// In production (installed via NSIS): process.resourcesPath = <install>/resources
+// When running from source (electron . without installer): app.isPackaged = false,
+// process.resourcesPath points to electron's own dist/resources (no vendor binaries).
 function vendorPath(...parts: string[]): string {
-  const base = isDev
-    ? path.join(app.getAppPath(), "..", "..", "..", "vendor")
-    : process.resourcesPath;
+  const base = app.isPackaged
+    ? process.resourcesPath
+    : path.join(app.getAppPath(), "..", "..", "..", "vendor");
   return path.join(base, ...parts);
 }
 
@@ -373,9 +373,9 @@ function startApi(): void {
     stdio: "pipe",
     env: {
       ...process.env,
-      ELLA_RESOURCES: isDev
-        ? path.join(app.getAppPath(), "..", "..", "..", "vendor")
-        : process.resourcesPath,
+      ELLA_RESOURCES: app.isPackaged
+        ? process.resourcesPath
+        : path.join(app.getAppPath(), "..", "..", "..", "vendor"),
       ELLA_USERDATA: app.getPath("userData"),
     },
   });
