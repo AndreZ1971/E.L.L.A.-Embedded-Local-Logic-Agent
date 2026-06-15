@@ -4,7 +4,7 @@
 
 Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automatisierung — vollständig offline via Ollama, optional mit OpenAI GPT-4o.
 
-**Version:** v1.0.0-rc · Windows 10/11 (x64)
+**Version:** v1.1.0-rc · Windows 10/11 (x64)
 
 _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -16,7 +16,7 @@ _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
 1. `E.L.L.A Setup 1.0.0-rc.exe` ausführen
 2. Installationspfad wählen (Standard: `C:\Programme\E.L.L.A`)
-3. Beim ersten Start: EULA → Lizenzaktivierung → Onboarding → Chat
+3. Beim ersten Start: **Sprachauswahl** (DE/EN) → EULA → Lizenzaktivierung → Onboarding → Chat
 
 Der Installer enthält als portable Vendored Binaries:
 
@@ -261,7 +261,7 @@ Background Worker (60s Interval)
   ├─ Disk/RAM/Ollama-Monitoring → SSE-Alerts
   ├─ PnP Delta-Detection (Webcam, USB, externe Laufwerke) + TTS-Ansage
   ├─ ARP-LAN-Scan, TCP-Verbindungen, Firewall/WiFi/DNS-Monitoring
-  ├─ Clipboard-Polling (3s) → History + Muster-Erkennung
+  ├─ Clipboard-Polling (3s, deaktiviert sich nach 3 Fehlern) → History + Muster-Erkennung
   │    (IBAN, Paketnummer, Telefon, URL, E-Mail → proaktive Nachricht)
   ├─ Meeting-Prep (5 Min), Tagesabschluss (18 Uhr), Comeback (30 Min)
   └─ Pause-Reminder (90 Min), Rhythmus-Analyse (12 Uhr), Duplikat-Scan (So 10 Uhr)

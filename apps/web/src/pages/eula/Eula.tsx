@@ -1,38 +1,31 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useBootContext } from "../../App";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
 
-const EULA_POINTS = [
-  {
-    title: "Vollständig lokal",
-    body: "E.L.L.A. läuft auf deinem Rechner. Keine Cloud, kein Tracking, kein Abo.",
-  },
-  {
-    title: "OpenAI-Hinweis",
-    body: "Falls du unter Einstellungen einen OpenAI-API-Key einträgst, werden deine Nachrichten an OpenAI-Server übertragen. Mit Ollama bleiben alle Daten ausschließlich auf deinem Gerät.",
-  },
-  {
-    title: "Systemzugriff",
-    body: "E.L.L.A. kann Programme starten, temporäre Dateien bereinigen, E-Mails lesen und Kalendereinträge erstellen — aber nur auf deinen expliziten Befehl hin.",
-  },
-  {
-    title: "Unveränderliche Grenze",
-    body: "Ungelesene E-Mails werden niemals gelöscht. Diese Grenze ist technisch verankert und kann durch keine Regel überschrieben werden.",
-  },
-  {
-    title: "Verantwortung",
-    body: "Du trägst die Verantwortung für alle Aktionen die du E.L.L.A. beauftragst. Destruktive Aktionen (Papierkorb leeren, Temp-Dateien löschen) sind standardmäßig gesperrt und müssen explizit freigeschaltet werden.",
-  },
-] as const;
-
 export default function Eula() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { setBoot } = useBootContext();
   const [accepted, setAccepted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const EULA_POINTS = [
+    { title: t("eula.items.local_title"), body: t("eula.items.local_body") },
+    { title: t("eula.items.openai_title"), body: t("eula.items.openai_body") },
+    { title: t("eula.items.system_title"), body: t("eula.items.system_body") },
+    {
+      title: t("eula.items.boundary_title"),
+      body: t("eula.items.boundary_body"),
+    },
+    {
+      title: t("eula.items.responsibility_title"),
+      body: t("eula.items.responsibility_body"),
+    },
+  ];
 
   async function confirm() {
     if (!accepted || saving) return;
@@ -47,21 +40,17 @@ export default function Eula() {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setBoot((prev) => (prev ? { ...prev, eulaAccepted: true } : prev));
       navigate("/activation");
-    } catch (e) {
+    } catch {
       setSaving(false);
-      setError(
-        "E.L.L.A.-Dienst nicht erreichbar. Bitte warte kurz und versuche es erneut.",
-      );
+      setError(t("eula.offline"));
     }
   }
 
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Nutzungshinweise</h1>
-        <p style={styles.subtitle}>
-          Bitte lies die folgenden Punkte bevor du E.L.L.A. verwendest.
-        </p>
+        <h1 style={styles.title}>{t("eula.title")}</h1>
+        <p style={styles.subtitle}>{t("eula.subtitle")}</p>
 
         <ol style={styles.list}>
           {EULA_POINTS.map((p) => (
@@ -79,9 +68,7 @@ export default function Eula() {
             onChange={(e) => setAccepted(e.target.checked)}
             style={styles.checkbox}
           />
-          <span>
-            Ich habe die Nutzungshinweise gelesen und stimme ihnen zu.
-          </span>
+          <span>{t("eula.accept")}</span>
         </label>
 
         {error && (
@@ -105,7 +92,7 @@ export default function Eula() {
             cursor: accepted && !saving ? "pointer" : "not-allowed",
           }}
         >
-          {saving ? "Wird gespeichert…" : "Bestätigen und weiter →"}
+          {saving ? "…" : t("eula.confirm")}
         </button>
       </div>
     </div>

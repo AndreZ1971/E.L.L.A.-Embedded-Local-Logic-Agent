@@ -661,17 +661,25 @@ export const worker = {
 
     // Clipboard-Polling alle 3 Sekunden
     let lastClip = "";
+    let clipboardFailCount = 0;
     clipboardTimer = setInterval(() => {
+      if (clipboardFailCount >= 3) return; // nach 3 Fehlern deaktivieren
       try {
-        const ps = "Get-Clipboard -Raw";
+        // try/catch im PS-Script verhindert stderr-Output bei fehlendem Clipboard
+        const ps =
+          "try { Get-Clipboard -Raw } catch { [System.String]::Empty }";
         const clip = execSync(
           `powershell -NoProfile -NonInteractive -EncodedCommand ${psEncode(ps)}`,
-          { encoding: "utf-8", timeout: 2000 },
+          {
+            encoding: "utf-8",
+            timeout: 2000,
+            stdio: ["ignore", "pipe", "ignore"],
+          },
         ).trim();
+        clipboardFailCount = 0;
         if (clip && clip !== lastClip && clip.length < 50000) {
           lastClip = clip;
           recordClipboard(clip);
-          // Muster erkennen und proaktive Nachricht senden (nur lokal, kein LLM)
           if (getSettings().clipboardPatternEnabled) {
             const pattern = detectPattern(clip);
             if (pattern) {
@@ -680,7 +688,7 @@ export const worker = {
           }
         }
       } catch {
-        // Clipboard nicht verfügbar
+        clipboardFailCount++;
       }
     }, 3000);
   },

@@ -80,6 +80,8 @@ import Onboarding from "./pages/onboarding/Onboarding";
 import Eula from "./pages/eula/Eula";
 import Setup from "./pages/setup/Setup";
 import Activation from "./pages/activation/Activation";
+import LanguageSelect from "./pages/language/LanguageSelect";
+import i18n from "./i18n";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
 
@@ -87,6 +89,7 @@ export interface BootStatus {
   eulaAccepted: boolean;
   licenseActivated: boolean;
   onboardingComplete: boolean;
+  language: string;
 }
 
 interface BootCtxValue {
@@ -327,10 +330,13 @@ function AppShell() {
     fetch(`${API}/api/settings`)
       .then((r) => r.json())
       .then((d: Partial<BootStatus>) => {
+        const lang = (d.language as string) || "";
+        if (lang) void i18n.changeLanguage(lang);
         setBoot({
           eulaAccepted: d.eulaAccepted ?? false,
           licenseActivated: d.licenseActivated ?? false,
           onboardingComplete: d.onboardingComplete ?? false,
+          language: lang,
         });
       })
       .catch(() => {
@@ -338,18 +344,22 @@ function AppShell() {
         setTimeout(() => {
           fetch(`${API}/api/settings`)
             .then((r) => r.json())
-            .then((d: Partial<BootStatus>) =>
+            .then((d: Partial<BootStatus>) => {
+              const lang = (d.language as string) || "";
+              if (lang) void i18n.changeLanguage(lang);
               setBoot({
                 eulaAccepted: d.eulaAccepted ?? false,
                 licenseActivated: d.licenseActivated ?? false,
                 onboardingComplete: d.onboardingComplete ?? false,
-              }),
-            )
+                language: lang,
+              });
+            })
             .catch(() =>
               setBoot({
                 eulaAccepted: false,
                 licenseActivated: false,
                 onboardingComplete: false,
+                language: "",
               }),
             );
         }, 3000);
@@ -400,12 +410,17 @@ function AppShell() {
 
   const path = location.pathname;
   const isFullscreen =
+    path === "/language" ||
     path === "/eula" ||
     path === "/activation" ||
     path === "/setup" ||
     path === "/onboarding";
 
-  if (!boot.eulaAccepted && path !== "/eula") {
+  if (!boot.language && path !== "/language") {
+    return <Navigate to="/language" replace />;
+  }
+
+  if (boot.language && !boot.eulaAccepted && path !== "/eula") {
     return <Navigate to="/eula" replace />;
   }
 
@@ -465,11 +480,12 @@ function AppShell() {
         <TitleBar />
         {modelPullBanner}
         <Routes>
+          <Route path="/language" element={<LanguageSelect />} />
           <Route path="/eula" element={<Eula />} />
           <Route path="/activation" element={<Activation />} />
           <Route path="/setup" element={<Setup />} />
           <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="*" element={<Navigate to="/eula" replace />} />
+          <Route path="*" element={<Navigate to="/language" replace />} />
         </Routes>
       </BootContext.Provider>
     );

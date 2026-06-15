@@ -1,0 +1,88 @@
+{
+  "lang": {
+    "select": "Sprache wählen",
+    "subtitle": "Wähle deine bevorzugte Sprache. Du kannst sie später in den Einstellungen ändern.",
+    "continue": "Weiter"
+  },
+  "eula": {
+    "title": "Nutzungshinweise",
+    "subtitle": "Bitte lies die folgenden Punkte bevor du E.L.L.A. verwendest.",
+    "accept": "Ich habe die Nutzungshinweise gelesen und stimme ihnen zu.",
+    "confirm": "Bestätigen und weiter →",
+    "offline": "E.L.L.A.-Dienst nicht erreichbar. Bitte warte kurz und versuche es erneut.",
+    "items": {
+      "local_title": "Vollständig lokal",
+      "local_body": "E.L.L.A. läuft auf deinem Rechner. Keine Cloud, kein Tracking, kein Abo.",
+      "openai_title": "OpenAI-Hinweis",
+      "openai_body": "Falls du unter Einstellungen einen OpenAI-API-Key einträgst, werden deine Nachrichten an OpenAI-Server übertragen. Mit Ollama bleiben alle Daten ausschließlich auf deinem Gerät.",
+      "system_title": "Systemzugriff",
+      "system_body": "E.L.L.A. kann Programme starten, temporäre Dateien bereinigen, E-Mails lesen und Kalendereinträge erstellen — aber nur auf deinen expliziten Befehl hin.",
+      "boundary_title": "Unveränderliche Grenze",
+      "boundary_body": "Ungelesene E-Mails werden niemals gelöscht. Diese Grenze ist technisch verankert und kann durch keine Regel überschrieben werden.",
+      "responsibility_title": "Verantwortung",
+      "responsibility_body": "Du trägst die Verantwortung für alle Aktionen die du E.L.L.A. beauftragst. Destruktive Aktionen (Papierkorb leeren, Temp-Dateien löschen) sind standardmäßig gesperrt und müssen explizit freigeschaltet werden."
+    }
+  },
+  "onboarding": {
+    "hardware_title": "Deine Hardware",
+    "hardware_subtitle": "E.L.L.A. wählt automatisch das passende KI-Modell für deinen PC.",
+    "ram_label": "Wie viel Arbeitsspeicher (RAM) hat dein PC?",
+    "gpu_label": "Welche Grafikkarte hast du?",
+    "ram_8": "8 GB",
+    "ram_16": "16 GB",
+    "ram_32": "32 GB oder mehr",
+    "gpu_none": "Keine / Integriert (unter 4 GB VRAM)",
+    "gpu_mid": "Mittelklasse (4–8 GB VRAM)",
+    "gpu_high": "High-End (8 GB+ VRAM)",
+    "model_selected": "Empfohlenes Modell",
+    "model_hint_slow": "Läuft auf deiner Hardware, Antworten dauern 30–60 Sekunden.",
+    "model_hint_medium": "Gute Balance zwischen Geschwindigkeit und Qualität.",
+    "model_hint_fast": "Sehr schnell auf deiner Hardware.",
+    "continue": "Weiter →",
+    "back": "Zurück"
+  },
+  "chat": {
+    "placeholder": "Anweisung eingeben…",
+    "send": "Senden",
+    "clear": "Verlauf löschen",
+    "listening": "ELLA lauscht…",
+    "error_no_response": "Fehler: Keine Antwort — bitte nochmal versuchen.",
+    "error_prefix": "Fehler"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "chat": "Chat",
+    "settings": "Einstellungen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "provider": "KI-Anbieter",
+    "model": "Modell",
+    "voice": "Sprachmodus",
+    "save": "Speichern",
+    "saved": "Gespeichert"
+  },
+  "common": {
+    "loading": "Lädt…",
+    "error": "Fehler",
+    "back": "Zurück",
+    "continue": "Weiter"
+  },
+  "splash": {
+    "quips": [
+      "Einen Moment bitte…",
+      "Ich wache gerade auf.",
+      "Fast fertig.",
+      "Gleich bin ich schlagfertig. Versprochen.",
+      "Kaffee wäre jetzt gut.",
+      "Systeme werden hochgefahren.",
+      "Ich sortiere meine Gedanken.",
+      "Bereit in Kürze."
+    ]
+  },
+  "model_pull": {
+    "banner_title": "KI-Modell wird geladen",
+    "banner_hint": "Bitte warten — das passiert nur einmal beim ersten Start."
+  }
+}

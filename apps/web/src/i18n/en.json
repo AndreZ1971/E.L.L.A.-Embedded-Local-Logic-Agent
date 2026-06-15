@@ -1,0 +1,88 @@
+{
+  "lang": {
+    "select": "Choose your language",
+    "subtitle": "Select your preferred language. You can change it later in settings.",
+    "continue": "Continue"
+  },
+  "eula": {
+    "title": "Usage Notes",
+    "subtitle": "Please read the following before using E.L.L.A.",
+    "accept": "I have read and agree to the usage notes.",
+    "confirm": "Confirm and continue →",
+    "offline": "E.L.L.A. service unreachable. Please wait a moment and try again.",
+    "items": {
+      "local_title": "Fully local",
+      "local_body": "E.L.L.A. runs on your machine. No cloud, no tracking, no subscription.",
+      "openai_title": "OpenAI notice",
+      "openai_body": "If you enter an OpenAI API key in settings, your messages will be sent to OpenAI servers. With Ollama, all data stays exclusively on your device.",
+      "system_title": "System access",
+      "system_body": "E.L.L.A. can launch programs, clean temporary files, read emails and create calendar entries — but only on your explicit command.",
+      "boundary_title": "Immovable boundary",
+      "boundary_body": "Unread emails are never deleted. This boundary is technically anchored and cannot be overridden by any rule.",
+      "responsibility_title": "Responsibility",
+      "responsibility_body": "You bear responsibility for all actions you instruct E.L.L.A. to take. Destructive actions (emptying trash, deleting temp files) are disabled by default and must be explicitly enabled."
+    }
+  },
+  "onboarding": {
+    "hardware_title": "Your hardware",
+    "hardware_subtitle": "E.L.L.A. automatically selects the right AI model for your PC.",
+    "ram_label": "How much RAM does your PC have?",
+    "gpu_label": "What graphics card do you have?",
+    "ram_8": "8 GB",
+    "ram_16": "16 GB",
+    "ram_32": "32 GB or more",
+    "gpu_none": "None / Integrated (under 4 GB VRAM)",
+    "gpu_mid": "Mid-range (4–8 GB VRAM)",
+    "gpu_high": "High-end (8 GB+ VRAM)",
+    "model_selected": "Recommended model",
+    "model_hint_slow": "Runs on your hardware, responses take 30–60 seconds.",
+    "model_hint_medium": "Good balance between speed and quality.",
+    "model_hint_fast": "Very fast on your hardware.",
+    "continue": "Continue →",
+    "back": "Back"
+  },
+  "chat": {
+    "placeholder": "Enter instruction…",
+    "send": "Send",
+    "clear": "Clear history",
+    "listening": "ELLA is listening…",
+    "error_no_response": "Error: No response — please try again.",
+    "error_prefix": "Error"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "chat": "Chat",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "provider": "AI provider",
+    "model": "Model",
+    "voice": "Voice mode",
+    "save": "Save",
+    "saved": "Saved"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Error",
+    "back": "Back",
+    "continue": "Continue"
+  },
+  "splash": {
+    "quips": [
+      "One moment please…",
+      "Just waking up.",
+      "Almost ready.",
+      "Ready to be witty. Promise.",
+      "Coffee would be nice right now.",
+      "Starting up systems.",
+      "Sorting my thoughts.",
+      "Ready shortly."
+    ]
+  },
+  "model_pull": {
+    "banner_title": "Downloading AI model",
+    "banner_hint": "Please wait — this only happens once on first launch."
+  }
+}

@@ -359,8 +359,36 @@ const Chat: React.FC = () => {
 
   /* ── Worker-Events (Alerts) ── */
   useEffect(() => {
-    const es = new EventSource(`${API}/api/events/stream`);
-    es.onmessage = (e: MessageEvent<string>) => {
+    let es: EventSource;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let dead = false;
+
+    function connect() {
+      if (dead) return;
+      es = new EventSource(`${API}/api/events/stream`);
+      es.onerror = () => {
+        es.close();
+        if (!dead) reconnectTimer = setTimeout(connect, 5000);
+      };
+      es.onmessage = handler;
+    }
+
+    function onVisible() {
+      if (document.visibilityState === "visible") {
+        if (reconnectTimer) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = null;
+        }
+        try {
+          es?.close();
+        } catch {
+          /* noop */
+        }
+        connect();
+      }
+    }
+
+    function handler(e: MessageEvent<string>) {
       const ev = JSON.parse(e.data) as {
         type: string;
         payload: Record<string, unknown>;
@@ -469,7 +497,10 @@ const Chat: React.FC = () => {
         ]);
         speakEdge(msg);
       }
-    };
+    }
+
+    connect();
+    document.addEventListener("visibilitychange", onVisible);
 
     // Begrüßung vom Main-Process
     const removeSpeak = (
@@ -490,7 +521,14 @@ const Chat: React.FC = () => {
     });
 
     return () => {
-      es.close();
+      dead = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      document.removeEventListener("visibilitychange", onVisible);
+      try {
+        es?.close();
+      } catch {
+        /* noop */
+      }
       removeSpeak?.();
       removeBackground?.();
     };
