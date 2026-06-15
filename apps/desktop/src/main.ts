@@ -55,11 +55,12 @@ let mariadbProcess: ChildProcess | null = null;
 let ollamaProcess: ChildProcess | null = null;
 
 // In production: process.resourcesPath = <install>/resources
-// In dev: fall back to vendor/ folder in repo root
+// In dev: process.resourcesPath points to electron's own dist/resources (no vendor binaries there),
+// so we must use the repo vendor/ folder explicitly when isDev.
 function vendorPath(...parts: string[]): string {
-  const base =
-    process.resourcesPath ??
-    path.join(app.getAppPath(), "..", "..", "..", "vendor");
+  const base = isDev
+    ? path.join(app.getAppPath(), "..", "..", "..", "vendor")
+    : process.resourcesPath;
   return path.join(base, ...parts);
 }
 
@@ -372,7 +373,9 @@ function startApi(): void {
     stdio: "pipe",
     env: {
       ...process.env,
-      ELLA_RESOURCES: process.resourcesPath,
+      ELLA_RESOURCES: isDev
+        ? path.join(app.getAppPath(), "..", "..", "..", "vendor")
+        : process.resourcesPath,
       ELLA_USERDATA: app.getPath("userData"),
     },
   });
