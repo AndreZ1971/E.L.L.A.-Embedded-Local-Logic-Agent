@@ -327,43 +327,37 @@ function AppShell() {
   }, []);
 
   useEffect(() => {
-    fetch(`${API}/api/settings`)
-      .then((r) => r.json())
-      .then((d: Partial<BootStatus>) => {
-        const lang = (d.language as string) || "";
-        if (lang) void i18n.changeLanguage(lang);
-        setBoot({
-          eulaAccepted: d.eulaAccepted ?? false,
-          licenseActivated: d.licenseActivated ?? false,
-          onboardingComplete: d.onboardingComplete ?? false,
-          language: lang,
-        });
-      })
-      .catch(() => {
-        // API noch nicht bereit — nach 3s nochmal versuchen, niemals Setup überspringen
-        setTimeout(() => {
-          fetch(`${API}/api/settings`)
-            .then((r) => r.json())
-            .then((d: Partial<BootStatus>) => {
-              const lang = (d.language as string) || "";
-              if (lang) void i18n.changeLanguage(lang);
-              setBoot({
-                eulaAccepted: d.eulaAccepted ?? false,
-                licenseActivated: d.licenseActivated ?? false,
-                onboardingComplete: d.onboardingComplete ?? false,
-                language: lang,
-              });
-            })
-            .catch(() =>
-              setBoot({
-                eulaAccepted: false,
-                licenseActivated: false,
-                onboardingComplete: false,
-                language: "",
-              }),
-            );
-        }, 3000);
+    const loadSettings = (d: Partial<BootStatus>) => {
+      const lang = (d.language as string) || "";
+      if (lang) void i18n.changeLanguage(lang);
+      setBoot({
+        eulaAccepted: d.eulaAccepted ?? false,
+        licenseActivated: d.licenseActivated ?? false,
+        onboardingComplete: d.onboardingComplete ?? false,
+        language: lang,
       });
+    };
+    const fetchSettings = (retry: boolean) =>
+      fetch(`${API}/api/settings`)
+        .then((r) => {
+          if (!r.ok) throw new Error(String(r.status));
+          return r.json();
+        })
+        .then((d: Partial<BootStatus>) => loadSettings(d))
+        .catch(() => {
+          if (retry) {
+            setTimeout(() => fetchSettings(false), 3000);
+          } else {
+            // API nicht erreichbar — leeres Boot zeigt Sprachauswahl
+            setBoot({
+              eulaAccepted: false,
+              licenseActivated: false,
+              onboardingComplete: false,
+              language: "",
+            });
+          }
+        });
+    fetchSettings(true);
   }, []);
 
   // Warte bis API antwortet — Ollama-Status wird danach per Banner gezeigt

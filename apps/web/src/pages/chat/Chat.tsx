@@ -179,6 +179,8 @@ const Chat: React.FC = () => {
   const ttsQueueRef = useRef<string[]>([]);
   const ttsQueueBusyRef = useRef(false);
   const ttsQueueAbortRef = useRef<AbortController | null>(null);
+  // true while TTS audio is playing — prevents STT echo loop in Freihand mode
+  const ttsSpeakingRef = useRef(false);
   useEffect(() => {
     ttsEnabledRef.current = ttsEnabled;
   }, [ttsEnabled]);
@@ -224,12 +226,19 @@ const Chat: React.FC = () => {
         currentAudioRef.current = audio;
         audio.onended = () => {
           URL.revokeObjectURL(url);
-          if (currentAudioRef.current === audio) currentAudioRef.current = null;
+          if (currentAudioRef.current === audio) {
+            currentAudioRef.current = null;
+            ttsSpeakingRef.current = false;
+          }
         };
         audio.onerror = () => {
           URL.revokeObjectURL(url);
-          if (currentAudioRef.current === audio) currentAudioRef.current = null;
+          if (currentAudioRef.current === audio) {
+            currentAudioRef.current = null;
+            ttsSpeakingRef.current = false;
+          }
         };
+        ttsSpeakingRef.current = true;
         await audio.play();
       } catch {
         // silent fail — kein Fallback auf andere TTS-Engine
@@ -302,16 +311,22 @@ const Chat: React.FC = () => {
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
         currentAudioRef.current = audio;
+        ttsSpeakingRef.current = true;
         await new Promise<void>((resolve) => {
           audio.onended = () => {
             URL.revokeObjectURL(url);
+            ttsSpeakingRef.current = false;
             resolve();
           };
           audio.onerror = () => {
             URL.revokeObjectURL(url);
+            ttsSpeakingRef.current = false;
             resolve();
           };
-          audio.play().catch(() => resolve());
+          audio.play().catch(() => {
+            ttsSpeakingRef.current = false;
+            resolve();
+          });
         });
       } catch {
         // skip sentence on error
@@ -919,7 +934,7 @@ const Chat: React.FC = () => {
         any,
       ) => {
         const text = ev.results[ev.results.length - 1][0].transcript.trim();
-        if (text && !loadingRef.current) {
+        if (text && !loadingRef.current && !ttsSpeakingRef.current) {
           sendText(text);
         }
       };

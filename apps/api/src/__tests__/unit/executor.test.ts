@@ -423,7 +423,8 @@ describe("format_drive", () => {
     expect(result.success).toBe(false);
     expect(result.requiresConfirmation).toBe(true);
     expect(result.confirmationMessage).toContain("E:");
-    expect(result.pendingAction?.tool).toBe("format_drive_confirmed");
+    expect(result.pendingAction?.tool).toBe("format_drive");
+    expect(result.pendingAction?.args["confirmed"]).toBe(true);
   });
 });
 

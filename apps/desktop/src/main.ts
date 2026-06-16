@@ -60,7 +60,7 @@ let ollamaProcess: ChildProcess | null = null;
 function vendorPath(...parts: string[]): string {
   const base = app.isPackaged
     ? process.resourcesPath
-    : path.join(app.getAppPath(), "..", "..", "..", "vendor");
+    : path.join(app.getAppPath(), "..", "..", "vendor");
   return path.join(base, ...parts);
 }
 
@@ -373,9 +373,11 @@ function startApi(): void {
     stdio: "pipe",
     env: {
       ...process.env,
+      // database/schema.sql liegt als Geschwisterordner von vendor/ im Repo-Root —
+      // ELLA_RESOURCES darf hier NICHT auf vendor/ zeigen (das ist nur für vendorPath()-Binaries).
       ELLA_RESOURCES: app.isPackaged
         ? process.resourcesPath
-        : path.join(app.getAppPath(), "..", "..", "..", "vendor"),
+        : path.join(app.getAppPath(), "..", ".."),
       ELLA_USERDATA: app.getPath("userData"),
     },
   });
