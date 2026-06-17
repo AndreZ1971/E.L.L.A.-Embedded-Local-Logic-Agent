@@ -292,10 +292,7 @@ const Chat: React.FC = () => {
     ttsQueueAbortRef.current = abort;
     while (ttsQueueRef.current.length > 0 && !abort.signal.aborted) {
       const sentence = ttsQueueRef.current.shift()!;
-      const clean = sentence
-        .replace(/[*_`#>~]+/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+      const clean = cleanTextForTTS(sentence);
       if (!clean) continue;
       try {
         const voice = ttsVoiceRef.current || "de-DE-KatjaNeural";
@@ -365,6 +362,7 @@ const Chat: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const vadRef = useRef<AudioVAD | null>(null);
+  const sendTextRef = useRef<(t: string) => void>(() => {});
   const awaitingCommandRef = useRef(false);
   const awaitingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [wakeListening, setWakeListening] = useState(false);
@@ -789,50 +787,7 @@ const Chat: React.FC = () => {
   /* ── Spracheingabe (Web Speech API, kein OpenAI nötig) ── */
   const startRecording = useCallback(() => {
     playTone(880, 120); // Blind-Modus: Ton → ELLA hört jetzt zu
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SR =
-      (window as any).SpeechRecognition ??
-      (window as any).webkitSpeechRecognition;
-    if (SR) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const recog: any = new SR();
-      recog.lang = "de-DE";
-      recog.continuous = false;
-      recog.interimResults = false;
-      recog.onstart = () => {
-        setMicActive(true);
-        setMicStatus("Höre zu…");
-      };
-      recog.onresult = (
-        ev: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        any,
-      ) => {
-        const text = ev.results[0][0].transcript.trim();
-        if (text) setInput(text);
-      };
-      recog.onerror = (
-        ev: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        any,
-      ) => {
-        const msg =
-          ev.error === "no-speech" ? "Nichts gehört" : `Mikrofon: ${ev.error}`;
-        setMicStatus(msg);
-        setTimeout(() => setMicStatus(""), 3000);
-      };
-      recog.onend = () => {
-        setMicActive(false);
-        setMicStatus("");
-      };
-      try {
-        recog.start();
-        mediaRecorderRef.current = null;
-      } catch {
-        setMicStatus("Spracherkennung konnte nicht gestartet werden");
-        setTimeout(() => setMicStatus(""), 3000);
-      }
-      return;
-    }
-    // Fallback: MediaRecorder + Backend (braucht OpenAI-Key)
+    // MediaRecorder + lokales Whisper-Backend (kein Google, kein OpenAI nötig)
     try {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
         const mr = new MediaRecorder(stream);
@@ -895,6 +850,10 @@ const Chat: React.FC = () => {
     loadingRef.current = loading;
   }, [loading]);
 
+  useEffect(() => {
+    sendTextRef.current = sendText;
+  }, [sendText]);
+
   /* ── Wakeword-Loop (AudioVAD + Whisper) ── */
   useEffect(() => {
     if (voiceMode !== "wakeword" && voiceMode !== "always") {
@@ -905,74 +864,60 @@ const Chat: React.FC = () => {
       return;
     }
 
-    /* ── Always-on mode: Web Speech API (kein OpenAI nötig) ── */
+    /* ── Always-on mode: VAD + Whisper (kein Wakeword nötig) ── */
     if (voiceMode === "always") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const SR =
-        (window as any).SpeechRecognition ??
-        (window as any).webkitSpeechRecognition;
-      if (!SR) {
-        setMicStatus("Spracherkennung nicht unterstützt");
-        setTimeout(() => setMicStatus(""), 5000);
-        return;
-      }
+      const vad = new AudioVAD();
+      vadRef.current = vad;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const recog: any = new SR();
-      recog.lang = "de-DE";
-      recog.continuous = true;
-      recog.interimResults = false;
-      recog.maxAlternatives = 1;
-      let stopped = false;
-
-      recog.onstart = () => {
-        setWakeListening(true);
-        setMicStatus("");
-      };
-      recog.onresult = (
-        ev: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        any,
-      ) => {
-        const text = ev.results[ev.results.length - 1][0].transcript.trim();
-        if (text && !loadingRef.current && !ttsSpeakingRef.current) {
-          sendText(text);
-        }
-      };
-      recog.onerror = (
-        ev: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        any,
-      ) => {
-        if (ev.error !== "no-speech" && ev.error !== "aborted") {
-          setMicStatus(`Mikrofon: ${ev.error}`);
-          setTimeout(() => setMicStatus(""), 4000);
-        }
-      };
-      recog.onend = () => {
-        // Automatisch neu starten solange Freihand-Modus aktiv
-        if (!stopped) {
-          try {
-            recog.start();
-          } catch {
-            /* ignorieren */
-          }
-        }
-      };
-
-      try {
-        recog.start();
-      } catch {
-        setMicStatus("Spracherkennung konnte nicht gestartet werden");
-        setTimeout(() => setMicStatus(""), 5000);
-      }
+      vad
+        .start({
+          onSpeechStart: () => setMicStatus("Erkenne…"),
+          onSegment: async (audio, sampleRate) => {
+            if (loadingRef.current || ttsSpeakingRef.current) {
+              setMicStatus("");
+              return;
+            }
+            const blob = encodeWav(audio, sampleRate);
+            const form = new FormData();
+            form.append("audio", blob, "segment.wav");
+            setMicStatus("Transkribiere…");
+            try {
+              // always-Modus = Gesprächs-Modus → raw=true, kein Ollama-Filter
+              const r = await fetch(`${API}/api/speech/transcribe?raw=true`, {
+                method: "POST",
+                body: form,
+              });
+              const data = (await r.json()) as {
+                text?: string;
+                error?: string;
+              };
+              if (!r.ok) {
+                setMicStatus(data.error ?? "Spracherkennung nicht verfügbar");
+                setTimeout(() => setMicStatus(""), 6000);
+                return;
+              }
+              const clean = (data.text ?? "").trim();
+              if (clean && !HALLUCINATION_RE.test(clean)) {
+                sendTextRef.current(clean);
+              }
+            } catch {
+              setMicStatus("Transkription fehlgeschlagen");
+              setTimeout(() => setMicStatus(""), 3000);
+            } finally {
+              setMicStatus("");
+            }
+          },
+        })
+        .then(() => setWakeListening(true))
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.name : "Unbekannt";
+          setMicStatus(`Mikrofon: ${msg}`);
+          setTimeout(() => setMicStatus(""), 5000);
+        });
 
       return () => {
-        stopped = true;
-        recog.onend = null;
-        try {
-          recog.stop();
-        } catch {
-          /* ignorieren */
-        }
+        vad.stop();
+        vadRef.current = null;
         setWakeListening(false);
         setMicStatus("");
       };
@@ -1029,7 +974,7 @@ const Chat: React.FC = () => {
                 JSON.stringify(clean),
               );
               if (clean && !HALLUCINATION_RE.test(clean)) {
-                sendText(clean);
+                sendTextRef.current(clean);
               } else {
                 setMicStatus("Nicht verstanden — bitte nochmal");
                 setTimeout(() => setMicStatus(""), 3000);
@@ -1081,7 +1026,7 @@ const Chat: React.FC = () => {
             if (clean && !HALLUCINATION_RE.test(clean)) {
               const command = clean.replace(/^.*?el+a+[,.\s!?]*/i, "").trim();
               if (command) {
-                sendText(command);
+                sendTextRef.current(command);
                 return;
               }
             }
@@ -1118,7 +1063,7 @@ const Chat: React.FC = () => {
       setWakeListening(false);
       setMicStatus("");
     };
-  }, [voiceMode, sendText]);
+  }, [voiceMode]);
 
   /* Load voiceMode + homework status on mount */
   useEffect(() => {

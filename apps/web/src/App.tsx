@@ -410,15 +410,27 @@ function AppShell() {
     path === "/setup" ||
     path === "/onboarding";
 
-  if (!boot.language && path !== "/language") {
+  const onboardingPath =
+    path === "/language" ||
+    path === "/eula" ||
+    path === "/activation" ||
+    path === "/setup" ||
+    path === "/onboarding";
+
+  if (!boot.language && !onboardingPath) {
     return <Navigate to="/language" replace />;
   }
 
-  if (boot.language && !boot.eulaAccepted && path !== "/eula") {
+  if (boot.language && !boot.eulaAccepted && !onboardingPath) {
     return <Navigate to="/eula" replace />;
   }
 
-  if (boot.eulaAccepted && !boot.licenseActivated && path !== "/activation") {
+  if (
+    boot.language &&
+    boot.eulaAccepted &&
+    !boot.licenseActivated &&
+    !onboardingPath
+  ) {
     return <Navigate to="/activation" replace />;
   }
 

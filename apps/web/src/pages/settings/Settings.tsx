@@ -42,10 +42,47 @@ interface Profile {
   createdAt: string;
 }
 
+type ModelTier = "small" | "standard" | "large";
+
+const TIER_OPTIONS: {
+  key: ModelTier;
+  label: string;
+  model: string;
+  size: string;
+  vram: string;
+  desc: string;
+}[] = [
+  {
+    key: "small",
+    label: "Klein",
+    model: "llama3.2:3b",
+    size: "~2 GB",
+    vram: "4 GB+",
+    desc: "Laptop / integrierte oder schwache GPU",
+  },
+  {
+    key: "standard",
+    label: "Standard",
+    model: "llama3.1:8b",
+    size: "~5 GB",
+    vram: "6 GB+",
+    desc: "Desktop / 6–8 GB VRAM",
+  },
+  {
+    key: "large",
+    label: "Groß",
+    model: "qwen2.5:14b",
+    size: "~8.5 GB",
+    vram: "12 GB+",
+    desc: "High-End / 12 GB+ VRAM",
+  },
+];
+
 interface Settings {
   provider: "auto" | "openai" | "ollama";
   ollamaModel: string;
   voiceOllamaModel: string;
+  modelTier: ModelTier;
   enabledTools: string[];
   sessionLimit: number;
   openaiApiKey: string;
@@ -460,6 +497,11 @@ const Settings: React.FC = () => {
 
   const [resetting, setResetting] = useState(false);
   const [resetDone, setResetDone] = useState(false);
+  const [pullProgress, setPullProgress] = useState<{
+    pct: number;
+    status: string;
+  } | null>(null);
+  const [pulling, setPulling] = useState(false);
 
   const emergencyReset = async () => {
     if (
@@ -479,6 +521,52 @@ const Settings: React.FC = () => {
     } finally {
       setResetting(false);
     }
+  };
+
+  const selectTier = (tier: ModelTier) => {
+    const opt = TIER_OPTIONS.find((t) => t.key === tier)!;
+    patch({
+      modelTier: tier,
+      ollamaModel: opt.model,
+      voiceOllamaModel: opt.model,
+    });
+  };
+
+  const startModelDownload = async () => {
+    if (pulling) return;
+    await fetch(`${API}/api/settings`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(settings),
+    });
+    setPulling(true);
+    setPullProgress({ pct: 0, status: "Starte Download…" });
+    await fetch(`${API}/api/settings/pull-model`, { method: "POST" });
+
+    const poll = setInterval(async () => {
+      try {
+        const r = await fetch(`${API}/api/health`);
+        const d = (await r.json()) as {
+          model_pull?: { pct: number; status: string } | null;
+          model_ready?: boolean;
+        };
+        if (d.model_pull) {
+          setPullProgress(d.model_pull);
+        } else {
+          clearInterval(poll);
+          setPulling(false);
+          setPullProgress(null);
+          const fresh = (await fetch(`${API}/api/settings/models`).then((r) =>
+            r.json(),
+          )) as { models: string[] };
+          setModels(fresh.models ?? []);
+        }
+      } catch {
+        clearInterval(poll);
+        setPulling(false);
+        setPullProgress(null);
+      }
+    }, 2000);
   };
 
   const save = async () => {
@@ -644,6 +732,168 @@ const Settings: React.FC = () => {
         {/* ── Tab: LLM ─────────────────────────────────────────── */}
         {tab === "llm" && (
           <>
+            <Section title="KI-Modell — Hardware-Profil">
+              <p
+                style={{
+                  fontSize: "0.8rem",
+                  color: "#64748b",
+                  marginBottom: 12,
+                }}
+              >
+                Wähle das Modell passend zu deiner Hardware. Das gewählte Modell
+                wird automatisch heruntergeladen, falls noch nicht vorhanden.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {TIER_OPTIONS.map((tier) => {
+                  const active =
+                    (settings.modelTier ?? "standard") === tier.key;
+                  const installed = models.some((m) =>
+                    m.includes(tier.model.split(":")[0]),
+                  );
+                  return (
+                    <div
+                      key={tier.key}
+                      onClick={() => selectTier(tier.key)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        padding: "10px 14px",
+                        borderRadius: 8,
+                        border: `1px solid ${active ? "#7c6af7" : "#2d3148"}`,
+                        background: active ? "#1a1440" : "#0f1117",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        readOnly
+                        checked={active}
+                        style={{ accentColor: "#7c6af7", flexShrink: 0 }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            marginBottom: 2,
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontWeight: 600,
+                              color: active ? "#a78bfa" : "#e2e8f0",
+                              fontSize: "0.9rem",
+                            }}
+                          >
+                            {tier.label}
+                          </span>
+                          <code
+                            style={{
+                              fontSize: "0.78rem",
+                              color: "#94a3b8",
+                              background: "#1e2130",
+                              padding: "1px 6px",
+                              borderRadius: 4,
+                            }}
+                          >
+                            {tier.model}
+                          </code>
+                          <span
+                            style={{ fontSize: "0.75rem", color: "#64748b" }}
+                          >
+                            {tier.size}
+                          </span>
+                          {installed && (
+                            <span
+                              style={{ fontSize: "0.72rem", color: "#4ade80" }}
+                            >
+                              ✓ installiert
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                          {tier.desc} &nbsp;·&nbsp; min. {tier.vram} VRAM
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Download-Button wenn aktives Modell noch nicht installiert */}
+              {(() => {
+                const tier =
+                  TIER_OPTIONS.find(
+                    (t) => t.key === (settings.modelTier ?? "standard"),
+                  ) ?? TIER_OPTIONS[1];
+                const installed = models.some((m) =>
+                  m.includes(tier.model.split(":")[0]),
+                );
+                if (installed && !pulling) return null;
+                return (
+                  <div style={{ marginTop: 12 }}>
+                    {pulling && pullProgress ? (
+                      <div
+                        style={{
+                          background: "#0f1117",
+                          border: "1px solid #2d3148",
+                          borderRadius: 8,
+                          padding: "10px 14px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "0.82rem",
+                            color: "#a78bfa",
+                            marginBottom: 6,
+                          }}
+                        >
+                          {pullProgress.status}
+                        </div>
+                        <div
+                          style={{
+                            height: 4,
+                            background: "#1e2130",
+                            borderRadius: 99,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: "100%",
+                              width: `${pullProgress.pct}%`,
+                              background:
+                                "linear-gradient(90deg,#7c6af7,#a78bfa)",
+                              borderRadius: 99,
+                              transition: "width 0.4s ease",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={startModelDownload}
+                        style={{
+                          padding: "8px 18px",
+                          borderRadius: 6,
+                          background: "#7c3aed",
+                          color: "#fff",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: "0.85rem",
+                          fontWeight: 600,
+                        }}
+                      >
+                        ⬇ {tier.model} herunterladen
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
+            </Section>
+
             <Section title="Provider">
               {(["auto", "openai", "ollama"] as const).map((p) => (
                 <label

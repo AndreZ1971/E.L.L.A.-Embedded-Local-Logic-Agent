@@ -5,6 +5,7 @@ import {
   MASKED,
   DEFAULT_SETTINGS,
 } from "../services/settings.js";
+import { pullModelIfNeeded } from "../services/ollamaService.js";
 import { env } from "../config/env.js";
 
 export const settingsRouter = Router();
@@ -47,6 +48,8 @@ settingsRouter.put("/", async (req, res, next) => {
       searchDrives,
       musicSearchPaths,
       voiceOllamaModel,
+      modelTier,
+      language,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -71,6 +74,8 @@ settingsRouter.put("/", async (req, res, next) => {
       searchDrives?: string[];
       musicSearchPaths?: string[];
       voiceOllamaModel?: string;
+      modelTier?: "small" | "standard" | "large";
+      language?: string;
     };
 
     const raw = {
@@ -95,6 +100,8 @@ settingsRouter.put("/", async (req, res, next) => {
       searchDrives,
       musicSearchPaths,
       voiceOllamaModel,
+      modelTier,
+      language,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(
@@ -135,6 +142,15 @@ settingsRouter.post("/emergency-reset", async (_req, res, next) => {
       homeworkMode: { ...current.homeworkMode, active: false, pinHash: "" },
     });
     res.json(publicSettings());
+  } catch (e) {
+    next(e);
+  }
+});
+
+settingsRouter.post("/pull-model", async (_req, res, next) => {
+  try {
+    pullModelIfNeeded().catch(() => {});
+    res.json({ started: true });
   } catch (e) {
     next(e);
   }

@@ -55,6 +55,7 @@ export interface Settings {
   accessibilityMode: "none" | "blind" | "deaf";
   searchDrives: string[];
   voiceOllamaModel: string;
+  modelTier: "small" | "standard" | "large";
   licenseActivated: boolean;
   licenseKey: string;
   licenseToken: string;
@@ -174,6 +175,7 @@ export const DEFAULT_SETTINGS: Settings = {
   accessibilityMode: "none",
   searchDrives: ["C"],
   voiceOllamaModel: "llama3.1:8b",
+  modelTier: "standard",
   licenseActivated: false,
   licenseKey: "",
   licenseToken: "",
@@ -271,12 +273,10 @@ export async function loadSettings(): Promise<void> {
       parsed.musicSearchPaths = DEFAULT_SETTINGS.musicSearchPaths;
     if (!Array.isArray(parsed.searchDrives))
       parsed.searchDrives = DEFAULT_SETTINGS.searchDrives;
-    if (
-      typeof parsed.voiceOllamaModel !== "string" ||
-      !parsed.voiceOllamaModel ||
-      parsed.voiceOllamaModel === "llama3.2:3b"
-    )
+    if (typeof parsed.voiceOllamaModel !== "string" || !parsed.voiceOllamaModel)
       parsed.voiceOllamaModel = DEFAULT_SETTINGS.voiceOllamaModel;
+    if (!["small", "standard", "large"].includes(parsed.modelTier))
+      parsed.modelTier = "standard";
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults
