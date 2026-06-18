@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v3.5.0**
+**Aktueller Stand: v3.7.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -44,7 +44,7 @@ database/
 
 ---
 
-## Was läuft (vollständig implementiert — v3.5.0)
+## Was läuft (vollständig implementiert — v3.7.0)
 
 ### Kern
 
@@ -70,6 +70,9 @@ database/
 - **Favicon:** SVG "E." Design + Electron-Icon (RGBA, transparente Ecken)
 - **Externe Links:** `shell.openExternal` — Browser statt Electron
 - System Tray: typisierte Balloon-Alerts (warning/error/info/device) mit Schweregrad-Sound
+- **i18n (DE/EN):** react-i18next, alle UI-Komponenten vollständig übersetzt — App, Chat, Settings, Dashboard, Onboarding, Activation
+- **Modell-Auswahl vor Download:** `ModelSelectOverlay` — zeigt vor dem ersten Download eine Hardware-Tier-Auswahl; `main.ts` pausiert `ensureOllamaModel()` bis IPC-Antwort; kein Default-Download mehr auf nicht passender Hardware
+- **Lizenz-Website:** ella-agent.de Link auf der Aktivierungsseite
 
 ### Produktivität
 
@@ -263,7 +266,7 @@ https://github.com/AndreZ1971/E.L.L.A.git
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-06-12T16:46:31.597Z._
+_Last synced: 2026-06-18T07:03:31.208Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).

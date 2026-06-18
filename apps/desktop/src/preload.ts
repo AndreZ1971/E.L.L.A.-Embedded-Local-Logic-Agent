@@ -41,4 +41,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("ella:model-pull-state", handler);
     return () => ipcRenderer.removeListener("ella:model-pull-state", handler);
   },
+  onChooseModel: (cb: () => void) => {
+    const handler = (_: Electron.IpcRendererEvent) => cb();
+    ipcRenderer.on("ella:choose-model", handler);
+    return () => ipcRenderer.removeListener("ella:choose-model", handler);
+  },
+  modelChosen: (model: string) => ipcRenderer.send("ella:model-chosen", model),
 });

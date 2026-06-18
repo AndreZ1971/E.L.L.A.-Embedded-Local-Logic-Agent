@@ -97,6 +97,20 @@ export default function Activation() {
         </button>
 
         <p style={s.hint}>{t("activation.hint")}</p>
+        <p style={{ ...s.hint, marginTop: "0.1rem" }}>
+          {t("activation.shop_pre")}{" "}
+          <a
+            href="https://www.ella-agent.de"
+            onClick={(e) => {
+              e.preventDefault();
+              window.open("https://www.ella-agent.de", "_blank");
+            }}
+            style={{ color: "#7c3aed", textDecoration: "none" }}
+          >
+            {t("activation.shop_link")}
+          </a>{" "}
+          {t("activation.shop_post")}
+        </p>
       </div>
     </div>
   );

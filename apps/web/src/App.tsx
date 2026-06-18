@@ -82,6 +82,7 @@ import Eula from "./pages/eula/Eula";
 import Setup from "./pages/setup/Setup";
 import Activation from "./pages/activation/Activation";
 import LanguageSelect from "./pages/language/LanguageSelect";
+import ModelSelectOverlay from "./pages/model-select/ModelSelectOverlay";
 import i18n from "./i18n";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
@@ -287,6 +288,7 @@ function AppShell() {
   const [ollamaReady, setOllamaReady] = useState(false);
   const [setupMsg, setSetupMsg] = useState("");
   const [modelPulling, setModelPulling] = useState(false);
+  const [showModelSelect, setShowModelSelect] = useState(false);
 
   // IPC: model-pull-state — keeps splash visible during first-time download
   useEffect(() => {
@@ -299,6 +301,19 @@ function AppShell() {
     ).electronAPI;
     if (!api?.onModelPullState) return;
     return api.onModelPullState((active) => setModelPulling(active));
+  }, []);
+
+  // IPC: main process requests model selection before first download
+  useEffect(() => {
+    const api = (
+      window as {
+        electronAPI?: {
+          onChooseModel?: (cb: () => void) => () => void;
+        };
+      }
+    ).electronAPI;
+    if (!api?.onChooseModel) return;
+    return api.onChooseModel(() => setShowModelSelect(true));
   }, []);
 
   // IPC: setup-status from Electron main process
@@ -387,6 +402,22 @@ function AppShell() {
       cancelled = true;
     };
   }, []);
+
+  if (showModelSelect) {
+    return (
+      <ModelSelectOverlay
+        onChosen={(model) => {
+          const api = (
+            window as {
+              electronAPI?: { modelChosen?: (m: string) => void };
+            }
+          ).electronAPI;
+          api?.modelChosen?.(model);
+          setShowModelSelect(false);
+        }}
+      />
+    );
+  }
 
   if (boot === null || !ollamaReady) return <EllaSplash setupMsg={setupMsg} />;
 

@@ -812,11 +812,32 @@ const Settings: React.FC = () => {
                         <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
                           {tier.desc} &nbsp;·&nbsp; min. {tier.vram} VRAM
                         </div>
+                        {tier.key === "small" && (
+                          <div
+                            style={{
+                              marginTop: 5,
+                              fontSize: "0.72rem",
+                              color: "#7c6af7",
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {t("settings.tier_small_openai_hint")}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
+              <p
+                style={{
+                  margin: "8px 0 0",
+                  fontSize: "0.73rem",
+                  color: "#3a4156",
+                }}
+              >
+                {t("settings.tier_update_hint")}
+              </p>
 
               {/* Download-Button wenn aktives Modell noch nicht installiert */}
               {(() => {

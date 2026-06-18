@@ -4,7 +4,7 @@
 
 Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automatisierung — vollständig offline via Ollama, optional mit OpenAI GPT-4o.
 
-**Version:** v1.1.0-rc · Windows 10/11 (x64)
+**Version:** v3.7.0 · Windows 10/11 (x64)
 
 _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -16,12 +16,12 @@ _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
 1. `E.L.L.A Setup 1.0.0-rc.exe` ausführen
 2. Installationspfad wählen (Standard: `C:\Programme\E.L.L.A`)
-3. Beim ersten Start: **Sprachauswahl** (DE/EN) → EULA → Lizenzaktivierung → Onboarding → Chat
+3. Beim ersten Start: **Sprachauswahl** (DE/EN) → EULA → Lizenzaktivierung → **Modell-Auswahl** → Onboarding → Chat
 
 Der Installer enthält als portable Vendored Binaries:
 
 - **MariaDB 11.4** (initialisiert sich automatisch in `%APPDATA%\ELLA\mariadb-data`)
-- **Ollama** (startet automatisch, Modelle werden bei Bedarf geladen)
+- **Ollama** (startet automatisch; Modell wird erst nach Nutzer-Auswahl beim ersten Start geladen)
 - **Node.js 22** (API-Runtime)
 
 Kein Python, kein separates MariaDB-Setup, keine PATH-Konfiguration.

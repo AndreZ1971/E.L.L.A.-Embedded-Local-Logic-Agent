@@ -31,6 +31,9 @@
     "btn_activate": "Activate →",
     "btn_busy": "Activating…",
     "hint": "No key yet? Contact the manufacturer.",
+    "shop_pre": "No key yet?",
+    "shop_link": "ella-agent.de",
+    "shop_post": "— I'll be right here.",
     "error_key_not_found": "This license key does not exist.",
     "error_key_expired": "This license key has expired.",
     "error_max_activations": "Maximum activations reached for this key.",
@@ -226,7 +229,9 @@
     "programmes_scan": "Scan",
     "programmes_scanning": "Scanning…",
     "programmes_filter": "Search…",
-    "emergency_reset_banner": "Emergency reset activated on {{date}} — settings were reset to safe defaults."
+    "emergency_reset_banner": "Emergency reset activated on {{date}} — settings were reset to safe defaults.",
+    "tier_small_openai_hint": "No GPU? No problem — E.L.L.A. also runs exclusively with an OpenAI key.",
+    "tier_update_hint": "Model switching after installation — coming in one of the next updates."
   },
   "common": {
     "loading": "Loading…",
@@ -353,5 +358,13 @@
     "events_waiting": "Waiting for first worker tick…",
     "disk_unavailable": "unavailable",
     "disk_free": "free"
+  },
+  "model_select": {
+    "heading": "Before we begin —",
+    "subtitle": "Which AI model should I use? I'll download it once and then run fully offline.",
+    "cta": "Start download →",
+    "footer": "Model downloaded once — E.L.L.A. runs without internet after that.",
+    "change_hint": "You can change the model later in Settings → LLM.",
+    "openai_hint": "No matching GPU? No problem — E.L.L.A. also runs exclusively with an OpenAI key."
   }
 }

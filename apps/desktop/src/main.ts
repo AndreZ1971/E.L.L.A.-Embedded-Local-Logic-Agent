@@ -359,6 +359,28 @@ async function ensureOllamaModel(): Promise<void> {
   });
 }
 
+// ── Model Selection (first run) ───────────────────────────────────────────────
+
+async function waitForModelChoice(): Promise<string> {
+  return new Promise((resolve) => {
+    const doSend = () => {
+      mainWindow?.webContents.send("ella:choose-model");
+      ipcMain.once("ella:model-chosen", (_event, model: string) =>
+        resolve(model),
+      );
+    };
+    if (!mainWindow) {
+      resolve("llama3.1:8b");
+      return;
+    }
+    if (mainWindow.webContents.isLoading()) {
+      mainWindow.webContents.once("did-finish-load", doSend);
+    } else {
+      doSend();
+    }
+  });
+}
+
 let apiRestartCount = 0;
 const API_MAX_RESTARTS = 5;
 
@@ -809,10 +831,56 @@ app.whenReady().then(async () => {
     await startMariaDB().catch((e) => log(`[MariaDB] FEHLER: ${e}`));
     await startOllama().catch((e) => log(`[Ollama] FEHLER: ${e}`));
 
-    // API und Modell-Download parallel starten — API antwortet sofort,
-    // Modell wird im Hintergrund geladen (Status via IPC ins UI)
     startApi();
     startKokoroTts();
+
+    // Prüfen ob Modell-Auswahl nötig (Erststart ohne settings.json)
+    const settingsPath = path.join(app.getPath("userData"), "settings.json");
+    let needsModelChoice = false;
+    try {
+      if (fs.existsSync(settingsPath)) {
+        const s = JSON.parse(fs.readFileSync(settingsPath, "utf-8")) as {
+          ollamaModel?: string;
+          provider?: string;
+        };
+        needsModelChoice = s.provider !== "openai" && !s.ollamaModel;
+      } else {
+        needsModelChoice = true;
+      }
+    } catch {
+      needsModelChoice = true;
+    }
+
+    if (needsModelChoice) {
+      log("[Model] Erststart — warte auf Modell-Auswahl durch Nutzer.");
+      try {
+        const chosenModel = await waitForModelChoice();
+        log(`[Model] Nutzer hat gewählt: ${chosenModel}`);
+        let existing: Record<string, unknown> = {};
+        if (fs.existsSync(settingsPath)) {
+          try {
+            existing = JSON.parse(
+              fs.readFileSync(settingsPath, "utf-8"),
+            ) as Record<string, unknown>;
+          } catch {}
+        }
+        fs.writeFileSync(
+          settingsPath,
+          JSON.stringify(
+            {
+              ...existing,
+              ollamaModel: chosenModel,
+              voiceOllamaModel: chosenModel,
+            },
+            null,
+            2,
+          ),
+        );
+      } catch (e) {
+        log(`[Model] Auswahl fehlgeschlagen: ${e} — verwende Standard.`);
+      }
+    }
+
     ensureOllamaModel().catch((e) => log(`[Ollama] Modell-Check Fehler: ${e}`));
 
     try {

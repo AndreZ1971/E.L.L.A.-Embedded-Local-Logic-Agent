@@ -4,6 +4,25 @@ Alle wesentlichen Änderungen an E.L.L.A. Detaillierte Entscheidungsbegründunge
 
 ---
 
+## [3.7.0] — 18.06.2026
+
+### Hinzugefügt
+
+- **Modell-Auswahl vor Download** — neues `ModelSelectOverlay` zeigt beim Erststart eine Hardware-Tier-Auswahl (Klein/Standard/Groß); `ensureOllamaModel()` pausiert per IPC bis der Nutzer gewählt hat — kein Default-Download mehr auf falscher Hardware
+- **i18n DE/EN komplett** — alle UI-Komponenten vollständig via react-i18next übersetzt: App, Chat, Settings, Dashboard, Onboarding, Activation; 200+ neue Keys in beiden Sprachdateien
+- **Lizenz-Website-Link** — ELLA-style Hinweis auf der Aktivierungsseite: ella-agent.de
+- **OpenAI-Fallback-Hinweis** — unter der "Klein"-Tier-Option steht nun ein Hinweis dass ELLA auch ohne GPU mit einem OpenAI-Key funktioniert
+- **Update-Teaser Settings** — dezenter Hinweis in Einstellungen → LLM dass Modellwechsel nach Installation folgt
+
+### Geändert
+
+- `preload.ts`: `onChooseModel` + `modelChosen` IPC-Methoden hinzugefügt
+- `TIER_OPTIONS` von Modul-Level in Settings-Komponente verschoben (für i18n-Zugriff)
+- `TOOL_LABELS` aus Chat.tsx entfernt, durch dynamisches `t('tools.${name}')` ersetzt
+- `ELLA_QUIPS` aus App.tsx entfernt, durch JSON-Array `splash.quips` ersetzt
+
+---
+
 ## [1.0.0-rc] — 14.06.2026
 
 ### Hinzugefügt
