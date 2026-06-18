@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
 const MASKED = "***";
@@ -44,38 +45,15 @@ interface Profile {
 
 type ModelTier = "small" | "standard" | "large";
 
-const TIER_OPTIONS: {
+const TIER_BASE: {
   key: ModelTier;
-  label: string;
   model: string;
   size: string;
   vram: string;
-  desc: string;
 }[] = [
-  {
-    key: "small",
-    label: "Klein",
-    model: "llama3.2:3b",
-    size: "~2 GB",
-    vram: "4 GB+",
-    desc: "Laptop / integrierte oder schwache GPU",
-  },
-  {
-    key: "standard",
-    label: "Standard",
-    model: "llama3.1:8b",
-    size: "~5 GB",
-    vram: "6 GB+",
-    desc: "Desktop / 6–8 GB VRAM",
-  },
-  {
-    key: "large",
-    label: "Groß",
-    model: "qwen2.5:14b",
-    size: "~8.5 GB",
-    vram: "12 GB+",
-    desc: "High-End / 12 GB+ VRAM",
-  },
+  { key: "small", model: "llama3.2:3b", size: "~2 GB", vram: "4 GB+" },
+  { key: "standard", model: "llama3.1:8b", size: "~5 GB", vram: "6 GB+" },
+  { key: "large", model: "qwen2.5:14b", size: "~8.5 GB", vram: "12 GB+" },
 ];
 
 interface Settings {
@@ -237,6 +215,17 @@ type Tab =
   | "google";
 
 const Settings: React.FC = () => {
+  const { t, i18n } = useTranslation();
+
+  const TIER_OPTIONS = TIER_BASE.map((b) => ({
+    ...b,
+    label: t(`settings.tier_${b.key}_label`),
+    desc: t(`settings.tier_${b.key}_desc`),
+  }));
+
+  const toolLabel = (name: string, fallback?: string) =>
+    t(`tools.${name}`, { defaultValue: fallback ?? name });
+
   const [tab, setTab] = useState<Tab>("llm");
   const [settings, setSettings] = useState<Settings | null>(null);
   const [searchDrivesText, setSearchDrivesText] = useState("");
@@ -524,7 +513,7 @@ const Settings: React.FC = () => {
   };
 
   const selectTier = (tier: ModelTier) => {
-    const opt = TIER_OPTIONS.find((t) => t.key === tier)!;
+    const opt = TIER_OPTIONS.find((opt) => opt.key === tier)!;
     patch({
       modelTier: tier,
       ollamaModel: opt.model,
@@ -585,7 +574,7 @@ const Settings: React.FC = () => {
   if (!settings) {
     return (
       <div style={{ color: "#64748b", fontSize: "0.9rem" }}>
-        Lade Einstellungen…
+        {t("settings.loading")}
       </div>
     );
   }
@@ -599,15 +588,17 @@ const Settings: React.FC = () => {
   );
 
   const TAB_LABELS: Record<Tab, string> = {
-    llm: "LLM",
-    tools: "Tools",
-    setups: `Setups (${(settings.setups ?? []).length})`,
-    programme: `Programme (${allowedCount})`,
-    modus: settings.homeworkMode?.active ? "🔒 Modus" : "Modus",
-    regeln: `Regeln (${rules.length})`,
+    llm: t("settings.tab_llm"),
+    tools: t("settings.tab_tools"),
+    setups: `${t("settings.tab_setups")} (${(settings.setups ?? []).length})`,
+    programme: `${t("settings.tab_programmes")} (${allowedCount})`,
+    modus: settings.homeworkMode?.active
+      ? `🔒 ${t("settings.tab_mode")}`
+      : t("settings.tab_mode"),
+    regeln: `${t("settings.tab_rules")} (${rules.length})`,
     google: settings.googleConnected
-      ? "Google & Profile ✓"
-      : "Google & Profile",
+      ? `${t("settings.tab_google")} ✓`
+      : t("settings.tab_google"),
   };
 
   const rowLabel: React.CSSProperties = {
@@ -636,11 +627,11 @@ const Settings: React.FC = () => {
           alignItems: "center",
         }}
       >
-        <h2 style={{ margin: 0 }}>Einstellungen</h2>
+        <h2 style={{ margin: 0 }}>{t("settings.title")}</h2>
         <button
           onClick={emergencyReset}
           disabled={resetting}
-          title="Setzt KI-Einstellungen auf sichere Defaults zurück"
+          title={t("settings.emergency_reset_title")}
           style={{
             padding: "6px 14px",
             borderRadius: 6,
@@ -652,7 +643,11 @@ const Settings: React.FC = () => {
             fontWeight: 600,
           }}
         >
-          {resetting ? "…" : resetDone ? "✓ Zurückgesetzt" : "Notschalter"}
+          {resetting
+            ? "…"
+            : resetDone
+              ? t("settings.emergency_reset_done")
+              : t("settings.emergency_reset")}
         </button>
       </div>
 
@@ -669,9 +664,11 @@ const Settings: React.FC = () => {
             flexShrink: 0,
           }}
         >
-          Notschalter aktiviert am{" "}
-          {new Date(settings.emergencyResetAt).toLocaleString("de-DE")} —
-          Einstellungen wurden auf sichere Defaults zurückgesetzt.
+          {t("settings.emergency_reset_banner", {
+            date: new Date(settings.emergencyResetAt).toLocaleString(
+              i18n.language || "de-DE",
+            ),
+          })}
         </div>
       )}
 
@@ -732,7 +729,7 @@ const Settings: React.FC = () => {
         {/* ── Tab: LLM ─────────────────────────────────────────── */}
         {tab === "llm" && (
           <>
-            <Section title="KI-Modell — Hardware-Profil">
+            <Section title={t("settings.tier_section_title")}>
               <p
                 style={{
                   fontSize: "0.8rem",
@@ -740,8 +737,7 @@ const Settings: React.FC = () => {
                   marginBottom: 12,
                 }}
               >
-                Wähle das Modell passend zu deiner Hardware. Das gewählte Modell
-                wird automatisch heruntergeladen, falls noch nicht vorhanden.
+                {t("settings.tier_section_desc")}
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {TIER_OPTIONS.map((tier) => {
@@ -809,7 +805,7 @@ const Settings: React.FC = () => {
                             <span
                               style={{ fontSize: "0.72rem", color: "#4ade80" }}
                             >
-                              ✓ installiert
+                              {t("settings.tier_installed")}
                             </span>
                           )}
                         </div>
@@ -826,7 +822,7 @@ const Settings: React.FC = () => {
               {(() => {
                 const tier =
                   TIER_OPTIONS.find(
-                    (t) => t.key === (settings.modelTier ?? "standard"),
+                    (opt) => opt.key === (settings.modelTier ?? "standard"),
                   ) ?? TIER_OPTIONS[1];
                 const installed = models.some((m) =>
                   m.includes(tier.model.split(":")[0]),
@@ -886,7 +882,7 @@ const Settings: React.FC = () => {
                           fontWeight: 600,
                         }}
                       >
-                        ⬇ {tier.model} herunterladen
+                        ⬇ {tier.model} {t("settings.tier_download")}
                       </button>
                     )}
                   </div>
@@ -894,7 +890,7 @@ const Settings: React.FC = () => {
               })()}
             </Section>
 
-            <Section title="Provider">
+            <Section title={t("settings.section_provider")}>
               {(["auto", "openai", "ollama"] as const).map((p) => (
                 <label
                   key={p}
@@ -911,14 +907,14 @@ const Settings: React.FC = () => {
                     onChange={() => patch({ provider: p })}
                     style={{ accentColor: "#7c6af7" }}
                   />
-                  {p === "auto" && "Auto (OpenAI wenn verfügbar, sonst Ollama)"}
-                  {p === "openai" && "OpenAI GPT-4o"}
-                  {p === "ollama" && "Ollama (lokal)"}
+                  {p === "auto" && t("settings.provider_auto")}
+                  {p === "openai" && t("settings.provider_openai")}
+                  {p === "ollama" && t("settings.provider_ollama")}
                 </label>
               ))}
             </Section>
 
-            <Section title="Ollama-Modell (Chat)">
+            <Section title={t("settings.section_ollama_chat")}>
               <select
                 value={settings.ollamaModel ?? ""}
                 onChange={(e) => patch({ ollamaModel: e.target.value })}
@@ -937,7 +933,7 @@ const Settings: React.FC = () => {
               </select>
             </Section>
 
-            <Section title="Ollama-Modell (Sprache)">
+            <Section title={t("settings.section_ollama_voice")}>
               <p
                 style={{
                   fontSize: "0.78rem",
@@ -965,7 +961,7 @@ const Settings: React.FC = () => {
               </select>
             </Section>
 
-            <Section title="OpenAI API-Key">
+            <Section title={t("settings.section_openai_key")}>
               <input
                 type="password"
                 value={settings.openaiApiKey ?? ""}
@@ -1001,7 +997,7 @@ const Settings: React.FC = () => {
               )}
             </Section>
 
-            <Section title="Sprachausgabe (TTS)">
+            <Section title={t("settings.section_tts")}>
               <label style={{ ...rowLabel, marginBottom: 14 }}>
                 <input
                   type="checkbox"
@@ -1012,7 +1008,9 @@ const Settings: React.FC = () => {
                 <span
                   style={{ color: settings.ttsEnabled ? "#e2e8f0" : "#94a3b8" }}
                 >
-                  E.L.L.A. spricht Antworten vor
+                  {settings.ttsEnabled
+                    ? t("settings.tts_enabled")
+                    : t("settings.tts_disabled")}
                 </span>
               </label>
               {voices.length > 0 && (
@@ -1024,7 +1022,7 @@ const Settings: React.FC = () => {
                       marginBottom: 6,
                     }}
                   >
-                    Stimme
+                    {t("settings.section_tts_voice")}
                   </div>
                   <select
                     value={settings.ttsVoice ?? ""}
@@ -1054,32 +1052,32 @@ const Settings: React.FC = () => {
         {/* ── Tab: Tools ───────────────────────────────────────── */}
         {tab === "tools" && (
           <>
-            <Section title="Aktivierte Tools">
-              {ALL_TOOLS.map((t) => (
+            <Section title={t("settings.section_tools_heading")}>
+              {ALL_TOOLS.map((tool) => (
                 <label
-                  key={t.name}
+                  key={tool.name}
                   style={{
                     ...rowLabel,
-                    color: (settings.enabledTools ?? []).includes(t.name)
+                    color: (settings.enabledTools ?? []).includes(tool.name)
                       ? "#e2e8f0"
                       : "#94a3b8",
                   }}
                 >
                   <input
                     type="checkbox"
-                    checked={(settings.enabledTools ?? []).includes(t.name)}
-                    onChange={() => toggleTool(t.name)}
+                    checked={(settings.enabledTools ?? []).includes(tool.name)}
+                    onChange={() => toggleTool(tool.name)}
                     style={{ accentColor: "#7c6af7", width: 15, height: 15 }}
                   />
-                  {t.label}
+                  {toolLabel(tool.name, tool.label)}
                   <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
-                    ({t.name})
+                    ({tool.name})
                   </span>
                 </label>
               ))}
             </Section>
 
-            <Section title="Session-Limit">
+            <Section title={t("settings.section_session_limit")}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <input
                   type="number"
@@ -1097,7 +1095,7 @@ const Settings: React.FC = () => {
               </div>
             </Section>
 
-            <Section title="Spracheingabe">
+            <Section title={t("settings.section_voice_mode")}>
               {(["off", "manual", "wakeword", "always"] as const).map((m) => (
                 <label
                   key={m}
@@ -1114,12 +1112,10 @@ const Settings: React.FC = () => {
                     onChange={() => patch({ voiceMode: m })}
                     style={{ accentColor: "#7c6af7" }}
                   />
-                  {m === "off" && "Aus — nur Tastatur"}
-                  {m === "manual" && "Manuell — Mikrofon-Taste im Chat"}
-                  {m === "wakeword" &&
-                    'Aktivierungswort — sag "ella" zum Starten'}
-                  {m === "always" &&
-                    "Freihändig — ELLA hört immer zu, kein Wakeword"}
+                  {m === "off" && t("settings.voice_off")}
+                  {m === "manual" && t("settings.voice_manual")}
+                  {m === "wakeword" && t("settings.voice_wakeword")}
+                  {m === "always" && t("settings.voice_always")}
                 </label>
               ))}
               {settings.voiceMode === "wakeword" && (
@@ -1421,7 +1417,7 @@ const Settings: React.FC = () => {
               <input
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                placeholder="Suchen…"
+                placeholder={t("settings.programmes_filter")}
                 style={{ ...input, flex: 1 }}
               />
               <button
@@ -1438,7 +1434,9 @@ const Settings: React.FC = () => {
                   whiteSpace: "nowrap",
                 }}
               >
-                {scanning ? "Scannt…" : "System scannen"}
+                {scanning
+                  ? t("settings.programmes_scanning")
+                  : t("settings.programmes_scan")}
               </button>
             </div>
 
@@ -1673,12 +1671,12 @@ const Settings: React.FC = () => {
                 }}
               >
                 <span>🔒</span>
-                Hausaufgaben-Modus ist aktiv — nur erlaubte Programme laufen.
+                {t("chat.homework_banner")}
               </div>
             )}
 
             {/* PIN-Sektion */}
-            <Section title="PIN">
+            <Section title={t("settings.section_homework_pin")}>
               <div
                 style={{
                   fontSize: "0.82rem",
@@ -1687,8 +1685,8 @@ const Settings: React.FC = () => {
                 }}
               >
                 {settings.homeworkMode?.pinHash
-                  ? "PIN ist gesetzt. Zum Ändern aktuellen PIN eingeben."
-                  : "Noch kein PIN gesetzt."}
+                  ? t("settings.pin_current")
+                  : t("settings.pin_new")}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {settings.homeworkMode?.pinHash && (
@@ -1696,7 +1694,7 @@ const Settings: React.FC = () => {
                     type="password"
                     value={pinCurrent}
                     onChange={(e) => setPinCurrent(e.target.value)}
-                    placeholder="Aktueller PIN"
+                    placeholder={t("settings.pin_current")}
                     style={{ ...input, width: "100%", maxWidth: 280 }}
                   />
                 )}
@@ -1704,14 +1702,14 @@ const Settings: React.FC = () => {
                   type="password"
                   value={pinNew}
                   onChange={(e) => setPinNew(e.target.value)}
-                  placeholder="Neuer PIN (min. 4 Zeichen)"
+                  placeholder={t("settings.pin_new")}
                   style={{ ...input, width: "100%", maxWidth: 280 }}
                 />
                 <input
                   type="password"
                   value={pinConfirm}
                   onChange={(e) => setPinConfirm(e.target.value)}
-                  placeholder="PIN bestätigen"
+                  placeholder={t("settings.pin_confirm")}
                   style={{ ...input, width: "100%", maxWidth: 280 }}
                 />
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1728,7 +1726,7 @@ const Settings: React.FC = () => {
                       fontSize: "0.85rem",
                     }}
                   >
-                    {pinSaving ? "Speichern…" : "PIN setzen"}
+                    {pinSaving ? "…" : t("settings.pin_save")}
                   </button>
                   {pinMsg && (
                     <span
@@ -1981,14 +1979,14 @@ const Settings: React.FC = () => {
             }}
           >
             {/* Neue Regel */}
-            <Section title="Neue Regel">
+            <Section title={t("settings.rules_add")}>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <input
                   value={newRule.name}
                   onChange={(e) =>
                     setNewRule((r) => ({ ...r, name: e.target.value }))
                   }
-                  placeholder="Name der Regel"
+                  placeholder={t("settings.rules_new_name")}
                   style={{ ...input, width: "100%" }}
                 />
                 <div style={{ display: "flex", gap: 8 }}>
@@ -2000,9 +1998,9 @@ const Settings: React.FC = () => {
                     style={{ ...input, flex: 1 }}
                   >
                     <option value="*">* (alle Tools)</option>
-                    {ALL_TOOLS.map((t) => (
-                      <option key={t.name} value={t.name}>
-                        {t.name}
+                    {ALL_TOOLS.map((tool) => (
+                      <option key={tool.name} value={tool.name}>
+                        {tool.name}
                       </option>
                     ))}
                   </select>
@@ -2053,7 +2051,7 @@ const Settings: React.FC = () => {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {ruleSaving ? "…" : "+ Hinzufügen"}
+                    {ruleSaving ? "…" : t("settings.rules_add")}
                   </button>
                 </div>
               </div>
@@ -2613,7 +2611,7 @@ const Settings: React.FC = () => {
             transition: "background 0.2s",
           }}
         >
-          {saving ? "Speichern…" : saved ? "Gespeichert ✓" : "Speichern"}
+          {saving ? "…" : saved ? t("settings.saved") : t("settings.save")}
         </button>
       </div>
     </div>

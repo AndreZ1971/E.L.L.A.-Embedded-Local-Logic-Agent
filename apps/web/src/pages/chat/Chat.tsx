@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { marked } from "marked";
+import { useTranslation } from "react-i18next";
 import { AudioVAD, encodeWav } from "../../utils/audioVAD.js";
 
 type VoiceMode = "off" | "manual" | "wakeword" | "always";
@@ -69,78 +70,11 @@ type StreamEvent =
 const SESSION_ID = "default";
 const API = import.meta.env.VITE_API_BASE ?? "";
 
-const TOOL_LABELS: Record<string, string> = {
-  open_app: "App öffnen",
-  get_disk_usage: "Festplattennutzung",
-  clean_temp: "Temp-Dateien bereinigen",
-  empty_recycle_bin: "Papierkorb leeren",
-  remember: "Erinnerung speichern",
-  forget: "Erinnerung löschen",
-  list_memories: "Erinnerungen auflisten",
-  homework_mode: "Hausaufgaben-Modus",
-  get_system_info: "Systeminfo",
-  create_setup: "Setup anlegen",
-  update_setting: "Einstellung ändern",
-  create_rule: "Regel erstellen",
-  free_ram: "RAM freigeben",
-  read_emails: "E-Mails lesen",
-  mark_email: "E-Mail markieren",
-  compose_email: "E-Mail verfassen",
-  read_calendar: "Kalender lesen",
-  create_appointment: "Termin erstellen",
-  list_devices: "Geräte auflisten",
-  scan_network: "Netzwerk scannen",
-  list_connections: "Verbindungen auflisten",
-  get_system_status: "System-Status",
-  search_web: "Web-Suche",
-  web_search: "Web-Suche",
-  fetch_url: "URL abrufen",
-  get_weather: "Wetter abrufen",
-  get_location: "Standort ermitteln",
-  get_datetime: "Datum & Uhrzeit",
-  delete_files: "Dateien löschen",
-  load_setup: "Setup laden",
-  format_drive: "Laufwerk formatieren",
-  rename_drive: "Laufwerk umbenennen",
-  list_programs: "Programme auflisten",
-  pause_ella: "ELLA pausieren",
-  shutdown_system: "PC herunterfahren",
-  play_music: "Musik spielen",
-  search_files: "Dateien suchen",
-  open_file: "Datei öffnen",
-  explore_folder: "Ordner öffnen",
-  rename_file: "Datei umbenennen",
-  copy_file: "Datei kopieren",
-  create_folder: "Ordner erstellen",
-  create_document: "Dokument erstellen",
-  dictate_to_document: "Text diktieren",
-  list_processes: "Prozesse auflisten",
-  kill_process: "Prozess beenden",
-  set_volume: "Lautstärke setzen",
-  get_clipboard: "Zwischenablage lesen",
-  set_clipboard: "Zwischenablage setzen",
-  set_reminder: "Erinnerung setzen",
-  list_reminders: "Erinnerungen auflisten",
-  delete_reminder: "Erinnerung löschen",
-  set_alarm: "Wecker stellen",
-  list_alarms: "Wecker auflisten",
-  delete_alarm: "Wecker löschen",
-  take_screenshot: "Screenshot",
-  write_for_me: "Text schreiben",
-  find_duplicates: "Duplikate suchen",
-  list_autostart: "Autostart auflisten",
-  read_gmail: "Gmail lesen",
-  mark_gmail: "Gmail markieren",
-  read_google_calendar: "Google Kalender",
-  create_google_appointment: "Google Termin",
-  add_task: "Aufgabe anlegen",
-  list_tasks: "Aufgaben auflisten",
-  complete_task: "Aufgabe erledigt",
-  delete_task: "Aufgabe löschen",
-};
-
 /* ── Component ───────────────────────────────────────────────────────── */
 const Chat: React.FC = () => {
+  const { t } = useTranslation();
+  const toolLabel = (name: string) =>
+    t(`tools.${name}`, { defaultValue: name });
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [streaming, setStreaming] = useState("");
@@ -678,7 +612,7 @@ const Chat: React.FC = () => {
               }
               if (consumed > 0) sentenceBuffer = sentenceBuffer.slice(consumed);
             } else if (ev.type === "tool") {
-              setToolStatus(TOOL_LABELS[ev.name] ?? ev.name);
+              setToolStatus(toolLabel(ev.name));
               if (!usedToolsRef.current.includes(ev.name))
                 usedToolsRef.current.push(ev.name);
             } else if (ev.type === "directive_deny") {
@@ -688,8 +622,7 @@ const Chat: React.FC = () => {
                 ...p,
                 {
                   role: "directive_deny",
-                  content:
-                    "Diese Aktion ist durch die E.L.L.A. Directive architektonisch blockiert.",
+                  content: t("chat.directive_blocked"),
                   toolName: ev.tool,
                 },
               ]);
@@ -750,9 +683,9 @@ const Chat: React.FC = () => {
         }
       } catch (e) {
         if (e instanceof Error && e.name === "AbortError") {
-          setError("Keine Antwort — bitte nochmal versuchen.");
+          setError(t("chat.error_no_response"));
         } else {
-          setError(e instanceof Error ? e.message : "Unbekannter Fehler");
+          setError(e instanceof Error ? e.message : t("common.error"));
         }
         setStreaming("");
         setToolStatus("");
@@ -796,8 +729,8 @@ const Chat: React.FC = () => {
           if (e.data.size > 0) chunksRef.current.push(e.data);
         };
         mr.onstop = async () => {
-          stream.getTracks().forEach((t) => t.stop());
-          setMicStatus("Transkription…");
+          stream.getTracks().forEach((track) => track.stop());
+          setMicStatus(t("chat.mic_transcribing"));
           const blob = new Blob(chunksRef.current, { type: "audio/webm" });
           const form = new FormData();
           form.append("audio", blob, "recording.webm");
@@ -808,16 +741,16 @@ const Chat: React.FC = () => {
             });
             const data = (await r.json()) as { text?: string; error?: string };
             if (!r.ok) {
-              setMicStatus(data.error ?? "Spracherkennung nicht verfügbar");
+              setMicStatus(data.error ?? t("chat.mic_stt_unavailable"));
               setTimeout(() => setMicStatus(""), 6000);
             } else if (data.text) {
               setInput(data.text);
             } else {
-              setMicStatus("Nicht verstanden — bitte nochmal");
+              setMicStatus(t("chat.mic_not_understood"));
               setTimeout(() => setMicStatus(""), 3000);
             }
           } catch {
-            setMicStatus("Transkription fehlgeschlagen — bitte nochmal");
+            setMicStatus(t("chat.mic_failed"));
             setTimeout(() => setMicStatus(""), 3000);
           }
           setMicStatus("");
@@ -826,7 +759,7 @@ const Chat: React.FC = () => {
         mr.start();
         mediaRecorderRef.current = mr;
         setMicActive(true);
-        setMicStatus("Aufnahme…");
+        setMicStatus(t("chat.mic_recording"));
       });
     } catch (err) {
       const msg = err instanceof Error ? err.name : "Unbekannt";
@@ -871,7 +804,7 @@ const Chat: React.FC = () => {
 
       vad
         .start({
-          onSpeechStart: () => setMicStatus("Erkenne…"),
+          onSpeechStart: () => setMicStatus(t("chat.mic_detecting")),
           onSegment: async (audio, sampleRate) => {
             if (loadingRef.current || ttsSpeakingRef.current) {
               setMicStatus("");
@@ -880,7 +813,7 @@ const Chat: React.FC = () => {
             const blob = encodeWav(audio, sampleRate);
             const form = new FormData();
             form.append("audio", blob, "segment.wav");
-            setMicStatus("Transkribiere…");
+            setMicStatus(t("chat.mic_transcribing_vad"));
             try {
               // always-Modus = Gesprächs-Modus → raw=true, kein Ollama-Filter
               const r = await fetch(`${API}/api/speech/transcribe?raw=true`, {
@@ -892,7 +825,7 @@ const Chat: React.FC = () => {
                 error?: string;
               };
               if (!r.ok) {
-                setMicStatus(data.error ?? "Spracherkennung nicht verfügbar");
+                setMicStatus(data.error ?? t("chat.mic_stt_unavailable"));
                 setTimeout(() => setMicStatus(""), 6000);
                 return;
               }
@@ -901,7 +834,7 @@ const Chat: React.FC = () => {
                 sendTextRef.current(clean);
               }
             } catch {
-              setMicStatus("Transkription fehlgeschlagen");
+              setMicStatus(t("chat.mic_failed_vad"));
               setTimeout(() => setMicStatus(""), 3000);
             } finally {
               setMicStatus("");
@@ -928,7 +861,7 @@ const Chat: React.FC = () => {
 
     vad
       .start({
-        onSpeechStart: () => setMicStatus("Erkenne…"),
+        onSpeechStart: () => setMicStatus(t("chat.mic_detecting")),
         onSegment: async (audio, sampleRate) => {
           if (loadingRef.current) {
             setMicStatus("");
@@ -947,7 +880,7 @@ const Chat: React.FC = () => {
                 clearTimeout(awaitingTimerRef.current);
                 awaitingTimerRef.current = null;
               }
-              setMicStatus("Transkribiere…");
+              setMicStatus(t("chat.mic_transcribing_vad"));
               let clean = "";
               try {
                 const r = await fetch(`${API}/api/speech/transcribe`, {
@@ -959,13 +892,13 @@ const Chat: React.FC = () => {
                   error?: string;
                 };
                 if (!r.ok) {
-                  setMicStatus(data.error ?? "Spracherkennung nicht verfügbar");
+                  setMicStatus(data.error ?? t("chat.mic_stt_unavailable"));
                   setTimeout(() => setMicStatus(""), 6000);
                   return;
                 }
                 clean = (data.text ?? "").trim();
               } catch {
-                setMicStatus("Transkription fehlgeschlagen — bitte nochmal");
+                setMicStatus(t("chat.mic_failed"));
                 setTimeout(() => setMicStatus(""), 3000);
                 return;
               }
@@ -976,7 +909,7 @@ const Chat: React.FC = () => {
               if (clean && !HALLUCINATION_RE.test(clean)) {
                 sendTextRef.current(clean);
               } else {
-                setMicStatus("Nicht verstanden — bitte nochmal");
+                setMicStatus(t("chat.mic_not_understood"));
                 setTimeout(() => setMicStatus(""), 3000);
               }
               return;
@@ -1017,7 +950,7 @@ const Chat: React.FC = () => {
               error?: string;
             };
             if (!trR.ok) {
-              setMicStatus(trData.error ?? "Spracherkennung nicht verfügbar");
+              setMicStatus(trData.error ?? t("chat.mic_stt_unavailable"));
               setTimeout(() => setMicStatus(""), 6000);
               return;
             }
@@ -1150,7 +1083,7 @@ const Chat: React.FC = () => {
           alignItems: "center",
         }}
       >
-        <h2 style={{ margin: 0 }}>Chat</h2>
+        <h2 style={{ margin: 0 }}>{t("chat.heading")}</h2>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button
             onClick={() => {
@@ -1215,7 +1148,7 @@ const Chat: React.FC = () => {
                 cursor: "pointer",
               }}
             >
-              Verlauf löschen
+              {t("chat.clear")}
             </button>
           )}
         </div>
@@ -1237,8 +1170,7 @@ const Chat: React.FC = () => {
             flexShrink: 0,
           }}
         >
-          <span>🔒</span> Hausaufgaben-Modus aktiv — nur erlaubte Programme
-          laufen.
+          <span>🔒</span> {t("chat.homework_banner")}
         </div>
       )}
 
@@ -1275,14 +1207,14 @@ const Chat: React.FC = () => {
             }}
           >
             <div style={{ fontWeight: 600, fontSize: "1rem" }}>
-              Hausaufgaben-Modus deaktivieren
+              {t("chat.homework_deactivate_title")}
             </div>
             <input
               type="password"
               value={pinInput}
               onChange={(e) => setPinInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && deactivateHomework()}
-              placeholder="PIN eingeben"
+              placeholder={t("chat.pin_placeholder")}
               autoFocus
               style={{
                 padding: "8px 12px",
@@ -1315,7 +1247,7 @@ const Chat: React.FC = () => {
                   fontWeight: 600,
                 }}
               >
-                {pinBusy ? "…" : "Deaktivieren"}
+                {pinBusy ? "…" : t("chat.btn_deactivate")}
               </button>
               <button
                 onClick={() => {
@@ -1333,7 +1265,7 @@ const Chat: React.FC = () => {
                   fontSize: "0.88rem",
                 }}
               >
-                Abbrechen
+                {t("chat.btn_cancel")}
               </button>
             </div>
           </div>
@@ -1359,7 +1291,7 @@ const Chat: React.FC = () => {
               textAlign: "center",
             }}
           >
-            Hallo! Ich bin E.L.L.A. — wie kann ich helfen?
+            {t("chat.welcome")}
           </div>
         )}
         {messages.map((m, i) => {
@@ -1455,10 +1387,10 @@ const Chat: React.FC = () => {
                       marginTop: 8,
                     }}
                   >
-                    {m.usedTools.map((t) => (
+                    {m.usedTools.map((tool) => (
                       <span
-                        key={t}
-                        title={t}
+                        key={tool}
+                        title={tool}
                         style={{
                           fontSize: "0.68rem",
                           background: "#0f1117",
@@ -1468,7 +1400,7 @@ const Chat: React.FC = () => {
                           color: "#64748b",
                         }}
                       >
-                        {TOOL_LABELS[t] ?? t}
+                        {toolLabel(tool)}
                       </span>
                     ))}
                   </div>
@@ -1579,7 +1511,7 @@ const Chat: React.FC = () => {
               color: "#7c6af7",
             }}
           >
-            E.L.L.A. denkt…
+            {t("chat.thinking")}
           </div>
         )}
         {error && (
@@ -1594,7 +1526,7 @@ const Chat: React.FC = () => {
               color: "#fca5a5",
             }}
           >
-            Fehler: {error}
+            {t("chat.error_prefix")}: {error}
           </div>
         )}
         <div ref={bottomRef} />
@@ -1630,7 +1562,7 @@ const Chat: React.FC = () => {
             E.L.L.A. DIRECTIVE
           </span>
           <span style={{ color: "#94a3b8" }}>
-            Diese Aktion ist architektonisch nicht erlaubt.
+            {t("chat.directive_not_allowed")}
           </span>
         </div>
       )}
@@ -1651,7 +1583,7 @@ const Chat: React.FC = () => {
             color: "#a5b4fc",
           }}
         >
-          <span>⏸ Pausiert — {pauseCountdown}</span>
+          <span>⏸ {t("chat.paused", { countdown: pauseCountdown })}</span>
           <button
             onClick={resumeFromPause}
             style={{
@@ -1664,7 +1596,7 @@ const Chat: React.FC = () => {
               fontSize: "0.8rem",
             }}
           >
-            Jetzt zurück
+            {t("chat.btn_resume")}
           </button>
         </div>
       )}
@@ -1702,7 +1634,7 @@ const Chat: React.FC = () => {
                       animation: "pulse 0.8s ease-in-out infinite",
                     }}
                   />
-                  Jetzt sprechen…
+                  {t("chat.speak_now")}
                 </div>
                 <div
                   style={{
@@ -1766,7 +1698,7 @@ const Chat: React.FC = () => {
                     animation: "pulse 2.5s ease-in-out infinite",
                   }}
                 />
-                ELLA lauscht…
+                {t("chat.listening")}
               </div>
             )}
           </div>
@@ -1796,7 +1728,7 @@ const Chat: React.FC = () => {
             }}
           >
             <span>⚠</span>
-            Bestätigung erforderlich
+            {t("chat.confirm_title")}
           </div>
           <div
             style={{ color: "#e2e8f0", fontSize: "0.82rem", lineHeight: 1.5 }}
@@ -1822,8 +1754,8 @@ const Chat: React.FC = () => {
                   const msg = result.success
                     ? typeof result.output === "string"
                       ? result.output
-                      : "Aktion erfolgreich ausgeführt."
-                    : `Fehler: ${result.error ?? "Unbekannt"}`;
+                      : t("chat.action_success")
+                    : `${t("chat.error_prefix")}: ${result.error ?? t("common.error")}`;
                   setMessages((p) => [
                     ...p,
                     { role: "assistant", content: msg },
@@ -1831,7 +1763,7 @@ const Chat: React.FC = () => {
                 } catch {
                   setMessages((p) => [
                     ...p,
-                    { role: "assistant", content: "Aktion fehlgeschlagen." },
+                    { role: "assistant", content: t("chat.action_failed") },
                   ]);
                 } finally {
                   setConfirmationCard(null);
@@ -1850,7 +1782,7 @@ const Chat: React.FC = () => {
                 opacity: confirmBusy ? 0.6 : 1,
               }}
             >
-              {confirmBusy ? "Wird ausgeführt…" : "Ja, ausführen"}
+              {confirmBusy ? t("chat.btn_confirming") : t("chat.btn_confirm")}
             </button>
             <button
               disabled={confirmBusy}
@@ -1865,7 +1797,7 @@ const Chat: React.FC = () => {
                 fontSize: "0.82rem",
               }}
             >
-              Abbrechen
+              {t("chat.btn_cancel")}
             </button>
           </div>
         </div>
@@ -1878,7 +1810,7 @@ const Chat: React.FC = () => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
           placeholder={
-            micActive ? "Spreche deinen Befehl…" : "Anweisung eingeben…"
+            micActive ? t("chat.placeholder_mic") : t("chat.placeholder")
           }
           disabled={loading}
           style={{
@@ -1927,7 +1859,7 @@ const Chat: React.FC = () => {
             fontSize: "0.9rem",
           }}
         >
-          Senden
+          {t("chat.send")}
         </button>
       </div>
 

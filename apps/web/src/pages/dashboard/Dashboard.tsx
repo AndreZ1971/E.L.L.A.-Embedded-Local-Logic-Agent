@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
 const REFRESH_MS = 30_000;
@@ -89,11 +90,12 @@ const DiskBar: React.FC<{ label: string; info: DiskInfo }> = ({
   label,
   info,
 }) => {
+  const { t } = useTranslation();
   if (!info.success || !info.output) {
     return (
       <div style={{ marginBottom: 12 }}>
         <div style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: 4 }}>
-          {label} — nicht erreichbar
+          {label} — {t("dashboard.disk_unavailable")}
         </div>
       </div>
     );
@@ -115,7 +117,9 @@ const DiskBar: React.FC<{ label: string; info: DiskInfo }> = ({
         <span style={{ color: "#e2e8f0" }}>{label}</span>
         <span style={{ color: "#94a3b8" }}>
           {fmt(usedBytes)} / {fmt(totalBytes)} &nbsp;
-          <span style={{ color: "#64748b" }}>({fmt(freeBytes)} frei)</span>
+          <span style={{ color: "#64748b" }}>
+            ({fmt(freeBytes)} {t("dashboard.disk_free")})
+          </span>
         </span>
       </div>
       <div
@@ -141,6 +145,7 @@ const DiskBar: React.FC<{ label: string; info: DiskInfo }> = ({
 };
 
 const Dashboard: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [disk, setDisk] = useState<DiskData | null>(null);
   const [provider, setProvider] = useState<ProviderData | null>(null);
@@ -225,11 +230,11 @@ const Dashboard: React.FC = () => {
           alignItems: "center",
         }}
       >
-        <h2 style={{ margin: 0 }}>Dashboard</h2>
+        <h2 style={{ margin: 0 }}>{t("dashboard.heading")}</h2>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {lastUpdate && (
             <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
-              {lastUpdate.toLocaleTimeString("de-DE")}
+              {lastUpdate.toLocaleTimeString(i18n.language || "de-DE")}
             </span>
           )}
           <button
@@ -244,14 +249,14 @@ const Dashboard: React.FC = () => {
               cursor: "pointer",
             }}
           >
-            Aktualisieren
+            {t("dashboard.refresh")}
           </button>
         </div>
       </div>
 
       {loading ? (
         <div style={{ color: "#64748b", fontSize: "0.9rem" }}>
-          Lade Systemdaten…
+          {t("dashboard.loading")}
         </div>
       ) : (
         <>
@@ -263,7 +268,7 @@ const Dashboard: React.FC = () => {
               gap: 12,
             }}
           >
-            <Card title="LLM-Provider">
+            <Card title={t("dashboard.card_provider")}>
               <div
                 style={{
                   display: "flex",
@@ -289,7 +294,7 @@ const Dashboard: React.FC = () => {
               )}
             </Card>
 
-            <Card title="Ollama">
+            <Card title={t("dashboard.card_ollama")}>
               <div
                 style={{
                   display: "flex",
@@ -300,7 +305,9 @@ const Dashboard: React.FC = () => {
                 }}
               >
                 <StatusDot ok={status?.ollama.ok ?? false} />
-                {status?.ollama.ok ? "Erreichbar" : "Nicht erreichbar"}
+                {status?.ollama.ok
+                  ? t("dashboard.reachable")
+                  : t("dashboard.unreachable")}
               </div>
               <div
                 style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 4 }}
@@ -309,7 +316,7 @@ const Dashboard: React.FC = () => {
               </div>
             </Card>
 
-            <Card title="MariaDB">
+            <Card title={t("dashboard.card_db")}>
               <div
                 style={{
                   display: "flex",
@@ -320,7 +327,9 @@ const Dashboard: React.FC = () => {
                 }}
               >
                 <StatusDot ok={status?.db.ok ?? false} />
-                {status?.db.ok ? "Verbunden" : "Nicht erreichbar"}
+                {status?.db.ok
+                  ? t("dashboard.connected")
+                  : t("dashboard.unreachable")}
               </div>
               <div
                 style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 4 }}
@@ -331,7 +340,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Disk-Usage */}
-          <Card title="Speicherplatz">
+          <Card title={t("dashboard.card_disk")}>
             {disk ? (
               <>
                 <DiskBar label="C: (System)" info={disk.C} />
@@ -340,16 +349,16 @@ const Dashboard: React.FC = () => {
               </>
             ) : (
               <div style={{ color: "#64748b", fontSize: "0.85rem" }}>
-                Keine Daten
+                {t("dashboard.no_data")}
               </div>
             )}
           </Card>
 
           {/* System-Event-Feed */}
-          <Card title="System-Events (Live)">
+          <Card title={t("dashboard.card_events")}>
             {events.length === 0 ? (
               <div style={{ color: "#475569", fontSize: "0.82rem" }}>
-                Warte auf ersten Worker-Tick…
+                {t("dashboard.events_waiting")}
               </div>
             ) : (
               <div
@@ -370,7 +379,7 @@ const Dashboard: React.FC = () => {
                       : "#fbbf24"
                     : "#64748b";
                   const time = new Date(ev.created_at).toLocaleTimeString(
-                    "de-DE",
+                    i18n.language || "de-DE",
                   );
                   let summary = ev.type;
                   if (ev.type === "disk") {

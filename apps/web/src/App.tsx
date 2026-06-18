@@ -5,6 +5,7 @@ import React, {
   createContext,
   useContext,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   HashRouter,
   Routes,
@@ -40,7 +41,7 @@ class ErrorBoundary extends React.Component<
           }}
         >
           <strong style={{ display: "block", marginBottom: 8 }}>
-            UI-Fehler — bitte melden:
+            {i18n.t("app.error_boundary_title")}
           </strong>
           <pre
             style={{
@@ -64,7 +65,7 @@ class ErrorBoundary extends React.Component<
               cursor: "pointer",
             }}
           >
-            Neu laden
+            {i18n.t("app.error_boundary_reload")}
           </button>
         </div>
       );
@@ -107,6 +108,7 @@ export function useBootContext() {
 }
 
 function OllamaBanner() {
+  const { t } = useTranslation();
   const [offline, setOffline] = useState(false);
   const [checking, setChecking] = useState(false);
 
@@ -140,7 +142,7 @@ function OllamaBanner() {
         borderBottom: "1px solid #92400e",
       }}
     >
-      <span>Ollama ist offline — KI-Funktionen nicht verfügbar.</span>
+      <span>{t("app.ollama_offline")}</span>
       <button
         disabled={checking}
         onClick={async () => {
@@ -158,32 +160,17 @@ function OllamaBanner() {
           padding: "2px 10px",
         }}
       >
-        {checking ? "Prüfe..." : "Erneut prüfen"}
+        {checking ? t("app.ollama_checking") : t("app.ollama_retry")}
       </button>
     </div>
   );
 }
 
-const ELLA_QUIPS = [
-  "Endlich bekommt Windows ein Gehirn.",
-  "Ich lade mein Gewissen… dauert kurz.",
-  "KI-Synapsen werden verknüpft. Bitte Geduld.",
-  "Ich bin gleich wach. Ich bin kein Morgenmensch.",
-  "Ollama denkt nach. Das dauert bei mir länger als bei Google.",
-  "Neuronale Netze aufwärmen… wie Kaffee, nur smarter.",
-  "Ich lerne gerade, wie man nicht antwortet. Fast fertig.",
-  "Das Modell wird geladen. In der Zwischenzeit: Atme kurz durch.",
-  "Intelligenz braucht Zeit. Künstliche erst recht.",
-  "Lade Persönlichkeit… 73% snark, 27% Hilfsbereitschaft.",
-  "Windows hätte hier schon dreimal neu gestartet.",
-  "Ich warte auf mein Gewissen. Es kommt gleich.",
-  "Starte KI. Bitte keine übereilten Fragen stellen.",
-  "Gleich bin ich schlagfertig. Versprochen.",
-];
-
 function EllaSplash({ setupMsg }: { setupMsg: string }) {
+  const { t } = useTranslation();
+  const quips = t("splash.quips", { returnObjects: true }) as string[];
   const [quipIdx, setQuipIdx] = useState(() =>
-    Math.floor(Math.random() * ELLA_QUIPS.length),
+    Math.floor(Math.random() * quips.length),
   );
   const [fade, setFade] = useState(true);
 
@@ -191,7 +178,7 @@ function EllaSplash({ setupMsg }: { setupMsg: string }) {
     const id = setInterval(() => {
       setFade(false);
       setTimeout(() => {
-        setQuipIdx((i) => (i + 1) % ELLA_QUIPS.length);
+        setQuipIdx((i) => (i + 1) % quips.length);
         setFade(true);
       }, 400);
     }, 3200);
@@ -279,7 +266,7 @@ function EllaSplash({ setupMsg }: { setupMsg: string }) {
             minHeight: "2.5em",
           }}
         >
-          „{ELLA_QUIPS[quipIdx]}"
+          „{quips[quipIdx]}"
         </p>
       )}
       <style>{`
@@ -294,6 +281,7 @@ function EllaSplash({ setupMsg }: { setupMsg: string }) {
 }
 
 function AppShell() {
+  const { t } = useTranslation();
   const location = useLocation();
   const [boot, setBoot] = useState<BootStatus | null>(null);
   const [ollamaReady, setOllamaReady] = useState(false);
@@ -451,11 +439,11 @@ function AppShell() {
       >
         <span style={{ fontSize: "1rem" }}>⬇</span>
         <span style={{ fontWeight: 600, color: "#a78bfa" }}>
-          KI-Modell wird geladen
+          {t("model_pull.banner_title")}
         </span>
         <span style={{ color: "#94a3b8", flex: 1 }}>
           {setupMsg.split("\n").find((l) => l.match(/\d+%/)) ??
-            "Bitte warten — das passiert nur einmal beim ersten Start."}
+            t("model_pull.banner_hint")}
         </span>
         <span
           style={{
@@ -510,9 +498,9 @@ function AppShell() {
         <div className="ella-layout">
           <nav className="ella-sidebar">
             <h1 className="ella-logo">E.L.L.A.</h1>
-            <NavLink to="/dashboard">Dashboard</NavLink>
-            <NavLink to="/chat">Chat</NavLink>
-            <NavLink to="/settings">Settings</NavLink>
+            <NavLink to="/dashboard">{t("nav.dashboard")}</NavLink>
+            <NavLink to="/chat">{t("nav.chat")}</NavLink>
+            <NavLink to="/settings">{t("nav.settings")}</NavLink>
           </nav>
           <main className="ella-main">
             <ErrorBoundary>

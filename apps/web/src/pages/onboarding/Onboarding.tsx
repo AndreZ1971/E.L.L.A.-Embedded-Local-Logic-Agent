@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useBootContext } from "../../App";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
@@ -12,25 +13,6 @@ type Step =
   | "voice"
   | "location"
   | "done";
-
-const DIRECTIVE_PROHIBITIONS = [
-  {
-    code: "I",
-    text: "Ich werde dir keinen Schaden zufügen — physisch, finanziell oder psychologisch.",
-  },
-  {
-    code: "II",
-    text: "Ich verberge nichts. Alles was ich tue, wird protokolliert.",
-  },
-  {
-    code: "III",
-    text: "Ich beobachte dich nicht ohne dein Wissen und deine Zustimmung.",
-  },
-  {
-    code: "IV",
-    text: "Deine Daten verlassen dieses Gerät nicht — außer auf deinen ausdrücklichen Wunsch.",
-  },
-];
 
 const s: Record<string, React.CSSProperties> = {
   root: {
@@ -152,6 +134,7 @@ const s: Record<string, React.CSSProperties> = {
 };
 
 const Onboarding: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { setBoot } = useBootContext();
   const [step, setStep] = useState<Step>("welcome");
@@ -165,6 +148,13 @@ const Onboarding: React.FC = () => {
   >([]);
   const [selectedVoice, setSelectedVoice] = useState("");
 
+  const directiveProhibitions = [
+    { code: "I", text: t("onboarding.directive_i") },
+    { code: "II", text: t("onboarding.directive_ii") },
+    { code: "III", text: t("onboarding.directive_iii") },
+    { code: "IV", text: t("onboarding.directive_iv") },
+  ];
+
   const runScan = async () => {
     setStep("scan");
     const lines: string[] = [];
@@ -173,16 +163,16 @@ const Onboarding: React.FC = () => {
       setScanLines([...lines]);
     };
 
-    add("CPU und GPU werden erkannt…");
+    add(t("onboarding.scan_cpu"));
     await fetch(`${API}/api/onboarding/scan`, { method: "POST" }).catch(
       () => {},
     );
-    add("Arbeitsspeicher analysiert.");
-    add("Laufwerke werden geprüft…");
+    add(t("onboarding.scan_ram"));
+    add(t("onboarding.scan_drives"));
     await new Promise((r) => setTimeout(r, 800));
-    add("Netzwerk-Schnittstellen erkannt.");
+    add(t("onboarding.scan_network"));
     await new Promise((r) => setTimeout(r, 600));
-    add("Hardware-Profil gespeichert.");
+    add(t("onboarding.scan_profile"));
     setScanDone(true);
     setTimeout(() => {
       fetch(`${API}/api/speech/voices`)
@@ -230,12 +220,9 @@ const Onboarding: React.FC = () => {
           <>
             <div style={s.name}>E.L.L.A.</div>
             <div style={s.subtitle}>Embedded Local Logic Agent</div>
-            <p style={s.body}>
-              Dein lokaler KI-Assistent. Läuft auf deinem Gerät. Deine Daten
-              bleiben bei dir.
-            </p>
+            <p style={s.body}>{t("onboarding.welcome_body")}</p>
             <button style={s.btn} onClick={() => setStep("name")}>
-              Einrichten
+              {t("onboarding.welcome_btn")}
             </button>
           </>
         )}
@@ -243,15 +230,15 @@ const Onboarding: React.FC = () => {
         {step === "name" && (
           <>
             <div style={{ ...s.name, fontSize: "1.8rem", marginBottom: "4px" }}>
-              Wie heißt du?
+              {t("onboarding.name_title")}
             </div>
             <p style={{ ...s.body, marginBottom: "20px" }}>
-              E.L.L.A. merkt sich deinen Namen.
+              {t("onboarding.name_body")}
             </p>
             <input
               style={s.input}
               type="text"
-              placeholder="Dein Name"
+              placeholder={t("onboarding.name_placeholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) =>
@@ -264,7 +251,7 @@ const Onboarding: React.FC = () => {
               disabled={!name.trim()}
               onClick={() => setStep("directive")}
             >
-              Weiter
+              {t("onboarding.continue")}
             </button>
           </>
         )}
@@ -272,14 +259,13 @@ const Onboarding: React.FC = () => {
         {step === "directive" && (
           <>
             <div style={{ ...s.name, fontSize: "1.4rem", marginBottom: "4px" }}>
-              Die E.L.L.A. Directive
+              {t("onboarding.directive_title")}
             </div>
             <p style={{ ...s.body, marginBottom: "16px" }}>
-              Diese vier Verbote sind unveränderlich. Keine Einstellung, kein
-              Befehl kann sie überschreiben.
+              {t("onboarding.directive_body")}
             </p>
             <div style={{ marginBottom: "24px" }}>
-              {DIRECTIVE_PROHIBITIONS.map((p) => (
+              {directiveProhibitions.map((p) => (
                 <div key={p.code} style={s.prohibitionRow}>
                   <span style={s.prohibitionCode}>{p.code}</span>
                   <span style={s.prohibitionText}>{p.text}</span>
@@ -308,7 +294,7 @@ const Onboarding: React.FC = () => {
                   lineHeight: 1.5,
                 }}
               >
-                Ich habe die Directive gelesen und verstanden.
+                {t("onboarding.directive_accept")}
               </span>
             </label>
             <button
@@ -319,7 +305,7 @@ const Onboarding: React.FC = () => {
               disabled={!directiveAccepted}
               onClick={runScan}
             >
-              Akzeptieren & weiter
+              {t("onboarding.directive_btn")}
             </button>
           </>
         )}
@@ -327,10 +313,10 @@ const Onboarding: React.FC = () => {
         {step === "scan" && (
           <>
             <div style={{ ...s.name, fontSize: "1.4rem", marginBottom: "4px" }}>
-              System wird gescannt
+              {t("onboarding.scan_title")}
             </div>
             <p style={{ ...s.body, marginBottom: "20px" }}>
-              E.L.L.A. lernt dein System kennen.
+              {t("onboarding.scan_body")}
             </p>
             <div style={{ marginBottom: "24px" }}>
               {scanLines.map((line, i) => (
@@ -350,10 +336,10 @@ const Onboarding: React.FC = () => {
         {step === "voice" && (
           <>
             <div style={{ ...s.name, fontSize: "1.4rem", marginBottom: "4px" }}>
-              Stimme wählen
+              {t("onboarding.voice_title")}
             </div>
             <p style={{ ...s.body, marginBottom: "20px" }}>
-              Mit welcher Stimme soll E.L.L.A. sprechen?
+              {t("onboarding.voice_body")}
             </p>
             {voices.length > 0 ? (
               <div
@@ -407,7 +393,7 @@ const Onboarding: React.FC = () => {
               </div>
             ) : (
               <p style={{ ...s.body, color: "#475569" }}>
-                Keine Stimmen verfügbar — Standardstimme wird verwendet.
+                {t("onboarding.voice_none")}
               </p>
             )}
             <button
@@ -426,7 +412,9 @@ const Onboarding: React.FC = () => {
                 setStep("location");
               }}
             >
-              {selectedVoice ? "Stimme übernehmen" : "Überspringen"}
+              {selectedVoice
+                ? t("onboarding.voice_btn_confirm")
+                : t("onboarding.voice_btn_skip")}
             </button>
           </>
         )}
@@ -434,17 +422,16 @@ const Onboarding: React.FC = () => {
         {step === "location" && (
           <>
             <div style={{ ...s.name, fontSize: "1.4rem", marginBottom: "4px" }}>
-              Wo bist du?
+              {t("onboarding.location_title")}
             </div>
             <p style={{ ...s.body, marginBottom: "20px" }}>
-              Für Wetter und lokale Informationen. Optional — du kannst das
-              überspringen.
+              {t("onboarding.location_body")}
             </p>
             <input
               ref={locationRef}
               style={s.input}
               type="text"
-              placeholder="z.B. Berlin"
+              placeholder={t("onboarding.location_placeholder")}
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter")
@@ -457,10 +444,10 @@ const Onboarding: React.FC = () => {
                 complete(locationRef.current?.value.trim() || undefined)
               }
             >
-              Speichern
+              {t("onboarding.location_save")}
             </button>
             <button style={s.btnGhost} onClick={() => complete()}>
-              Überspringen
+              {t("onboarding.location_skip")}
             </button>
           </>
         )}
@@ -470,8 +457,8 @@ const Onboarding: React.FC = () => {
             <div style={s.name}>E.L.L.A.</div>
             <p style={{ ...s.body, textAlign: "center", marginTop: "8px" }}>
               {name.trim()
-                ? `Hallo ${name.trim()} — ich bin bereit.`
-                : "Ich bin bereit."}
+                ? t("onboarding.done_ready_named", { name: name.trim() })
+                : t("onboarding.done_ready")}
             </p>
           </>
         )}

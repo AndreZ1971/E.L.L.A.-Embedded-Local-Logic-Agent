@@ -1,23 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useBootContext } from "../../App";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
 
-const ERROR_MESSAGES: Record<string, string> = {
-  key_not_found: "Dieser Lizenzschluessel existiert nicht.",
-  key_expired: "Dieser Lizenzschluessel ist abgelaufen.",
-  max_activations_reached:
-    "Maximale Anzahl an Aktivierungen fuer diesen Key erreicht.",
-  invalid_key_format:
-    "Ungültiges Key-Format. Erwartet: ELLA-XXXX-XXXX-XXXX-XXXX",
-  too_many_attempts:
-    "Zu viele Versuche. Bitte warte eine Stunde und versuche es erneut.",
-  activation_failed: "Aktivierung fehlgeschlagen. Bitte versuche es erneut.",
-  network: "Kein Internetzugang. Bitte pruefen und erneut versuchen.",
-};
-
 export default function Activation() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { setBoot } = useBootContext();
   const [key, setKey] = useState("");
@@ -55,8 +44,12 @@ export default function Activation() {
       });
       const data = (await r.json()) as { ok?: boolean; error?: string };
       if (!r.ok || !data.ok) {
+        const errKey = data.error ?? "activation_failed";
         setError(
-          ERROR_MESSAGES[data.error ?? ""] ?? ERROR_MESSAGES.activation_failed,
+          t(
+            `activation.error_${errKey}`,
+            t("activation.error_activation_failed"),
+          ),
         );
         setLoading(false);
         return;
@@ -64,7 +57,7 @@ export default function Activation() {
       setBoot((prev) => (prev ? { ...prev, licenseActivated: true } : prev));
       navigate("/onboarding");
     } catch {
-      setError(ERROR_MESSAGES.network);
+      setError(t("activation.error_network"));
       setLoading(false);
     }
   }
@@ -73,16 +66,14 @@ export default function Activation() {
     <div style={s.page}>
       <div style={s.card}>
         <div style={s.logo}>E.L.L.A.</div>
-        <h1 style={s.title}>Lizenz aktivieren</h1>
-        <p style={s.sub}>
-          Gib deinen Lizenzschluessel ein um E.L.L.A. freizuschalten.
-        </p>
+        <h1 style={s.title}>{t("activation.title")}</h1>
+        <p style={s.sub}>{t("activation.subtitle")}</p>
 
-        <label style={s.label}>Lizenzschluessel</label>
+        <label style={s.label}>{t("activation.label")}</label>
         <input
           style={s.input}
           type="text"
-          placeholder="ELLA-XXXX-XXXX-XXXX-XXXX"
+          placeholder={t("activation.placeholder")}
           value={key}
           maxLength={24}
           onChange={(e) => setKey(formatKey(e.target.value))}
@@ -102,10 +93,10 @@ export default function Activation() {
           disabled={key.length < 19 || loading}
           onClick={activate}
         >
-          {loading ? "Wird aktiviert…" : "Aktivieren →"}
+          {loading ? t("activation.btn_busy") : t("activation.btn_activate")}
         </button>
 
-        <p style={s.hint}>Noch keinen Key? Wende dich an den Hersteller.</p>
+        <p style={s.hint}>{t("activation.hint")}</p>
       </div>
     </div>
   );
