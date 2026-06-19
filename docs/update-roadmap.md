@@ -121,6 +121,36 @@ Aktueller Scan findet nur einen Bruchteil der installierten Programme. Drei Stuf
 
 ---
 
+## v1.5 — Stress-Erkennung in der Stimme
+
+ELLA hört nicht nur WAS der Nutzer sagt — sondern WIE. Stress in der Stimme steckt in den Audio-Rohdaten, nicht im transkribierten Text.
+
+**Signale die auf Stress hindeuten:**
+
+- Erhöhte Tonhöhe (Grundfrequenz / Pitch steigt)
+- Schnelleres Sprechtempo, kürzere Pausen
+- Erhöhte Lautstärke / Energie im Signal
+- Stimmzittern (unregelmäßiger Pitch-Verlauf)
+
+**Technische Umsetzung:**
+
+- Python-Bibliothek `librosa` — extrahiert Pitch, Tempo, MFCCs aus Rohsignal
+- Parallel zum STT-Prozess, kein Eingriff in bestehende Spracherkennung
+- Optional: vortrainiertes Emotion-Recognition-Modell via `speechbrain`
+- Stress-Level (niedrig / mittel / hoch) als Kontext-Variable an den LLM
+
+**ELLAs Reaktion:**
+
+- Stress erkannt → sanftere Antwort, ruhigeres TTS-Tempo
+- Deutlich erhöhter Stress → proaktiv: _"Du klingst angespannt — alles in Ordnung?"_
+- Anhaltender Stress über mehrere Nachrichten → ins Gedächtnis schreiben
+- Comeback-Briefing: _"Gestern Abend klang es stressig — wie geht's dir heute?"_
+
+**Warum das zu ELLA passt:**
+Genesis/Rachel nehmen den Menschen wahr — nicht nur seine Worte. ELLA die merkt wie es dem Nutzer geht bevor er es sagt ist ein fundamentaler Unterschied zu jedem anderen Assistenten.
+
+---
+
 ## Ideen-Pool (noch nicht bewertet)
 
 _(Hier sammeln wir alles was uns einfällt)_
