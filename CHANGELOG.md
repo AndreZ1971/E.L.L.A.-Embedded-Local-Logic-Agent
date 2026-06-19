@@ -4,6 +4,18 @@ Alle wesentlichen Änderungen an E.L.L.A. Detaillierte Entscheidungsbegründunge
 
 ---
 
+## [3.7.1] — 19.06.2026
+
+### Dokumentation
+
+- **Roadmap v1.3** — Multilingual TTS geplant: DE/EN/ES/FR, ausschließlich weibliche Stimmen (Kokoro `af_sarah`/`bf_emma`/`ef_dora`/`ff_siwis`)
+- **Roadmap v3.8** — Ollama als automatischer Offline-Fallback wenn kein Internet; OpenAI wird Standard-Engine
+- **Produktpositionierung** festgelegt: E.L.L.A. 100% lokal (Stimme, Gedächtnis, Tools); LLM-Reasoning hardwareabhängig; Direktive gilt unabhängig von der Engine
+- **Charakter-DNA** dokumentiert: E.L.L.A. = Genesis + Rachel; ARM = Red Queen; HOME = Mother
+- Minimum-Hardware für vollständig offline: 8 GB RAM + dedizierte GPU ≥4 GB VRAM
+
+---
+
 ## [3.7.0] — 18.06.2026
 
 ### Hinzugefügt
