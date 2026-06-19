@@ -8,9 +8,49 @@ Reihenfolge nach Priorität / Aufwand noch offen.
 ## v1.1 — Spiele
 
 - **Schach** — Zugeingabe per natürlicher Sprache, E.L.L.A. verwaltet das Brett intern, kommentiert jeden Zug mit ihrer Persönlichkeit
-- **Trivia** — Fragen generieren, Antwort prüfen, Punkte zählen
-- Trigger-Satz auf Deutsch: _"Wollen wir ein Spiel spielen?"_
+- Trigger-Satz: _"Wollen wir ein Spiel spielen?"_ — ELLA fragt dann welches
 - Referenz: WarGames (1983) + Terminator — zwei ikonische Anlehnungen in einem Produkt
+
+---
+
+### Trivia — Konzept (Option B: Open Trivia DB + LLM-Bewertung)
+
+**Datenquelle:** [opentdb.com](https://opentdb.com) — kostenlose REST-API, keine Registrierung, tausende kuratierte Fragen in 24 Kategorien, 3 Schwierigkeitsgrade (easy / medium / hard), DE + EN verfügbar.
+
+**Spielfluss:**
+
+```
+Nutzer:  "Wollen wir Trivia spielen?"
+ELLA:    Kategorie-Auswahl anbieten (Geschichte, Wissenschaft, Sport, Filme, Musik, Geographie …)
+ELLA:    Schwierigkeitsgrad abfragen — oder ELLA wählt passend zum bisherigen Score
+ELLA:    Frage stellen — in ihrer Persönlichkeit formuliert, nicht trocken vorgelesen
+Nutzer:  antwortet im Freitext (kein A/B/C/D-Zwang)
+ELLA:    LLM bewertet ob die Antwort inhaltlich korrekt ist — flexibel, kein Exact-Match
+ELLA:    kommentiert Ergebnis mit Persönlichkeit (lobt, neckt, erklärt die richtige Antwort)
+→ nächste Frage oder Spielende nach X Runden
+```
+
+**Offline-Fallback:** Wenn opentdb.com nicht erreichbar → ELLA generiert Fragen selbst via LLM (Thema + Schwierigkeit als Prompt).
+
+**Score & Persistenz (MariaDB):**
+
+- Tabelle `trivia_scores`: Datum, Kategorie, Schwierigkeit, richtig/falsch, Gesamtpunkte
+- Bestenliste pro Kategorie abrufbar: _"Was ist mein bester Trivia-Score?"_
+- Streak-Tracking: wie viele richtige Antworten in Folge
+- ELLA erinnert sich: _"Letztes Mal hast du bei Geschichte 7 von 10 — wollen wir das toppen?"_
+
+**Neue Tools:**
+
+- `start_trivia` — Spiel starten, Kategorie + Schwierigkeit übergeben
+- `answer_trivia` — Antwort einreichen, LLM bewertet, Score aktualisieren
+- `get_trivia_stats` — persönliche Statistik abrufen
+
+**ELLAs Persönlichkeit im Spiel:**
+
+- Richtige Antwort schnell: _"Beeindruckend. Aber ich hab noch härtere Fragen."_
+- Falsche Antwort: _"Knapp daneben. Die richtige Antwort wäre …"_ — niemals kalt, immer mit Charakter
+- Langer Streak: ELLA steigert automatisch den Schwierigkeitsgrad ohne zu fragen
+- Spielende: kurze Zusammenfassung + Einordnung (_"Top 3 deiner Geschichte-Sessions"_)
 
 ---
 
