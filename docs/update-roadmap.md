@@ -58,6 +58,29 @@ E.L.L.A.s Charakter-DNA:
 
 ---
 
+## v1.4 — Programme: vollständiger Scan + manuelle Ergänzung
+
+Aktueller Scan findet nur einen Bruchteil der installierten Programme. Drei Stufen:
+
+**Stufe 1 — Scan verbessern** (deckt ~90%)
+
+- Registry: alle drei Uninstall-Pfade (`HKLM\SOFTWARE`, `HKCU\SOFTWARE`, `HKLM\SOFTWARE\WOW6432Node`)
+- Start-Menü: beide Ordner (All Users + aktueller User)
+- Microsoft Store Apps + Steam/Epic via eigene Registry-Pfade
+
+**Stufe 2 — Manuell hinzufügen**
+
+- Settings: Liste wo Nutzer Name + Pfad/Befehl eintragen kann
+- Für Portable Apps und Spiele ohne Registry-Eintrag
+- Bereits vorhandene `apps`-Liste in Settings als Basis nutzen
+
+**Stufe 3 — Favoriten pinnen**
+
+- Nutzer markiert 10–15 Programme die täglich gebraucht werden
+- Kommen bei `open_app` immer zuerst, reduziert Rauschen aus großem Scan
+
+---
+
 ## Ideen-Pool (noch nicht bewertet)
 
 _(Hier sammeln wir alles was uns einfällt)_
