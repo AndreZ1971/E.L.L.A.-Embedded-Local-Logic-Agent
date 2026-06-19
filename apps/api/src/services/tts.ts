@@ -1,6 +1,16 @@
 import { MsEdgeTTS, MetadataOptions, OUTPUT_FORMAT } from "msedge-tts";
 
+const FEMALE_VOICES: Record<string, string> = {
+  de: "de-DE-KatjaNeural",
+  en: "en-GB-SoniaNeural",
+  es: "es-ES-ElviraNeural",
+  fr: "fr-FR-DeniseNeural",
+};
 const DEFAULT_VOICE = "de-DE-KatjaNeural";
+
+export function getVoiceForLanguage(lang: string): string {
+  return FEMALE_VOICES[lang] ?? DEFAULT_VOICE;
+}
 
 export interface TTSOptions {
   voice?: string;

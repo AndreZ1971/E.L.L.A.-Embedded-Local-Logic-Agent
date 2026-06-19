@@ -61,6 +61,7 @@ export interface Settings {
   licenseToken: string;
   licenseProduct: string;
   language: string;
+  spokenLanguage: "de" | "en" | "es" | "fr";
 }
 
 // Im Installer: ELLA_USERDATA = %APPDATA%\ELLA (gesetzt von Electron main.ts)
@@ -181,6 +182,7 @@ export const DEFAULT_SETTINGS: Settings = {
   licenseToken: "",
   licenseProduct: "",
   language: "",
+  spokenLanguage: "de",
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },

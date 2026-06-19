@@ -231,7 +231,8 @@
     "programmes_filter": "Suchen…",
     "emergency_reset_banner": "Notschalter aktiviert am {{date}} — Einstellungen wurden auf sichere Defaults zurückgesetzt.",
     "tier_small_openai_hint": "Keine passende GPU? Kein Problem — E.L.L.A. läuft auch ausschließlich mit einem OpenAI-Key.",
-    "tier_update_hint": "Modellwechsel nach der Installation — kommt mit einem der nächsten Updates."
+    "tier_update_hint": "Modellwechsel nach der Installation — kommt mit einem der nächsten Updates.",
+    "spoken_language": "Gesprächssprache (Stimme)"
   },
   "common": {
     "loading": "Lädt…",

@@ -85,6 +85,7 @@ interface Settings {
   clipboardPatternEnabled: boolean;
   accessibilityMode: "none" | "blind" | "deaf";
   searchDrives: string[];
+  spokenLanguage: "de" | "en" | "es" | "fr";
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -1923,6 +1924,37 @@ const Settings: React.FC = () => {
                   <option value="kokoro">
                     Kokoro (lokal, Python erforderlich)
                   </option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "#94a3b8",
+                    display: "block",
+                    marginBottom: 6,
+                  }}
+                >
+                  {t("settings.spoken_language")}
+                </label>
+                <select
+                  value={settings.spokenLanguage ?? "de"}
+                  onChange={(e) =>
+                    patch({
+                      spokenLanguage: e.target.value as
+                        | "de"
+                        | "en"
+                        | "es"
+                        | "fr",
+                    })
+                  }
+                  style={{ ...input, width: "100%" }}
+                >
+                  <option value="de">Deutsch — Katja</option>
+                  <option value="en">English — Sonia</option>
+                  <option value="es">Español — Elvira</option>
+                  <option value="fr">Français — Denise</option>
                 </select>
               </div>
             </Section>

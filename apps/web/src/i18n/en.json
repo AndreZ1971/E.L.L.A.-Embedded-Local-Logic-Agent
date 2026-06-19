@@ -231,7 +231,8 @@
     "programmes_filter": "Search…",
     "emergency_reset_banner": "Emergency reset activated on {{date}} — settings were reset to safe defaults.",
     "tier_small_openai_hint": "No GPU? No problem — E.L.L.A. also runs exclusively with an OpenAI key.",
-    "tier_update_hint": "Model switching after installation — coming in one of the next updates."
+    "tier_update_hint": "Model switching after installation — coming in one of the next updates.",
+    "spoken_language": "Conversation language (voice)"
   },
   "common": {
     "loading": "Loading…",

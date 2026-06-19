@@ -27,8 +27,17 @@ except Exception as e:
     print(json.dumps({"status": "kokoro_unavailable", "error": str(e)}), flush=True)
 
 
-def speak_kokoro(text: str) -> None:
-    samples, sample_rate = kokoro.create(text, voice="af_sarah", speed=1.0, lang="de")
+VOICE_MAP = {
+    "de": ("af_sarah", "de"),
+    "en": ("bf_emma", "en-us"),
+    "es": ("ef_dora", "es"),
+    "fr": ("ff_siwis", "fr-fr"),
+}
+
+
+def speak_kokoro(text: str, lang: str = "de") -> None:
+    voice, kokoro_lang = VOICE_MAP.get(lang, VOICE_MAP["de"])
+    samples, sample_rate = kokoro.create(text, voice=voice, speed=1.0, lang=kokoro_lang)
     sd.play(samples, sample_rate)
     sd.wait()
 
@@ -59,6 +68,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             data = json.loads(body)
             text = str(data.get("text", "")).strip()
+            lang = str(data.get("lang", "de")).strip()
         except Exception:
             self.send_response(400)
             self.end_headers()
@@ -72,7 +82,7 @@ class Handler(BaseHTTPRequestHandler):
 
         try:
             if kokoro_available:
-                speak_kokoro(text)
+                speak_kokoro(text, lang)
             else:
                 speak_sapi(text)
             self.send_response(200)

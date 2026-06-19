@@ -50,6 +50,7 @@ settingsRouter.put("/", async (req, res, next) => {
       voiceOllamaModel,
       modelTier,
       language,
+      spokenLanguage,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -76,6 +77,7 @@ settingsRouter.put("/", async (req, res, next) => {
       voiceOllamaModel?: string;
       modelTier?: "small" | "standard" | "large";
       language?: string;
+      spokenLanguage?: "de" | "en" | "es" | "fr";
     };
 
     const raw = {
@@ -102,6 +104,7 @@ settingsRouter.put("/", async (req, res, next) => {
       voiceOllamaModel,
       modelTier,
       language,
+      spokenLanguage,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(

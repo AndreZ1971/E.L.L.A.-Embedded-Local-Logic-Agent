@@ -6,7 +6,12 @@ import {
   isWhisperReady,
   getWhisperPipeline,
 } from "../services/whisper.js";
-import { synthesize, listVoices } from "../services/tts.js";
+import {
+  synthesize,
+  listVoices,
+  getVoiceForLanguage,
+} from "../services/tts.js";
+import { getSettings } from "../services/settings.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -59,7 +64,9 @@ speechRouter.post("/synthesize", async (req, res, next) => {
       res.status(400).json({ error: "Text zu lang (max 2000 Zeichen)" });
       return;
     }
-    const audio = await synthesize(text.trim(), { voice, rate });
+    const { spokenLanguage } = getSettings();
+    const resolvedVoice = voice || getVoiceForLanguage(spokenLanguage ?? "de");
+    const audio = await synthesize(text.trim(), { voice: resolvedVoice, rate });
     res.set({
       "Content-Type": "audio/mpeg",
       "Content-Length": String(audio.length),
@@ -79,6 +86,7 @@ speechRouter.post("/kokoro", async (req, res, next) => {
       return;
     }
 
+    const { spokenLanguage } = getSettings();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
 
@@ -86,7 +94,7 @@ speechRouter.post("/kokoro", async (req, res, next) => {
       const upstream = await fetch("http://127.0.0.1:3003/synthesize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, lang: spokenLanguage ?? "de" }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
