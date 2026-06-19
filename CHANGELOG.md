@@ -4,6 +4,18 @@ Alle wesentlichen Änderungen an E.L.L.A. Detaillierte Entscheidungsbegründunge
 
 ---
 
+## [3.8.0] — 19.06.2026
+
+### Hinzugefügt
+
+- **Mehrsprachige Stimmen** — `spokenLanguage`-Setting (de/en/es/fr), unabhängig von UI-Sprache
+- **Kokoro Voice-Map** — ausschließlich weibliche Stimmen: `af_sarah` (DE), `bf_emma` (EN), `ef_dora` (ES), `ff_siwis` (FR); `lang`-Parameter im `/synthesize`-Endpunkt
+- **MsEdgeTTS Voice-Map** — `getVoiceForLanguage()`: Katja (DE), Sonia (EN), Elvira (ES), Denise (FR)
+- **Settings UI** — Dropdown "Gesprächssprache (Stimme)" in Einstellungen → Stimme
+- **i18n** — `settings.spoken_language` Key in de.json + en.json
+
+---
+
 ## [3.7.1] — 19.06.2026
 
 ### Dokumentation

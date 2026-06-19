@@ -22,21 +22,12 @@ Reihenfolge nach Priorität / Aufwand noch offen.
 
 ---
 
-## v1.3 — Mehrsprachige Stimmen (Multilingual TTS)
+## ~~v1.3 — Mehrsprachige Stimmen~~ ✓ Ausgeliefert in v3.8.0
 
-E.L.L.A. ist weiblich — das gilt in jeder Sprache. Nur weibliche Stimmen.
-
-| Sprache     | Kokoro Voice | Kokoro lang |
-| ----------- | ------------ | ----------- |
-| Deutsch     | `af_sarah`   | `"de"`      |
-| Englisch    | `bf_emma`    | `"en-us"`   |
-| Spanisch    | `ef_dora`    | `"es"`      |
-| Französisch | `ff_siwis`   | `"fr-fr"`   |
-
-- `tts_server.py` — `lang`-Parameter im Request, Voice-Mapping intern
-- Settings — neue Option "Gesprächssprache" (unabhängig von UI-Sprache DE/EN)
-- API — Gesprächssprache beim TTS-Aufruf mitschicken
-- UI bleibt DE/EN — wer einen PC bedienen kann versteht das
+- `spokenLanguage`-Setting (de/en/es/fr), unabhängig von UI-Sprache
+- Kokoro: `af_sarah` / `bf_emma` / `ef_dora` / `ff_siwis` — ausschließlich weiblich
+- MsEdgeTTS: Katja / Sonia / Elvira / Denise
+- UI bleibt DE/EN
 
 ---
 
