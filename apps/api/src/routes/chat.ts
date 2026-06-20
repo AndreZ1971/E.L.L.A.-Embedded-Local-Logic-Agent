@@ -57,11 +57,13 @@ chatRouter.post("/", async (req, res, next) => {
     sessionId = "default",
     model,
     isVoice,
+    stressLevel,
   } = req.body as {
     message?: string;
     sessionId?: string;
     model?: string;
     isVoice?: boolean;
+    stressLevel?: "low" | "medium" | "high";
   };
 
   if (!message) {
@@ -104,6 +106,19 @@ chatRouter.post("/", async (req, res, next) => {
     if (settings.windowContextEnabled && !useOpenAI) {
       const winTitle = getForegroundWindowTitle();
       if (winTitle) memories = [`Aktives Fenster: ${winTitle}`, ...memories];
+    }
+
+    // Stress-Kontext (opt-in via stressDetectionEnabled)
+    if (
+      settings.stressDetectionEnabled &&
+      stressLevel &&
+      stressLevel !== "low"
+    ) {
+      const hint =
+        stressLevel === "high"
+          ? "[HINWEIS: Die Stimme des Nutzers klingt stark angespannt. Reagiere mitfühlend und ruhig.]"
+          : "[HINWEIS: Die Stimme des Nutzers klingt leicht angespannt.]";
+      memories = [hint, ...memories];
     }
 
     const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
@@ -161,10 +176,12 @@ chatRouter.post("/stream", async (req, res) => {
     message,
     sessionId = "default",
     model,
+    stressLevel,
   } = req.body as {
     message?: string;
     sessionId?: string;
     model?: string;
+    stressLevel?: "low" | "medium" | "high";
   };
 
   if (!message) {
@@ -209,6 +226,19 @@ chatRouter.post("/stream", async (req, res) => {
       if (settings.windowContextEnabled && !useOpenAI) {
         const winTitle = getForegroundWindowTitle();
         if (winTitle) memories = [`Aktives Fenster: ${winTitle}`, ...memories];
+      }
+
+      // Stress-Kontext (opt-in via stressDetectionEnabled)
+      if (
+        settings.stressDetectionEnabled &&
+        stressLevel &&
+        stressLevel !== "low"
+      ) {
+        const hint =
+          stressLevel === "high"
+            ? "[HINWEIS: Die Stimme des Nutzers klingt stark angespannt. Reagiere mitfühlend und ruhig.]"
+            : "[HINWEIS: Die Stimme des Nutzers klingt leicht angespannt.]";
+        memories = [hint, ...memories];
       }
 
       const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(

@@ -116,6 +116,38 @@ speechRouter.post("/kokoro", async (req, res, next) => {
   }
 });
 
+const STRESS_PORT = 3004;
+
+speechRouter.post("/stress", upload.single("audio"), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ error: "Keine Audio-Datei" });
+      return;
+    }
+    // Forward raw WAV bytes to Python stress_server
+    const response = await fetch(`http://127.0.0.1:${STRESS_PORT}/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/octet-stream",
+        "Content-Length": String(req.file.buffer.length),
+      },
+      body: new Uint8Array(req.file.buffer),
+    }).catch(() => null);
+
+    if (!response || !response.ok) {
+      res.json({ stress: "low", score: 0 });
+      return;
+    }
+    const result = (await response.json()) as {
+      stress: string;
+      score: number;
+    };
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 speechRouter.get("/voices", (_req, res, next) => {
   try {
     const voices = listVoices();

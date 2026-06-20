@@ -301,6 +301,7 @@ const Chat: React.FC = () => {
   const loadingRef = useRef(false);
   const lastWakewordTimeRef = useRef<number>(0);
   const segmentProcessingRef = useRef(false);
+  const stressLevelRef = useRef<"low" | "medium" | "high">("low");
 
   /* ── Worker-Events (Alerts) ── */
   useEffect(() => {
@@ -566,6 +567,7 @@ const Chat: React.FC = () => {
             message: text,
             sessionId: SESSION_ID,
             isVoice,
+            stressLevel: isVoice ? stressLevelRef.current : undefined,
           }),
           signal: streamAbort.signal,
         });
@@ -813,11 +815,25 @@ const Chat: React.FC = () => {
             form.append("audio", blob, "segment.wav");
             setMicStatus(t("chat.mic_transcribing_vad"));
             try {
-              // always-Modus = Gesprächs-Modus → raw=true, kein Ollama-Filter
-              const r = await fetch(`${API}/api/speech/transcribe?raw=true`, {
-                method: "POST",
-                body: form,
-              });
+              // Run transcription + stress analysis in parallel on the same WAV
+              const stressForm = new FormData();
+              stressForm.append("audio", blob, "segment.wav");
+              const [r] = await Promise.all([
+                fetch(`${API}/api/speech/transcribe?raw=true`, {
+                  method: "POST",
+                  body: form,
+                }),
+                fetch(`${API}/api/speech/stress`, {
+                  method: "POST",
+                  body: stressForm,
+                })
+                  .then((sr) => sr.json() as Promise<{ stress?: string }>)
+                  .then((sd) => {
+                    stressLevelRef.current =
+                      (sd.stress as "low" | "medium" | "high") ?? "low";
+                  })
+                  .catch(() => {}),
+              ]);
               const data = (await r.json()) as {
                 text?: string;
                 error?: string;
@@ -869,6 +885,19 @@ const Chat: React.FC = () => {
           const blob = encodeWav(audio, sampleRate);
           const form = new FormData();
           form.append("audio", blob, "segment.wav");
+          // Stress analysis on every spoken segment (fire-and-forget)
+          const stressForm = new FormData();
+          stressForm.append("audio", blob, "segment.wav");
+          fetch(`${API}/api/speech/stress`, {
+            method: "POST",
+            body: stressForm,
+          })
+            .then((sr) => sr.json() as Promise<{ stress?: string }>)
+            .then((sd) => {
+              stressLevelRef.current =
+                (sd.stress as "low" | "medium" | "high") ?? "low";
+            })
+            .catch(() => {});
           try {
             // Phase 2: wakeword confirmed — transcribe as command
             if (awaitingCommandRef.current) {

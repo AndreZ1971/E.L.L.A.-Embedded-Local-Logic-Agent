@@ -62,6 +62,7 @@ export interface Settings {
   licenseProduct: string;
   language: string;
   spokenLanguage: "de" | "en" | "es" | "fr";
+  stressDetectionEnabled: boolean;
 }
 
 // Im Installer: ELLA_USERDATA = %APPDATA%\ELLA (gesetzt von Electron main.ts)
@@ -183,6 +184,7 @@ export const DEFAULT_SETTINGS: Settings = {
   licenseProduct: "",
   language: "",
   spokenLanguage: "de",
+  stressDetectionEnabled: false,
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },

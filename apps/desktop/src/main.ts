@@ -51,6 +51,7 @@ let tray: Tray | null = null;
 let isQuitting = false;
 let apiProcess: ChildProcess | null = null;
 let ttsProcess: ChildProcess | null = null;
+let stressProcess: ChildProcess | null = null;
 let mariadbProcess: ChildProcess | null = null;
 let ollamaProcess: ChildProcess | null = null;
 
@@ -236,6 +237,28 @@ function startKokoroTts(): void {
   );
   ttsProcess.on("exit", (code) =>
     console.log("[TTS] Prozess beendet, Code:", code),
+  );
+}
+
+// ── Stress Analysis Server ────────────────────────────────────────────────────
+
+function startStressServer(): void {
+  const scriptPath = path.join(app.getAppPath(), "../scripts/stress_server.py");
+  if (!fs.existsSync(scriptPath)) {
+    log(
+      "[STRESS] stress_server.py nicht gefunden — Stress-Erkennung deaktiviert",
+    );
+    return;
+  }
+  stressProcess = spawn("python", [scriptPath], { stdio: "pipe" });
+  stressProcess.stdout?.on("data", (d: Buffer) =>
+    log("[STRESS] " + d.toString().trimEnd()),
+  );
+  stressProcess.stderr?.on("data", (d: Buffer) =>
+    log("[STRESS-ERR] " + d.toString().trimEnd()),
+  );
+  stressProcess.on("exit", (code) =>
+    log("[STRESS] Prozess beendet, Code: " + code),
   );
 }
 
@@ -833,6 +856,7 @@ app.whenReady().then(async () => {
 
     startApi();
     startKokoroTts();
+    startStressServer();
 
     // Prüfen ob Modell-Auswahl nötig (Erststart ohne settings.json)
     const settingsPath = path.join(app.getPath("userData"), "settings.json");
@@ -901,7 +925,13 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", () => {
   isQuitting = true;
-  for (const proc of [apiProcess, ttsProcess, ollamaProcess, mariadbProcess]) {
+  for (const proc of [
+    apiProcess,
+    ttsProcess,
+    stressProcess,
+    ollamaProcess,
+    mariadbProcess,
+  ]) {
     if (proc && !proc.killed) proc.kill();
   }
 });

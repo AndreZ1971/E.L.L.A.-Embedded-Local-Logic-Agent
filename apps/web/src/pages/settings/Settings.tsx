@@ -86,6 +86,7 @@ interface Settings {
   accessibilityMode: "none" | "blind" | "deaf";
   searchDrives: string[];
   spokenLanguage: "de" | "en" | "es" | "fr";
+  stressDetectionEnabled: boolean;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -1154,6 +1155,37 @@ const Settings: React.FC = () => {
                   "los"
                 </div>
               )}
+            </Section>
+
+            <Section title="Stress-Erkennung">
+              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={settings.stressDetectionEnabled ?? false}
+                  onChange={(e) =>
+                    patch({ stressDetectionEnabled: e.target.checked })
+                  }
+                />
+                <span
+                  style={{
+                    color: settings.stressDetectionEnabled
+                      ? "#e2e8f0"
+                      : "#94a3b8",
+                  }}
+                >
+                  Stimmanalyse aktivieren
+                </span>
+              </label>
+              <div
+                style={{
+                  fontSize: "0.78rem",
+                  color: "#64748b",
+                  marginTop: 4,
+                }}
+              >
+                ELLA erkennt Anspannung in der Stimme und passt ihre Antworten
+                an. Nur aktiv wenn Sprachsteuerung eingeschaltet ist.
+              </div>
             </Section>
           </>
         )}
