@@ -116,9 +116,9 @@ speechRouter.post("/kokoro", async (req, res, next) => {
   }
 });
 
-speechRouter.get("/voices", async (_req, res, next) => {
+speechRouter.get("/voices", (_req, res, next) => {
   try {
-    const voices = await listVoices();
+    const voices = listVoices();
     res.json({ voices });
   } catch (err) {
     next(err);

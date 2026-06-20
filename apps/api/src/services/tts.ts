@@ -61,16 +61,43 @@ export async function synthesize(
   });
 }
 
-export async function listVoices(): Promise<
-  Array<{ name: string; locale: string; gender: string }>
-> {
-  const tts = new MsEdgeTTS();
-  const voices = await tts.getVoices();
-  return voices
-    .filter((v) => v.Locale.startsWith("de"))
-    .map((v) => ({
-      name: v.ShortName,
-      locale: v.Locale,
-      gender: v.Gender,
-    }));
+export interface VoiceOption {
+  name: string;
+  locale: string;
+  gender: "Female";
+  lang: "de" | "en" | "es" | "fr";
+  label: string;
+}
+
+export function listVoices(): VoiceOption[] {
+  return [
+    {
+      name: "de-DE-KatjaNeural",
+      locale: "de-DE",
+      gender: "Female",
+      lang: "de",
+      label: "Deutsch — Katja",
+    },
+    {
+      name: "en-GB-SoniaNeural",
+      locale: "en-GB",
+      gender: "Female",
+      lang: "en",
+      label: "English — Sonia",
+    },
+    {
+      name: "es-ES-ElviraNeural",
+      locale: "es-ES",
+      gender: "Female",
+      lang: "es",
+      label: "Español — Elvira",
+    },
+    {
+      name: "fr-FR-DeniseNeural",
+      locale: "fr-FR",
+      gender: "Female",
+      lang: "fr",
+      label: "Français — Denise",
+    },
+  ];
 }

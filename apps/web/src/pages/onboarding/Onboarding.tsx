@@ -144,9 +144,23 @@ const Onboarding: React.FC = () => {
   const [scanLines, setScanLines] = useState<string[]>([]);
   const locationRef = useRef<HTMLInputElement>(null);
   const [voices, setVoices] = useState<
-    Array<{ name: string; locale: string; gender: string }>
+    Array<{
+      name: string;
+      locale: string;
+      gender: string;
+      lang: string;
+      label: string;
+    }>
   >([]);
   const [selectedVoice, setSelectedVoice] = useState("");
+  const [selectedLang, setSelectedLang] = useState("de");
+
+  const PREVIEW_TEXT: Record<string, string> = {
+    de: `Hallo${name.trim() ? ` ${name.trim()}` : ""}. Ich bin E.L.L.A.`,
+    en: `Hello${name.trim() ? ` ${name.trim()}` : ""}. I am E.L.L.A.`,
+    es: `Hola${name.trim() ? ` ${name.trim()}` : ""}. Soy E.L.L.A.`,
+    fr: `Bonjour${name.trim() ? ` ${name.trim()}` : ""}. Je suis E.L.L.A.`,
+  };
 
   const directiveProhibitions = [
     { code: "I", text: t("onboarding.directive_i") },
@@ -179,18 +193,55 @@ const Onboarding: React.FC = () => {
         .then((r) => r.json())
         .then(
           (data: {
-            voices: Array<{ name: string; locale: string; gender: string }>;
+            voices: Array<{
+              name: string;
+              locale: string;
+              gender: string;
+              lang: string;
+              label: string;
+            }>;
           }) => {
             setVoices(data.voices);
-            if (data.voices.length > 0) setSelectedVoice(data.voices[0].name);
+            if (data.voices.length > 0) {
+              setSelectedVoice(data.voices[0].name);
+              setSelectedLang(data.voices[0].lang ?? "de");
+            }
           },
         )
         .catch(() => {
-          setVoices([
-            { name: "de-DE-KatjaNeural", locale: "de-DE", gender: "Female" },
-            { name: "de-DE-ConradNeural", locale: "de-DE", gender: "Male" },
-            { name: "de-DE-AmalaNeural", locale: "de-DE", gender: "Female" },
-          ]);
+          const fallback = [
+            {
+              name: "de-DE-KatjaNeural",
+              locale: "de-DE",
+              gender: "Female" as const,
+              lang: "de",
+              label: "Deutsch — Katja",
+            },
+            {
+              name: "en-GB-SoniaNeural",
+              locale: "en-GB",
+              gender: "Female" as const,
+              lang: "en",
+              label: "English — Sonia",
+            },
+            {
+              name: "es-ES-ElviraNeural",
+              locale: "es-ES",
+              gender: "Female" as const,
+              lang: "es",
+              label: "Español — Elvira",
+            },
+            {
+              name: "fr-FR-DeniseNeural",
+              locale: "fr-FR",
+              gender: "Female" as const,
+              lang: "fr",
+              label: "Français — Denise",
+            },
+          ];
+          setVoices(fallback);
+          setSelectedVoice(fallback[0].name);
+          setSelectedLang(fallback[0].lang);
         });
       setStep("voice");
     }, 1200);
@@ -355,11 +406,14 @@ const Onboarding: React.FC = () => {
                     key={v.name}
                     onClick={() => {
                       setSelectedVoice(v.name);
+                      setSelectedLang(v.lang ?? "de");
+                      const previewText =
+                        PREVIEW_TEXT[v.lang ?? "de"] ?? PREVIEW_TEXT["de"];
                       fetch(`${API}/api/speech/synthesize`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                          text: `Hallo${name.trim() ? ` ${name.trim()}` : ""}. Ich bin E.L.L.A.`,
+                          text: previewText,
                           voice: v.name,
                         }),
                       })
@@ -387,7 +441,7 @@ const Onboarding: React.FC = () => {
                       fontSize: "0.9rem",
                     }}
                   >
-                    {v.name}
+                    {v.label ?? v.name}
                   </button>
                 ))}
               </div>
@@ -405,7 +459,7 @@ const Onboarding: React.FC = () => {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                       ttsEnabled: true,
-                      ttsVoice: selectedVoice,
+                      spokenLanguage: selectedLang,
                     }),
                   }).catch(() => {});
                 }
