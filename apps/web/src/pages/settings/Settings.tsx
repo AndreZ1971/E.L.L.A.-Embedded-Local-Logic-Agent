@@ -413,15 +413,15 @@ const Settings: React.FC = () => {
 
   const savePin = async () => {
     if (!pinNew) {
-      setPinMsg({ ok: false, text: "Bitte neuen PIN eingeben." });
+      setPinMsg({ ok: false, text: t("settings.pins_enter_new") });
       return;
     }
     if (pinNew !== pinConfirm) {
-      setPinMsg({ ok: false, text: "PINs stimmen nicht überein." });
+      setPinMsg({ ok: false, text: t("settings.pins_mismatch") });
       return;
     }
     if (pinNew.length < 4) {
-      setPinMsg({ ok: false, text: "PIN muss mindestens 4 Zeichen haben." });
+      setPinMsg({ ok: false, text: t("settings.pins_too_short") });
       return;
     }
     setPinSaving(true);
@@ -436,7 +436,7 @@ const Settings: React.FC = () => {
       });
       const data = (await r.json()) as { success?: boolean; error?: string };
       if (data.success) {
-        setPinMsg({ ok: true, text: "PIN gespeichert." });
+        setPinMsg({ ok: true, text: t("settings.pin_saved") });
         setPinCurrent("");
         setPinNew("");
         setPinConfirm("");
@@ -446,7 +446,10 @@ const Settings: React.FC = () => {
         )) as Settings;
         setSettings(s);
       } else {
-        setPinMsg({ ok: false, text: data.error ?? "Fehler beim Speichern." });
+        setPinMsg({
+          ok: false,
+          text: data.error ?? t("settings.pin_save_error"),
+        });
       }
     } finally {
       setPinSaving(false);
@@ -495,12 +498,7 @@ const Settings: React.FC = () => {
   const [pulling, setPulling] = useState(false);
 
   const emergencyReset = async () => {
-    if (
-      !window.confirm(
-        "Notschalter: Alle KI-Einstellungen auf sichere Defaults zurücksetzen?\n\nApps, Setups, PIN und Regeln bleiben erhalten.",
-      )
-    )
-      return;
+    if (!window.confirm(t("settings.emergency_reset_confirm"))) return;
     setResetting(true);
     try {
       const data = (await fetch(`${API}/api/settings/emergency-reset`, {
@@ -954,7 +952,7 @@ const Settings: React.FC = () => {
                   marginBottom: 8,
                 }}
               >
-                Schnelleres Modell für Sprachbefehle — empfohlen: llama3.2:3b
+                {t("settings.voice_model_hint")}
               </p>
               <select
                 value={settings.voiceOllamaModel ?? "llama3.2:3b"}
@@ -980,7 +978,7 @@ const Settings: React.FC = () => {
                 value={settings.openaiApiKey ?? ""}
                 placeholder={
                   settings.openaiApiKey === MASKED
-                    ? "gesetzt (ändern zum Überschreiben)"
+                    ? t("settings.openai_key_set")
                     : "sk-…"
                 }
                 onChange={(e) => patch({ openaiApiKey: e.target.value })}
@@ -989,7 +987,7 @@ const Settings: React.FC = () => {
               <div
                 style={{ fontSize: "0.78rem", color: "#64748b", marginTop: 6 }}
               >
-                Leer lassen = Wert aus .env nutzen.
+                {t("settings.openai_key_hint")}
               </div>
               {settings.openaiApiKey === MASKED && (
                 <button
@@ -1005,7 +1003,7 @@ const Settings: React.FC = () => {
                     cursor: "pointer",
                   }}
                 >
-                  Key entfernen
+                  {t("settings.openai_key_remove")}
                 </button>
               )}
             </Section>
@@ -1105,7 +1103,7 @@ const Settings: React.FC = () => {
                   style={{ ...input, width: 80 }}
                 />
                 <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
-                  Maximale Nachrichten im Verlauf (1–100)
+                  {t("settings.session_limit_hint")}
                 </span>
               </div>
             </Section>
@@ -1208,7 +1206,7 @@ const Settings: React.FC = () => {
                       padding: "8px 4px",
                     }}
                   >
-                    Noch keine Setups.
+                    {t("settings.setups_empty")}
                   </div>
                 )}
                 {(settings.setups ?? []).map((s) => (
@@ -1258,7 +1256,7 @@ const Settings: React.FC = () => {
                   fontSize: "0.85rem",
                 }}
               >
-                + Neues Setup
+                {t("settings.setups_add")}
               </button>
             </div>
 
@@ -1277,7 +1275,7 @@ const Settings: React.FC = () => {
                         paddingTop: 8,
                       }}
                     >
-                      Setup auswählen oder neu anlegen.
+                      {t("settings.setups_select_or_add")}
                     </div>
                   );
                 }
@@ -1311,7 +1309,7 @@ const Settings: React.FC = () => {
                           fontSize: "0.8rem",
                         }}
                       >
-                        Löschen
+                        {t("settings.setups_delete")}
                       </button>
                     </div>
 
@@ -1596,7 +1594,7 @@ const Settings: React.FC = () => {
                         .filter((d) => d.length > 0),
                     })
                   }
-                  placeholder="z.B. C, E, H"
+                  placeholder={t("settings.search_drives_placeholder")}
                   style={{
                     background: "#1e2538",
                     border: "1px solid #2d3148",
@@ -1618,7 +1616,7 @@ const Settings: React.FC = () => {
                 <input
                   value={settings.musicLibraryPath ?? ""}
                   onChange={(e) => patch({ musicLibraryPath: e.target.value })}
-                  placeholder="z.B. H:\Musik"
+                  placeholder="H:\Music"
                   style={{
                     background: "#1e2538",
                     border: "1px solid #2d3148",
@@ -1790,7 +1788,7 @@ const Settings: React.FC = () => {
             </Section>
 
             {/* Erlaubte Apps */}
-            <Section title="Erlaubte Apps im Hausaufgaben-Modus">
+            <Section title={t("settings.section_homework_apps")}>
               <div
                 style={{
                   fontSize: "0.82rem",
@@ -1798,8 +1796,7 @@ const Settings: React.FC = () => {
                   marginBottom: 10,
                 }}
               >
-                Nur diese Apps laufen wenn der Modus aktiviert wird. Alle
-                anderen bekannten Programme werden geschlossen.
+                {t("settings.homework_apps_hint")}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {(settings.apps ?? []).length === 0 && (
@@ -1810,7 +1807,7 @@ const Settings: React.FC = () => {
                       padding: 8,
                     }}
                   >
-                    Erst unter "Programme" Apps eintragen.
+                    {t("settings.homework_apps_empty")}
                   </div>
                 )}
                 {(settings.apps ?? []).map((a) => {
@@ -1866,9 +1863,9 @@ const Settings: React.FC = () => {
                       {!a.allowed && (
                         <span
                           style={{ fontSize: "0.72rem", color: "#475569" }}
-                          title="App ist unter 'Programme' nicht erlaubt — wird trotzdem geöffnet"
+                          title={t("settings.app_not_allowed_title")}
                         >
-                          (nicht erlaubt)
+                          {t("settings.app_not_allowed")}
                         </span>
                       )}
                     </label>
@@ -1933,7 +1930,7 @@ const Settings: React.FC = () => {
                     marginBottom: 6,
                   }}
                 >
-                  TTS-Engine
+                  {t("settings.tts_engine_label")}
                 </label>
                 <select
                   value={settings.ttsEngine ?? "system"}
@@ -1945,9 +1942,11 @@ const Settings: React.FC = () => {
                     width: "100%",
                   }}
                 >
-                  <option value="system">System (Windows Stimme)</option>
+                  <option value="system">
+                    {t("settings.tts_engine_system")}
+                  </option>
                   <option value="kokoro">
-                    Kokoro (lokal, Python erforderlich)
+                    {t("settings.tts_engine_kokoro")}
                   </option>
                 </select>
               </div>
@@ -2106,7 +2105,7 @@ const Settings: React.FC = () => {
                     onChange={(e) =>
                       setNewRule((r) => ({ ...r, trigger: e.target.value }))
                     }
-                    placeholder="Bedingung: always · hour > 18 · disk_C > 90"
+                    placeholder={t("settings.rules_trigger_placeholder")}
                     style={{ ...input, flex: 1 }}
                   />
                   <button
@@ -2154,8 +2153,7 @@ const Settings: React.FC = () => {
                     textAlign: "center",
                   }}
                 >
-                  Noch keine Regeln. Ohne Erlaubnis-Regel sind alle Tools
-                  gesperrt.
+                  {t("settings.rules_empty")}
                 </div>
               )}
               {rules.map((rule) => (
@@ -2249,8 +2247,7 @@ const Settings: React.FC = () => {
         {tab === "google" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div style={{ color: "#94a3b8", fontSize: "0.8rem" }}>
-              OAuth 2.0 — Credentials aus der Google Cloud Console (Desktop
-              App).
+              {t("settings.google_hint")}
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -2307,7 +2304,9 @@ const Settings: React.FC = () => {
                 }}
               >
                 <span style={{ color: "#22c55e", fontSize: "0.85rem" }}>
-                  ✓ Verbunden als {settings.googleUserEmail}
+                  {t("settings.google_connected", {
+                    email: settings.googleUserEmail,
+                  })}
                 </span>
                 <button
                   onClick={async () => {
@@ -2326,7 +2325,7 @@ const Settings: React.FC = () => {
                     fontSize: "0.8rem",
                   }}
                 >
-                  Trennen
+                  {t("settings.google_disconnect")}
                 </button>
               </div>
             ) : (
@@ -2362,7 +2361,7 @@ const Settings: React.FC = () => {
                       : 0.5,
                 }}
               >
-                Mit Google verbinden
+                {t("settings.google_connect")}
               </button>
             )}
           </div>
@@ -2370,7 +2369,7 @@ const Settings: React.FC = () => {
         {/* ── Profile — direkt unter Google (selber Tab) ───────── */}
         {tab === "google" && (
           <React.Fragment>
-            <Section title="Profile verwalten">
+            <Section title={t("settings.section_profiles")}>
               <div
                 style={{ display: "flex", flexDirection: "column", gap: 10 }}
               >
@@ -2415,7 +2414,7 @@ const Settings: React.FC = () => {
                             color: "#7c6af7",
                           }}
                         >
-                          aktiv
+                          {t("settings.profile_active")}
                         </span>
                       )}
                       {p.hasPin && (
@@ -2470,7 +2469,9 @@ const Settings: React.FC = () => {
                                 setSwitchPins({});
                                 setProfileMsg({
                                   ok: true,
-                                  text: `Profil "${p.name}" aktiviert.`,
+                                  text: t("settings.profile_activated", {
+                                    name: p.name,
+                                  }),
                                 });
                               } else {
                                 const err = (await res.json()) as {
@@ -2478,7 +2479,7 @@ const Settings: React.FC = () => {
                                 };
                                 setProfileMsg({
                                   ok: false,
-                                  text: err.error ?? "Fehler",
+                                  text: err.error ?? t("common.error"),
                                 });
                               }
                             } finally {
@@ -2495,7 +2496,7 @@ const Settings: React.FC = () => {
                             fontSize: "0.82rem",
                           }}
                         >
-                          Aktivieren
+                          {t("settings.profile_activate")}
                         </button>
                         {p.id !== 1 && (
                           <button
@@ -2503,7 +2504,9 @@ const Settings: React.FC = () => {
                             onClick={async () => {
                               if (
                                 !window.confirm(
-                                  `Profil "${p.name}" wirklich löschen?`,
+                                  t("settings.profile_delete_confirm", {
+                                    name: p.name,
+                                  }),
                                 )
                               )
                                 return;
@@ -2518,7 +2521,7 @@ const Settings: React.FC = () => {
                                   await loadProfiles();
                                   setProfileMsg({
                                     ok: true,
-                                    text: "Profil gelöscht.",
+                                    text: t("settings.profile_deleted"),
                                   });
                                 } else {
                                   const err = (await res.json()) as {
@@ -2526,7 +2529,7 @@ const Settings: React.FC = () => {
                                   };
                                   setProfileMsg({
                                     ok: false,
-                                    text: err.error ?? "Fehler",
+                                    text: err.error ?? t("common.error"),
                                   });
                                 }
                               } finally {
@@ -2552,13 +2555,13 @@ const Settings: React.FC = () => {
                 ))}
                 {profiles.length === 0 && (
                   <div style={{ fontSize: "0.85rem", color: "#64748b" }}>
-                    Keine Profile gefunden.
+                    {t("settings.profile_none")}
                   </div>
                 )}
               </div>
             </Section>
 
-            <Section title="Neues Profil erstellen">
+            <Section title={t("settings.section_profile_new")}>
               <div
                 style={{ display: "flex", flexDirection: "column", gap: 10 }}
               >
@@ -2574,7 +2577,7 @@ const Settings: React.FC = () => {
                     type="color"
                     value={newProfileColor}
                     onChange={(e) => setNewProfileColor(e.target.value)}
-                    title="Profilfarbe"
+                    title={t("settings.profile_color_title")}
                     style={{
                       width: 40,
                       height: 36,
@@ -2588,7 +2591,7 @@ const Settings: React.FC = () => {
                 </div>
                 <input
                   type="password"
-                  placeholder="PIN (optional, 4–8 Ziffern)"
+                  placeholder={t("settings.profile_pin_placeholder")}
                   maxLength={8}
                   value={newProfilePin}
                   onChange={(e) => setNewProfilePin(e.target.value)}
@@ -2616,13 +2619,13 @@ const Settings: React.FC = () => {
                         setNewProfileColor("#7c6af7");
                         setProfileMsg({
                           ok: true,
-                          text: "Profil erstellt.",
+                          text: t("settings.profile_created"),
                         });
                       } else {
                         const err = (await res.json()) as { error?: string };
                         setProfileMsg({
                           ok: false,
-                          text: err.error ?? "Fehler beim Erstellen",
+                          text: err.error ?? t("settings.profile_create_error"),
                         });
                       }
                     } finally {
@@ -2647,7 +2650,7 @@ const Settings: React.FC = () => {
                     opacity: !newProfileName.trim() ? 0.5 : 1,
                   }}
                 >
-                  {profileLoading ? "…" : "Profil erstellen"}
+                  {profileLoading ? "…" : t("settings.profile_create_btn")}
                 </button>
                 {profileMsg && (
                   <div
