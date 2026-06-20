@@ -63,6 +63,16 @@ describe("saveSettings / getSettings", () => {
     expect(s).toHaveProperty("ollamaModel");
     expect(s).toHaveProperty("homeworkMode");
   });
+
+  it("stressDetectionEnabled defaults to false", () => {
+    expect(DEFAULT_SETTINGS.stressDetectionEnabled).toBe(false);
+  });
+
+  it("stressDetectionEnabled can be patched", async () => {
+    await saveSettings({ stressDetectionEnabled: true });
+    expect(getSettings().stressDetectionEnabled).toBe(true);
+    await saveSettings({ stressDetectionEnabled: false });
+  });
 });
 
 describe("loadSettings migration", () => {
