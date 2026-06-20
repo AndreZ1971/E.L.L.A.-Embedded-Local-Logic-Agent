@@ -4,7 +4,7 @@
 
 Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automatisierung — vollständig offline via Ollama, optional mit OpenAI GPT-4o.
 
-**Version:** v3.8.0 · Windows 10/11 (x64)
+**Version:** v3.9.0 · Windows 10/11 (x64)
 
 _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -40,8 +40,9 @@ Kein Python, kein separates MariaDB-Setup, keine PATH-Konfiguration.
 | Kalender (Google)    | Google Calendar lesen und Termine erstellen via OAuth 2.0                          |
 | System               | Temp, Papierkorb, RAM, Festplatte, Diagnose, Herunterfahren                        |
 | Gedächtnis           | Vektor-Embeddings (nomic-embed-text), Cosinus-Suche, 3 Typen, Profil-isoliert      |
-| Spracheingabe        | Web Speech API (Chromium built-in, kein API-Key) · Freihand · Manuell · Wakeword   |
-| Sprachausgabe        | Microsoft Edge TTS via msedge-tts (kein API-Key, kostenlos)                        |
+| Spracheingabe        | Web Speech API (Chromium built-in, kein API-Key) - Freihand / Manuell / Wakeword   |
+| Sprachausgabe        | MsEdgeTTS + Kokoro TTS — weibliche Stimmen DE/EN/ES/FR wählbar                     |
+| Stress-Erkennung     | Stimmanalyse (Python/numpy) — passt ELLAs Ton bei Anspannung an (opt-in)           |
 | Pause                | Wakeword 1–120 Minuten deaktivieren, Countdown, automatische Rückkehr              |
 | Web                  | Sofortige Suche ohne Rückfrage (Filme, Personen, Produkte, News)                   |
 | Wetter               | Aktuelles Wetter via Open-Meteo                                                    |
@@ -96,15 +97,28 @@ ELLA nutzt `window.SpeechRecognition` (Chromium built-in) direkt im Renderer:
 - **Freihand-Modus** (`voiceMode: "always"`): kontinuierliches Zuhören, automatischer Neustart
 - **Manuell**: Mikrofon-Button → einmalige Aufnahme → Text ins Eingabefeld
 
-### Sprachausgabe — Microsoft Edge TTS
+### Sprachausgabe — zwei Engines
 
-ELLA nutzt `msedge-tts` (Microsoft Edge Neural TTS):
+**Microsoft Edge TTS** (`msedge-tts`, online):
 
-- Kein API-Key erforderlich
-- Kostenloser Microsoft-Dienst über WebSocket (`wss://speech.platform.bing.com`)
-- Standard-Stimme: `de-DE-KatjaNeural`
-- Internet erforderlich
-- Aktiviert per Default (`ttsEnabled: true`)
+- Kein API-Key, kostenloser Microsoft-Dienst
+- 4 weibliche Stimmen: Katja (DE), Sonia (EN), Elvira (ES), Denise (FR)
+- Wählbar per `spokenLanguage`-Setting (unabhängig von der UI-Sprache)
+
+**Kokoro TTS** (`scripts/tts_server.py`, Port 3003, vollständig offline):
+
+- Lokale neuronale Stimme, kein Internet nötig
+- Gleiche 4 Sprachen: `af_sarah` / `bf_emma` / `ef_dora` / `ff_siwis`
+- In den Einstellungen aktivierbar (`ttsEngine: "kokoro"`)
+
+### Stress-Erkennung in der Stimme (opt-in)
+
+`scripts/stress_server.py` (Port 3004) — Python/numpy, keine Zusatz-Abhängigkeiten:
+
+- Läuft parallel zur Whisper-Transkription auf demselben WAV-Segment
+- Analysiert RMS-Energie, Zero-Crossing-Rate und Pitch → `low / medium / high`
+- Bei `medium/high`: Kontext-Hint in ELLAs Memories → ruhigere, mitfühlendere Antwort
+- Aktivierbar in Einstellungen → Stimme → "Stimmanalyse aktivieren"
 
 ### Optional: OpenAI Whisper (höhere Qualität)
 

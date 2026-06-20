@@ -4,6 +4,51 @@ Alle wesentlichen Änderungen an E.L.L.A. Detaillierte Entscheidungsbegründunge
 
 ---
 
+## [3.9.0] — 20.06.2026
+
+### Hinzugefügt
+
+- **Stress-Erkennung in der Stimme** — `scripts/stress_server.py` (Port 3004): Python-Server analysiert WAV-Audio mit reinem numpy (kein librosa nötig); extrahiert RMS-Energie, Zero-Crossing-Rate und Pitch per Autokorrelation → gibt `low/medium/high` zurück
+- **Parallele Stress-Analyse** — läuft gleichzeitig mit Whisper-Transkription auf demselben WAV-Segment, kein Latenzverlust
+- **Stress-Kontext im LLM** — bei `medium/high` wird ein Hinweis vorne in die Memories injiziert; LLM antwortet mitfühlender und ruhiger
+- **Settings-Toggle** — "Stimmanalyse aktivieren" in Einstellungen → Stimme (opt-in, default: aus)
+- **Graceful Degradation** — wenn stress_server.py nicht läuft, fällt der Chat lautlos auf normales Verhalten zurück
+- **224 Tests** — 9 neue Unit-Tests für Stress-Fallback, Hint-Aufbau und Einstellungs-Patch
+
+---
+
+## [3.8.3] — 20.06.2026
+
+### Hinzugefügt
+
+- **Stimmen im Onboarding** — Voice-Schritt zeigt jetzt alle 4 weiblichen Stimmen (DE/EN/ES/FR) mit freundlichen Labels ("Deutsch — Katja" etc.)
+- **Vorschau-Text mehrsprachig** — Klick auf eine Stimme spielt "Hello André. I am E.L.L.A." (bzw. in der gewählten Sprache)
+- **Kein männlicher Fallback mehr** — `de-DE-ConradNeural` aus dem Onboarding-Fallback entfernt
+
+### Geändert
+
+- `listVoices()` in `tts.ts` gibt jetzt die 4 fixen weiblichen Stimmen zurück (kein MsEdgeTTS-API-Call mehr)
+- Onboarding speichert Wahl als `spokenLanguage` statt `ttsVoice`
+- `/voices`-Route nicht mehr async (kein I/O mehr nötig)
+
+---
+
+## [3.8.2] — 19.06.2026 (Bugfix)
+
+### Behoben
+
+- **Chat.tsx überschrieb Stimme** — `ttsVoice`-Ref sendete immer `de-DE-KatjaNeural` im Request-Body und überschrieb die API-seitige `spokenLanguage`-Logik; `voice`-Feld aus beiden TTS-Fetch-Calls entfernt
+- **Settings-Dropdown** — altes `ttsVoice`-Dropdown (DE-only, gemischt) durch `spokenLanguage`-Selektor ersetzt
+
+---
+
+## [3.8.1] — 19.06.2026
+
+- README + CHANGELOG + CLAUDE.md auf v3.8.0-Stand gebracht
+- Roadmap v1.3 als ✓ abgehakt (ausgeliefert)
+
+---
+
 ## [3.8.0] — 19.06.2026
 
 ### Hinzugefügt

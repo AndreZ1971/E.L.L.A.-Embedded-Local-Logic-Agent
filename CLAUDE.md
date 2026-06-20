@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v3.8.0**
+**Aktueller Stand: v3.9.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -38,6 +38,7 @@ packages/
 scripts/
   wakeword_server.py  Python-Wakeword-Prozess (openWakeWord + ella.onnx)
   tts_server.py       Python-Kokoro-TTS-Server (Port 3003, 127.0.0.1-only)
+  stress_server.py    Python-Stressanalyse-Server (Port 3004, numpy-only, WAV-Analyse)
 database/
   schema.sql  MariaDB-Schema (idempotent, IF NOT EXISTS)
 ```
@@ -74,6 +75,8 @@ database/
 - **Modell-Auswahl vor Download:** `ModelSelectOverlay` — zeigt vor dem ersten Download eine Hardware-Tier-Auswahl; `main.ts` pausiert `ensureOllamaModel()` bis IPC-Antwort; kein Default-Download mehr auf nicht passender Hardware
 - **Lizenz-Website:** ella-agent.de Link auf der Aktivierungsseite
 - **Mehrsprachige Stimmen (DE/EN/ES/FR):** `spokenLanguage`-Setting wählt automatisch weibliche Stimme — Kokoro: `af_sarah`/`bf_emma`/`ef_dora`/`ff_siwis`; MsEdgeTTS: Katja/Sonia/Elvira/Denise; UI bleibt DE/EN
+- **Onboarding Stimmenauswahl:** 4 weibliche Stimmen im Onboarding-Schritt wählbar (mit Vorschau in der jeweiligen Sprache), speichert `spokenLanguage`
+- **Stress-Erkennung:** `stress_server.py` Port 3004, numpy-only WAV-Analyse (RMS/ZCR/Pitch), `stressDetectionEnabled`-Setting; Hint in Memories bei medium/high; opt-in
 
 ### Produktivität
 
@@ -117,7 +120,7 @@ database/
 - **format_drive 3-Zonen-Regel:** Zone 1 = C:, ELLA-Laufwerk (auto via `process.cwd()[0]`), `protectedDrives` → directive; Zone 2 = Netzwerk/CD/Unbekannt → directive; Zone 3 = alle anderen inkl. interne HDDs → Bestätigungsdialog
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
-- **205 Tests — alle grün** (Vitest Unit + Integration)
+- **224 Tests — alle grün** (Vitest Unit + Integration)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 
 ---
@@ -267,7 +270,7 @@ https://github.com/AndreZ1971/E.L.L.A.git
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-06-19T13:40:02.194Z._
+_Last synced: 2026-06-20T07:47:43.268Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).

@@ -1,4 +1,4 @@
-# Architektur — v3.5.0
+# Architektur — v3.9.0
 
 ---
 
@@ -57,12 +57,13 @@
 │  │  EventBus-Push      │   │  user_feedback + directive_audit│  │
 │  └─────────────────────┘   └────────────────────────────────┘   │
 │                                                                  │
-│  ┌─────────────────────┐   ┌────────────────────────────────┐   │
-│  │  Clipboard-Polling  │   │  Python-Prozesse               │   │
-│  │  alle 3s: History,  │   │  wakeword_server.py :mic       │   │
-│  │  Muster-Erkennung   │   │  tts_server.py :3003 (Kokoro)  │   │
-│  │  IBAN/URL/IBAN/...  │   │  127.0.0.1-only, offline       │   │
-│  └─────────────────────┘   └────────────────────────────────┘   │
+│  ┌─────────────────────┐   ┌─────────────────────────────────────┐  │
+│  │  Clipboard-Polling  │   │  Python-Prozesse                    │  │
+│  │  alle 3s: History,  │   │  wakeword_server.py :mic            │  │
+│  │  Muster-Erkennung   │   │  tts_server.py :3003 (Kokoro TTS)   │  │
+│  │  IBAN/URL/IBAN/...  │   │  stress_server.py :3004 (Analyse)   │  │
+│  └─────────────────────┘   │  127.0.0.1-only, offline            │  │
+│                             └─────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
 ```
 

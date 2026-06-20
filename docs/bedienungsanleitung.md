@@ -1,6 +1,6 @@
 # E.L.L.A. — Bedienungsanleitung
 
-_Version 3.5.0_
+Version 3.9.0
 
 ---
 
@@ -74,6 +74,8 @@ py -3.12 -m pip install kokoro-onnx sounddevice numpy
 
 Kokoro ist eine lokale neuronale TTS-Engine die natürlicher klingt als die eingebauten Windows-Stimmen. Sie läuft vollständig offline und kann in den Einstellungen aktiviert werden.
 
+> **Hinweis:** `numpy` ist bereits erforderlich und wird mit Kokoro mitinstalliert. Der Stress-Analyse-Server (`stress_server.py`) benötigt keine weiteren Pakete.
+
 ---
 
 ## 3. Installation und erster Start
@@ -113,7 +115,16 @@ ELLA erklärt ihre vier unveränderlichen Verbote. Du bestätigst, dass du sie v
 ELLA scannt deinen Rechner und lernt deine Laufwerke und ihre Kapazitäten kennen.
 
 **Schritt 5 — Stimme wählen**
-Wähle eine Stimme für die Sprachausgabe. Wenn Kokoro installiert ist, steht es hier bereits als Option zur Verfügung.
+Wähle ELLAs Stimme und Sprache für die Sprachausgabe. Vier weibliche Stimmen stehen zur Wahl:
+
+| Sprache  | MsEdgeTTS (online) | Kokoro (offline) |
+| -------- | ------------------ | ---------------- |
+| Deutsch  | Katja              | af_sarah         |
+| English  | Sonia              | bf_emma          |
+| Español  | Elvira             | ef_dora          |
+| Français | Denise             | ff_siwis         |
+
+Klicke auf eine Stimme um eine Vorschau zu hören — ELLA spricht in der jeweiligen Sprache. Die Wahl gilt unabhängig von der App-Sprache (DE/EN).
 
 **Schritt 6 — Standort**
 Optional: Teile ELLA deinen Standort mit für Wetter und lokale Informationen.
@@ -498,6 +509,26 @@ ELLA liest Antworten, Alerts und proaktive Nachrichten automatisch vor wenn TTS 
 Wenn `kokoro-onnx` installiert ist, kann in den Einstellungen unter **Modus → TTS-Engine** auf "Kokoro" umgestellt werden. Kokoro klingt deutlich natürlicher als Windows-Standardstimmen und läuft vollständig lokal.
 
 Wenn Kokoro nicht verfügbar ist, fällt ELLA automatisch auf die Windows-Stimme zurück.
+
+### Gesprächssprache und Stimme
+
+In den Einstellungen unter **Stimme → Gesprächssprache** wählst du welche Sprache ELLA sprechen soll — unabhängig davon in welcher Sprache du mit ihr schreibst:
+
+- **Deutsch — Katja** (Standard)
+- **English — Sonia**
+- **Español — Elvira**
+- **Français — Denise**
+
+### Stress-Erkennung (opt-in)
+
+Unter **Stimme → Stimmanalyse aktivieren** kann ELLA lernen wie du klingst. Wenn die Stimmanalyse aktiv ist:
+
+- Jedes gesprochene Segment wird parallel zur Transkription ausgewertet
+- Erkennt Anspannung in Tonhöhe, Sprechtempo und Energie
+- Bei erhöhtem Stress antwortet ELLA ruhiger und mitfühlender
+- Bei starkem Stress: _"Du klingst angespannt — alles in Ordnung?"_
+
+Die Analyse läuft vollständig lokal (`stress_server.py`), keine Audiodaten verlassen das Gerät. Der Chat funktioniert normal wenn der Server nicht verfügbar ist.
 
 ---
 

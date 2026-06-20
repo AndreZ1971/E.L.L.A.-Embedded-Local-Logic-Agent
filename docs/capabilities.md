@@ -1,6 +1,6 @@
-# E.L.L.A. — Was ich kann (v3.5.0)
+# E.L.L.A. — Was ich kann (v3.9.0)
 
-_Stand: 2026-06-09 · 205 Tests grün_
+Stand: 2026-06-20 — 224 Tests grün
 
 ---
 
@@ -222,7 +222,7 @@ _Stand: 2026-06-09 · 205 Tests grün_
 
 ## Sicherheitsarchitektur (die Directive)
 
-```
+```text
 Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → Tool Execution
 ```
 

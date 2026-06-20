@@ -1,6 +1,6 @@
 # E.L.L.A. — Häufig gestellte Fragen (FAQ)
 
-_Version 3.5.0 · Zuletzt aktualisiert: 2026-06-14_
+Version 3.9.0 — Zuletzt aktualisiert: 2026-06-20
 
 ---
 
@@ -209,7 +209,24 @@ Danach unter **Einstellungen → Modus → TTS-Engine** auf "Kokoro" umstellen.
 
 ### Kann ich die Stimme ändern?
 
-Ja — unter **Einstellungen → Modus → TTS-Stimme** kannst du aus allen verfügbaren Edge-TTS-Stimmen wählen. Verfügbare Stimmen listest du mit `"Welche Stimmen gibt es?"` auf.
+Ja — unter **Einstellungen → Stimme → Gesprächssprache** wählst du aus 4 weiblichen Stimmen:
+
+| Sprache  | Online (MsEdgeTTS) | Offline (Kokoro) |
+| -------- | ------------------ | ---------------- |
+| Deutsch  | Katja              | af_sarah         |
+| English  | Sonia              | bf_emma          |
+| Español  | Elvira             | ef_dora          |
+| Français | Denise             | ff_siwis         |
+
+Die Wahl gilt unabhängig davon in welcher Sprache du tippst oder sprichst.
+
+### Kann ELLA erkennen ob ich gestresst bin?
+
+Ja — mit der optionalen **Stress-Erkennung** unter **Einstellungen → Stimme → Stimmanalyse aktivieren**.
+
+ELLA analysiert die Rohdaten deiner Stimme (Tonhöhe, Sprechtempo, Lautstärke) parallel zur Spracherkennung und passt bei erkannter Anspannung ihren Ton an. Bei starkem Stress fragt ELLA aktiv nach.
+
+Die Analyse läuft vollständig lokal (`stress_server.py`, Port 3004) — keine Audiodaten verlassen das Gerät. Der Feature ist standardmäßig deaktiviert und muss bewusst eingeschaltet werden.
 
 ---
 

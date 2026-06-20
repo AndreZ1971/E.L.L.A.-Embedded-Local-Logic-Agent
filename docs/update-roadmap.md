@@ -19,7 +19,7 @@ Reihenfolge nach Priorität / Aufwand noch offen.
 
 **Spielfluss:**
 
-```
+```text
 Nutzer:  "Wollen wir Trivia spielen?"
 ELLA:    Kategorie-Auswahl anbieten (Geschichte, Wissenschaft, Sport, Filme, Musik, Geographie …)
 ELLA:    Schwierigkeitsgrad abfragen — oder ELLA wählt passend zum bisherigen Score
@@ -108,52 +108,47 @@ Aktueller Scan findet nur einen Bruchteil der installierten Programme. Drei Stuf
 - Start-Menü: beide Ordner (All Users + aktueller User)
 - Microsoft Store Apps + Steam/Epic via eigene Registry-Pfade
 
-**Stufe 2 — Manuell hinzufügen**
+Stufe 2 — Manuell hinzufügen:
 
 - Settings: Liste wo Nutzer Name + Pfad/Befehl eintragen kann
 - Für Portable Apps und Spiele ohne Registry-Eintrag
 - Bereits vorhandene `apps`-Liste in Settings als Basis nutzen
 
-**Stufe 3 — Favoriten pinnen**
+Stufe 3 — Favoriten pinnen:
 
 - Nutzer markiert 10–15 Programme die täglich gebraucht werden
 - Kommen bei `open_app` immer zuerst, reduziert Rauschen aus großem Scan
 
 ---
 
-## v1.5 — Stress-Erkennung in der Stimme
+## ~~v1.5 — Stress-Erkennung in der Stimme~~ ✓ Ausgeliefert in v3.9.0
 
-ELLA hört nicht nur WAS der Nutzer sagt — sondern WIE. Stress in der Stimme steckt in den Audio-Rohdaten, nicht im transkribierten Text.
+ELLA hört nicht nur WAS der Nutzer sagt — sondern WIE.
 
-**Signale die auf Stress hindeuten:**
+**Ausgeliefert:**
 
-- Erhöhte Tonhöhe (Grundfrequenz / Pitch steigt)
-- Schnelleres Sprechtempo, kürzere Pausen
-- Erhöhte Lautstärke / Energie im Signal
-- Stimmzittern (unregelmäßiger Pitch-Verlauf)
+- `scripts/stress_server.py` (Port 3004) — Python/numpy, keine Zusatz-Abhängigkeiten (kein librosa nötig)
+- Analysiert RMS-Energie, Zero-Crossing-Rate und Pitch via Autokorrelation
+- Läuft parallel zur Whisper-Transkription auf demselben WAV-Segment — kein Latenzverlust
+- Stress-Level `low / medium / high` als Kontext-Hint in ELLAs Memories
+- Opt-in: **Einstellungen → Stimme → Stimmanalyse aktivieren**
+- Graceful Degradation: wenn Server nicht läuft, funktioniert der Chat normal
 
-**Technische Umsetzung:**
+**ELLAs Reaktion (implementiert):**
 
-- Python-Bibliothek `librosa` — extrahiert Pitch, Tempo, MFCCs aus Rohsignal
-- Parallel zum STT-Prozess, kein Eingriff in bestehende Spracherkennung
-- Optional: vortrainiertes Emotion-Recognition-Modell via `speechbrain`
-- Stress-Level (niedrig / mittel / hoch) als Kontext-Variable an den LLM
+- `medium`: dezenter Hint → ELLA antwortet etwas ruhiger
+- `high`: _"[HINWEIS: Die Stimme des Nutzers klingt stark angespannt. Reagiere mitfühlend und ruhig.]"_ → LLM passt Ton an
 
-**ELLAs Reaktion:**
+**Offen für spätere Iteration:**
 
-- Stress erkannt → sanftere Antwort, ruhigeres TTS-Tempo
-- Deutlich erhöhter Stress → proaktiv: _"Du klingst angespannt — alles in Ordnung?"_
-- Anhaltender Stress über mehrere Nachrichten → ins Gedächtnis schreiben
-- Comeback-Briefing: _"Gestern Abend klang es stressig — wie geht's dir heute?"_
-
-**Warum das zu ELLA passt:**
-Genesis/Rachel nehmen den Menschen wahr — nicht nur seine Worte. ELLA die merkt wie es dem Nutzer geht bevor er es sagt ist ein fundamentaler Unterschied zu jedem anderen Assistenten.
+- Anhaltender Stress (3+ Nachrichten) → Memory-Eintrag + Comeback-Briefing
+- Vortrainiertes Emotion-Recognition-Modell via `speechbrain` für höhere Genauigkeit
 
 ---
 
 ## Ideen-Pool (noch nicht bewertet)
 
-_(Hier sammeln wir alles was uns einfällt)_
+Hier sammeln wir alles was uns einfällt.
 
 ---
 
