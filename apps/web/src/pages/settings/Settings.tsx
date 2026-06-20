@@ -1141,13 +1141,12 @@ const Settings: React.FC = () => {
                     marginTop: 2,
                   }}
                 >
-                  "ella" zum Aktivieren → Befehl sprechen → "ausführen" oder
-                  "los"
+                  {t("settings.wakeword_mode_hint")}
                 </div>
               )}
             </Section>
 
-            <Section title="Stress-Erkennung">
+            <Section title={t("settings.section_stress")}>
               <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <input
                   type="checkbox"
@@ -1163,7 +1162,7 @@ const Settings: React.FC = () => {
                       : "#94a3b8",
                   }}
                 >
-                  Stimmanalyse aktivieren
+                  {t("settings.stress_enable")}
                 </span>
               </label>
               <div
@@ -1173,8 +1172,7 @@ const Settings: React.FC = () => {
                   marginTop: 4,
                 }}
               >
-                ELLA erkennt Anspannung in der Stimme und passt ihre Antworten
-                an. Nur aktiv wenn Sprachsteuerung eingeschaltet ist.
+                {t("settings.stress_desc")}
               </div>
             </Section>
           </>
@@ -1330,18 +1328,18 @@ const Settings: React.FC = () => {
                         [
                           {
                             key: "open" as const,
-                            label: "Öffnen",
+                            label: t("common.open"),
                             apps: (settings.apps ?? []).filter(
                               (a) => a.allowed,
                             ),
-                            emptyHint: 'Erst unter "Programme" Apps erlauben.',
+                            emptyHint: t("settings.programmes_allow_first"),
                             color: "#7c6af7",
                           },
                           {
                             key: "close" as const,
-                            label: "Schließen",
+                            label: t("common.close"),
                             apps: settings.apps ?? [],
-                            emptyHint: "Keine Programme bekannt.",
+                            emptyHint: t("settings.programmes_no_apps"),
                             color: "#f87171",
                           },
                         ] as const
@@ -1489,8 +1487,11 @@ const Settings: React.FC = () => {
             <div
               style={{ fontSize: "0.78rem", color: "#64748b", flexShrink: 0 }}
             >
-              {(settings.apps ?? []).length} bekannt · {allowedCount} erlaubt ·{" "}
-              {(settings.apps ?? []).length - allowedCount} verboten
+              {t("settings.programmes_stats", {
+                known: (settings.apps ?? []).length,
+                allowed: allowedCount,
+                denied: (settings.apps ?? []).length - allowedCount,
+              })}
             </div>
 
             <div
@@ -1512,8 +1513,8 @@ const Settings: React.FC = () => {
                   }}
                 >
                   {(settings.apps ?? []).length === 0
-                    ? '"System scannen" klicken.'
-                    : "Keine Treffer."}
+                    ? t("settings.programmes_scan_first")
+                    : t("settings.programmes_no_results")}
                 </div>
               )}
               {filteredApps.map((a) => (
@@ -1572,12 +1573,12 @@ const Settings: React.FC = () => {
                   letterSpacing: "0.06em",
                 }}
               >
-                Medienwiedergabe
+                {t("settings.section_media_playback")}
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
-                  Suchlaufwerke (kommagetrennt)
+                  {t("settings.search_drives_label")}
                 </label>
                 <input
                   value={searchDrivesText}
@@ -1606,13 +1607,13 @@ const Settings: React.FC = () => {
                   }}
                 />
                 <div style={{ fontSize: "0.72rem", color: "#475569" }}>
-                  Diese Laufwerke durchsucht ELLA bei Datei- und Musiksuche
+                  {t("settings.search_drives_hint")}
                 </div>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
-                  Musikbibliothek (primärer Pfad)
+                  {t("settings.music_library_label")}
                 </label>
                 <input
                   value={settings.musicLibraryPath ?? ""}
@@ -1631,7 +1632,7 @@ const Settings: React.FC = () => {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
-                  Weitere Musikpfade (einer pro Zeile)
+                  {t("settings.music_paths_label")}
                 </label>
                 <textarea
                   value={musicSearchPathsText}
@@ -1661,7 +1662,7 @@ const Settings: React.FC = () => {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
-                  Standard Media Player
+                  {t("settings.section_media_player")}
                 </label>
                 <select
                   value={settings.defaultMediaPlayer ?? "vlc"}
@@ -1876,23 +1877,23 @@ const Settings: React.FC = () => {
               </div>
             </Section>
 
-            <Section title="Proaktive Intelligenz">
+            <Section title={t("settings.section_proactive")}>
               {(
                 [
                   {
                     key: "windowContextEnabled" as const,
-                    label: "Aktives Fenster als Kontext",
-                    desc: "ELLA kennt beim Chat die aktive Anwendung (nur Ollama-Modus)",
+                    label: t("settings.window_context_label"),
+                    desc: t("settings.window_context_hint"),
                   },
                   {
                     key: "clipboardPatternEnabled" as const,
-                    label: "Zwischenablage-Muster erkennen",
-                    desc: "IBAN, Paketnummern, E-Mail-Adressen automatisch erkennen",
+                    label: t("settings.clipboard_patterns_label"),
+                    desc: t("settings.clipboard_hint"),
                   },
                   {
                     key: "sessionCompressionEnabled" as const,
-                    label: "Gesprächs-Kompression",
-                    desc: "Lange Gespräche automatisch zusammenfassen (nur Ollama)",
+                    label: t("settings.compression_label"),
+                    desc: t("settings.compression_hint"),
                   },
                 ] as const
               ).map(({ key, label, desc }) => (
@@ -1983,7 +1984,7 @@ const Settings: React.FC = () => {
               </div>
             </Section>
 
-            <Section title="Barrierefreiheit">
+            <Section title={t("settings.section_accessibility")}>
               <div
                 style={{
                   marginBottom: 6,
@@ -1991,24 +1992,24 @@ const Settings: React.FC = () => {
                   color: "#64748b",
                 }}
               >
-                Passt ELLAs Verhalten an die Bedürfnisse des Nutzers an.
+                {t("settings.accessibility_desc")}
               </div>
               {(
                 [
                   {
                     value: "none" as const,
-                    label: "Kein Modus",
-                    desc: "Standard — kein spezielles Verhalten",
+                    label: t("settings.accessibility_none"),
+                    desc: t("settings.accessibility_none_desc"),
                   },
                   {
                     value: "blind" as const,
-                    label: "Blind-Modus",
-                    desc: "Sprachausgabe immer aktiv, TTS-optimierte Antworten (kein Markdown), Audio-Feedback bei Zustandswechseln",
+                    label: t("settings.accessibility_blind"),
+                    desc: t("settings.accessibility_blind_desc"),
                   },
                   {
                     value: "deaf" as const,
-                    label: "Gehörlos-Modus",
-                    desc: "Keine Sprachausgabe, keine Töne — alles läuft über den Chat-Text",
+                    label: t("settings.accessibility_deaf"),
+                    desc: t("settings.accessibility_deaf_desc"),
                   },
                 ] as const
               ).map(({ value, label, desc }) => (

@@ -231,13 +231,38 @@
     "programmes_filter": "Suchen…",
     "emergency_reset_banner": "Notschalter aktiviert am {{date}} — Einstellungen wurden auf sichere Defaults zurückgesetzt.",
     "tier_small_openai_hint": "Keine passende GPU? Kein Problem — E.L.L.A. läuft auch ausschließlich mit einem OpenAI-Key.",
-    "spoken_language": "Gesprächssprache (Stimme)"
+    "spoken_language": "Gesprächssprache (Stimme)",
+    "wakeword_mode_hint": "\"ella\" zum Aktivieren → Befehl sprechen → \"ausführen\" oder \"los\"",
+    "section_stress": "Stress-Erkennung",
+    "stress_enable": "Stimmanalyse aktivieren",
+    "stress_desc": "ELLA erkennt Anspannung in der Stimme und passt ihre Antworten an. Nur aktiv wenn Sprachsteuerung eingeschaltet ist.",
+    "programmes_stats": "{{known}} bekannt · {{allowed}} erlaubt · {{denied}} verboten",
+    "programmes_scan_first": "\"System scannen\" klicken.",
+    "programmes_no_results": "Keine Treffer.",
+    "programmes_no_apps": "Keine Programme bekannt.",
+    "programmes_allow_first": "Erst unter \"Programme\" Apps erlauben.",
+    "section_media_playback": "Medienwiedergabe",
+    "search_drives_label": "Suchlaufwerke (kommagetrennt)",
+    "search_drives_hint": "Diese Laufwerke durchsucht ELLA bei Datei- und Musiksuche",
+    "music_library_label": "Musikbibliothek (primärer Pfad)",
+    "music_paths_label": "Weitere Musikpfade (einer pro Zeile)",
+    "section_proactive": "Proaktive Intelligenz",
+    "window_context_label": "Aktives Fenster als Kontext",
+    "clipboard_patterns_label": "Zwischenablage-Muster erkennen",
+    "compression_label": "Gesprächs-Kompression",
+    "section_accessibility": "Barrierefreiheit",
+    "accessibility_desc": "Passt ELLAs Verhalten an die Bedürfnisse des Nutzers an.",
+    "accessibility_none_desc": "Standard — kein spezielles Verhalten",
+    "accessibility_blind_desc": "Sprachausgabe immer aktiv, TTS-optimierte Antworten (kein Markdown), Audio-Feedback bei Zustandswechseln",
+    "accessibility_deaf_desc": "Keine Sprachausgabe, keine Töne — alles läuft über den Chat-Text"
   },
   "common": {
     "loading": "Lädt…",
     "error": "Fehler",
     "back": "Zurück",
-    "continue": "Weiter"
+    "continue": "Weiter",
+    "open": "Öffnen",
+    "close": "Schließen"
   },
   "splash": {
     "quips": [

@@ -231,13 +231,38 @@
     "programmes_filter": "Search…",
     "emergency_reset_banner": "Emergency reset activated on {{date}} — settings were reset to safe defaults.",
     "tier_small_openai_hint": "No GPU? No problem — E.L.L.A. also runs exclusively with an OpenAI key.",
-    "spoken_language": "Conversation language (voice)"
+    "spoken_language": "Conversation language (voice)",
+    "wakeword_mode_hint": "Say \"ella\" to activate → speak your command → \"ausführen\" or \"los\"",
+    "section_stress": "Voice Stress Detection",
+    "stress_enable": "Enable voice analysis",
+    "stress_desc": "ELLA detects tension in your voice and adapts its responses. Only active when voice input is enabled.",
+    "programmes_stats": "{{known}} known · {{allowed}} allowed · {{denied}} denied",
+    "programmes_scan_first": "Click \"Scan System\".",
+    "programmes_no_results": "No results.",
+    "programmes_no_apps": "No programs found.",
+    "programmes_allow_first": "First allow apps under \"Programs\".",
+    "section_media_playback": "Media Playback",
+    "search_drives_label": "Search drives (comma-separated)",
+    "search_drives_hint": "ELLA searches these drives for files and music",
+    "music_library_label": "Music library (primary path)",
+    "music_paths_label": "Additional music paths (one per line)",
+    "section_proactive": "Proactive Intelligence",
+    "window_context_label": "Active window context",
+    "clipboard_patterns_label": "Detect clipboard patterns",
+    "compression_label": "Conversation compression",
+    "section_accessibility": "Accessibility",
+    "accessibility_desc": "Adapts ELLA's behaviour to the user's needs.",
+    "accessibility_none_desc": "Standard — no special behaviour",
+    "accessibility_blind_desc": "Voice output always active, TTS-optimised responses (no Markdown), audio feedback on state changes",
+    "accessibility_deaf_desc": "No voice output, no sounds — everything via chat text"
   },
   "common": {
     "loading": "Loading…",
     "error": "Error",
     "back": "Back",
-    "continue": "Continue"
+    "continue": "Continue",
+    "open": "Open",
+    "close": "Close"
   },
   "splash": {
     "quips": [
