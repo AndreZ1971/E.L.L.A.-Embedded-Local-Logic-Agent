@@ -831,16 +831,6 @@ const Settings: React.FC = () => {
                   );
                 })}
               </div>
-              <p
-                style={{
-                  margin: "8px 0 0",
-                  fontSize: "0.73rem",
-                  color: "#3a4156",
-                }}
-              >
-                {t("settings.tier_update_hint")}
-              </p>
-
               {/* Download-Button wenn aktives Modell noch nicht installiert */}
               {(() => {
                 const tier =
