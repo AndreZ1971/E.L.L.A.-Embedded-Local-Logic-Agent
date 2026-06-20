@@ -279,6 +279,7 @@
     "pin_save_error": "Fehler beim Speichern.",
     "rules_trigger_placeholder": "Bedingung: always · hour > 18 · disk_C > 90",
     "rules_empty": "Noch keine Regeln. Ohne Erlaubnis-Regel sind alle Tools gesperrt.",
+    "rules_all_tools": "alle Tools",
     "google_hint": "OAuth 2.0 — Credentials aus der Google Cloud Console (Desktop App).",
     "google_connected": "✓ Verbunden als {{email}}",
     "google_disconnect": "Trennen",

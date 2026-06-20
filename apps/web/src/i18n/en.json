@@ -279,6 +279,7 @@
     "pin_save_error": "Error saving PIN.",
     "rules_trigger_placeholder": "Condition: always · hour > 18 · disk_C > 90",
     "rules_empty": "No rules yet. Without an allow rule, all tools are blocked.",
+    "rules_all_tools": "all tools",
     "google_hint": "OAuth 2.0 — Credentials from Google Cloud Console (Desktop App).",
     "google_connected": "✓ Connected as {{email}}",
     "google_disconnect": "Disconnect",

@@ -2074,7 +2074,9 @@ const Settings: React.FC = () => {
                     }
                     style={{ ...input, flex: 1 }}
                   >
-                    <option value="*">* (alle Tools)</option>
+                    <option value="*">
+                      * ({t("settings.rules_all_tools")})
+                    </option>
                     {ALL_TOOLS.map((tool) => (
                       <option key={tool.name} value={tool.name}>
                         {tool.name}
@@ -2209,7 +2211,9 @@ const Settings: React.FC = () => {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {rule.name}
+                    {ALL_TOOLS.find((t) => t.name === rule.tool_name)
+                      ? toolLabel(rule.tool_name)
+                      : rule.name}
                   </span>
                   {/* Tool + Trigger */}
                   <span
