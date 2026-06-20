@@ -144,11 +144,10 @@ const Chat: React.FC = () => {
       const abort = new AbortController();
       currentAbortRef.current = abort;
       try {
-        const voice = ttsVoiceRef.current || "de-DE-KatjaNeural";
         const res = await fetch(`${API}/api/speech/synthesize`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: clean, voice }),
+          body: JSON.stringify({ text: clean }),
           signal: abort.signal,
         });
         if (abort.signal.aborted) return;
@@ -229,11 +228,10 @@ const Chat: React.FC = () => {
       const clean = cleanTextForTTS(sentence);
       if (!clean) continue;
       try {
-        const voice = ttsVoiceRef.current || "de-DE-KatjaNeural";
         const res = await fetch(`${API}/api/speech/synthesize`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: clean, voice }),
+          body: JSON.stringify({ text: clean }),
           signal: abort.signal,
         });
         if (!res.ok || abort.signal.aborted) break;

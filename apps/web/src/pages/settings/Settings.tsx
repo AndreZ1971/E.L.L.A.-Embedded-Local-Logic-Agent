@@ -1035,38 +1035,40 @@ const Settings: React.FC = () => {
                     : t("settings.tts_disabled")}
                 </span>
               </label>
-              {voices.length > 0 && (
-                <div>
-                  <div
-                    style={{
-                      fontSize: "0.8rem",
-                      color: "#64748b",
-                      marginBottom: 6,
-                    }}
-                  >
-                    {t("settings.section_tts_voice")}
-                  </div>
-                  <select
-                    value={settings.ttsVoice ?? ""}
-                    onChange={(e) => patch({ ttsVoice: e.target.value })}
-                    disabled={!settings.ttsEnabled}
-                    style={{
-                      ...input,
-                      width: "100%",
-                      opacity: settings.ttsEnabled ? 1 : 0.4,
-                    }}
-                  >
-                    <option value="">
-                      — Automatisch (erste deutsche Stimme) —
-                    </option>
-                    {voices.map((v) => (
-                      <option key={v.name} value={v.name}>
-                        {v.name} ({v.locale})
-                      </option>
-                    ))}
-                  </select>
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.8rem",
+                    color: "#64748b",
+                    marginBottom: 6,
+                  }}
+                >
+                  {t("settings.spoken_language")}
                 </div>
-              )}
+                <select
+                  value={settings.spokenLanguage ?? "de"}
+                  onChange={(e) =>
+                    patch({
+                      spokenLanguage: e.target.value as
+                        | "de"
+                        | "en"
+                        | "es"
+                        | "fr",
+                    })
+                  }
+                  disabled={!settings.ttsEnabled}
+                  style={{
+                    ...input,
+                    width: "100%",
+                    opacity: settings.ttsEnabled ? 1 : 0.4,
+                  }}
+                >
+                  <option value="de">Deutsch — Katja</option>
+                  <option value="en">English — Sonia</option>
+                  <option value="es">Español — Elvira</option>
+                  <option value="fr">Français — Denise</option>
+                </select>
+              </div>
             </Section>
           </>
         )}
