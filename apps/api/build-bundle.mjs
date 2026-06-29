@@ -6,7 +6,15 @@ import { existsSync } from "fs";
 //   → als external markieren damit esbuild es nicht inliniert.
 //   → DOMMatrix-Stub im Banner verhindert den Crash wenn Canvas nicht verfügbar.
 // @xenova/transformers: ONNX native, nur lazy via Whisper-Feature geladen.
-const external = ["@napi-rs/canvas", "@xenova/transformers"];
+// kokoro-js + @huggingface/transformers: Kokoro TTS, lazy geladen, native ONNX.
+// phonemizer: Abhängigkeit von kokoro-js.
+const external = [
+  "@napi-rs/canvas",
+  "@xenova/transformers",
+  "kokoro-js",
+  "@huggingface/transformers",
+  "phonemizer",
+];
 
 // DOMMatrix-Stub: Node.js hat diese Browser-API nicht.
 // pdf-parse/canvas versucht DOMMatrix zu nutzen — der Stub verhindert den Crash.

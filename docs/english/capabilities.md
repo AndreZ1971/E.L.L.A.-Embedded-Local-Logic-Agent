@@ -1,6 +1,6 @@
-# E.L.L.A. — What I Can Do (v3.9.0)
+# E.L.L.A. — What I Can Do (v3.9.1)
 
-As of: 2026-06-20 — 224 tests passing
+As of: 2026-06-28 — 224 tests passing
 
 ---
 
@@ -20,23 +20,23 @@ As of: 2026-06-20 — 224 tests passing
 
 ## System & Drives
 
-| Tool                 | What it does                                                    |
-| -------------------- | --------------------------------------------------------------- |
-| `get_disk_usage`     | Free/used storage per drive                                     |
-| `get_system_info`    | CPU, GPU, RAM, computer name                                    |
-| `get_system_status`  | Everything at once: disk + RAM + network + alerts + boot time   |
-| `clean_temp`         | Delete temporary files                                          |
-| `empty_recycle_bin`  | Empty the recycle bin                                           |
-| `free_ram`           | Release unused RAM                                              |
-| `shutdown_system`    | Shut down / restart / sleep the PC                              |
-| `format_drive`       | Format USB/external drives _(C: locked, confirmation required)_ |
-| `rename_drive`       | Change volume label _(system drives locked)_                    |
-| `list_programs`      | List all installed programs                                     |
-| `list_autostart`     | Show startup entries                                            |
-| `get_battery_status` | Charge level, whether charging, estimated remaining runtime     |
-| `get_temperatures`   | CPU/ACPI thermal zones in °C                                    |
-| `get_event_log`      | Windows errors/warnings from the event log                      |
-| `toggle_dark_mode`   | Toggle dark mode / light mode (Registry)                        |
+| Tool                 | What it does                                                  |
+| -------------------- | ------------------------------------------------------------- |
+| `get_disk_usage`     | Free/used storage per drive                                   |
+| `get_system_info`    | CPU, GPU, RAM, computer name                                  |
+| `get_system_status`  | Everything at once: disk + RAM + network + alerts + boot time |
+| `clean_temp`         | Delete temporary files                                        |
+| `empty_recycle_bin`  | Empty the recycle bin                                         |
+| `free_ram`           | Release unused RAM                                            |
+| `shutdown_system`    | Shut down / restart / sleep the PC                            |
+| `format_drive`       | Format USB/external drives _(confirmation required)_          |
+| `rename_drive`       | Change volume label _(system drives locked)_                  |
+| `list_programs`      | List all installed programs                                   |
+| `list_autostart`     | Show startup entries                                          |
+| `get_battery_status` | Charge level, whether charging, estimated remaining runtime   |
+| `get_temperatures`   | CPU/ACPI thermal zones in °C                                  |
+| `get_event_log`      | Windows errors/warnings from the event log                    |
+| `toggle_dark_mode`   | Toggle dark mode / light mode (Registry)                      |
 
 ---
 
@@ -202,7 +202,7 @@ As of: 2026-06-20 — 224 tests passing
 | Feature                         | What it does                                                                 |
 | ------------------------------- | ---------------------------------------------------------------------------- |
 | **Wakeword "ella"**             | Voice activation via openWakeWord + ONNX (local, offline)                    |
-| **Kokoro TTS**                  | Neural speech output (Port 3003, 127.0.0.1-only, offline)                    |
+| **Kokoro TTS**                  | Neural speech output (Node.js via `kokoro-js`, ONNX q8, offline, no Python)  |
 | **Proactive messages**          | ELLA writes into the chat on her own initiative (SSE `proactive_message`)    |
 | **Clipboard pattern detection** | IBAN, tracking number, phone, URL, email — polling every 3 s                 |
 | **Background worker**           | Disk/RAM/Ollama alerts, PnP, ARP, TCP, firewall/Wi-Fi/DNS — every 60 s       |
@@ -247,8 +247,8 @@ Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → Tool Execu
 | Metric         | Value                                                                   |
 | -------------- | ----------------------------------------------------------------------- |
 | Tools (active) | **85** _(+ 1 locked by Directive: `delete_files`)_                      |
-| Test cases     | **196 passing** (Vitest unit + integration)                             |
-| Git tags       | v1.0 → v3.4.0                                                           |
+| Test cases     | **224 passing** (Vitest unit + integration)                             |
+| Git tags       | v1.0 → v3.9.1                                                           |
 | LLM backends   | Ollama llama3.1:8b (local) + OpenAI GPT-4o (optional)                   |
 | Database       | MariaDB, local, no cloud access                                         |
 | Network egress | Only on explicit user command (web search, weather, Gmail/Google OAuth) |

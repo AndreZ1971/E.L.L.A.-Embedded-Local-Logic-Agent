@@ -1,4 +1,5 @@
 import { MsEdgeTTS, MetadataOptions, OUTPUT_FORMAT } from "msedge-tts";
+import { isKokoroReady, synthesizeKokoro } from "./kokoro.js";
 
 const FEMALE_VOICES: Record<string, string> = {
   de: "de-DE-KatjaNeural",
@@ -16,14 +17,18 @@ export interface TTSOptions {
   voice?: string;
   rate?: string;
   pitch?: string;
+  lang?: string;
 }
 
-export async function synthesize(
+export interface TTSResult {
+  buffer: Buffer;
+  contentType: string;
+}
+
+async function synthesizeMsEdge(
   text: string,
-  options: TTSOptions = {},
-): Promise<Buffer> {
-  // Fresh instance per request — avoids race condition where a stale WebSocket
-  // delivers audio data after the previous stream's requestId has been removed.
+  options: TTSOptions,
+): Promise<TTSResult> {
   const tts = new MsEdgeTTS();
 
   const rawVoice = options.voice?.trim() ?? "";
@@ -41,12 +46,10 @@ export async function synthesize(
     metadataOptions,
   );
 
-  return new Promise((resolve, reject) => {
+  const buffer = await new Promise<Buffer>((resolve, reject) => {
     const chunks: Buffer[] = [];
     let settled = false;
-
     const { audioStream } = tts.toStream(text);
-
     audioStream.on("data", (chunk: Buffer) => chunks.push(chunk));
     audioStream.on("end", () => {
       if (settled) return;
@@ -59,6 +62,24 @@ export async function synthesize(
       reject(err);
     });
   });
+
+  return { buffer, contentType: "audio/mpeg" };
+}
+
+export async function synthesize(
+  text: string,
+  options: TTSOptions = {},
+): Promise<TTSResult> {
+  // Kokoro first — local neural voice, offline
+  if (isKokoroReady()) {
+    try {
+      return await synthesizeKokoro(text, options.lang ?? "de");
+    } catch {
+      // fall through to MsEdgeTTS
+    }
+  }
+  // MsEdgeTTS fallback — online
+  return synthesizeMsEdge(text, options);
 }
 
 export interface VoiceOption {

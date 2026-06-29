@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v3.9.0**
+**Aktueller Stand: v3.9.1**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -37,7 +37,7 @@ packages/
   agent-tools/ Windows-System-Tools (disk, temp, recycle, open_app)
 scripts/
   wakeword_server.py  Python-Wakeword-Prozess (openWakeWord + ella.onnx)
-  tts_server.py       Python-Kokoro-TTS-Server (Port 3003, 127.0.0.1-only)
+  tts_server.py       Python-Kokoro-TTS-Server (DEPRECATED — ersetzt durch services/kokoro.ts)
   stress_server.py    Python-Stressanalyse-Server (Port 3004, numpy-only, WAV-Analyse)
 database/
   schema.sql  MariaDB-Schema (idempotent, IF NOT EXISTS)
@@ -45,7 +45,7 @@ database/
 
 ---
 
-## Was läuft (vollständig implementiert — v3.8.0)
+## Was läuft (vollständig implementiert — v3.9.1)
 
 ### Kern
 
@@ -60,8 +60,8 @@ database/
 ### Voice & UI
 
 - Voice: Wakeword "ella" (Python/ONNX + openWakeWord), manuell, TTS
-- **Kokoro TTS:** `scripts/tts_server.py` — lokale neuronale Stimme, Port 3003, 127.0.0.1-only
-- **TTS-Steuerung:** `currentAudioRef` stoppt laufende Wiedergabe vor neuer; kein Web-Speech-Fallback
+- **Kokoro TTS:** `services/kokoro.ts` — lokale neuronale Stimme via `kokoro-js` (Node.js, ONNX q8, kein Python nötig); lazy-geladen beim API-Start von HuggingFace Hub → `%APPDATA%/ELLA/kokoro-cache/`; `vendor/kokoro/` für Offline-Installer; MsEdgeTTS als Fallback; `GET /api/health` enthält `kokoro_ready`-Flag
+- **TTS-Routing:** `synthesize()` in `tts.ts` prüft `isKokoroReady()` → Kokoro-First (`audio/wav`), Fallback MsEdgeTTS (`audio/mpeg`); dynamischer `Content-Type` in Response
 - Proaktive TTS: Alert/Device-Events und proaktive Nachrichten werden vorgelesen
 - **Proaktive Nachrichten:** ELLA schreibt von sich aus in den Chat (SSE `proactive_message`)
 - **Feedback-Buttons:** Daumen hoch/runter → Ollama extrahiert Nutzerpräferenzen → `user`-Memory
@@ -77,6 +77,9 @@ database/
 - **Mehrsprachige Stimmen (DE/EN/ES/FR):** `spokenLanguage`-Setting wählt automatisch weibliche Stimme — Kokoro: `af_sarah`/`bf_emma`/`ef_dora`/`ff_siwis`; MsEdgeTTS: Katja/Sonia/Elvira/Denise; UI bleibt DE/EN
 - **Onboarding Stimmenauswahl:** 4 weibliche Stimmen im Onboarding-Schritt wählbar (mit Vorschau in der jeweiligen Sprache), speichert `spokenLanguage`
 - **Stress-Erkennung:** `stress_server.py` Port 3004, numpy-only WAV-Analyse (RMS/ZCR/Pitch), `stressDetectionEnabled`-Setting; Hint in Memories bei medium/high; opt-in
+- **Barrierefreiheit — Blind-Modus:** `accessibilityMode === "blind"` → TTS erzwungen, System-Prompt ohne Markdown, Audio-Töne als Zustandsfeedback, `aria-live="polite"` auf Nachrichtencontainer, `aria-label` auf allen Buttons/Input, Begrüßungsansage beim Laden
+- **Barrierefreiheit — Gehörlosenmodus:** `accessibilityMode === "deaf"` → TTS + Mic-Button vollständig ausgeblendet, visueller Deaf-Banner im Chat, System-Prompt ohne TTS-Erwähnung
+- **Mic-Button Bug fix:** `startRecording` auf `async/await` umgestellt — Promise-Rejection aus `getUserMedia` wird jetzt korrekt gefangen und dem Nutzer angezeigt
 
 ### Produktivität
 
@@ -102,7 +105,7 @@ database/
 
 ### Monitoring & Proaktiv
 
-- Background Worker (60s): Disk/RAM/Ollama-Alerts, PnP, ARP, TCP, Firewall/WiFi/DNS, Alarm-Check
+- Background Worker (60s): Disk/RAM/Ollama-Alerts, PnP, ARP, TCP, Firewall/WiFi/DNS, Alarm-Check, **Hausaufgaben-Zeitlimit-Ablauf**
 - Clipboard-Polling (3s): History + Muster-Erkennung: IBAN, Paketnummer, Telefon, URL, E-Mail
 - **Gesprächskompression:** `sessionCompressor.ts` — Ollama-only, älteste 10 Messages → Summary ab 15 Nachrichten
 - **Fenster-Kontext:** `windowContext.ts` — GetForegroundWindow, sensible Titel gefiltert, Ollama-only, opt-in
@@ -116,12 +119,14 @@ database/
 - **DB v3.5.0:** `alarms`-Tabelle + Regeln 83–85
 - **Nutzerprofile:** `routes/profiles.ts`, `services/profiles.ts` — PBKDF2+Salt (100k Iterations)
 - **Feedback-Route:** `routes/feedback.ts` — POST /api/feedback + Ollama-Memory-Extraktion
-- Homework Mode: SHA-256 PIN (Homework), PBKDF2 (Profile), Emergency-Reset
+- **Homework Mode:** SHA-256 PIN, PBKDF2 (Profile), Emergency-Reset — **nur der PIN beendet den Modus**, kein automatisches Ablaufdatum (Sicherheitsprinzip: Kind kann nicht einfach warten)
 - **format_drive 3-Zonen-Regel:** Zone 1 = C:, ELLA-Laufwerk (auto via `process.cwd()[0]`), `protectedDrives` → directive; Zone 2 = Netzwerk/CD/Unbekannt → directive; Zone 3 = alle anderen inkl. interne HDDs → Bestätigungsdialog
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
 - **224 Tests — alle grün** (Vitest Unit + Integration)
+- **Smoke Tests:** `scripts/smoke-test.ps1` — 13 End-to-End-Tests (Health, Homework Mode, Ollama, Chat+Tools, Lizenz)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
+- **LLM als Non-Gatekeeper:** System-Prompt Regel "KRITISCH — DU BIST NICHT DER GATEKEEPER" — LLM ruft Tools immer auf, Directive + Rule Engine entscheiden; verhindert Text-Ablehnung anstelle des Directive-Banners
 
 ---
 
@@ -202,7 +207,7 @@ Lizenzserver: `49.13.26.248:3010` — Hardware-Fingerprint (SHA256 hostname+CPU+
 ### esbuild Bundle (apps/api/build-bundle.mjs)
 
 CJS-Format, 370KB App-Code. Externe Pakete in `prod-node-modules/node_modules/`:
-`dotenv`, `express`, `mysql2`, `pdf-parse`, `cheerio`, `googleapis`, `mammoth`, `msedge-tts`, `multer`, `turndown`, `xlsx`, `ffmpeg-static`, `@xenova/transformers`
+`dotenv`, `express`, `mysql2`, `pdf-parse`, `cheerio`, `googleapis`, `mammoth`, `msedge-tts`, `multer`, `turndown`, `xlsx`, `ffmpeg-static`, `@xenova/transformers`, `kokoro-js`, `@huggingface/transformers`, `phonemizer`
 
 `@ella/*` Workspace-Pakete werden direkt eingebettet.
 
@@ -226,7 +231,7 @@ cd apps/desktop && node build-main.mjs && cd ../..
 $env:ELLA_DEV = "1"; cd apps\desktop; .\node_modules\electron\dist\electron.exe .
 
 # Tests
-npm test                       # 205 Unit + Integration Tests (Vitest)
+npm test                       # 224 Unit + Integration Tests (Vitest)
 npm run lint
 
 # Ollama prüfen
@@ -259,6 +264,7 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 - Ollama muss laufen bevor API gestartet wird (oder OpenAI-Fallback konfiguriert)
 - Keine freien Shell-Commands aus dem LLM — nur strukturierte Tool-Calls durch den Executor
 - `{ shell: true }` bei `execSync` vermeiden — TypeScript findet keinen Overload
+- **Keine Sicherheitshinweise in Tool-Beschreibungen** — LLM liest sie und lehnt dann per Text ab statt das Tool aufzurufen → Directive-Banner kann nicht erscheinen; Sicherheit liegt im Handler, nicht in der Beschreibung
 
 ## Git
 
@@ -266,12 +272,11 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
 
-
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-06-21T09:14:55.649Z._
+_Last synced: 2026-06-28T16:34:17.290Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).

@@ -1,6 +1,6 @@
 # Roadmap — E.L.L.A. Entwicklungshistorie & offene Punkte
 
-Stand: v1.1.0-rc · Juni 2026
+Stand: v3.9.1 · 2026-06-28
 
 ---
 
@@ -64,6 +64,16 @@ Stand: v1.1.0-rc · Juni 2026
 | Clipboard-Fehler unterdrückt | v1.1.0-rc | PS try/catch + Fail-Counter (max 3), kein stderr-Spam mehr bei eingeschränktem Zugriff |
 | SSE Reconnect nach Sleep     | v1.1.0-rc | EventSource reconnectet automatisch nach Laptop-Sleep (onerror + visibilitychange)     |
 | Mehrsprachige UI             | v1.1.0-rc | i18next DE/EN, Sprachauswahl als erster Onboarding-Screen vor EULA                     |
+| ModelSelectOverlay           | v3.7.0    | Hardware-Tier-Auswahl vor erstem Modell-Download, kein Auto-Download mehr              |
+| Vollständige i18n            | v3.7.0    | react-i18next, alle UI-Komponenten DE/EN (Chat, Settings, Dashboard, Onboarding)       |
+| Mehrsprachige TTS-Stimmen    | v3.8.0    | spokenLanguage (de/en/es/fr), Kokoro + MsEdgeTTS, ausschließlich weibliche Stimmen     |
+| Onboarding Stimmenauswahl    | v3.8.3    | 4 weibliche Stimmen im Onboarding wählbar mit Vorschau, speichert spokenLanguage       |
+| Stress-Erkennung             | v3.9.0    | stress_server.py Port 3004, numpy RMS/ZCR/Pitch, low/medium/high, opt-in               |
+| Barrierefreiheit Blind       | v3.9.0    | TTS erzwungen, kein Markdown, Audio-Töne, aria-live, Begrüßungsansage                  |
+| Barrierefreiheit Gehörlos    | v3.9.0    | TTS + Mic ausgeblendet, visueller Banner, System-Prompt ohne TTS-Erwähnung             |
+| Kokoro TTS (Node.js)         | v3.9.1    | kokoro-js npm-Paket, kein Python mehr für TTS, lazy-load aus HuggingFace Hub           |
+| LLM Non-Gatekeeper           | v3.9.1    | System-Prompt-Regel verhindert Text-Ablehnung statt Directive-Banner                   |
+| Smoke-Tests                  | v3.9.1    | scripts/smoke-test.ps1, 13 End-to-End-Tests gegen laufende Instanz                     |
 
 ---
 

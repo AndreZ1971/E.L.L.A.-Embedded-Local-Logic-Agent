@@ -27,7 +27,10 @@ $pkgJson = @"
     "turndown": "^7.2.4",
     "xlsx": "^0.18.5",
     "ffmpeg-static": "^5.3.0",
-    "@xenova/transformers": "^2.17.2"
+    "@xenova/transformers": "^2.17.2",
+    "kokoro-js": "^1.2.1",
+    "@huggingface/transformers": "^3.5.1",
+    "phonemizer": "^1.2.1"
   }
 }
 "@

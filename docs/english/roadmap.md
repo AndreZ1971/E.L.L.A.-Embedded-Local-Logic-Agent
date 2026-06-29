@@ -1,6 +1,6 @@
 # Roadmap — E.L.L.A. Development History & Open Items
 
-As of: v1.1.0-rc · June 2026
+As of: v3.9.1 · 2026-06-28
 
 ---
 
@@ -64,6 +64,16 @@ As of: v1.1.0-rc · June 2026
 | Clipboard error suppression  | v1.1.0-rc | PS try/catch + fail counter (max 3), no more stderr spam on restricted access         |
 | SSE reconnect after sleep    | v1.1.0-rc | EventSource reconnects automatically after laptop sleep (onerror + visibilitychange)  |
 | Multilingual UI              | v1.1.0-rc | i18next DE/EN, language selection as first onboarding screen before EULA              |
+| ModelSelectOverlay           | v3.7.0    | Hardware tier selection before first model download, no more auto-download            |
+| Full i18n                    | v3.7.0    | react-i18next, all UI components DE/EN (Chat, Settings, Dashboard, Onboarding)        |
+| Multilingual TTS voices      | v3.8.0    | spokenLanguage (de/en/es/fr), Kokoro + MsEdgeTTS, exclusively female voices           |
+| Onboarding voice selection   | v3.8.3    | 4 female voices selectable in onboarding with preview, saves spokenLanguage           |
+| Stress detection             | v3.9.0    | stress_server.py port 3004, numpy RMS/ZCR/pitch, low/medium/high, opt-in              |
+| Accessibility blind mode     | v3.9.0    | TTS forced, no Markdown, audio tones, aria-live, startup announcement                 |
+| Accessibility deaf mode      | v3.9.0    | TTS + mic hidden, visual banner, system prompt without TTS mentions                   |
+| Kokoro TTS (Node.js)         | v3.9.1    | kokoro-js npm package, no Python needed for TTS, lazy-loads from HuggingFace Hub      |
+| LLM non-gatekeeper           | v3.9.1    | System prompt rule prevents plain-text refusal instead of directive banner            |
+| Smoke tests                  | v3.9.1    | scripts/smoke-test.ps1, 13 end-to-end tests against a live instance                   |
 
 ---
 

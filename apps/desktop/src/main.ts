@@ -227,7 +227,14 @@ function startKokoroTts(): void {
     return;
   }
 
-  const scriptPath = path.join(app.getAppPath(), "../scripts/tts_server.py");
+  const scriptBase = app.isPackaged
+    ? process.resourcesPath
+    : path.join(app.getAppPath(), "..", "..");
+  const scriptPath = path.join(scriptBase, "scripts/tts_server.py");
+  if (!fs.existsSync(scriptPath)) {
+    log("[TTS] tts_server.py nicht gefunden — Kokoro TTS deaktiviert");
+    return;
+  }
   ttsProcess = spawn("python", [scriptPath], { stdio: "pipe" });
   ttsProcess.stdout?.on("data", (d: Buffer) =>
     console.log("[TTS]", d.toString().trimEnd()),
@@ -243,7 +250,10 @@ function startKokoroTts(): void {
 // ── Stress Analysis Server ────────────────────────────────────────────────────
 
 function startStressServer(): void {
-  const scriptPath = path.join(app.getAppPath(), "../scripts/stress_server.py");
+  const scriptBase = app.isPackaged
+    ? process.resourcesPath
+    : path.join(app.getAppPath(), "..", "..");
+  const scriptPath = path.join(scriptBase, "scripts/stress_server.py");
   if (!fs.existsSync(scriptPath)) {
     log(
       "[STRESS] stress_server.py nicht gefunden — Stress-Erkennung deaktiviert",

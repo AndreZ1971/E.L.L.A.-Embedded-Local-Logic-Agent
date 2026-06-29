@@ -238,7 +238,7 @@ const Settings: React.FC = () => {
   const [scanning, setScanning] = useState(false);
   const [filter, setFilter] = useState("");
   const [selectedSetupId, setSelectedSetupId] = useState<string | null>(null);
-  const [voices, setVoices] = useState<
+  const [_voices, setVoices] = useState<
     Array<{ name: string; locale: string; gender: string }>
   >([]);
   const [rules, setRules] = useState<Rule[]>([]);

@@ -121,6 +121,15 @@ Tier 3 — Pin favorites:
 
 ---
 
+## ~~v1.6 — Kokoro TTS as Node.js Service~~ ✓ Shipped in v3.9.1
+
+- `tts_server.py` deprecated — no Python process needed for TTS anymore
+- `services/kokoro.ts` via `kokoro-js` npm package, ONNX q8, lazy-loads from HuggingFace Hub
+- Offline cache at `vendor/kokoro/` for installer builds
+- `GET /api/health` includes `kokoro_ready` flag
+
+---
+
 ## ~~v1.5 — Stress Detection in the Voice~~ ✓ Shipped in v3.9.0
 
 ELLA does not only hear WHAT the user says — but HOW they say it.

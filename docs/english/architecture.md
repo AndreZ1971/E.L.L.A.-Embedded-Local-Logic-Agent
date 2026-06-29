@@ -1,4 +1,4 @@
-# Architecture — v3.9.0
+# Architecture — v3.9.1
 
 ---
 
@@ -57,13 +57,14 @@
 │  │  EventBus push      │   │  user_feedback + directive_audit│  │
 │  └─────────────────────┘   └────────────────────────────────┘   │
 │                                                                  │
-│  ┌─────────────────────┐   ┌─────────────────────────────────────┐  │
-│  │  Clipboard polling  │   │  Python processes                   │  │
-│  │  every 3s: history, │   │  wakeword_server.py :mic            │  │
-│  │  pattern detection  │   │  tts_server.py :3003 (Kokoro TTS)   │  │
-│  │  IBAN/URL/IBAN/...  │   │  stress_server.py :3004 (analysis)  │  │
-│  └─────────────────────┘   │  127.0.0.1-only, offline            │  │
-│                             └─────────────────────────────────────┘  │
+│  ┌─────────────────────┐   ┌──────────────────────────────────────────┐  │
+│  │  Clipboard polling  │   │  Python processes                        │  │
+│  │  every 3s: history, │   │  wakeword_server.py :mic (wakeword)      │  │
+│  │  pattern detection  │   │  stress_server.py :3004 (opt-in)         │  │
+│  │  IBAN/URL/IBAN/...  │   │  tts_server.py — DEPRECATED              │  │
+│  └─────────────────────┘   │    (replaced by kokoro.ts + kokoro-js)   │  │
+│                             │  127.0.0.1-only, offline                 │  │
+│                             └──────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -219,13 +220,13 @@ Types:
 
 ## Ports
 
-| Service             | Port  | Notes                                    |
-| ------------------- | ----- | ---------------------------------------- |
-| Frontend (Vite Dev) | 5173  | Dev mode only — production via `file://` |
-| Backend (Express)   | 3002  | Port 3001 occupied by Docker Desktop     |
-| Kokoro TTS server   | 3003  | Python, 127.0.0.1-only, local, offline   |
-| MariaDB             | 3306  | Windows service, E:\MariaDB\data         |
-| Ollama              | 11434 | Default port, runs as tray app           |
+| Service             | Port  | Notes                                                        |
+| ------------------- | ----- | ------------------------------------------------------------ |
+| Frontend (Vite Dev) | 5173  | Dev mode only — production via `file://`                     |
+| Backend (Express)   | 3002  | Port 3001 occupied by Docker Desktop                         |
+| Kokoro TTS          | —     | Node.js (`kokoro-js`), no port, runs in-process with the API |
+| MariaDB             | 3306  | Windows service, E:\MariaDB\data                             |
+| Ollama              | 11434 | Default port, runs as tray app                               |
 
 ---
 

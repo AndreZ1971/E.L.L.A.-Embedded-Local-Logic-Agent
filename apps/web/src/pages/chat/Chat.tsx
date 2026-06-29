@@ -5,7 +5,6 @@ import { AudioVAD, encodeWav } from "../../utils/audioVAD.js";
 
 type VoiceMode = "off" | "manual" | "wakeword" | "always";
 
-const WAKEWORD_RE = /el+a+[,.\s!?]*/i;
 // Whisper-tiny hallucinations — skip these segments entirely
 const HALLUCINATION_RE =
   /^\[.*\]$|^\(.*\)$|wir sehen uns wieder|bis zum nächsten|vielen dank für|untertitel|copyright|^https?:\/\/\S+$|^\S+\.(com|de|org|net|io)\b/i;
@@ -64,6 +63,7 @@ type StreamEvent =
       pendingAction: PendingAction;
     }
   | { type: "pause"; minutes: number }
+  | { type: "homework_status"; active: boolean; configured: boolean }
   | { type: "done" }
   | { type: "error"; message: string };
 
@@ -107,6 +107,9 @@ const Chat: React.FC = () => {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const ttsEnabledRef = useRef(false);
   const ttsVoiceRef = useRef("");
+  const [accessibilityMode, setAccessibilityMode] = useState<
+    "none" | "blind" | "deaf"
+  >("none");
   const accessibilityModeRef = useRef<"none" | "blind" | "deaf">("none");
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const currentAbortRef = useRef<AbortController | null>(null);
@@ -300,7 +303,6 @@ const Chat: React.FC = () => {
   const [wakeListening, setWakeListening] = useState(false);
   const loadingRef = useRef(false);
   const lastWakewordTimeRef = useRef<number>(0);
-  const segmentProcessingRef = useRef(false);
   const stressLevelRef = useRef<"low" | "medium" | "high">("low");
 
   /* ── Worker-Events (Alerts) ── */
@@ -641,6 +643,9 @@ const Chat: React.FC = () => {
               );
             } else if (ev.type === "pause") {
               activatePause(ev.minutes, voiceMode);
+            } else if (ev.type === "homework_status") {
+              setHomeworkActive(ev.active);
+              setHomeworkConfigured(ev.configured);
             } else if (ev.type === "confirmation_required") {
               setConfirmationCard({
                 message: ev.message,
@@ -693,6 +698,17 @@ const Chat: React.FC = () => {
         clearTimeout(streamTimeout);
         loadingRef.current = false;
         setLoading(false);
+        // Banner und Schloss-Icon sofort aktualisieren falls Tool Homework-Status geändert hat
+        fetch(`${API}/api/homework/status`)
+          .then(
+            (r) =>
+              r.json() as Promise<{ active: boolean; configured: boolean }>,
+          )
+          .then((h) => {
+            setHomeworkActive(h.active);
+            setHomeworkConfigured(h.configured);
+          })
+          .catch(() => {});
       }
     },
     [speak, voiceMode, activatePause, enqueueTTS],
@@ -718,56 +734,55 @@ const Chat: React.FC = () => {
   );
 
   /* ── Spracheingabe (Web Speech API, kein OpenAI nötig) ── */
-  const startRecording = useCallback(() => {
-    playTone(880, 120); // Blind-Modus: Ton → ELLA hört jetzt zu
-    // MediaRecorder + lokales Whisper-Backend (kein Google, kein OpenAI nötig)
+  const startRecording = useCallback(async () => {
+    playTone(880, 120);
     try {
-      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        const mr = new MediaRecorder(stream);
-        chunksRef.current = [];
-        mr.ondataavailable = (e) => {
-          if (e.data.size > 0) chunksRef.current.push(e.data);
-        };
-        mr.onstop = async () => {
-          stream.getTracks().forEach((track) => track.stop());
-          setMicStatus(t("chat.mic_transcribing"));
-          const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-          const form = new FormData();
-          form.append("audio", blob, "recording.webm");
-          try {
-            const r = await fetch(`${API}/api/speech/transcribe`, {
-              method: "POST",
-              body: form,
-            });
-            const data = (await r.json()) as { text?: string; error?: string };
-            if (!r.ok) {
-              setMicStatus(data.error ?? t("chat.mic_stt_unavailable"));
-              setTimeout(() => setMicStatus(""), 6000);
-            } else if (data.text) {
-              setInput(data.text);
-            } else {
-              setMicStatus(t("chat.mic_not_understood"));
-              setTimeout(() => setMicStatus(""), 3000);
-            }
-          } catch {
-            setMicStatus(t("chat.mic_failed"));
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      mr.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setMicStatus(t("chat.mic_transcribing"));
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const form = new FormData();
+        form.append("audio", blob, "recording.webm");
+        try {
+          const r = await fetch(`${API}/api/speech/transcribe`, {
+            method: "POST",
+            body: form,
+            signal: AbortSignal.timeout(35_000),
+          });
+          const data = (await r.json()) as { text?: string; error?: string };
+          if (!r.ok) {
+            setMicStatus(data.error ?? t("chat.mic_stt_unavailable"));
+            setTimeout(() => setMicStatus(""), 6000);
+          } else if (data.text) {
+            setInput(data.text);
+          } else {
+            setMicStatus(t("chat.mic_not_understood"));
             setTimeout(() => setMicStatus(""), 3000);
           }
-          setMicStatus("");
-          setMicActive(false);
-        };
-        mr.start();
-        mediaRecorderRef.current = mr;
-        setMicActive(true);
-        setMicStatus(t("chat.mic_recording"));
-      });
+        } catch {
+          setMicStatus(t("chat.mic_failed"));
+          setTimeout(() => setMicStatus(""), 3000);
+        }
+        setMicStatus("");
+        setMicActive(false);
+      };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setMicActive(true);
+      setMicStatus(t("chat.mic_recording"));
     } catch (err) {
       const msg = err instanceof Error ? err.name : "Unbekannt";
       setMicStatus(`Mikrofon: ${msg}`);
       console.error("[MIC] getUserMedia fehlgeschlagen:", err);
       setTimeout(() => setMicStatus(""), 5000);
     }
-  }, [playTone]);
+  }, [playTone, t]);
 
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
@@ -1044,12 +1059,23 @@ const Chat: React.FC = () => {
         ttsEnabledRef.current = s.ttsEnabled ?? false;
         setTtsEnabled(s.ttsEnabled ?? false);
         ttsVoiceRef.current = s.ttsVoice ?? "";
-        accessibilityModeRef.current = s.accessibilityMode ?? "none";
+        const mode = s.accessibilityMode ?? "none";
+        accessibilityModeRef.current = mode;
+        setAccessibilityMode(mode);
         setHomeworkActive(h.active);
         setHomeworkConfigured(h.configured);
       })
       .catch(() => {});
   }, []);
+
+  // Begrüßungsansage im Blind-Modus beim ersten Laden
+  useEffect(() => {
+    if (accessibilityMode !== "blind") return;
+    const timer = setTimeout(() => {
+      enqueueTTS(t("chat.welcome_blind"));
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [accessibilityMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activateHomework = useCallback(async () => {
     const r = await fetch(`${API}/api/homework/activate`, { method: "POST" });
@@ -1091,7 +1117,7 @@ const Chat: React.FC = () => {
     setError("");
   };
 
-  const showMic = voiceMode !== "off";
+  const showMic = voiceMode !== "off" && accessibilityMode !== "deaf";
 
   return (
     <div
@@ -1124,6 +1150,9 @@ const Chat: React.FC = () => {
                 body: JSON.stringify({ ttsEnabled: next }),
               }).catch(() => {});
             }}
+            aria-label={t(
+              ttsEnabled ? "chat.aria_tts_on" : "chat.aria_tts_off",
+            )}
             title={ttsEnabled ? "Sprachausgabe aus" : "Sprachausgabe ein"}
             style={{
               padding: "4px 10px",
@@ -1142,6 +1171,11 @@ const Chat: React.FC = () => {
               onClick={() =>
                 homeworkActive ? setShowPinDialog(true) : activateHomework()
               }
+              aria-label={t(
+                homeworkActive
+                  ? "chat.aria_homework_on"
+                  : "chat.aria_homework_off",
+              )}
               title={
                 homeworkActive
                   ? "Hausaufgaben-Modus deaktivieren"
@@ -1165,6 +1199,7 @@ const Chat: React.FC = () => {
           {messages.length > 0 && (
             <button
               onClick={clearHistory}
+              aria-label={t("chat.aria_clear")}
               style={{
                 padding: "4px 12px",
                 borderRadius: 4,
@@ -1184,6 +1219,8 @@ const Chat: React.FC = () => {
       {/* Hausaufgaben-Modus Banner */}
       {homeworkActive && (
         <div
+          role="status"
+          aria-live="polite"
           style={{
             background: "#431407",
             border: "1px solid #c2410c",
@@ -1197,7 +1234,28 @@ const Chat: React.FC = () => {
             flexShrink: 0,
           }}
         >
-          <span>🔒</span> {t("chat.homework_banner")}
+          <span aria-hidden="true">🔒</span> {t("chat.homework_banner")}
+        </div>
+      )}
+
+      {/* Gehörlosenmodus Banner */}
+      {accessibilityMode === "deaf" && (
+        <div
+          role="status"
+          style={{
+            background: "#0f172a",
+            border: "1px solid #334155",
+            borderRadius: 6,
+            padding: "8px 14px",
+            fontSize: "0.82rem",
+            color: "#94a3b8",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            flexShrink: 0,
+          }}
+        >
+          <span aria-hidden="true">🔇</span> {t("chat.deaf_banner")}
         </div>
       )}
 
@@ -1301,6 +1359,10 @@ const Chat: React.FC = () => {
 
       {/* Messages */}
       <div
+        role="log"
+        aria-label={t("chat.aria_messages")}
+        aria-live="polite"
+        aria-atomic="false"
         style={{
           flex: 1,
           overflowY: "auto",
@@ -1836,6 +1898,7 @@ const Chat: React.FC = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
+          aria-label={t("chat.aria_input")}
           placeholder={
             micActive ? t("chat.placeholder_mic") : t("chat.placeholder")
           }
@@ -1856,6 +1919,7 @@ const Chat: React.FC = () => {
         {showMic && (
           <button
             onClick={toggleMic}
+            aria-label={t(micActive ? "chat.aria_mic_on" : "chat.aria_mic_off")}
             title={micActive ? "Aufnahme stoppen" : "Mikrofon starten"}
             style={{
               padding: "10px 14px",
@@ -1875,6 +1939,7 @@ const Chat: React.FC = () => {
         )}
         <button
           onClick={send}
+          aria-label={t("chat.aria_send")}
           disabled={loading || !input.trim()}
           style={{
             padding: "10px 20px",

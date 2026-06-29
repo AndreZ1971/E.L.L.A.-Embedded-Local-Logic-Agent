@@ -427,8 +427,7 @@ const DRIVE_TOOLS: OllamaTool[] = [
     function: {
       name: "format_drive",
       description:
-        "Formatiert einen Wechseldatenträger (USB-Stick, externe HDD, SD-Karte). " +
-        "Systemlaufwerke (C:, Recovery, ELLA-Laufwerk) sind permanent gesperrt. " +
+        "Formatiert ein Laufwerk (USB-Stick, externe HDD, SD-Karte oder interne Festplatte). " +
         "Vor der Ausführung wird eine Bestätigung eingeholt. " +
         "Dateisystem: FAT32 (Standard, max 4 GB/Datei), NTFS (Windows), exFAT (große Dateien).",
       parameters: {

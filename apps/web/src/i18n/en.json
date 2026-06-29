@@ -128,7 +128,19 @@
     "homework_banner": "Homework mode active — only permitted programs running.",
     "homework_deactivate_title": "Deactivate homework mode",
     "pin_placeholder": "Enter PIN",
-    "btn_deactivate": "Deactivate"
+    "btn_deactivate": "Deactivate",
+    "deaf_banner": "Deaf mode active — speech output is disabled.",
+    "welcome_blind": "Hello! I am E.L.L.A. and I am ready. You can give me a command now.",
+    "aria_messages": "Conversation history",
+    "aria_input": "Enter message",
+    "aria_send": "Send message",
+    "aria_tts_on": "Disable speech output",
+    "aria_tts_off": "Enable speech output",
+    "aria_homework_on": "Deactivate homework mode",
+    "aria_homework_off": "Activate homework mode",
+    "aria_clear": "Clear conversation history",
+    "aria_mic_on": "Stop recording",
+    "aria_mic_off": "Activate microphone"
   },
   "nav": {
     "dashboard": "Dashboard",

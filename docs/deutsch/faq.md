@@ -1,6 +1,6 @@
 # E.L.L.A. — Häufig gestellte Fragen (FAQ)
 
-Version 3.9.0 — Zuletzt aktualisiert: 2026-06-20
+Version 3.9.1 — Zuletzt aktualisiert: 2026-06-28
 
 ---
 
@@ -199,13 +199,9 @@ Standard-Stimme: `de-DE-KatjaNeural` (Microsoft Edge Neural TTS, kostenlos, brau
 
 Ja — mit **Kokoro TTS**. Das ist eine lokale neuronale Stimme die deutlich natürlicher klingt als Windows-Standardstimmen.
 
-Voraussetzung: Python 3.12 mit kokoro-onnx:
+Ab v3.9.1 läuft Kokoro TTS direkt in der ELLA-API als Node.js-Service — **kein Python erforderlich**. Das ONNX-Modell wird beim ersten Start automatisch aus dem HuggingFace Hub geladen (`%APPDATA%\ELLA\kokoro-cache\`). Im Installer-Build ist das Modell offline gebündelt.
 
-```powershell
-py -3.12 -m pip install kokoro-onnx sounddevice numpy
-```
-
-Danach unter **Einstellungen → Modus → TTS-Engine** auf "Kokoro" umstellen.
+Der Fallback auf MsEdgeTTS (benötigt Internet) erfolgt automatisch wenn Kokoro noch lädt oder nicht verfügbar ist. Der Bereitschaftsstatus ist unter `GET /api/health` als `kokoro_ready`-Flag abrufbar.
 
 ### Kann ich die Stimme ändern?
 
@@ -722,15 +718,17 @@ Prüfe ob `%APPDATA%\ELLA\settings.json` Schreibrechte hat. Im Entwicklungsmodus
 
 ### Kokoro TTS funktioniert nicht
 
-```powershell
-# Python-Pakete prüfen:
-py -3.12 -m pip list | findstr kokoro
+Ab v3.9.1 braucht Kokoro TTS kein Python mehr. Der Service läuft direkt in der ELLA-API.
 
-# Falls fehlend:
-py -3.12 -m pip install kokoro-onnx sounddevice numpy
-```
+Mögliche Ursachen und Lösungen:
 
-Einstellungen → Modus → TTS-Engine auf "Kokoro" stellen und ELLA neu starten. Bei Problemen fällt ELLA automatisch auf Edge TTS zurück.
+| Ursache                      | Lösung                                                        |
+| ---------------------------- | ------------------------------------------------------------- |
+| Modell lädt noch             | Kurz warten — erster Start lädt ~100 MB aus HuggingFace Hub   |
+| Kein Internet beim Erststart | Installer-Build enthält Offline-Modell in `vendor/kokoro/`    |
+| API-Log zeigt Fehler         | ELLA neu starten — Kokoro lädt beim nächsten API-Start erneut |
+
+Bei dauerhaften Problemen fällt ELLA automatisch auf MsEdgeTTS zurück. Den Status prüfen: `GET http://localhost:3002/api/health` → `kokoro_ready: true/false`.
 
 ### Google-Verbindung schlägt fehl
 

@@ -22,6 +22,7 @@ import { onboardingRouter } from "./routes/onboarding.js";
 import { licenseRouter } from "./routes/license.js";
 import { setupRouter } from "./routes/setup.js";
 import { speechRouter, preloadWhisper } from "./routes/speech.js";
+import { preloadKokoro, isKokoroReady } from "./services/kokoro.js";
 import { wakewordRouter } from "./routes/wakeword.js";
 import { googleRouter } from "./routes/google.js";
 import { feedbackRouter } from "./routes/feedback.js";
@@ -99,6 +100,7 @@ app.get("/api/health", async (_req, res) => {
     provider,
     model_ready: modelReady,
     model_pull: modelPullProgress,
+    kokoro_ready: isKokoroReady(),
   });
 });
 
@@ -115,6 +117,7 @@ loadSettings()
       console.log(`E.L.L.A. API  →  http://localhost:${env.port}`);
       worker.start();
       preloadWhisper();
+      preloadKokoro();
       loadWakewordModels().catch(() => {});
       pullModelIfNeeded();
     });

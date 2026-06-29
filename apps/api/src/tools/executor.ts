@@ -578,8 +578,7 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         { timeout: 8000 },
       );
       const parsed = JSON.parse(stdout.trim()) as
-        | { DeviceID: string }
-        | { DeviceID: string }[];
+        { DeviceID: string } | { DeviceID: string }[];
       const items = Array.isArray(parsed) ? parsed : [parsed];
       drives = items
         .map((i) => i.DeviceID.replace(":", "").trim().toUpperCase())
@@ -691,9 +690,9 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
         .catch(() => false),
 
       pool
-        .execute<
-          any[]
-        >("SELECT payload, created_at FROM system_events WHERE type = 'alert' AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) ORDER BY created_at DESC LIMIT 20")
+        .execute<any[]>(
+          "SELECT payload, created_at FROM system_events WHERE type = 'alert' AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) ORDER BY created_at DESC LIMIT 20",
+        )
         .then(([rows]) =>
           rows.map((r) => ({
             ...(JSON.parse(r.payload as string) as Record<string, unknown>),
@@ -2346,10 +2345,7 @@ else { $results | ConvertTo-Json -Compress }`.trim();
   control_window: async (args) => {
     const title = ((args["title"] as string) ?? "").trim();
     const action = ((args["action"] as string) ?? "focus") as
-      | "focus"
-      | "minimize"
-      | "maximize"
-      | "close";
+      "focus" | "minimize" | "maximize" | "close";
 
     if (!title) return { success: false, error: "Fenstertitel fehlt." };
 
@@ -2886,9 +2882,7 @@ else { $results | ConvertTo-Json -Compress }`.trim();
   summarize_text: async (args) => {
     const text = ((args["text"] as string) ?? "").trim();
     const style = ((args["style"] as string) ?? "mittel") as
-      | "kurz"
-      | "mittel"
-      | "ausführlich";
+      "kurz" | "mittel" | "ausführlich";
     if (!text) return { success: false, error: "Text fehlt." };
     try {
       const summary = await summarizeText(text, style);

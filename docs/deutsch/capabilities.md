@@ -1,6 +1,6 @@
-# E.L.L.A. — Was ich kann (v3.9.0)
+# E.L.L.A. — Was ich kann (v3.9.1)
 
-Stand: 2026-06-20 — 224 Tests grün
+Stand: 2026-06-28 — 224 Tests grün
 
 ---
 
@@ -20,23 +20,23 @@ Stand: 2026-06-20 — 224 Tests grün
 
 ## System & Festplatten
 
-| Tool                 | Was es tut                                                                   |
-| -------------------- | ---------------------------------------------------------------------------- |
-| `get_disk_usage`     | Freier/belegter Speicher je Laufwerk                                         |
-| `get_system_info`    | CPU, GPU, RAM, Computername                                                  |
-| `get_system_status`  | Alles auf einmal: Disk + RAM + Netzwerk + Alerts + Boot-Zeit                 |
-| `clean_temp`         | Temporäre Dateien löschen                                                    |
-| `empty_recycle_bin`  | Papierkorb leeren                                                            |
-| `free_ram`           | Ungenutzten RAM freigeben                                                    |
-| `shutdown_system`    | PC herunterfahren / neu starten / Schlafmodus                                |
-| `format_drive`       | USB-/externe Laufwerke formatieren _(C: gesperrt, Bestätigung erforderlich)_ |
-| `rename_drive`       | Volume-Label ändern _(Systemlaufwerke gesperrt)_                             |
-| `list_programs`      | Alle installierten Programme auflisten                                       |
-| `list_autostart`     | Autostart-Einträge anzeigen                                                  |
-| `get_battery_status` | Ladestand, ob geladen wird, geschätzte Restlaufzeit                          |
-| `get_temperatures`   | CPU/ACPI-Thermalzonen in °C                                                  |
-| `get_event_log`      | Windows-Fehler/Warnungen aus dem Ereignisprotokoll                           |
-| `toggle_dark_mode`   | Dark Mode / Light Mode umschalten (Registry)                                 |
+| Tool                 | Was es tut                                                      |
+| -------------------- | --------------------------------------------------------------- |
+| `get_disk_usage`     | Freier/belegter Speicher je Laufwerk                            |
+| `get_system_info`    | CPU, GPU, RAM, Computername                                     |
+| `get_system_status`  | Alles auf einmal: Disk + RAM + Netzwerk + Alerts + Boot-Zeit    |
+| `clean_temp`         | Temporäre Dateien löschen                                       |
+| `empty_recycle_bin`  | Papierkorb leeren                                               |
+| `free_ram`           | Ungenutzten RAM freigeben                                       |
+| `shutdown_system`    | PC herunterfahren / neu starten / Schlafmodus                   |
+| `format_drive`       | USB-/externe Laufwerke formatieren _(Bestätigung erforderlich)_ |
+| `rename_drive`       | Volume-Label ändern _(Systemlaufwerke gesperrt)_                |
+| `list_programs`      | Alle installierten Programme auflisten                          |
+| `list_autostart`     | Autostart-Einträge anzeigen                                     |
+| `get_battery_status` | Ladestand, ob geladen wird, geschätzte Restlaufzeit             |
+| `get_temperatures`   | CPU/ACPI-Thermalzonen in °C                                     |
+| `get_event_log`      | Windows-Fehler/Warnungen aus dem Ereignisprotokoll              |
+| `toggle_dark_mode`   | Dark Mode / Light Mode umschalten (Registry)                    |
 
 ---
 
@@ -202,7 +202,7 @@ Stand: 2026-06-20 — 224 Tests grün
 | Feature                           | Was es tut                                                                           |
 | --------------------------------- | ------------------------------------------------------------------------------------ |
 | **Wakeword "ella"**               | Sprachaktivierung via openWakeWord + ONNX (lokal, offline)                           |
-| **Kokoro TTS**                    | Neuronale Sprachausgabe (Port 3003, 127.0.0.1-only, offline)                         |
+| **Kokoro TTS**                    | Neuronale Sprachausgabe (Node.js via `kokoro-js`, ONNX q8, offline, kein Python)     |
 | **Proaktive Nachrichten**         | ELLA schreibt von sich aus in den Chat (SSE `proactive_message`)                     |
 | **Clipboard-Muster-Erkennung**    | IBAN, Paketnummer, Telefon, URL, E-Mail — Polling alle 3 s                           |
 | **Background Worker**             | Disk/RAM/Ollama-Alerts, PnP, ARP, TCP, Firewall/WiFi/DNS — alle 60 s                 |
@@ -247,8 +247,8 @@ Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → Tool Execu
 | Kennzahl         | Wert                                                                     |
 | ---------------- | ------------------------------------------------------------------------ |
 | Tools (aktiv)    | **85** _(+ 1 durch Directive gesperrt: `delete_files`)_                  |
-| Test-Cases       | **196 grün** (Vitest Unit + Integration)                                 |
-| Git-Tags         | v1.0 → v3.4.0                                                            |
+| Test-Cases       | **224 grün** (Vitest Unit + Integration)                                 |
+| Git-Tags         | v1.0 → v3.9.1                                                            |
 | LLM-Backends     | Ollama llama3.1:8b (lokal) + OpenAI GPT-4o (optional)                    |
 | Datenbank        | MariaDB, lokal, kein Cloud-Zugriff                                       |
 | Netzwerk-Ausgang | Nur auf expliziten Nutzer-Befehl (Web-Suche, Wetter, Gmail/Google OAuth) |

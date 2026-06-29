@@ -4,6 +4,239 @@ Dieses Dokument beschreibt chronologisch, was in jeder Version gebaut wurde und 
 
 ---
 
+## v3.9.1 — 28.06.2026 — Kokoro TTS als Node.js-Service, LLM-Non-Gatekeeper, Smoke-Tests
+
+**Ziel:** Kokoro TTS vollständig von Python trennen — stattdessen `kokoro-js` als npm-Paket direkt in der API. Außerdem: Architekturfix der verhinderte dass das LLM Direktiven-Ablehnungen per Textnachricht umging.
+
+**Kokoro TTS — Node.js-Port (`services/kokoro.ts`):**
+
+Das ursprüngliche `tts_server.py` (Python Flask, Port 3003) ist als TTS-Dienst **deprecated** und durch `services/kokoro.ts` ersetzt. Die neue Implementierung lädt das ONNX-Modell (q8) beim API-Start via `kokoro-js` aus dem HuggingFace Hub in `%APPDATA%/ELLA/kokoro-cache/`. Im Installer ist der Offline-Fallback-Cache unter `vendor/kokoro/` gebündelt. Kein Python-Prozess mehr für TTS — nur noch Node.js.
+
+Fallback-Hierarchie: Kokoro (lokal, ONNX) → MsEdgeTTS (Edge Neural, online). `tts.ts` gibt jetzt `{ buffer, contentType }` zurück; der Content-Type ist entweder `audio/wav` (Kokoro) oder `audio/mpeg` (MsEdgeTTS) — dynamisch je nach aktiver Engine.
+
+Stimmen-Map (unverändert gegenüber v3.8.x):
+
+| Sprache  | Kokoro-Stimme | MsEdgeTTS-Stimme |
+| -------- | ------------- | ---------------- |
+| Deutsch  | `af_sarah`    | Katja            |
+| Englisch | `bf_emma`     | Sonia            |
+| Spanisch | `ef_dora`     | Elvira           |
+| Français | `ff_siwis`    | Denise           |
+
+`GET /api/health` enthält jetzt das Flag `kokoro_ready: boolean` — Frontend und Smoke-Tests können darüber prüfen ob die lokale Stimme einsatzbereit ist.
+
+**Python-Prozesse (Stand v3.9.1):**
+
+- `wakeword_server.py` — weiterhin aktiv (Wakeword-Erkennung via openWakeWord + ONNX)
+- `stress_server.py` (Port 3004) — weiterhin aktiv (Spannungsanalyse, opt-in)
+- `tts_server.py` — **deprecated**, wird nicht mehr gestartet
+
+**Direktive-Fix — LLM als Non-Gatekeeper:**
+
+Bisheriges Problem: Das LLM hat bei "gefährlich" klingenden Anfragen (z. B. "Formatiere C:") manchmal per Textnachricht abgelehnt statt das Tool aufzurufen und die Ablehnung der Direktive zu überlassen. Der rote Direktiven-Badge erschien dann nicht.
+
+Fix: System-Prompt-Regel `"KRITISCH — DU BIST NICHT DER GATEKEEPER"` — das LLM muss das Tool immer aufrufen, auch wenn sein Training die Operation als gefährlich einschätzt. Sicherheit liegt im Handler und der Rule-Engine, nicht im LLM-Urteil. Zusätzlich wurden alle sicherheitsbezogenen Hinweise aus der `format_drive`-Tool-Beschreibung entfernt, damit das Modell nicht allein aufgrund der Beschreibung per Text ablehnt.
+
+**Homework-Mode-Fixes:**
+
+- SSE-Event `homework_status` wird jetzt auch mitten im Stream gesendet wenn der Modus aktiv ist — Frontend kann sofort reagieren
+- System-Prompt instruiert das LLM explizit, den Nutzer niemals nach seinem PIN zu fragen (PIN-Eingabe nur über dediziertes UI-Feld)
+
+**Smoke-Tests (`scripts/smoke-test.ps1`):**
+
+13 End-to-End-Tests die automatisiert gegen eine laufende ELLA-Instanz prüfen:
+
+- `/api/health` (inkl. `kokoro_ready`-Flag)
+- Homework-Mode-Aktivierung und -Status
+- Ollama-Erreichbarkeit
+- Chat-Endpoint + Tool-Aufruf
+- Lizenzstatus
+
+**Tests:** 224 — alle grün.
+
+---
+
+## v3.9.0 — 20.06.2026 — Stress-Erkennung, Barrierefreiheit, Mic-Fix
+
+**Ziel:** Drei unabhängige Bereiche: optionale Stimm-Stressanalyse, zwei Barrierefreiheits-Modi, und ein lang bekannter Mic-Button-Bug.
+
+**Stress-Erkennung (`scripts/stress_server.py`, Port 3004):**
+
+Ein separater Python-Prozess analysiert die Rohdaten jeder WAV-Aufnahme parallel zur Whisper-Transkription:
+
+- **RMS-Energie:** Lautstärke-Proxy
+- **Zero-Crossing-Rate (ZCR):** Frequenz-Schätzung ohne FFT
+- **Pitch-Autokorrelation:** Grundfrequenz-Extraktion
+
+Ergebnis: `low / medium / high`. Bei `medium` wird ein dezenter Hint in den System-Prompt injiziert. Bei `high` erscheint ein expliziter Hinweis im Gedächtnis-Kontext ("Stimme klingt stark angespannt — mitfühlend reagieren").
+
+Feature ist standardmäßig deaktiviert. Aktivierung: **Einstellungen → Stimme → Stimmanalyse aktivieren**. Wenn der Server nicht läuft, funktioniert der Chat normal (graceful degradation). Keine Audiodaten verlassen das Gerät.
+
+**Warum numpy-only:** `librosa` würde native Binaries (LLVM, SoundFile) mitbringen und den Installer signifikant vergrößern. RMS + ZCR + Autokorrelation sind mit `numpy` allein implementierbar und für diesen Zweck ausreichend präzise.
+
+**Barrierefreiheit — Blind-Modus (`accessibilityMode === "blind"`):**
+
+- TTS wird erzwungen — kein manuelles Ein-/Ausschalten möglich
+- System-Prompt ohne Markdown (kein `**bold**`, keine Listen-Syntax)
+- Audio-Töne als Zustandsfeedback: hoher Ton (880 Hz) = Mikrofon aktiv, tiefer Ton (440 Hz) = Antwort bereit
+- `aria-live="polite"` auf dem Nachrichtencontainer
+- `aria-label` auf allen Buttons und dem Eingabefeld
+- Begrüßungsansage beim Laden der App
+
+**Barrierefreiheit — Gehörlosenmodus (`accessibilityMode === "deaf"`):**
+
+- TTS-Button und Mikrofon-Button vollständig ausgeblendet
+- Visueller Deaf-Banner im Chat-Header
+- System-Prompt ohne TTS-Erwähnung (kein "ich lese vor")
+
+**Mic-Button-Fix:**
+
+`startRecording` war synchron implementiert. `getUserMedia` gibt ein Promise zurück — bei verweigerter Berechtigung wurde die Rejection nicht gefangen und erschien als unhandled rejection in der Konsole ohne Feedback an den Nutzer. Fix: `async/await` + `try/catch`, Fehlertext erscheint jetzt als Toast im Chat.
+
+**Tests:** 224 — alle grün. Default-Regeln IDs 1–85.
+
+---
+
+## v3.8.3 — Juni 2026 — Onboarding Stimmenauswahl
+
+**Ziel:** Stimmenauswahl direkt im Onboarding verankern — mit Vorschau in der jeweiligen Sprache.
+
+- Onboarding-Schritt "Stimme": vier weibliche Stimmen auswählbar mit Vorschau-Button
+- Vorschau spielt einen kurzen Satz in der jeweiligen Sprache ab (DE/EN/ES/FR)
+- Auswahl wird als `spokenLanguage`-Setting gespeichert sobald der Schritt bestätigt wird
+- Ausschließlich weibliche Stimmen im Onboarding (af_sarah, bf_emma, ef_dora, ff_siwis)
+
+---
+
+## v3.8.2 — Juni 2026 — TTS-Fixes
+
+- Hardkodierte Stimme aus `Chat.tsx` entfernt — `ttsVoice`-Setting wird jetzt korrekt aus den Einstellungen gelesen
+- Stimmen-Dropdown in Settings zeigt nur die zur gewählten `spokenLanguage` passenden Stimmen
+
+---
+
+## v3.8.1 — Juni 2026 — Dokumentations-Update
+
+Roadmap und Positions-Dokument aktualisiert. Mehrsprachige TTS-Produktpositionierung festgelegt.
+
+---
+
+## v3.8.0 — 19.06.2026 — Mehrsprachige TTS-Stimmen
+
+**Ziel:** ELLA spricht in der Sprache die der Nutzer wählt — unabhängig von der UI-Sprache.
+
+**Neues Setting `spokenLanguage`** (de/en/es/fr): wählt automatisch die passende weibliche Stimme.
+
+| Sprache  | Kokoro (offline) | MsEdgeTTS (online) |
+| -------- | ---------------- | ------------------ |
+| Deutsch  | `af_sarah`       | Katja              |
+| Englisch | `bf_emma`        | Sonia              |
+| Spanisch | `ef_dora`        | Elvira             |
+| Français | `ff_siwis`       | Denise             |
+
+`synthesize()` in `tts.ts` liest `spokenLanguage` und wählt die Stimme dynamisch. UI-Sprache (DE/EN via i18n) und Gesprächssprache sind bewusst getrennt — ein Nutzer kann ELLA auf Englisch sprechen lassen während die UI auf Deutsch bleibt.
+
+---
+
+## v3.7.1 — Juni 2026 — Dokumentations-Update
+
+Roadmap-Update. Mehrsprachige Stimmen als nächste Milestone-Position festgelegt.
+
+---
+
+## v3.7.0 — 18.06.2026 — ModelSelectOverlay, vollständige i18n, Lizenz-Link
+
+**Ziel:** Kein unerwarteter 5-GB-Download beim ersten Start. Vollständige Übersetzung aller UI-Komponenten. Lizenz-Website verlinkt.
+
+**ModelSelectOverlay:**
+
+Vor dem ersten Ollama-Modell-Download erscheint ein Overlay mit Hardware-Tier-Auswahl:
+
+- **Klein** — 8B-Modelle (llama3.1:8b), empfohlen ab 8 GB RAM
+- **Standard** — 13B-Modelle, empfohlen ab 16 GB RAM + GPU
+- **Groß** — 70B-Modelle, nur für High-End-Hardware
+
+`main.ts` pausiert `ensureOllamaModel()` via IPC bis der Nutzer eine Auswahl getroffen hat. Kein Modell wird ohne explizite Entscheidung geladen.
+
+**i18n vollständig:**
+
+`react-i18next` mit `apps/web/src/i18n/de.json` und `en.json`. Alle UI-Komponenten sind vollständig übersetzt: App, Chat, Settings (alle Tabs inkl. Rules-Tab), Dashboard, Onboarding, Activation-Seite. Sprachauswahl im ersten Onboarding-Screen.
+
+**Lizenz-Link:**
+
+`ella-agent.de` wird auf der Aktivierungsseite verlinkt.
+
+---
+
+## v3.6.0 — Juni 2026 — Modell-Tier-Auswahl, Always-On-Voice
+
+**Ziel:** Hardware-angepasste Modellwahl, permanente Spracherkennung.
+
+- **Modell-Tier-Auswahl** mit Download-Fortschrittsanzeige in Settings
+- **Always-On-Voice (VAD + Whisper):** Voice Activity Detection aktiviert permanent die Aufnahme; Whisper transkribiert lokal
+- `ollamaService.ts` refaktoriert: `pullModelIfNeeded()` und `modelPullProgress` als eigene Exporte
+- Navigation-Redirect-Loop in `App.tsx` behoben (mehrfaches Weiterleiten bei Race-Condition)
+
+---
+
+## v3.5.4 — Juni 2026 — list_folder, TTS-Fixes, Settings-Layout
+
+- Neues Tool `list_folder` — Ordnerinhalt auflisten (Name, Typ, Größe, Datum)
+- TTS-Overlap-Fix: `currentAudioRef` stoppt laufende Wiedergabe bevor neuer TTS-Clip startet
+- Settings-Layout-Fix: Tabs scrollen korrekt auf kleinen Fenstern
+
+---
+
+## v3.5.3 — Juni 2026 — Windows Search Index primär für Musik
+
+- `search_files` nutzt jetzt Windows Search Index als primären Pfad (sehr schnell, kein Timeout)
+- Fallback auf `Get-ChildItem` wenn Laufwerk nicht indiziert ist
+- Löst das Timeout-Problem bei großen Musikbibliotheken auf nicht indizierten Laufwerken
+
+---
+
+## v3.5.2 — Juni 2026 — Per-Session Mutex
+
+- Race-Condition bei parallelen Chat-Anfragen behoben
+- Pro Session-ID wird ein Mutex gehalten — zweite Anfrage wartet bis die erste fertig ist
+- Verhindert doppelte Tool-Ausführungen und inkonsistente Gesprächsverläufe
+
+---
+
+## v3.5.1 — Juni 2026 — Whisper-Spracherkennung, Musik-Fix
+
+- `whisper-small` via Ollama als lokale STT-Alternative integriert
+- OpenAI Whisper API als Cloud-Option verfügbar
+- Musik-Suche: Fix für falsche Pfad-Escaping bei Sonderzeichen im Dateinamen
+
+---
+
+## v3.5.0 — 09.06.2026 — Favicon, TTS-Overlap-Fix, Markdown, Tool-Log, Offline-Banner, Komfort
+
+**Ziel:** Sechs unabhängige Verbesserungen die zusammen den Alltags-Workflow deutlich verbessern.
+
+**Favicon:** SVG-Design "E." (violet, kein Hintergrund) als Browser-Favicon. Electron-Icon: RGBA PNG mit transparenten Ecken — keine weißen Pixel im Tray und im Task-Manager-Tab.
+
+**TTS-Overlap-Fix:** Wenn ELLA antwortet während noch eine vorherige TTS-Ausgabe läuft, wurde die neue Antwort überlappt abgespielt. Fix: `currentAudioRef.current?.pause()` + `currentAudioRef.current.src = ""` vor jedem neuen `synthesize()`-Aufruf.
+
+**Markdown-Rendering:** Chat-Antworten werden via `marked.js` in HTML gerendert. Code-Blöcke, Listen, Fettschrift — alles wird korrekt dargestellt. TTS-bewusstes System-Prompt: ELLA wird instruiert für vorgelesene Antworten kein Markdown zu verwenden.
+
+**Tool-Log-Chips:** Unter jeder Assistenten-Antwort erscheinen Chips mit den verwendeten Tools (63 Labels). Der Nutzer sieht auf einen Blick was ELLA im Hintergrund getan hat.
+
+**Ollama-Offline-Banner:** `GET /api/health` wird alle 30 Sekunden gepollt. Wenn Ollama nicht erreichbar ist, erscheint ein orangener Banner im Chat-Header. `OllamaBanner`-Komponente verschwindet automatisch wenn Ollama wieder antwortet.
+
+**`set_volume` DLL-Cache:** Der erste Aufruf war ~2 Sekunden langsam weil die Audio-DLL kalt geladen wurde. Fix: DLL einmalig beim API-Start laden und in einer Modulvariable cachen — folgende Aufrufe dauern ~0,5 Sekunden.
+
+**`search_files` via Windows Search Index:** Primäre Suche via `WHERE System.FileName LIKE '%query%'` in der Windows Search Index-Datenbank (`C:\ProgramData\Microsoft\Search\Data`). Drastisch schneller als `Get-ChildItem` auf großen Laufwerken.
+
+**Feedback → Memory:** Daumen-hoch/runter → `POST /api/feedback` → Ollama extrahiert eine Nutzerpräferenz als natürlichsprachigen Satz → wird als `user`-Memory gespeichert. Beispiel: Daumen runter auf langer Antwort → ELLA merkt sich "Nutzer bevorzugt kurze Antworten".
+
+**85-Tool-System-Prompt:** Alle 85 aktiven Tools werden dem LLM im System-Prompt erläutert. Verhindert Halluzinationen bei Tool-Namen.
+
+**Tests:** 205 → 224 (19 neue Tests für v3.5.0-Features). Default-Regeln IDs 1–85 (IDs 83–85 ergänzt, `alarms`-Tabelle).
+
+---
+
 ## v3.4.0 — 07.06.2026 — Datei-Verwaltung, System-Komfort, Medien, KI-Text, OCR-Klick
 
 **Ziel:** 14 neue Tools in vier Kategorien — vollständige Datei-Verwaltung, System-Komfort-Funktionen, Mediensteuerung per WinRT, KI-gestützte Textverarbeitung und semantischer Bildschirm-Klick.

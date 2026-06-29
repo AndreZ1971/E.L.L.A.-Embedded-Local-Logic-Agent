@@ -40,12 +40,18 @@ function resolveProvider(): "openai" | "ollama" {
 }
 
 function activeToolDefs() {
-  const { enabledTools, setups } = getSettings();
-  return buildToolDefinitions(setups ?? []).filter(
-    (t) =>
-      (enabledTools ?? []).includes(t.function.name) ||
-      t.function.name === "load_setup",
-  );
+  const { enabledTools, setups, homeworkMode } = getSettings();
+  return buildToolDefinitions(setups ?? []).filter((t) => {
+    if (
+      !(enabledTools ?? []).includes(t.function.name) &&
+      t.function.name !== "load_setup"
+    )
+      return false;
+    // PIN darf nie über den Chat eingegeben werden — nur über den Schloss-Button-Dialog
+    if (homeworkMode.active && t.function.name === "deactivate_homework_mode")
+      return false;
+    return true;
+  });
 }
 
 export const chatRouter = Router();
@@ -288,6 +294,18 @@ chatRouter.post("/stream", async (req, res) => {
             tool: call.function.name as ToolName,
             args: call.function.arguments,
           });
+          if (
+            (call.function.name === "activate_homework_mode" ||
+              call.function.name === "deactivate_homework_mode") &&
+            result.success
+          ) {
+            const hw = getSettings().homeworkMode;
+            emit({
+              type: "homework_status",
+              active: hw.active,
+              configured: !!hw.pinHash,
+            });
+          }
           if (result.directive) {
             emit({ type: "directive_deny", tool: call.function.name });
           }

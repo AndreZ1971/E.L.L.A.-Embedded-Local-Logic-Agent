@@ -65,14 +65,19 @@ speechRouter.post("/synthesize", async (req, res, next) => {
       return;
     }
     const { spokenLanguage } = getSettings();
-    const resolvedVoice = voice || getVoiceForLanguage(spokenLanguage ?? "de");
-    const audio = await synthesize(text.trim(), { voice: resolvedVoice, rate });
+    const lang = spokenLanguage ?? "de";
+    const resolvedVoice = voice || getVoiceForLanguage(lang);
+    const result = await synthesize(text.trim(), {
+      voice: resolvedVoice,
+      rate,
+      lang,
+    });
     res.set({
-      "Content-Type": "audio/mpeg",
-      "Content-Length": String(audio.length),
+      "Content-Type": result.contentType,
+      "Content-Length": String(result.buffer.length),
       "Cache-Control": "no-store",
     });
-    res.send(audio);
+    res.send(result.buffer);
   } catch (err) {
     next(err);
   }

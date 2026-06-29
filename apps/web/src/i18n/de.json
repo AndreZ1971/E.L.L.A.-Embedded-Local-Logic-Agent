@@ -128,7 +128,19 @@
     "homework_banner": "Hausaufgaben-Modus aktiv — nur erlaubte Programme laufen.",
     "homework_deactivate_title": "Hausaufgaben-Modus deaktivieren",
     "pin_placeholder": "PIN eingeben",
-    "btn_deactivate": "Deaktivieren"
+    "btn_deactivate": "Deaktivieren",
+    "deaf_banner": "Gehörlosenmodus aktiv — Sprachausgabe ist deaktiviert.",
+    "welcome_blind": "Hallo! Ich bin E.L.L.A. und ich bin bereit. Du kannst mir jetzt einen Befehl geben.",
+    "aria_messages": "Gesprächsverlauf",
+    "aria_input": "Nachricht eingeben",
+    "aria_send": "Nachricht senden",
+    "aria_tts_on": "Sprachausgabe deaktivieren",
+    "aria_tts_off": "Sprachausgabe aktivieren",
+    "aria_homework_on": "Hausaufgaben-Modus deaktivieren",
+    "aria_homework_off": "Hausaufgaben-Modus aktivieren",
+    "aria_clear": "Gesprächsverlauf löschen",
+    "aria_mic_on": "Aufnahme stoppen",
+    "aria_mic_off": "Mikrofon aktivieren"
   },
   "nav": {
     "dashboard": "Dashboard",
