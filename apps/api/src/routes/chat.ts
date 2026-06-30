@@ -294,11 +294,7 @@ chatRouter.post("/stream", async (req, res) => {
             tool: call.function.name as ToolName,
             args: call.function.arguments,
           });
-          if (
-            (call.function.name === "activate_homework_mode" ||
-              call.function.name === "deactivate_homework_mode") &&
-            result.success
-          ) {
+          if (call.function.name === "homework_mode" && result.success) {
             const hw = getSettings().homeworkMode;
             emit({
               type: "homework_status",

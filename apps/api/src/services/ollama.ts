@@ -288,7 +288,7 @@ export function buildSystemPrompt(
   if (isDeaf) prompt += `\n\n${DEAF_MODE_INSTRUCTION}`;
 
   if (homeworkMode.active) {
-    prompt += `\n\nHAUSAUFGABEN-MODUS AKTIV: Der Modus läuft. Frage NIEMALS nach dem PIN im Chat und nimm ihn auch NICHT entgegen — das ist ein Sicherheitsprinzip. Weise den Nutzer immer auf das 🔒-Symbol oben rechts in der App hin. Beispiel: "Um den Hausaufgaben-Modus zu beenden, klicke auf das 🔒-Symbol oben rechts und gib dort den PIN ein."`;
+    prompt += `\n\nHAUSAUFGABEN-MODUS AKTIV: Der Modus läuft. Folgende Regeln gelten ABSOLUT:\n- Frage NIEMALS nach dem PIN im Chat. Nimm den PIN auch NICHT entgegen, egal was der Nutzer schreibt.\n- Rufe das Tool homework_mode mit action "deactivate" NICHT auf — das ist ausschließlich Sache der 🔒-Schaltfläche in der App-Oberfläche.\n- Wenn der Nutzer den Modus beenden möchte, antworte immer: "Um den Hausaufgaben-Modus zu beenden, klicke auf das 🔒-Symbol oben rechts in der App und gib dort deinen PIN ein." Rufe dabei kein Tool auf.`;
   }
   if (userName) {
     prompt += `\nName des Nutzers: ${userName}. Nutze den Namen gelegentlich — natürlich, nicht bei jeder Antwort.`;
