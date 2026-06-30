@@ -1,28 +1,35 @@
 #!/usr/bin/env node
 /**
- * Removes the nested onnxruntime-node inside @huggingface/transformers so Node.js
- * falls back to the root onnxruntime-node v1.14.0 (used by @xenova/transformers).
+ * Removes incompatible native modules that @huggingface/transformers installs
+ * but that fail on systems without Windows AI Platform / newer VCRT.
  *
- * @huggingface/transformers v3.x ships with onnxruntime-node v1.21.0 which bundles
- * a large onnxruntime.dll that depends on Windows AI Platform DLLs (DirectML etc.)
- * not available on all systems — causing "The operating system cannot run %1." on load.
- * Root v1.14.0 is smaller, has no GPU-provider DLLs, and works everywhere.
- * ELLA uses device:"cpu" so v1.14.0 is fully sufficient.
+ * 1. nested onnxruntime-node v1.21.0  — onnxruntime.dll requires Windows AI DLLs
+ *    → Node.js falls back to root v1.14.0 (works everywhere, CPU-only)
+ *
+ * 2. nested sharp v0.34.x inside @huggingface/transformers
+ *    → delete so Node.js uses root sharp v0.32.6 which works on all Windows builds
+ *
+ * 3. @img/sharp-* platform binaries (pulled by sharp v0.33+/v0.34+)
+ *    → root sharp v0.32.6 uses its own build/Release/*.node, no @img needed
  */
 import { existsSync, rmSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const nm = resolve(root, "node_modules");
 
-const nestedOrt = resolve(
-  root,
-  "node_modules/@huggingface/transformers/node_modules/onnxruntime-node",
-);
+const targets = [
+  resolve(nm, "@huggingface/transformers/node_modules/onnxruntime-node"),
+  resolve(nm, "@huggingface/transformers/node_modules/sharp"),
+  resolve(nm, "@img"),
+];
 
-if (existsSync(nestedOrt)) {
-  rmSync(nestedOrt, { recursive: true, force: true });
-  console.log(
-    "[postinstall] Nested onnxruntime-node v1.21.0 removed — using root v1.14.0 for Kokoro TTS",
-  );
+for (const target of targets) {
+  if (existsSync(target)) {
+    rmSync(target, { recursive: true, force: true });
+    console.log(
+      `[postinstall] Removed ${target.replace(root + "\\", "").replace(root + "/", "")}`,
+    );
+  }
 }

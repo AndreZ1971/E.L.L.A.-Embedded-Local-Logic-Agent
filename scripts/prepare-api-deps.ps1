@@ -42,13 +42,23 @@ npm install --omit=dev --ignore-scripts --no-fund --no-audit 2>&1 | Select-Objec
 Remove-Item (Join-Path $outDir "package.json")
 Remove-Item (Join-Path $outDir "package-lock.json") -ErrorAction SilentlyContinue
 
-# Nested onnxruntime-node v1.21.0 entfernen — @huggingface/transformers bringt eine eigene
-# Version mit, deren onnxruntime.dll Windows AI Platform DLLs benötigt die nicht überall
-# vorhanden sind. Node.js fällt dann auf root v1.14.0 zurück, das einwandfrei läuft.
+# Inkompatible native Module entfernen die @huggingface/transformers installiert:
+# 1. nested onnxruntime-node v1.21.0 — Node.js fällt auf root v1.14.0 zurück
+# 2. @img/sharp-* (sharp v0.34+) — inkompatibel auf älteren Windows VCRT; root v0.32.6 läuft
 $nestedOrt = Join-Path $outDir "node_modules\@huggingface\transformers\node_modules\onnxruntime-node"
 if (Test-Path $nestedOrt) {
     Remove-Item $nestedOrt -Recurse -Force
-    Write-Host "Nested onnxruntime-node v1.21.0 entfernt (CPU-only Kokoro TTS)" -ForegroundColor Yellow
+    Write-Host "Nested onnxruntime-node v1.21.0 entfernt" -ForegroundColor Yellow
+}
+$imgDir = Join-Path $outDir "node_modules\@img"
+if (Test-Path $imgDir) {
+    Remove-Item $imgDir -Recurse -Force
+    Write-Host "@img/sharp-* entfernt (root sharp v0.32.6 wird verwendet)" -ForegroundColor Yellow
+}
+$nestedSharp = Join-Path $outDir "node_modules\@huggingface\transformers\node_modules\sharp"
+if (Test-Path $nestedSharp) {
+    Remove-Item $nestedSharp -Recurse -Force
+    Write-Host "Nested sharp v0.34.x entfernt (root v0.32.6 wird verwendet)" -ForegroundColor Yellow
 }
 
 $sizeMB = [math]::Round((Get-ChildItem $outDir -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB, 0)
