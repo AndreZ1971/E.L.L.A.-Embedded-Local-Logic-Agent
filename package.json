@@ -12,7 +12,14 @@
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "test:e2e": "playwright test",
-    "build:exe": "npm run build --workspace=packages/shared && npm run build --workspace=packages/agent-tools && npm run build --workspace=apps/api && npm run build --workspace=apps/web && npm run dist --workspace=apps/desktop"
+    "build:exe": "npm run build --workspace=packages/shared && npm run build --workspace=packages/agent-tools && npm run build --workspace=apps/api && npm run build --workspace=apps/web && npm run dist --workspace=apps/desktop",
+    "postinstall": "node scripts/fix-ort-dml.mjs"
+  },
+  "overrides": {
+    "onnxruntime-node": "1.14.0",
+    "@huggingface/transformers": {
+      "onnxruntime-node": "1.14.0"
+    }
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

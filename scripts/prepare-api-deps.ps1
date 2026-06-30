@@ -42,5 +42,13 @@ npm install --omit=dev --ignore-scripts --no-fund --no-audit 2>&1 | Select-Objec
 Remove-Item (Join-Path $outDir "package.json")
 Remove-Item (Join-Path $outDir "package-lock.json") -ErrorAction SilentlyContinue
 
+# DirectML.dll aus @huggingface/transformers entfernen — nicht nötig für CPU-Inferenz
+# und verhindert Ladefehler auf Systemen ohne Windows AI Platform Runtime
+$dmlPath = Join-Path $outDir "node_modules\@huggingface\transformers\node_modules\onnxruntime-node\bin\napi-v3\win32\x64\DirectML.dll"
+if (Test-Path $dmlPath) {
+    Remove-Item $dmlPath -Force
+    Write-Host "DirectML.dll entfernt (CPU-only Kokoro TTS)" -ForegroundColor Yellow
+}
+
 $sizeMB = [math]::Round((Get-ChildItem $outDir -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB, 0)
 Write-Host "Fertig: prod-node-modules/ ($sizeMB MB)" -ForegroundColor Green
