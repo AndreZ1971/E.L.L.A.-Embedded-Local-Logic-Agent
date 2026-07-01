@@ -631,19 +631,13 @@ const HOMEWORK_TOOL: OllamaTool = {
   function: {
     name: "homework_mode",
     description:
-      "Aktiviert oder deaktiviert den gesicherten Hausaufgaben-Modus. Aktivieren braucht keine PIN. Deaktivieren erfordert die PIN.",
+      "Aktiviert den gesicherten Hausaufgaben-Modus (action=activate). Deaktivieren ist nur über den 🔒-Button in der App-Oberfläche möglich — niemals per Tool-Call.",
     parameters: {
       type: "object",
       properties: {
         action: {
           type: "string",
-          description:
-            'Aktion: "activate" zum Einschalten (kein PIN nötig) oder "deactivate" zum Ausschalten (PIN erforderlich)',
-        },
-        pin: {
-          type: "string",
-          description:
-            "PIN — nur bei action=deactivate erforderlich, sonst weglassen",
+          description: '"activate" — schaltet den Hausaufgaben-Modus ein',
         },
       },
       required: ["action"],

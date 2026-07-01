@@ -316,10 +316,14 @@ async function homeworkModeTool(
 ): Promise<ToolResult> {
   const action = args.action as string;
   if (action === "activate") return activateHomeworkMode();
+  // Deaktivierung läuft ausschließlich über den UI-Lock-Button, nie per LLM.
+  // Der PIN darf nie durch den Chat-Kanal fließen.
   if (action === "deactivate") {
-    const pin = args.pin as string | undefined;
-    if (!pin) return { success: false, error: "PIN fehlt." };
-    return deactivateHomeworkMode(pin);
+    return {
+      success: false,
+      error:
+        "Deaktivierung ist nur über den 🔒-Button in der App-Oberfläche möglich. Bitte den Nutzer darauf hinweisen.",
+    };
   }
   return { success: false, error: `Unbekannte Aktion: ${action}` };
 }
