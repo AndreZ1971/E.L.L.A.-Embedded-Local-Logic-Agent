@@ -66,19 +66,23 @@ async function synthesizeMsEdge(
   return { buffer, contentType: "audio/mpeg" };
 }
 
+// Languages with actual Kokoro voice models — no German, no Italian, no Hindi etc.
+const KOKORO_LANGS = new Set(["en", "fr", "es"]);
+
 export async function synthesize(
   text: string,
   options: TTSOptions = {},
 ): Promise<TTSResult> {
-  // Kokoro first — local neural voice, offline
-  if (isKokoroReady()) {
+  const lang = options.lang ?? "de";
+  // Kokoro only where it has a real voice model — German always uses MsEdgeTTS/Katja
+  if (isKokoroReady() && KOKORO_LANGS.has(lang)) {
     try {
-      return await synthesizeKokoro(text, options.lang ?? "de");
+      return await synthesizeKokoro(text, lang);
     } catch {
       // fall through to MsEdgeTTS
     }
   }
-  // MsEdgeTTS fallback — online
+  // MsEdgeTTS — proper neural voices for all languages including German
   return synthesizeMsEdge(text, options);
 }
 
