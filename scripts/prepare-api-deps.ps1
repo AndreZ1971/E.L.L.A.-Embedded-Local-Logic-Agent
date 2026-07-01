@@ -1,11 +1,13 @@
-$ErrorActionPreference = "Stop"
 $root   = Split-Path $PSScriptRoot -Parent
 $apiDir = Join-Path $root "apps\api"
 $outDir = Join-Path $apiDir "prod-node-modules"
 
 Write-Host "Production node_modules fuer API erstellen..." -ForegroundColor Cyan
 
-if (Test-Path $outDir) { Remove-Item $outDir -Recurse -Force }
+if (Test-Path $outDir) {
+    try { Remove-Item $outDir -Recurse -Force -ErrorAction Stop }
+    catch { Write-Host "Warnung: Verzeichnis teilweise gesperrt, aktualisiere bestehende Installation..." -ForegroundColor Yellow }
+}
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
 # Package.json mit konkreten Versionen aus dem Lock-File — ohne Workspace-Pakete
@@ -43,8 +45,9 @@ $pkgJson = @"
 "@
 
 $pkgJson | Set-Content (Join-Path $outDir "package.json") -Encoding utf8
-cd $outDir
-npm install --omit=dev --ignore-scripts --no-fund --no-audit 2>&1 | Select-Object -Last 5
+Set-Location $outDir
+npm install --omit=dev --ignore-scripts --no-fund --no-audit
+if ($LASTEXITCODE -ne 0) { Write-Host "npm install fehlgeschlagen!" -ForegroundColor Red; exit 1 }
 
 Remove-Item (Join-Path $outDir "package.json")
 Remove-Item (Join-Path $outDir "package-lock.json") -ErrorAction SilentlyContinue
