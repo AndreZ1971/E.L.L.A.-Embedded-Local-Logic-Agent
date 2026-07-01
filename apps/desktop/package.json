@@ -1,6 +1,6 @@
 {
   "name": "@ella/desktop",
-  "version": "1.0.0-rc",
+  "version": "3.9.1",
   "private": true,
   "main": "dist/main/index.js",
   "scripts": {

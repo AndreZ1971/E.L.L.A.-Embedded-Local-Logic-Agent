@@ -50,7 +50,6 @@ let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
 let apiProcess: ChildProcess | null = null;
-let ttsProcess: ChildProcess | null = null;
 let stressProcess: ChildProcess | null = null;
 let mariadbProcess: ChildProcess | null = null;
 let ollamaProcess: ChildProcess | null = null;
@@ -88,8 +87,6 @@ async function startMariaDB(): Promise<void> {
     console.log("[MariaDB] Erststart — initialisiere Datenverzeichnis…");
     sendSetupStatus("Datenbank wird eingerichtet…");
     fs.mkdirSync(dataDir, { recursive: true });
-    const baseDir = vendorPath("mariadb");
-    // MariaDB nutzt mysql_install_db.exe für Initialisierung (nicht mysqld --initialize-insecure wie MySQL)
     const installDb = vendorPath("mariadb", "bin", "mysql_install_db.exe");
     const initErrorLog = path.join(app.getPath("userData"), "mariadb-init.log");
     await new Promise<void>((resolve, reject) => {
@@ -213,38 +210,6 @@ async function startOllama(): Promise<void> {
 
   await waitForPort(11434, 30_000);
   console.log("[Ollama] Server bereit.");
-}
-
-// ── KokoroTTS ─────────────────────────────────────────────────────────────────
-
-function startKokoroTts(): void {
-  const settingsPath = path.join(app.getPath("userData"), "settings.json");
-  try {
-    const raw = require("fs").readFileSync(settingsPath, "utf-8");
-    const settings = JSON.parse(raw) as { ttsEngine?: string };
-    if (settings.ttsEngine !== "kokoro") return;
-  } catch {
-    return;
-  }
-
-  const scriptBase = app.isPackaged
-    ? process.resourcesPath
-    : path.join(app.getAppPath(), "..", "..");
-  const scriptPath = path.join(scriptBase, "scripts/tts_server.py");
-  if (!fs.existsSync(scriptPath)) {
-    log("[TTS] tts_server.py nicht gefunden — Kokoro TTS deaktiviert");
-    return;
-  }
-  ttsProcess = spawn("python", [scriptPath], { stdio: "pipe" });
-  ttsProcess.stdout?.on("data", (d: Buffer) =>
-    console.log("[TTS]", d.toString().trimEnd()),
-  );
-  ttsProcess.stderr?.on("data", (d: Buffer) =>
-    console.error("[TTS-ERR]", d.toString().trimEnd()),
-  );
-  ttsProcess.on("exit", (code) =>
-    console.log("[TTS] Prozess beendet, Code:", code),
-  );
 }
 
 // ── Stress Analysis Server ────────────────────────────────────────────────────
@@ -865,7 +830,6 @@ app.whenReady().then(async () => {
     await startOllama().catch((e) => log(`[Ollama] FEHLER: ${e}`));
 
     startApi();
-    startKokoroTts();
     startStressServer();
 
     // Prüfen ob Modell-Auswahl nötig (Erststart ohne settings.json)
@@ -937,7 +901,6 @@ app.on("before-quit", () => {
   isQuitting = true;
   for (const proc of [
     apiProcess,
-    ttsProcess,
     stressProcess,
     ollamaProcess,
     mariadbProcess,
