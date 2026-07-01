@@ -14,6 +14,11 @@ $pkgJson = @"
 {
   "name": "ella-api-prod",
   "version": "1.0.0",
+  "overrides": {
+    "onnxruntime-node": "1.21.0",
+    "onnxruntime-common": "1.21.0",
+    "sharp": "0.32.6"
+  },
   "dependencies": {
     "cheerio": "^1.2.0",
     "dotenv": "^16.4.0",
@@ -30,7 +35,9 @@ $pkgJson = @"
     "@xenova/transformers": "^2.17.2",
     "kokoro-js": "^1.2.1",
     "@huggingface/transformers": "^3.5.1",
-    "phonemizer": "^1.2.1"
+    "phonemizer": "^1.2.1",
+    "onnxruntime-node": "1.21.0",
+    "onnxruntime-common": "1.21.0"
   }
 }
 "@
@@ -42,14 +49,21 @@ npm install --omit=dev --ignore-scripts --no-fund --no-audit 2>&1 | Select-Objec
 Remove-Item (Join-Path $outDir "package.json")
 Remove-Item (Join-Path $outDir "package-lock.json") -ErrorAction SilentlyContinue
 
-# Inkompatible native Module entfernen die @huggingface/transformers installiert:
-# 1. nested onnxruntime-node v1.21.0 — Node.js fällt auf root v1.14.0 zurück
-# 2. @img/sharp-* (sharp v0.34+) — inkompatibel auf älteren Windows VCRT; root v0.32.6 läuft
-$nestedOrt = Join-Path $outDir "node_modules\@huggingface\transformers\node_modules\onnxruntime-node"
-if (Test-Path $nestedOrt) {
-    Remove-Item $nestedOrt -Recurse -Force
-    Write-Host "Nested onnxruntime-node v1.21.0 entfernt" -ForegroundColor Yellow
+# DirectML.dll aus onnxruntime-node entfernen — Windows AI Platform fehlt auf älteren Systemen.
+# ORT fällt auf CPU EP zurück; Kokoro/Wakeword funktionieren ohne DirectML.
+$dmlPaths = @(
+    "node_modules\onnxruntime-node\bin\napi-v3\win32\x64\DirectML.dll",
+    "node_modules\onnxruntime-node\bin\napi-v3\win32\arm64\DirectML.dll"
+)
+foreach ($rel in $dmlPaths) {
+    $full = Join-Path $outDir $rel
+    if (Test-Path $full) {
+        Remove-Item $full -Force
+        Write-Host "DirectML.dll entfernt: $rel" -ForegroundColor Yellow
+    }
 }
+
+# @img/sharp-* (sharp v0.34+) und nested sharp entfernen — inkompatibel auf älteren Windows VCRT
 $imgDir = Join-Path $outDir "node_modules\@img"
 if (Test-Path $imgDir) {
     Remove-Item $imgDir -Recurse -Force

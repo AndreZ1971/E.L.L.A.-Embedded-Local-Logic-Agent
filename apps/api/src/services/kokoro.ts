@@ -23,6 +23,12 @@ function getModelCache(): string {
   return path.join(base, "ELLA", "kokoro-cache");
 }
 
+function getPredownloadedModelPath(): string {
+  // Pre-downloaded via scripts/download-kokoro.ps1
+  const base = process.env.APPDATA ?? os.homedir();
+  return path.join(base, "ELLA", "kokoro-model");
+}
+
 function getBundledModelPath(): string {
   // In installer: vendor/kokoro/ next to the node.exe
   const exeDir = path.dirname(process.execPath);
@@ -50,11 +56,21 @@ async function doInit(): Promise<void> {
     const { KokoroTTS } = await import("kokoro-js");
 
     const bundledPath = getBundledModelPath();
-    const modelId = fs.existsSync(bundledPath) ? bundledPath : MODEL_ID;
+    const predownloaded = getPredownloadedModelPath();
+    const modelId = fs.existsSync(bundledPath)
+      ? bundledPath
+      : fs.existsSync(path.join(predownloaded, "config.json"))
+        ? predownloaded
+        : MODEL_ID;
 
-    console.log(
-      `[TTS] Lade Kokoro (${modelId === bundledPath ? "lokal/vendor" : "HuggingFace Hub"})...`,
-    );
+    const source =
+      modelId === bundledPath
+        ? "lokal/vendor"
+        : modelId === predownloaded
+          ? "lokal/vorgeladen"
+          : "HuggingFace Hub";
+
+    console.log(`[TTS] Lade Kokoro (${source})...`);
 
     ttsInstance = await KokoroTTS.from_pretrained(modelId, {
       dtype: "q8",
