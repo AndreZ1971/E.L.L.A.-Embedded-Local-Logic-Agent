@@ -8,6 +8,7 @@
     "dev": "node build-main.mjs && electron .",
     "build": "node build-main.mjs",
     "dist": "node build-main.mjs && node build-icon.mjs && electron-builder --win nsis",
+    "dist:msix": "node build-main.mjs && node build-icon.mjs && electron-builder --win appx",
     "postinstall": "node -e \"const fs=require('fs'),p=require('path'),c=process.cwd();const l=p.join(c,'node_modules','electron'),t=p.join(c,'..','..','node_modules','electron');if(!fs.existsSync(t))process.exit(0);try{fs.rmSync(l,{recursive:true,force:true})}catch(e){}try{fs.symlinkSync(t,l,'junction');console.log('electron junction OK')}catch(e){console.warn('junction failed:',e.message)}\""
   },
   "devDependencies": {
@@ -86,9 +87,27 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "appx",
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon.ico"
+    },
+    "appx": {
+      "applicationId": "ELLAApp",
+      "backgroundColor": "#0f1117",
+      "displayName": "E.L.L.A.",
+      "identityName": "ELLAApp",
+      "publisher": "CN=Andre Zabel",
+      "publisherDisplayName": "Andre Zabel",
+      "languages": [
+        "de-DE",
+        "en-US"
+      ]
     },
     "nsis": {
       "oneClick": false,
