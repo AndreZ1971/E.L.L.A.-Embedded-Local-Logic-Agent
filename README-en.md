@@ -4,7 +4,7 @@
 
 Local AI assistant for Windows as a native desktop app. LLM-driven automation — fully offline via Ollama, optionally with OpenAI GPT-4o.
 
-**Version:** v3.9.0 · Windows 10/11 (x64)
+**Version:** v1.0.0 · Windows 10/11 (x64)
 
 _ELLA adapts to the user and grows with her challenges._
 
@@ -14,7 +14,7 @@ _ELLA adapts to the user and grows with her challenges._
 
 **Prerequisites: none.** The installer brings everything.
 
-1. Run `E.L.L.A Setup 1.0.0-rc.exe`
+1. Run `E.L.L.A Setup 1.0.0.exe`
 2. Choose installation path (default: `C:\Program Files\E.L.L.A`)
 3. On first launch: **Language selection** (DE/EN) → EULA → License activation → **Model selection** → Onboarding → Chat
 
@@ -204,7 +204,7 @@ npm run dev --workspace=apps/web   # Web :5173
 npm run build --workspace=apps/api
 npm run build --workspace=apps/web
 cd apps/desktop && npm run dist
-# → dist-installer/E.L.L.A Setup 1.0.0-rc.exe
+# → dist-installer/E.L.L.A Setup 1.0.0.exe
 ```
 
 ---

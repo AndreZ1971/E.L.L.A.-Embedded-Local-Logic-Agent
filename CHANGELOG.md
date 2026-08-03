@@ -4,6 +4,16 @@ Alle wesentlichen Änderungen an E.L.L.A. Detaillierte Entscheidungsbegründunge
 
 ---
 
+## [1.0.0] — 03.08.2026
+
+### Veröffentlichung
+
+- Offizielle Erstveröffentlichung als E.L.L.A. v1.0.0 (Public Release)
+- Paketname und Installerdatei vereinheitlicht auf `E.L.L.A Setup 1.0.0.exe`
+- Release-Candidate-Status entfernt
+
+---
+
 ## [3.9.0] — 20.06.2026
 
 ### Hinzugefügt

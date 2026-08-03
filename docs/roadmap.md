@@ -35,7 +35,7 @@ Stand: v1.1.0-rc · Juni 2026
 | Onboarding & Erster Start    | v0.4.1    | System-Scan, 3-Schritte-Flow, get_system_info Tool, App-Routing                        |
 | Gesprächskonfiguration       | v0.5.0    | create_setup/update_setting/create_rule/free_ram + Notschalter                         |
 | Mail & Kalender              | v0.6.0    | read_emails/mark_email/read_calendar/create_appointment, Direktive unread-delete       |
-| Installer & Deployment       | v1.0.0-rc | EULA-Screen, Setup-Check, nomic-Pull-SSE, electron-builder NSIS-Installer              |
+| Installer & Deployment       | v1.0.0    | EULA-Screen, Setup-Check, nomic-Pull-SSE, electron-builder NSIS-Installer              |
 | Datei-Ops + Diktat           | v2.9.0    | search_files, open_file, explore_folder, create_document, dictate_to_document          |
 | WoW-Tools Sprint             | v3.0.0    | list_processes, kill_process, set_volume, clipboard, reminder, vision, write_for_me    |
 | Gmail + Google Calendar      | v3.0.0    | OAuth 2.0, read_gmail/mark_gmail/read_google_calendar/create_google_appointment        |

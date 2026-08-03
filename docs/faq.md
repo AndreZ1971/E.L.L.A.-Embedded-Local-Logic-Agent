@@ -1,6 +1,6 @@
 # E.L.L.A. — Häufig gestellte Fragen (FAQ)
 
-Version 3.9.0 — Zuletzt aktualisiert: 2026-06-20
+Version 1.0.0 — Zuletzt aktualisiert: 2026-08-03
 
 ---
 
@@ -67,7 +67,7 @@ ELLA ist proprietäre Software. Der Installer erfordert einen Lizenzschlüssel (
 
 ### Wie installiere ich ELLA?
 
-1. `E.L.L.A Setup 1.0.0-rc.exe` herunterladen und ausführen
+1. `E.L.L.A Setup 1.0.0.exe` herunterladen und ausführen
 2. Installationspfad wählen (Standard: `C:\Programme\E.L.L.A`)
 3. Installation abwarten — alle Abhängigkeiten werden automatisch eingerichtet
 4. ELLA über das Desktop-Symbol starten
@@ -808,7 +808,7 @@ npm run build --workspace=apps/web
 
 # Installer bauen:
 .\scripts\build-installer.ps1
-# → dist-installer/E.L.L.A Setup 1.0.0-rc.exe
+# → dist-installer/E.L.L.A Setup 1.0.0.exe
 ```
 
 ### Wie laufen die Tests?

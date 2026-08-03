@@ -1,4 +1,4 @@
-# E.L.L.A. — Was ich kann (v3.9.0)
+# E.L.L.A. — Was ich kann (v1.0.0)
 
 Stand: 2026-06-20 — 224 Tests grün
 

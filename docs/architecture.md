@@ -1,4 +1,4 @@
-# Architektur — v3.9.0
+# Architektur — v1.0.0
 
 ---
 

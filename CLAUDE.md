@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v3.9.1**
+**Aktueller Stand: v1.0.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -45,7 +45,7 @@ database/
 
 ---
 
-## Was läuft (vollständig implementiert — v3.9.1)
+## Was läuft (vollständig implementiert — v1.0.0)
 
 ### Kern
 
@@ -272,13 +272,11 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
 
-
-
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-06-30T14:45:18.294Z._
+_Last synced: 2026-08-03T04:40:22.152Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).
@@ -302,6 +300,10 @@ _No active user-scoped servers in mcp.json._
 _None found (or no workspace open)._
 
 #### User skills
+
+- **agent-browser** — `C:\Users\JannR\.claude\skills\agent-browser` — Browser automation CLI for AI agents. Use when the user needs to interact with websites, including navigating pages, filling forms, clicking buttons, taking screenshots, extracting data, testing web apps, or automating a
+
+- **find-skills** — `C:\Users\JannR\.claude\skills\find-skills` — Helps users discover and install agent skills when they ask questions like "how do I do X", "find a skill for X", "is there a skill that can...", or express interest in extending capabilities. This skill should be used w
 
 - **notebooklm** — `C:\Users\JannR\.claude\skills\notebooklm` — Complete API for Google NotebookLM - full programmatic access including features not in the web UI. Create notebooks, add sources, generate all artifact types, download in multiple formats. Activates on explicit /noteboo
 

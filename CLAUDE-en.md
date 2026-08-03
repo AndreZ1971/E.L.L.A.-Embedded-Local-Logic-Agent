@@ -2,7 +2,7 @@
 
 Local Windows AI assistant as an Electron desktop app. Runs fully offline via Ollama (llama3.1:8b), optionally with OpenAI GPT-4o.
 
-**Current version: v3.9.0**
+**Current version: v1.0.0**
 
 > _ELLA adapts to the user and grows with her challenges._
 
@@ -45,7 +45,7 @@ database/
 
 ---
 
-## What's running (fully implemented — v3.9.0)
+## What's running (fully implemented — v1.0.0)
 
 ### Core
 
