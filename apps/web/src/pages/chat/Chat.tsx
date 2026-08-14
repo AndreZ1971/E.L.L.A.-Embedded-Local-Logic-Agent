@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { marked } from "marked";
 import { useTranslation } from "react-i18next";
 import { AudioVAD, encodeWav } from "../../utils/audioVAD.js";
+import AvatarPanel from "../../components/AvatarPanel";
 
 type VoiceMode = "off" | "manual" | "wakeword" | "always";
 
@@ -118,6 +119,7 @@ const Chat: React.FC = () => {
   const ttsQueueAbortRef = useRef<AbortController | null>(null);
   // true while TTS audio is playing — prevents STT echo loop in Freihand mode
   const ttsSpeakingRef = useRef(false);
+  const [ttsActive, setTtsActive] = useState(false);
   useEffect(() => {
     ttsEnabledRef.current = ttsEnabled;
   }, [ttsEnabled]);
@@ -165,6 +167,7 @@ const Chat: React.FC = () => {
           if (currentAudioRef.current === audio) {
             currentAudioRef.current = null;
             ttsSpeakingRef.current = false;
+            setTtsActive(false);
           }
         };
         audio.onerror = () => {
@@ -172,9 +175,11 @@ const Chat: React.FC = () => {
           if (currentAudioRef.current === audio) {
             currentAudioRef.current = null;
             ttsSpeakingRef.current = false;
+            setTtsActive(false);
           }
         };
         ttsSpeakingRef.current = true;
+        setTtsActive(true);
         await audio.play();
       } catch {
         // silent fail — kein Fallback auf andere TTS-Engine
@@ -244,19 +249,23 @@ const Chat: React.FC = () => {
         const audio = new Audio(url);
         currentAudioRef.current = audio;
         ttsSpeakingRef.current = true;
+        setTtsActive(true);
         await new Promise<void>((resolve) => {
           audio.onended = () => {
             URL.revokeObjectURL(url);
             ttsSpeakingRef.current = false;
+            setTtsActive(false);
             resolve();
           };
           audio.onerror = () => {
             URL.revokeObjectURL(url);
             ttsSpeakingRef.current = false;
+            setTtsActive(false);
             resolve();
           };
           audio.play().catch(() => {
             ttsSpeakingRef.current = false;
+            setTtsActive(false);
             resolve();
           });
         });
@@ -1120,876 +1129,887 @@ const Chat: React.FC = () => {
   const showMic = voiceMode !== "off" && accessibilityMode !== "deaf";
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        gap: 12,
-      }}
-    >
-      {/* Header */}
+    <div style={{ display: "flex", height: "100%", gap: 16 }}>
+      <AvatarPanel isThinking={loading} isSpeaking={ttsActive} />
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          flexDirection: "column",
+          flex: 1,
+          gap: 12,
+          minWidth: 0,
+          overflow: "hidden",
         }}
       >
-        <h2 style={{ margin: 0 }}>{t("chat.heading")}</h2>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button
-            onClick={() => {
-              const next = !ttsEnabled;
-              setTtsEnabled(next);
-              ttsEnabledRef.current = next;
-              if (!next) stopCurrentAudio();
-              fetch(`${API}/api/settings`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ttsEnabled: next }),
-              }).catch(() => {});
-            }}
-            aria-label={t(
-              ttsEnabled ? "chat.aria_tts_on" : "chat.aria_tts_off",
-            )}
-            title={ttsEnabled ? "Sprachausgabe aus" : "Sprachausgabe ein"}
-            style={{
-              padding: "4px 10px",
-              borderRadius: 4,
-              fontSize: "0.85rem",
-              background: ttsEnabled ? "#1e1b4b" : "transparent",
-              border: ttsEnabled ? "1px solid #7c6af7" : "1px solid #2d3148",
-              color: ttsEnabled ? "#a5b4fc" : "#64748b",
-              cursor: "pointer",
-            }}
-          >
-            {ttsEnabled ? "🔊" : "🔇"}
-          </button>
-          {homeworkConfigured && (
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <h2 style={{ margin: 0 }}>{t("chat.heading")}</h2>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
-              onClick={() =>
-                homeworkActive ? setShowPinDialog(true) : activateHomework()
-              }
+              onClick={() => {
+                const next = !ttsEnabled;
+                setTtsEnabled(next);
+                ttsEnabledRef.current = next;
+                if (!next) stopCurrentAudio();
+                fetch(`${API}/api/settings`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ ttsEnabled: next }),
+                }).catch(() => {});
+              }}
               aria-label={t(
-                homeworkActive
-                  ? "chat.aria_homework_on"
-                  : "chat.aria_homework_off",
+                ttsEnabled ? "chat.aria_tts_on" : "chat.aria_tts_off",
               )}
-              title={
-                homeworkActive
-                  ? "Hausaufgaben-Modus deaktivieren"
-                  : "Hausaufgaben-Modus aktivieren"
-              }
+              title={ttsEnabled ? "Sprachausgabe aus" : "Sprachausgabe ein"}
               style={{
                 padding: "4px 10px",
                 borderRadius: 4,
                 fontSize: "0.85rem",
-                background: homeworkActive ? "#431407" : "transparent",
-                border: homeworkActive
-                  ? "1px solid #c2410c"
-                  : "1px solid #2d3148",
-                color: homeworkActive ? "#fdba74" : "#64748b",
+                background: ttsEnabled ? "#1e1b4b" : "transparent",
+                border: ttsEnabled ? "1px solid #7c6af7" : "1px solid #2d3148",
+                color: ttsEnabled ? "#a5b4fc" : "#64748b",
                 cursor: "pointer",
               }}
             >
-              {homeworkActive ? "🔒" : "🔓"}
+              {ttsEnabled ? "🔊" : "🔇"}
             </button>
-          )}
-          {messages.length > 0 && (
-            <button
-              onClick={clearHistory}
-              aria-label={t("chat.aria_clear")}
-              style={{
-                padding: "4px 12px",
-                borderRadius: 4,
-                fontSize: "0.8rem",
-                background: "transparent",
-                border: "1px solid #2d3148",
-                color: "#64748b",
-                cursor: "pointer",
-              }}
-            >
-              {t("chat.clear")}
-            </button>
-          )}
+            {homeworkConfigured && (
+              <button
+                onClick={() =>
+                  homeworkActive ? setShowPinDialog(true) : activateHomework()
+                }
+                aria-label={t(
+                  homeworkActive
+                    ? "chat.aria_homework_on"
+                    : "chat.aria_homework_off",
+                )}
+                title={
+                  homeworkActive
+                    ? "Hausaufgaben-Modus deaktivieren"
+                    : "Hausaufgaben-Modus aktivieren"
+                }
+                style={{
+                  padding: "4px 10px",
+                  borderRadius: 4,
+                  fontSize: "0.85rem",
+                  background: homeworkActive ? "#431407" : "transparent",
+                  border: homeworkActive
+                    ? "1px solid #c2410c"
+                    : "1px solid #2d3148",
+                  color: homeworkActive ? "#fdba74" : "#64748b",
+                  cursor: "pointer",
+                }}
+              >
+                {homeworkActive ? "🔒" : "🔓"}
+              </button>
+            )}
+            {messages.length > 0 && (
+              <button
+                onClick={clearHistory}
+                aria-label={t("chat.aria_clear")}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: 4,
+                  fontSize: "0.8rem",
+                  background: "transparent",
+                  border: "1px solid #2d3148",
+                  color: "#64748b",
+                  cursor: "pointer",
+                }}
+              >
+                {t("chat.clear")}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Hausaufgaben-Modus Banner */}
-      {homeworkActive && (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            background: "#431407",
-            border: "1px solid #c2410c",
-            borderRadius: 6,
-            padding: "8px 14px",
-            fontSize: "0.82rem",
-            color: "#fdba74",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            flexShrink: 0,
-          }}
-        >
-          <span aria-hidden="true">🔒</span> {t("chat.homework_banner")}
-        </div>
-      )}
+        {/* Hausaufgaben-Modus Banner */}
+        {homeworkActive && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              background: "#431407",
+              border: "1px solid #c2410c",
+              borderRadius: 6,
+              padding: "8px 14px",
+              fontSize: "0.82rem",
+              color: "#fdba74",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              flexShrink: 0,
+            }}
+          >
+            <span aria-hidden="true">🔒</span> {t("chat.homework_banner")}
+          </div>
+        )}
 
-      {/* Gehörlosenmodus Banner */}
-      {accessibilityMode === "deaf" && (
-        <div
-          role="status"
-          style={{
-            background: "#0f172a",
-            border: "1px solid #334155",
-            borderRadius: 6,
-            padding: "8px 14px",
-            fontSize: "0.82rem",
-            color: "#94a3b8",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            flexShrink: 0,
-          }}
-        >
-          <span aria-hidden="true">🔇</span> {t("chat.deaf_banner")}
-        </div>
-      )}
+        {/* Gehörlosenmodus Banner */}
+        {accessibilityMode === "deaf" && (
+          <div
+            role="status"
+            style={{
+              background: "#0f172a",
+              border: "1px solid #334155",
+              borderRadius: 6,
+              padding: "8px 14px",
+              fontSize: "0.82rem",
+              color: "#94a3b8",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              flexShrink: 0,
+            }}
+          >
+            <span aria-hidden="true">🔇</span> {t("chat.deaf_banner")}
+          </div>
+        )}
 
-      {/* PIN-Dialog */}
-      {showPinDialog && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 100,
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowPinDialog(false);
-              setPinInput("");
-              setPinError("");
-            }
-          }}
-        >
+        {/* PIN-Dialog */}
+        {showPinDialog && (
           <div
             style={{
-              background: "#1a1d27",
-              border: "1px solid #2d3148",
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.6)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 100,
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowPinDialog(false);
+                setPinInput("");
+                setPinError("");
+              }
+            }}
+          >
+            <div
+              style={{
+                background: "#1a1d27",
+                border: "1px solid #2d3148",
+                borderRadius: 10,
+                padding: 24,
+                width: 300,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              <div style={{ fontWeight: 600, fontSize: "1rem" }}>
+                {t("chat.homework_deactivate_title")}
+              </div>
+              <input
+                type="password"
+                value={pinInput}
+                onChange={(e) => setPinInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && deactivateHomework()}
+                placeholder={t("chat.pin_placeholder")}
+                autoFocus
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 6,
+                  border: "1px solid #2d3148",
+                  background: "#0f1117",
+                  color: "#e2e8f0",
+                  fontSize: "0.9rem",
+                  outline: "none",
+                }}
+              />
+              {pinError && (
+                <div style={{ fontSize: "0.82rem", color: "#f87171" }}>
+                  {pinError}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={deactivateHomework}
+                  disabled={pinBusy}
+                  style={{
+                    flex: 1,
+                    padding: "8px",
+                    borderRadius: 6,
+                    border: "none",
+                    background: "#c2410c",
+                    color: "#fff",
+                    cursor: pinBusy ? "not-allowed" : "pointer",
+                    fontSize: "0.88rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  {pinBusy ? "…" : t("chat.btn_deactivate")}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPinDialog(false);
+                    setPinInput("");
+                    setPinError("");
+                  }}
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: 6,
+                    border: "1px solid #2d3148",
+                    background: "transparent",
+                    color: "#64748b",
+                    cursor: "pointer",
+                    fontSize: "0.88rem",
+                  }}
+                >
+                  {t("chat.btn_cancel")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Messages */}
+        <div
+          role="log"
+          aria-label={t("chat.aria_messages")}
+          aria-live="polite"
+          aria-atomic="false"
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          {messages.length === 0 && !loading && (
+            <div
+              style={{
+                color: "#64748b",
+                fontSize: "0.9rem",
+                marginTop: 32,
+                textAlign: "center",
+              }}
+            >
+              {t("chat.welcome")}
+            </div>
+          )}
+          {messages.map((m, i) => {
+            if (m.role === "directive_deny") {
+              return (
+                <div
+                  key={i}
+                  style={{
+                    alignSelf: "flex-start",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                    padding: "10px 14px",
+                    borderRadius: 8,
+                    border: "1px solid #7f1d1d",
+                    borderLeft: "3px solid #ef4444",
+                    background: "#1a0a0a",
+                    maxWidth: "75%",
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#ef4444",
+                        fontWeight: 700,
+                        letterSpacing: "0.08em",
+                      }}
+                    >
+                      ⊘ E.L.L.A. DIRECTIVE
+                    </span>
+                    {m.toolName && (
+                      <span
+                        style={{
+                          fontSize: "0.7rem",
+                          background: "#450a0a",
+                          border: "1px solid #7f1d1d",
+                          color: "#fca5a5",
+                          borderRadius: 4,
+                          padding: "1px 6px",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        {m.toolName}
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.83rem",
+                      color: "#94a3b8",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {m.content}
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div
+                key={i}
+                style={{
+                  alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                  background: m.role === "user" ? "#7c6af7" : "#1a1d27",
+                  border: m.role === "assistant" ? "1px solid #2d3148" : "none",
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  maxWidth: "75%",
+                  fontSize: "0.9rem",
+                  lineHeight: 1.6,
+                  whiteSpace: m.role === "user" ? "pre-wrap" : "normal",
+                }}
+              >
+                {m.role === "user" ? (
+                  m.content
+                ) : (
+                  <div
+                    className="ella-md"
+                    dangerouslySetInnerHTML={{
+                      __html: marked(m.content, { async: false }) as string,
+                    }}
+                  />
+                )}
+                {m.role === "assistant" &&
+                  m.usedTools &&
+                  m.usedTools.length > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 4,
+                        marginTop: 8,
+                      }}
+                    >
+                      {m.usedTools.map((tool) => (
+                        <span
+                          key={tool}
+                          title={tool}
+                          style={{
+                            fontSize: "0.68rem",
+                            background: "#0f1117",
+                            border: "1px solid #2d3148",
+                            borderRadius: 4,
+                            padding: "1px 6px",
+                            color: "#64748b",
+                          }}
+                        >
+                          {toolLabel(tool)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                {m.role === "assistant" && !m.proactive && (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 6,
+                      marginTop: 6,
+                      opacity: feedback[i] ? 1 : 0.35,
+                      transition: "opacity 0.2s",
+                    }}
+                    onMouseEnter={(e) =>
+                      ((e.currentTarget as HTMLDivElement).style.opacity = "1")
+                    }
+                    onMouseLeave={(e) =>
+                      ((e.currentTarget as HTMLDivElement).style.opacity =
+                        feedback[i] ? "1" : "0.35")
+                    }
+                  >
+                    {(["positive", "negative"] as const).map((r) => (
+                      <button
+                        key={r}
+                        onClick={() => sendFeedback(i, r, m.content)}
+                        disabled={Boolean(feedback[i])}
+                        title={
+                          r === "positive" ? "Hilfreich" : "Nicht hilfreich"
+                        }
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: feedback[i] ? "default" : "pointer",
+                          fontSize: "0.75rem",
+                          padding: "2px 4px",
+                          borderRadius: 4,
+                          color:
+                            feedback[i] === r
+                              ? r === "positive"
+                                ? "#4ade80"
+                                : "#f87171"
+                              : "#64748b",
+                        }}
+                      >
+                        {r === "positive" ? "👍" : "👎"}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {toolStatus && (
+            <div
+              style={{
+                alignSelf: "flex-start",
+                background: "#1a1d27",
+                border: "1px solid #2d3148",
+                padding: "8px 14px",
+                borderRadius: 8,
+                fontSize: "0.8rem",
+                color: "#94a3b8",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <span style={{ color: "#7c6af7" }}>⚙</span>
+              {toolStatus}…
+            </div>
+          )}
+
+          {streaming && (
+            <div
+              style={{
+                alignSelf: "flex-start",
+                background: "#1a1d27",
+                border: "1px solid #2d3148",
+                padding: "10px 14px",
+                borderRadius: 8,
+                maxWidth: "75%",
+                fontSize: "0.9rem",
+                lineHeight: 1.6,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {streaming}
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 2,
+                  height: "1em",
+                  background: "#7c6af7",
+                  marginLeft: 2,
+                  animation: "blink 1s step-end infinite",
+                  verticalAlign: "text-bottom",
+                }}
+              />
+            </div>
+          )}
+          {loading && !streaming && !toolStatus && (
+            <div
+              style={{
+                alignSelf: "flex-start",
+                background: "#1a1d27",
+                border: "1px solid #2d3148",
+                padding: "10px 14px",
+                borderRadius: 8,
+                fontSize: "0.85rem",
+                color: "#7c6af7",
+              }}
+            >
+              {t("chat.thinking")}
+            </div>
+          )}
+          {error && (
+            <div
+              style={{
+                alignSelf: "flex-start",
+                background: "#2d1a1a",
+                border: "1px solid #7f1d1d",
+                padding: "10px 14px",
+                borderRadius: 8,
+                fontSize: "0.85rem",
+                color: "#fca5a5",
+              }}
+            >
+              {t("chat.error_prefix")}: {error}
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        <style>{`
+        @keyframes blink     { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes pulse     { 0%,100%{opacity:0.4} 50%{opacity:1} }
+        @keyframes countdown { from{width:100%} to{width:0%} }
+      `}</style>
+
+        {/* Directive-Denial Badge */}
+        {directiveDeny && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "8px 12px",
+              borderRadius: 6,
+              borderLeft: "3px solid #ef4444",
+              background: "#1a0a0a",
+              fontSize: "0.82rem",
+            }}
+          >
+            <span
+              style={{
+                color: "#ef4444",
+                fontWeight: 600,
+                letterSpacing: "0.05em",
+              }}
+            >
+              E.L.L.A. DIRECTIVE
+            </span>
+            <span style={{ color: "#94a3b8" }}>
+              {t("chat.directive_not_allowed")}
+            </span>
+          </div>
+        )}
+
+        {/* Pausenmodus-Indikator */}
+        {isPaused && pauseEndsAt && (
+          <div
+            style={{
+              background: "#1e1b4b",
+              border: "1px solid #7c6af7",
+              borderRadius: 8,
+              padding: "10px 16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              fontSize: "0.85rem",
+              color: "#a5b4fc",
+            }}
+          >
+            <span>⏸ {t("chat.paused", { countdown: pauseCountdown })}</span>
+            <button
+              onClick={resumeFromPause}
+              style={{
+                background: "transparent",
+                border: "1px solid #7c6af7",
+                borderRadius: 4,
+                color: "#a5b4fc",
+                padding: "3px 10px",
+                cursor: "pointer",
+                fontSize: "0.8rem",
+              }}
+            >
+              {t("chat.btn_resume")}
+            </button>
+          </div>
+        )}
+
+        {/* Sprachstatus-Anzeige */}
+        {(voiceMode === "wakeword" || voiceMode === "always") &&
+          wakeListening && (
+            <div style={{ minHeight: 28 }}>
+              {awaitingCommand ? (
+                /* "Jetzt sprechen" — grün, prominent, mit Ablauf-Balken */
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      color: "#22c55e",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        display: "inline-block",
+                        background: "#22c55e",
+                        animation: "pulse 0.8s ease-in-out infinite",
+                      }}
+                    />
+                    {t("chat.speak_now")}
+                  </div>
+                  <div
+                    style={{
+                      height: 2,
+                      background: "#1e2d3d",
+                      borderRadius: 1,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        background: "#22c55e",
+                        borderRadius: 1,
+                        animation: "countdown 15s linear forwards",
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : micStatus ? (
+                /* Aktiver Mic-Status: Erkenne / Transkribiere */
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: "0.78rem",
+                    color: "#7c6af7",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      display: "inline-block",
+                      background: "#7c6af7",
+                      animation: "pulse 1.2s ease-in-out infinite",
+                    }}
+                  />
+                  {micStatus}
+                </div>
+              ) : (
+                /* Idle — lauscht */
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: "0.78rem",
+                    color: "#475569",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      display: "inline-block",
+                      background: "#475569",
+                      animation: "pulse 2.5s ease-in-out infinite",
+                    }}
+                  />
+                  {t("chat.listening")}
+                </div>
+              )}
+            </div>
+          )}
+
+        {/* Confirmation Card */}
+        {confirmationCard && (
+          <div
+            style={{
+              background: "#1a1f2e",
+              border: "1px solid #f59e0b",
               borderRadius: 10,
-              padding: 24,
-              width: 300,
+              padding: "14px 16px",
               display: "flex",
               flexDirection: "column",
               gap: 12,
             }}
           >
-            <div style={{ fontWeight: 600, fontSize: "1rem" }}>
-              {t("chat.homework_deactivate_title")}
-            </div>
-            <input
-              type="password"
-              value={pinInput}
-              onChange={(e) => setPinInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && deactivateHomework()}
-              placeholder={t("chat.pin_placeholder")}
-              autoFocus
+            <div
               style={{
-                padding: "8px 12px",
-                borderRadius: 6,
-                border: "1px solid #2d3148",
-                background: "#0f1117",
-                color: "#e2e8f0",
-                fontSize: "0.9rem",
-                outline: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                fontWeight: 600,
+                color: "#f59e0b",
+                fontSize: "0.85rem",
               }}
-            />
-            {pinError && (
-              <div style={{ fontSize: "0.82rem", color: "#f87171" }}>
-                {pinError}
-              </div>
-            )}
+            >
+              <span>⚠</span>
+              {t("chat.confirm_title")}
+            </div>
+            <div
+              style={{ color: "#e2e8f0", fontSize: "0.82rem", lineHeight: 1.5 }}
+            >
+              {confirmationCard.message}
+            </div>
             <div style={{ display: "flex", gap: 8 }}>
               <button
-                onClick={deactivateHomework}
-                disabled={pinBusy}
+                disabled={confirmBusy}
+                onClick={async () => {
+                  setConfirmBusy(true);
+                  try {
+                    const res = await fetch(`${API}/api/tools/confirm`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(confirmationCard.pendingAction),
+                    });
+                    const result = (await res.json()) as {
+                      success: boolean;
+                      output?: unknown;
+                      error?: string;
+                    };
+                    const msg = result.success
+                      ? typeof result.output === "string"
+                        ? result.output
+                        : t("chat.action_success")
+                      : `${t("chat.error_prefix")}: ${result.error ?? t("common.error")}`;
+                    setMessages((p) => [
+                      ...p,
+                      { role: "assistant", content: msg },
+                    ]);
+                  } catch {
+                    setMessages((p) => [
+                      ...p,
+                      { role: "assistant", content: t("chat.action_failed") },
+                    ]);
+                  } finally {
+                    setConfirmationCard(null);
+                    setConfirmBusy(false);
+                  }
+                }}
                 style={{
-                  flex: 1,
-                  padding: "8px",
-                  borderRadius: 6,
-                  border: "none",
-                  background: "#c2410c",
+                  background: "#ef4444",
                   color: "#fff",
-                  cursor: pinBusy ? "not-allowed" : "pointer",
-                  fontSize: "0.88rem",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "6px 16px",
                   fontWeight: 600,
+                  cursor: confirmBusy ? "not-allowed" : "pointer",
+                  fontSize: "0.82rem",
+                  opacity: confirmBusy ? 0.6 : 1,
                 }}
               >
-                {pinBusy ? "…" : t("chat.btn_deactivate")}
+                {confirmBusy ? t("chat.btn_confirming") : t("chat.btn_confirm")}
               </button>
               <button
-                onClick={() => {
-                  setShowPinDialog(false);
-                  setPinInput("");
-                  setPinError("");
-                }}
+                disabled={confirmBusy}
+                onClick={() => setConfirmationCard(null)}
                 style={{
-                  padding: "8px 14px",
-                  borderRadius: 6,
-                  border: "1px solid #2d3148",
                   background: "transparent",
-                  color: "#64748b",
+                  color: "#94a3b8",
+                  border: "1px solid #334155",
+                  borderRadius: 6,
+                  padding: "6px 16px",
                   cursor: "pointer",
-                  fontSize: "0.88rem",
+                  fontSize: "0.82rem",
                 }}
               >
                 {t("chat.btn_cancel")}
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Messages */}
-      <div
-        role="log"
-        aria-label={t("chat.aria_messages")}
-        aria-live="polite"
-        aria-atomic="false"
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-        }}
-      >
-        {messages.length === 0 && !loading && (
-          <div
-            style={{
-              color: "#64748b",
-              fontSize: "0.9rem",
-              marginTop: 32,
-              textAlign: "center",
-            }}
-          >
-            {t("chat.welcome")}
-          </div>
-        )}
-        {messages.map((m, i) => {
-          if (m.role === "directive_deny") {
-            return (
-              <div
-                key={i}
-                style={{
-                  alignSelf: "flex-start",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 4,
-                  padding: "10px 14px",
-                  borderRadius: 8,
-                  border: "1px solid #7f1d1d",
-                  borderLeft: "3px solid #ef4444",
-                  background: "#1a0a0a",
-                  maxWidth: "75%",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#ef4444",
-                      fontWeight: 700,
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    ⊘ E.L.L.A. DIRECTIVE
-                  </span>
-                  {m.toolName && (
-                    <span
-                      style={{
-                        fontSize: "0.7rem",
-                        background: "#450a0a",
-                        border: "1px solid #7f1d1d",
-                        color: "#fca5a5",
-                        borderRadius: 4,
-                        padding: "1px 6px",
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      {m.toolName}
-                    </span>
-                  )}
-                </div>
-                <div
-                  style={{
-                    fontSize: "0.83rem",
-                    color: "#94a3b8",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {m.content}
-                </div>
-              </div>
-            );
-          }
-          return (
-            <div
-              key={i}
-              style={{
-                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                background: m.role === "user" ? "#7c6af7" : "#1a1d27",
-                border: m.role === "assistant" ? "1px solid #2d3148" : "none",
-                padding: "10px 14px",
-                borderRadius: 8,
-                maxWidth: "75%",
-                fontSize: "0.9rem",
-                lineHeight: 1.6,
-                whiteSpace: m.role === "user" ? "pre-wrap" : "normal",
-              }}
-            >
-              {m.role === "user" ? (
-                m.content
-              ) : (
-                <div
-                  className="ella-md"
-                  dangerouslySetInnerHTML={{
-                    __html: marked(m.content, { async: false }) as string,
-                  }}
-                />
-              )}
-              {m.role === "assistant" &&
-                m.usedTools &&
-                m.usedTools.length > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 4,
-                      marginTop: 8,
-                    }}
-                  >
-                    {m.usedTools.map((tool) => (
-                      <span
-                        key={tool}
-                        title={tool}
-                        style={{
-                          fontSize: "0.68rem",
-                          background: "#0f1117",
-                          border: "1px solid #2d3148",
-                          borderRadius: 4,
-                          padding: "1px 6px",
-                          color: "#64748b",
-                        }}
-                      >
-                        {toolLabel(tool)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              {m.role === "assistant" && !m.proactive && (
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 6,
-                    marginTop: 6,
-                    opacity: feedback[i] ? 1 : 0.35,
-                    transition: "opacity 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLDivElement).style.opacity = "1")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLDivElement).style.opacity =
-                      feedback[i] ? "1" : "0.35")
-                  }
-                >
-                  {(["positive", "negative"] as const).map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => sendFeedback(i, r, m.content)}
-                      disabled={Boolean(feedback[i])}
-                      title={r === "positive" ? "Hilfreich" : "Nicht hilfreich"}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: feedback[i] ? "default" : "pointer",
-                        fontSize: "0.75rem",
-                        padding: "2px 4px",
-                        borderRadius: 4,
-                        color:
-                          feedback[i] === r
-                            ? r === "positive"
-                              ? "#4ade80"
-                              : "#f87171"
-                            : "#64748b",
-                      }}
-                    >
-                      {r === "positive" ? "👍" : "👎"}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-        {toolStatus && (
-          <div
-            style={{
-              alignSelf: "flex-start",
-              background: "#1a1d27",
-              border: "1px solid #2d3148",
-              padding: "8px 14px",
-              borderRadius: 8,
-              fontSize: "0.8rem",
-              color: "#94a3b8",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span style={{ color: "#7c6af7" }}>⚙</span>
-            {toolStatus}…
-          </div>
         )}
 
-        {streaming && (
-          <div
+        {/* Input row */}
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
+            aria-label={t("chat.aria_input")}
+            placeholder={
+              micActive ? t("chat.placeholder_mic") : t("chat.placeholder")
+            }
+            disabled={loading}
             style={{
-              alignSelf: "flex-start",
-              background: "#1a1d27",
-              border: "1px solid #2d3148",
-              padding: "10px 14px",
-              borderRadius: 8,
-              maxWidth: "75%",
-              fontSize: "0.9rem",
-              lineHeight: 1.6,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {streaming}
-            <span
-              style={{
-                display: "inline-block",
-                width: 2,
-                height: "1em",
-                background: "#7c6af7",
-                marginLeft: 2,
-                animation: "blink 1s step-end infinite",
-                verticalAlign: "text-bottom",
-              }}
-            />
-          </div>
-        )}
-        {loading && !streaming && !toolStatus && (
-          <div
-            style={{
-              alignSelf: "flex-start",
-              background: "#1a1d27",
-              border: "1px solid #2d3148",
-              padding: "10px 14px",
-              borderRadius: 8,
-              fontSize: "0.85rem",
-              color: "#7c6af7",
-            }}
-          >
-            {t("chat.thinking")}
-          </div>
-        )}
-        {error && (
-          <div
-            style={{
-              alignSelf: "flex-start",
-              background: "#2d1a1a",
-              border: "1px solid #7f1d1d",
-              padding: "10px 14px",
-              borderRadius: 8,
-              fontSize: "0.85rem",
-              color: "#fca5a5",
-            }}
-          >
-            {t("chat.error_prefix")}: {error}
-          </div>
-        )}
-        <div ref={bottomRef} />
-      </div>
-
-      <style>{`
-        @keyframes blink     { 0%,100%{opacity:1} 50%{opacity:0} }
-        @keyframes pulse     { 0%,100%{opacity:0.4} 50%{opacity:1} }
-        @keyframes countdown { from{width:100%} to{width:0%} }
-      `}</style>
-
-      {/* Directive-Denial Badge */}
-      {directiveDeny && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "8px 12px",
-            borderRadius: 6,
-            borderLeft: "3px solid #ef4444",
-            background: "#1a0a0a",
-            fontSize: "0.82rem",
-          }}
-        >
-          <span
-            style={{
-              color: "#ef4444",
-              fontWeight: 600,
-              letterSpacing: "0.05em",
-            }}
-          >
-            E.L.L.A. DIRECTIVE
-          </span>
-          <span style={{ color: "#94a3b8" }}>
-            {t("chat.directive_not_allowed")}
-          </span>
-        </div>
-      )}
-
-      {/* Pausenmodus-Indikator */}
-      {isPaused && pauseEndsAt && (
-        <div
-          style={{
-            background: "#1e1b4b",
-            border: "1px solid #7c6af7",
-            borderRadius: 8,
-            padding: "10px 16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            fontSize: "0.85rem",
-            color: "#a5b4fc",
-          }}
-        >
-          <span>⏸ {t("chat.paused", { countdown: pauseCountdown })}</span>
-          <button
-            onClick={resumeFromPause}
-            style={{
-              background: "transparent",
-              border: "1px solid #7c6af7",
-              borderRadius: 4,
-              color: "#a5b4fc",
-              padding: "3px 10px",
-              cursor: "pointer",
-              fontSize: "0.8rem",
-            }}
-          >
-            {t("chat.btn_resume")}
-          </button>
-        </div>
-      )}
-
-      {/* Sprachstatus-Anzeige */}
-      {(voiceMode === "wakeword" || voiceMode === "always") &&
-        wakeListening && (
-          <div style={{ minHeight: 28 }}>
-            {awaitingCommand ? (
-              /* "Jetzt sprechen" — grün, prominent, mit Ablauf-Balken */
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 4,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    color: "#22c55e",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      display: "inline-block",
-                      background: "#22c55e",
-                      animation: "pulse 0.8s ease-in-out infinite",
-                    }}
-                  />
-                  {t("chat.speak_now")}
-                </div>
-                <div
-                  style={{
-                    height: 2,
-                    background: "#1e2d3d",
-                    borderRadius: 1,
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      background: "#22c55e",
-                      borderRadius: 1,
-                      animation: "countdown 15s linear forwards",
-                    }}
-                  />
-                </div>
-              </div>
-            ) : micStatus ? (
-              /* Aktiver Mic-Status: Erkenne / Transkribiere */
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: "0.78rem",
-                  color: "#7c6af7",
-                }}
-              >
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    display: "inline-block",
-                    background: "#7c6af7",
-                    animation: "pulse 1.2s ease-in-out infinite",
-                  }}
-                />
-                {micStatus}
-              </div>
-            ) : (
-              /* Idle — lauscht */
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: "0.78rem",
-                  color: "#475569",
-                }}
-              >
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    display: "inline-block",
-                    background: "#475569",
-                    animation: "pulse 2.5s ease-in-out infinite",
-                  }}
-                />
-                {t("chat.listening")}
-              </div>
-            )}
-          </div>
-        )}
-
-      {/* Confirmation Card */}
-      {confirmationCard && (
-        <div
-          style={{
-            background: "#1a1f2e",
-            border: "1px solid #f59e0b",
-            borderRadius: 10,
-            padding: "14px 16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              fontWeight: 600,
-              color: "#f59e0b",
-              fontSize: "0.85rem",
-            }}
-          >
-            <span>⚠</span>
-            {t("chat.confirm_title")}
-          </div>
-          <div
-            style={{ color: "#e2e8f0", fontSize: "0.82rem", lineHeight: 1.5 }}
-          >
-            {confirmationCard.message}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              disabled={confirmBusy}
-              onClick={async () => {
-                setConfirmBusy(true);
-                try {
-                  const res = await fetch(`${API}/api/tools/confirm`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(confirmationCard.pendingAction),
-                  });
-                  const result = (await res.json()) as {
-                    success: boolean;
-                    output?: unknown;
-                    error?: string;
-                  };
-                  const msg = result.success
-                    ? typeof result.output === "string"
-                      ? result.output
-                      : t("chat.action_success")
-                    : `${t("chat.error_prefix")}: ${result.error ?? t("common.error")}`;
-                  setMessages((p) => [
-                    ...p,
-                    { role: "assistant", content: msg },
-                  ]);
-                } catch {
-                  setMessages((p) => [
-                    ...p,
-                    { role: "assistant", content: t("chat.action_failed") },
-                  ]);
-                } finally {
-                  setConfirmationCard(null);
-                  setConfirmBusy(false);
-                }
-              }}
-              style={{
-                background: "#ef4444",
-                color: "#fff",
-                border: "none",
-                borderRadius: 6,
-                padding: "6px 16px",
-                fontWeight: 600,
-                cursor: confirmBusy ? "not-allowed" : "pointer",
-                fontSize: "0.82rem",
-                opacity: confirmBusy ? 0.6 : 1,
-              }}
-            >
-              {confirmBusy ? t("chat.btn_confirming") : t("chat.btn_confirm")}
-            </button>
-            <button
-              disabled={confirmBusy}
-              onClick={() => setConfirmationCard(null)}
-              style={{
-                background: "transparent",
-                color: "#94a3b8",
-                border: "1px solid #334155",
-                borderRadius: 6,
-                padding: "6px 16px",
-                cursor: "pointer",
-                fontSize: "0.82rem",
-              }}
-            >
-              {t("chat.btn_cancel")}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Input row */}
-      <div style={{ display: "flex", gap: 8 }}>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
-          aria-label={t("chat.aria_input")}
-          placeholder={
-            micActive ? t("chat.placeholder_mic") : t("chat.placeholder")
-          }
-          disabled={loading}
-          style={{
-            flex: 1,
-            padding: "10px 14px",
-            borderRadius: 6,
-            border: micActive ? "1px solid #7c6af7" : "1px solid #2d3148",
-            background: "#1a1d27",
-            color: "#e2e8f0",
-            fontSize: "0.9rem",
-            outline: "none",
-            opacity: loading ? 0.6 : 1,
-            transition: "border-color 0.2s",
-          }}
-        />
-        {showMic && (
-          <button
-            onClick={toggleMic}
-            aria-label={t(micActive ? "chat.aria_mic_on" : "chat.aria_mic_off")}
-            title={micActive ? "Aufnahme stoppen" : "Mikrofon starten"}
-            style={{
+              flex: 1,
               padding: "10px 14px",
               borderRadius: 6,
-              minWidth: 42,
-              background: micActive ? "#7c6af7" : "#1a1d27",
-              border: micActive ? "none" : "1px solid #2d3148",
-              color: micActive ? "#fff" : "#64748b",
-              cursor: "pointer",
-              fontSize: "1rem",
-              lineHeight: 1,
-              transition: "background 0.2s, color 0.2s",
+              border: micActive ? "1px solid #7c6af7" : "1px solid #2d3148",
+              background: "#1a1d27",
+              color: "#e2e8f0",
+              fontSize: "0.9rem",
+              outline: "none",
+              opacity: loading ? 0.6 : 1,
+              transition: "border-color 0.2s",
             }}
-          >
-            {micActive ? "◉" : "○"}
-          </button>
-        )}
-        <button
-          onClick={send}
-          aria-label={t("chat.aria_send")}
-          disabled={loading || !input.trim()}
-          style={{
-            padding: "10px 20px",
-            borderRadius: 6,
-            background: loading || !input.trim() ? "#4a4670" : "#7c6af7",
-            color: "#fff",
-            border: "none",
-            cursor: loading || !input.trim() ? "not-allowed" : "pointer",
-            fontSize: "0.9rem",
-          }}
-        >
-          {t("chat.send")}
-        </button>
-      </div>
-
-      {/* Alert-Toasts vom Worker */}
-      {toasts.length > 0 && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 24,
-            right: 24,
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            zIndex: 1000,
-            pointerEvents: "none",
-          }}
-        >
-          {toasts.map((t) => (
-            <div
-              key={t.id}
+          />
+          {showMic && (
+            <button
+              onClick={toggleMic}
+              aria-label={t(
+                micActive ? "chat.aria_mic_on" : "chat.aria_mic_off",
+              )}
+              title={micActive ? "Aufnahme stoppen" : "Mikrofon starten"}
               style={{
-                padding: "10px 16px",
-                borderRadius: 8,
-                fontSize: "0.85rem",
-                background: t.severity === "error" ? "#431407" : "#422006",
-                border: `1px solid ${t.severity === "error" ? "#c2410c" : "#d97706"}`,
-                color: t.severity === "error" ? "#fdba74" : "#fde68a",
-                maxWidth: 320,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
-                pointerEvents: "auto",
+                padding: "10px 14px",
+                borderRadius: 6,
+                minWidth: 42,
+                background: micActive ? "#7c6af7" : "#1a1d27",
+                border: micActive ? "none" : "1px solid #2d3148",
+                color: micActive ? "#fff" : "#64748b",
+                cursor: "pointer",
+                fontSize: "1rem",
+                lineHeight: 1,
+                transition: "background 0.2s, color 0.2s",
               }}
             >
-              {t.severity === "error" ? "⚠ " : "● "}
-              {t.message}
-            </div>
-          ))}
+              {micActive ? "◉" : "○"}
+            </button>
+          )}
+          <button
+            onClick={send}
+            aria-label={t("chat.aria_send")}
+            disabled={loading || !input.trim()}
+            style={{
+              padding: "10px 20px",
+              borderRadius: 6,
+              background: loading || !input.trim() ? "#4a4670" : "#7c6af7",
+              color: "#fff",
+              border: "none",
+              cursor: loading || !input.trim() ? "not-allowed" : "pointer",
+              fontSize: "0.9rem",
+            }}
+          >
+            {t("chat.send")}
+          </button>
         </div>
-      )}
+
+        {/* Alert-Toasts vom Worker */}
+        {toasts.length > 0 && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: 24,
+              right: 24,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              zIndex: 1000,
+              pointerEvents: "none",
+            }}
+          >
+            {toasts.map((t) => (
+              <div
+                key={t.id}
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: 8,
+                  fontSize: "0.85rem",
+                  background: t.severity === "error" ? "#431407" : "#422006",
+                  border: `1px solid ${t.severity === "error" ? "#c2410c" : "#d97706"}`,
+                  color: t.severity === "error" ? "#fdba74" : "#fde68a",
+                  maxWidth: 320,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                  pointerEvents: "auto",
+                }}
+              >
+                {t.severity === "error" ? "⚠ " : "● "}
+                {t.message}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

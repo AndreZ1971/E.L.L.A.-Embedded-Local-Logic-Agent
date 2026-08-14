@@ -2,9 +2,9 @@
 
 ![Tests](https://github.com/AndreZ1971/E.L.L.A/actions/workflows/test.yml/badge.svg)
 
-Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automatisierung — vollständig offline via Ollama, optional mit OpenAI GPT-4o.
+Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automatisierung — vollständig offline via Ollama, optional mit OpenAI.
 
-**Version:** v1.0.0 · Windows 10/11 (x64)
+**Version:** v1.2.0 · Windows 10/11 (x64)
 
 _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -14,7 +14,7 @@ _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
 **Voraussetzungen: keine.** Der Installer bringt alles mit.
 
-1. `E.L.L.A Setup 1.0.0.exe` ausführen
+1. `E.L.L.A Setup 1.2.0.exe` ausführen
 2. Installationspfad wählen (Standard: `C:\Programme\E.L.L.A`)
 3. Beim ersten Start: **Sprachauswahl** (DE/EN) → EULA → Lizenzaktivierung → **Modell-Auswahl** → Onboarding → Chat
 
@@ -71,6 +71,8 @@ Kein Python, kein separates MariaDB-Setup, keine PATH-Konfiguration.
 | Fenster-Kontext      | ELLA kennt die aktive Anwendung beim Chat (opt-in, Ollama-only)                    |
 | Gesprächskompression | Lange Sessions automatisch komprimieren (lokales Ollama)                           |
 | Nutzerprofile        | Eigenes Gedächtnis und Gesprächsverlauf pro Profil, PBKDF2-gesicherter PIN-Wechsel |
+| Multi-Agenten        | Mehrere KI-Agenten arbeiten parallel (OpenAI) — Morgenbriefing, System-Report      |
+| Tool-Selektor        | Lazy-Loading relevanter Tools pro Anfrage — bis zu 90 % weniger Token-Verbrauch    |
 
 ### Die E.L.L.A. Direktive — vier unveränderliche Verbote
 

@@ -145,6 +145,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "chat": "Chat",
+    "pipeline": "Multi-Agenten",
     "settings": "Einstellungen"
   },
   "app": {
@@ -183,7 +184,7 @@
     "tier_large_label": "Groß",
     "tier_large_desc": "High-End / 12 GB+ VRAM",
     "provider_auto": "Auto (OpenAI wenn verfügbar, sonst Ollama)",
-    "provider_openai": "OpenAI GPT-4o",
+    "provider_openai": "OpenAI",
     "provider_ollama": "Ollama (lokal)",
     "section_provider": "Provider",
     "section_ollama_chat": "Ollama-Modell (Chat)",

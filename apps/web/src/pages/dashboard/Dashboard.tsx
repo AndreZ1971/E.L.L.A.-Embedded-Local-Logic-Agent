@@ -281,17 +281,10 @@ const Dashboard: React.FC = () => {
                 <StatusDot ok={true} />
                 {provider
                   ? provider.provider === "openai"
-                    ? "OpenAI GPT-4o"
+                    ? "OpenAI"
                     : "Ollama"
                   : "—"}
               </div>
-              {provider && (
-                <div
-                  style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 4 }}
-                >
-                  {provider.model}
-                </div>
-              )}
             </Card>
 
             <Card title={t("dashboard.card_ollama")}>

@@ -10,6 +10,11 @@ import { recall, extractAndRemember } from "../services/memory.js";
 import { recordActivity } from "../services/worker.js";
 import { getForegroundWindowTitle } from "../services/windowContext.js";
 import { compressSession } from "../services/sessionCompressor.js";
+import {
+  selectToolsForQuery,
+  selectToolsForContext,
+} from "../services/toolSelector.js";
+import { optimizeToolResult } from "../services/tokenOptimizer.js";
 import type { ToolName } from "@ella/shared";
 
 // Per-session mutex: serializes concurrent requests for the same session
@@ -133,13 +138,22 @@ chatRouter.post("/", async (req, res, next) => {
 
     let finalReply = "";
     const MAX_ROUNDS = 5;
+    const allTools = tools;
+
+    // Round 0: Tools per Tool-Selector auf User-Message einschränken
+    let roundTools = useOpenAI
+      ? allTools
+      : selectToolsForQuery(message, allTools);
+
+    let lastAssistantContent = "";
+    let lastToolNames: string[] = [];
 
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const response = useOpenAI
-        ? await openaiClient.chat(messages, tools, memories, userName)
+        ? await openaiClient.chat(messages, roundTools, memories, userName)
         : await ollamaClient.chat(
             messages,
-            tools,
+            roundTools,
             activeModel,
             memories,
             userName,
@@ -151,6 +165,9 @@ chatRouter.post("/", async (req, res, next) => {
         break;
       }
 
+      lastAssistantContent = assistantMsg.content ?? "";
+      lastToolNames = assistantMsg.tool_calls.map((c) => c.function.name);
+
       messages.push(assistantMsg);
 
       for (const call of assistantMsg.tool_calls) {
@@ -161,8 +178,18 @@ chatRouter.post("/", async (req, res, next) => {
         messages.push({
           role: "tool",
           tool_call_id: call.id,
-          content: JSON.stringify(result),
+          content: optimizeToolResult(result),
         });
+      }
+
+      // Rounds 1+: situativ Tools nachliefern statt gar keine
+      if (!useOpenAI) {
+        roundTools = selectToolsForContext(
+          message,
+          lastAssistantContent,
+          lastToolNames,
+          allTools,
+        );
       }
     }
 
@@ -253,13 +280,22 @@ chatRouter.post("/stream", async (req, res) => {
 
       let finalReply = "";
       const MAX_ROUNDS = 5;
+      const allTools = tools;
+
+      // Round 0: Tools per Tool-Selector auf User-Message einschränken
+      let roundTools = useOpenAI
+        ? allTools
+        : selectToolsForQuery(message, allTools);
+
+      let lastAssistantContent = "";
+      let lastToolNames: string[] = [];
 
       for (let round = 0; round < MAX_ROUNDS; round++) {
         const stream = useOpenAI
-          ? openaiClient.chatStream(messages, tools, memories, userName)
+          ? openaiClient.chatStream(messages, roundTools, memories, userName)
           : ollamaClient.chatStream(
               messages,
-              tools,
+              roundTools,
               activeModel,
               memories,
               userName,
@@ -281,6 +317,9 @@ chatRouter.post("/stream", async (req, res) => {
           finalReply = roundContent;
           break;
         }
+
+        lastAssistantContent = roundContent;
+        lastToolNames = roundToolCalls.map((c) => c.function.name);
 
         messages.push({
           role: "assistant",
@@ -343,8 +382,18 @@ chatRouter.post("/stream", async (req, res) => {
           messages.push({
             role: "tool",
             tool_call_id: call.id,
-            content: JSON.stringify(result),
+            content: optimizeToolResult(result),
           });
+        }
+
+        // Rounds 1+: situativ Tools nachliefern statt gar keine
+        if (!useOpenAI) {
+          roundTools = selectToolsForContext(
+            message,
+            lastAssistantContent,
+            lastToolNames,
+            allTools,
+          );
         }
       }
 

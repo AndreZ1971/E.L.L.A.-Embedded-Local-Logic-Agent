@@ -317,7 +317,7 @@ export const ollamaClient = {
         ],
         tools: tools.length > 0 ? tools : undefined,
         stream: false,
-        options: { num_ctx: 8192 },
+        options: { num_ctx: 12288 },
       }),
     });
 
@@ -357,7 +357,7 @@ export const ollamaClient = {
         ],
         tools: tools.length > 0 ? tools : undefined,
         stream: true,
-        options: { num_ctx: 8192 },
+        options: { num_ctx: 12288 },
       }),
     });
 
@@ -369,6 +369,8 @@ export const ollamaClient = {
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+
+    let toolCallsBuffer: OllamaMessage["tool_calls"] | undefined;
 
     try {
       while (true) {
@@ -382,10 +384,17 @@ export const ollamaClient = {
         for (const line of lines) {
           if (!line.trim()) continue;
           const chunk = JSON.parse(line) as OllamaChatResponse;
-          if (chunk.done) {
-            yield { type: "done", toolCalls: chunk.message.tool_calls };
-          } else if (chunk.message?.content) {
+          if (chunk.message?.content) {
             yield { type: "chunk", text: chunk.message.content };
+          }
+          if (chunk.message?.tool_calls?.length) {
+            toolCallsBuffer = chunk.message.tool_calls;
+          }
+          if (chunk.done) {
+            yield {
+              type: "done",
+              toolCalls: toolCallsBuffer ?? chunk.message?.tool_calls,
+            };
           }
         }
       }

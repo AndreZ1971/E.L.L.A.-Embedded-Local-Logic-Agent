@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v1.0.0**
+**Aktueller Stand: v1.2.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -123,10 +123,24 @@ database/
 - **format_drive 3-Zonen-Regel:** Zone 1 = C:, ELLA-Laufwerk (auto via `process.cwd()[0]`), `protectedDrives` → directive; Zone 2 = Netzwerk/CD/Unbekannt → directive; Zone 3 = alle anderen inkl. interne HDDs → Bestätigungsdialog
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
-- **224 Tests — alle grün** (Vitest Unit + Integration)
+- **254 Tests — alle grün** (Vitest Unit + Integration)
 - **Smoke Tests:** `scripts/smoke-test.ps1` — 13 End-to-End-Tests (Health, Homework Mode, Ollama, Chat+Tools, Lizenz)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 - **LLM als Non-Gatekeeper:** System-Prompt Regel "KRITISCH — DU BIST NICHT DER GATEKEEPER" — LLM ruft Tools immer auf, Directive + Rule Engine entscheiden; verhindert Text-Ablehnung anstelle des Directive-Banners
+
+### v1.1.0 — Token-Optimierung
+
+- **Tool-Selector** (`services/toolSelector.ts`): 8 CORE-Tools immer aktiv + 20 Lazy Groups mit DE/EN-Regex-Matching; sendet pro Anfrage nur relevante Tools (~12 statt 85) → bis zu 90 % weniger Input-Tokens
+- **Token-Optimizer** (`services/tokenOptimizer.ts`): Tool-Ergebnisse vor dem Speichern in der History komprimiert — JSON minify, Base64-Stripping, Array-Truncation (max 50 Einträge)
+- **Smarter Tool-Loop:** Ab Runde 1 nur noch kontextrelevante Tools via `selectToolsForContext()`; Ollama-Bug gefixt (`toolCallsBuffer` außerhalb des `while(true)`-Loops deklariert)
+
+### v1.2.0 — Multi-Agenten-Pipeline
+
+- **Multi-Agenten** (`services/pipeline.ts`, `routes/pipeline.ts`): parallele und sequenzielle Pipelines mit OpenAI; 2 vordefinierte Pipelines: Morgenbriefing (3 Agenten) und System-Report (4 Agenten)
+- **Live-Streaming:** SSE-Events pro Agent (`agent_start`, `agent_chunk`, `agent_tool`, `agent_done`, `pipeline_done`); Synthese-Call nach allen Agenten
+- **Setup-Integration:** nach Pipeline-Abschluss optional ein Setup (App-Makro) ausführen; `setup_executed`-Event mit Ergebnis-Card in der UI
+- **Multi-Agenten-Seite** (`pages/pipeline/Pipeline.tsx`): Pipeline-Karten, Live-Agent-Karten, Setup-Dropdown, Zusammenfassung; OpenAI-Gate bei fehlendem Key
+- **LLM-Provider-Label:** überall nur noch "OpenAI" statt "OpenAI GPT-4o"
 
 ---
 
@@ -276,7 +290,7 @@ https://github.com/AndreZ1971/E.L.L.A.git
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-08-03T04:40:22.152Z._
+_Last synced: 2026-08-14T06:21:02.092Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).

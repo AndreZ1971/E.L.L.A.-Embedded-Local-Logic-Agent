@@ -83,6 +83,7 @@ import Setup from "./pages/setup/Setup";
 import Activation from "./pages/activation/Activation";
 import LanguageSelect from "./pages/language/LanguageSelect";
 import ModelSelectOverlay from "./pages/model-select/ModelSelectOverlay";
+import Pipeline from "./pages/pipeline/Pipeline";
 import i18n from "./i18n";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
@@ -531,6 +532,7 @@ function AppShell() {
             <h1 className="ella-logo">E.L.L.A.</h1>
             <NavLink to="/dashboard">{t("nav.dashboard")}</NavLink>
             <NavLink to="/chat">{t("nav.chat")}</NavLink>
+            <NavLink to="/pipeline">{t("nav.pipeline")}</NavLink>
             <NavLink to="/settings">{t("nav.settings")}</NavLink>
           </nav>
           <main className="ella-main">
@@ -539,6 +541,7 @@ function AppShell() {
                 <Route path="/" element={<Navigate to="/chat" replace />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/chat" element={<Chat />} />
+                <Route path="/pipeline" element={<Pipeline />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route
                   path="/onboarding"
