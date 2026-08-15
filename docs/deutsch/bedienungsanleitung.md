@@ -1,184 +1,419 @@
 # E.L.L.A. — Bedienungsanleitung
 
-Version 3.9.0
+Version 1.2.0
 
 ---
 
 ## Hallo — ich bin E.L.L.A.
 
-E.L.L.A. steht für _Einfache Lebenshilfe, Lachend Anzuwenden_ — und genau das bin ich. Dein persönlicher Assistent für Windows, immer bereit für Fragen und Aufgaben, mit einem Ziel: Dein Leben ein kleines bisschen einfacher und unterhaltsamer zu machen.
+E.L.L.A. steht für _Embedded Local Logic Agent_ — und ich bin dein persönlicher KI-Assistent für Windows. Immer bereit, immer lokal, immer bei dir.
 
-Das Besondere an mir: Ich laufe komplett auf deinem eigenen Rechner. Deine Daten bleiben bei dir — kein Cloud-Server, kein Abo, kein Datenschutz-Kleingedrucktes. Einfach starten und loslegen.
+Das Besondere: Ich laufe vollständig auf deinem eigenen Rechner. Deine Daten bleiben bei dir — kein Cloud-Server, kein Abo, kein Datenschutz-Kleingedrucktes. Einfach starten und loslegen.
+
+---
+
+## Erste Schritte
+
+### Installation
+
+1. `E.L.L.A Setup 1.2.0.exe` ausführen
+2. Installationspfad wählen (Standard: `C:\Programme\E.L.L.A`)
+3. Der Installer richtet alles automatisch ein — MariaDB, Ollama, Node.js. Du musst nichts weiter installieren.
+
+### Erster Start
+
+Beim ersten Start führt dich ELLA durch ein kurzes Onboarding:
+
+1. **Sprachauswahl** — Deutsch oder Englisch
+2. **EULA** — die Nutzungsbedingungen und die ELLA-Direktive akzeptieren
+3. **Hardware-Scan** — ELLA erkennt deinen Rechner und schlägt das passende Sprachmodell vor
+4. **Modell-Auswahl** — du wählst das Modell das zu deiner Hardware passt (kein automatischer Download ohne deine Zustimmung)
+5. **Stimme wählen** — 4 weibliche Stimmen in DE/EN/ES/FR mit Vorschau
+6. **Standort** — für Wetter und lokale Informationen (optional)
+7. **Lizenzaktivierung** — deinen Lizenzschlüssel `ELLA-XXXX-XXXX-XXXX-XXXX` eingeben
+8. **Chat** — los geht's
+
+---
+
+## Der Chat
+
+### Wie du mit mir sprichst
+
+Schreib einfach was du brauchst — in normalem Deutsch, keine Befehle, keine Syntax. Ich verstehe natürliche Sprache.
+
+- „Wie viel Speicherplatz ist noch frei?"
+- „Schreib eine E-Mail an Klaus und sag ihm, dass ich morgen nicht kann"
+- „Was steht diese Woche im Kalender?"
+- „Öffne Spotify"
+
+### Spracheingabe
+
+Klicke auf den **Mikrofon-Button** in der Eingabezeile — oder sag einfach **„Ella"** wenn Wakeword aktiviert ist. ELLA hört zu, wandelt deine Sprache in Text um und antwortet.
+
+Wakeword-Modi:
+
+- **Aus** — kein automatisches Zuhören
+- **Manuell** — nur auf Knopfdruck
+- **Wakeword** — auf „Ella" warten, dann zuhören
+- **Immer** — kontinuierliches Zuhören
+
+### Sprachausgabe (TTS)
+
+ELLA antwortet auch mit Stimme. Zwei Engines stehen zur Verfügung:
+
+- **Kokoro TTS** (Standard) — lokale neuronale Stimme, vollständig offline, natürlicher Klang
+- **Microsoft Edge TTS** (Fallback) — benötigt Internetverbindung, sehr zuverlässig
+
+Die Sprache der Stimme kannst du unabhängig von der App-Sprache wählen: Deutsch, Englisch, Spanisch oder Französisch.
+
+### Feedback
+
+Unter jeder Antwort findest du **Daumen hoch / Daumen runter**. Wenn du positives oder negatives Feedback gibst, lernt ELLA daraus und passt ihre Antworten an deine Vorlieben an.
+
+### Tool-Anzeige
+
+Wenn ELLA etwas tut — eine Datei sucht, eine App öffnet, den Kalender liest — siehst du kurz welches Werkzeug sie verwendet hat. Das gibt dir Einblick in was gerade passiert.
 
 ---
 
 ## Was ich für dich tun kann
 
-### Alles rund um deinen PC
+### PC & System
 
-Für alles Technische und PC-bezogene bin ich dein Ass im Ärmel. Ich sorge dafür, dass Programme starten, der Speicherplatz sauber bleibt und der PC nach deiner Pfeife tanzt. Wenn du wissen willst, was gerade so auf deinem System los ist — ich habe alle Infos parat.
+Ich kenne mich mit Windows aus. Frag mich alles rund um deinen Rechner.
 
 Sag einfach:
 
-- „Öffne Chrome"
-- „Wie viel Speicherplatz ist noch frei?"
-- „Fahr den Rechner herunter"
+- „Öffne den Chrome-Browser"
+- „Wie viel RAM nutze ich gerade?"
+- „Zeig mir alle laufenden Prozesse"
+- „Beende den Prozess XY"
 - „Stell die Lautstärke auf 40 Prozent"
-- „Zeig mir, welche Programme gerade laufen"
+- „Was ist in der Zwischenablage?"
+- „Fahr den Rechner herunter / neu starten"
+- „Welche Programme starten automatisch mit Windows?"
 
-### Dateien und Dokumente
+### Laufwerke & Speicher
 
-Mit Dateien und Dokumenten kenne ich mich aus. Ich finde, öffne, kopiere und erstelle alles, was du brauchst. Und wenn der Papierkram mal zu viel wird, organisiere ich das für dich.
+Sag einfach:
+
+- „Wie viel Platz ist noch auf Laufwerk C?"
+- „Suche doppelte Dateien auf meinen Laufwerken"
+- „Formatiere meinen USB-Stick" _(Bestätigung erforderlich)_
+- „Benenne Laufwerk E in Daten um"
+- „Leere den Papierkorb"
+
+### Dateien & Dokumente
+
+Ich finde, öffne und erstelle Dateien auf allen deinen Laufwerken.
 
 Sag einfach:
 
 - „Suche die Datei Angebot"
+- „Öffne den Ordner Projekte"
 - „Erstell ein neues Word-Dokument"
-- „Kopiere den Ordner Projekte auf Laufwerk E"
-- „Suche doppelte Dateien auf meinen Laufwerken"
+- „Was steht in dieser PDF?" _(Datei anhängen oder Pfad nennen)_
+- „Lies mir die Excel-Tabelle vor"
+- „Fasse dieses Dokument zusammen"
 
-### Diktat und Schreiben
-
-Du redest, ich schreibe — und korrigiere dabei Rechtschreibung, Grammatik und Zeichensetzung automatisch. Einfach ein Word-Dokument öffnen und sagen:
-
-„Schreib auf: Sehr geehrte Damen und Herren ich wollte ihnen mitteilen das das Angebot noch gültigkeit hat"
-
-Ich schreibe: _Sehr geehrte Damen und Herren, ich wollte Ihnen mitteilen, dass das Angebot noch Gültigkeit hat._
-
-Ich kann auch in deinem eigenen Stil schreiben — ich lerne aus deinen bisherigen E-Mails wie du formulierst und übernehme das.
-
-### E-Mail und Kalender
-
-Wenn der E-Mail- und Kalenderdschungel zu dicht wird, schlage ich mich als dein Pfadfinder durch. Ich lese vor, was neu reingekommen ist, verfasse Entwürfe in deinem Stil und behalte deine Termine im Blick.
+### Diktat & Schreiben
 
 Sag einfach:
+
+- „Diktier mir einen Brief an Frau Müller"
+- „Schreib das im Stil meiner E-Mails"
+- „Korrigiere diesen Text"
+- „Übersetze das auf Englisch"
+
+### Mail & Kalender
+
+**Outlook:**
 
 - „Zeig mir meine ungelesenen Mails"
-- „Schreib eine Absage an Herrn Schmidt wegen des Termins morgen"
+- „Markiere die Mail als gelesen / als Spam / archivieren"
+- „Schreib einen Entwurf an Klaus: Treffen morgen um 14 Uhr?"
 - „Was steht diese Woche im Kalender?"
-- „Erstelle einen Termin für Freitag um 15 Uhr: Teammeeting"
+- „Erstell einen Termin: Zahnarzt, Freitag 10 Uhr"
 
-Keine Sorge — ich sende niemals selbst. Du hast immer das letzte Wort.
+**Gmail & Google Calendar** (OAuth erforderlich, einmalig in Einstellungen einrichten):
 
-### Aufgaben und Erinnerungen
+- „Zeig mir meine Gmail-Mails"
+- „Was steht im Google Kalender heute?"
 
-Ich bin auch dein Erinnerungswecker, damit nichts Wichtiges untergeht. Aufgaben, Termine, Wecker — ich habe alles im Griff.
+### Aufgaben
+
+ELLA führt eine persistente Aufgabenliste. Die Aufgaben bleiben auch nach einem Neustart erhalten.
 
 Sag einfach:
 
-- „Merk dir: Zahnarzt anrufen"
-- „Erinnere mich morgen um 9 Uhr: Arzt anrufen"
-- „Welche Aufgaben habe ich noch offen?"
-- „Markiere Aufgabe 3 als erledigt"
+- „Füge die Aufgabe 'Steuern erledigen' hinzu"
+- „Zeig mir meine offenen Aufgaben"
+- „Markiere 'Steuern erledigen' als erledigt"
+- „Lösche die Aufgabe XY"
 
-Jeden Abend um 18 Uhr mache ich einen kurzen Tagesabschluss — was du heute erledigt hast, was morgen ansteht, und welche Aufgaben noch warten.
+### Wecker
 
-### Musik
+Sag einfach:
 
-Musik spielen ist kein Problem. Sag mir Künstler, Album oder Playlist — ich kümmere mich darum.
+- „Stell einen Wecker für 7:30 Uhr"
+- „Stell einen Wecker für morgen früh 6 Uhr"
+- „Welche Wecker sind aktiv?"
+- „Lösche den 7:30-Wecker"
 
-- „Spiel Musik"
-- „Spiel etwas von AC/DC"
-- „Nächster Titel"
-- „Pause"
+Wecker werden täglich geprüft und lösen eine Benachrichtigung plus TTS-Ansage aus.
 
-### Bildschirm lesen und verstehen
+### Erinnerungen
 
-Was Barrierefreiheit angeht: Ich erkläre dir auf Wunsch, was auf deinem Bildschirm oder in Bilddateien so los ist. Nützlich, nicht nur für Menschen, die ein bisschen Unterstützung beim Sehen brauchen.
+Erinnerungen werden über den Windows Task Scheduler gesetzt und erscheinen als Popup zur gesetzten Zeit.
 
-- „Was siehst du gerade?"
-- „Was steht auf meinem Bildschirm?"
-- „Was bedeutet diese Fehlermeldung?"
+Sag einfach:
 
-### Netzwerk und Verbindungen
+- „Erinner mich morgen um 15 Uhr: Arzttermin anrufen"
+- „Welche Erinnerungen habe ich?"
+- „Lösche die Erinnerung XY"
 
-Sollte das Internet mal heimlich ein Netz stricken — ich entdecke jede Verbindung und erkläre dir, was los ist.
+### Musik & Unterhaltung
 
-- „Welche Geräte sind in meinem Netzwerk?"
-- „Mit welchem WLAN bin ich verbunden?"
-- „Zeig mir alle aktiven Verbindungen"
+Sag einfach:
 
-### Wetter und Standort
+- „Spiel etwas von Coldplay"
+- „Öffne meinen Media Player mit dem Album 'Brothers in Arms'"
+- „Suche Titel von Metallica in meiner Bibliothek"
 
-Was das Wetter angeht, bin ich der mobile Wetterfrosch. Und egal, wo du rumläufst, ich finde deinen Standort für lokale Infos.
+### Netzwerk & Überwachung
 
-- „Wie ist das Wetter heute?"
-- „Wird es morgen regnen?"
+Sag einfach:
 
-### Gedächtnis
+- „Wer ist in meinem Netzwerk?"
+- „Zeig mir aktive TCP-Verbindungen"
+- „Wie ist mein WLAN-Status?"
+- „Zeig mir die Firewall-Regeln"
 
-Mein Gedächtnis ist dein Gedächtnis — ich merke mir, was wichtig ist, und lösche, was nicht mehr gebraucht wird.
+### Screenshot & Bildschirmanalyse
 
-- „Merk dir: Meine Kundennummer bei der Telekom ist 12345"
-- „Vergiss die Kundennummer"
+_(Erfordert OpenAI-Key)_
+
+Sag einfach:
+
+- „Mach einen Screenshot und analysiere was du siehst"
+- „Beschreib mir was auf dem Bildschirm passiert"
+- „Analysiere dieses Bild" _(Bild einfügen)_
+
+---
+
+## Multi-Agenten
+
+Die Multi-Agenten-Funktion ist ELLAs leistungsstärkster Modus. Mehrere spezialisierte KI-Agenten arbeiten **parallel** und liefern in kürzerer Zeit mehr als ein einzelner Agent könnte.
+
+> **Hinweis:** Multi-Agenten erfordert einen konfigurierten OpenAI-Key (Einstellungen → API-Key). Ollama wird für diese Funktion nicht genutzt.
+
+### So rufst du sie auf
+
+Navigiere in der Seitenleiste zu **Multi-Agenten**.
+
+### Vordefinierte Pipelines
+
+**🌅 Morgenbriefing**
+Drei Agenten arbeiten gleichzeitig:
+
+- Agent 1 liest deine heutigen Kalendertermine
+- Agent 2 ruft deine offenen Aufgaben ab
+- Agent 3 holt das aktuelle Wetter für deinen Standort
+
+Das Ergebnis: ein kompaktes Tagesstart-Briefing, das alle drei Infos zusammenfasst.
+
+**🖥️ System-Report**
+Vier Agenten analysieren gleichzeitig:
+
+- Agent 1: Speicherplatz aller Laufwerke
+- Agent 2: RAM und CPU-Auslastung
+- Agent 3: Laufende Prozesse (Top 10 nach Ressourcenverbrauch)
+- Agent 4: Netzwerkstatus und offene Verbindungen
+
+Das Ergebnis: ein vollständiger System-Gesundheitsbericht.
+
+### Live-Ansicht
+
+Während die Pipeline läuft siehst du für jeden Agenten eine eigene Karte mit:
+
+- Echtzeit-Statusanzeige (läuft / fertig / Fehler)
+- Live-Streaming des Agenten-Texts
+- Welche Tools der Agent gerade nutzt
+
+### Setup nach Abschluss _(optional)_
+
+Du kannst eine Pipeline mit einem **Setup** verknüpfen. Nach Abschluss aller Agenten führt ELLA das Setup automatisch aus — zum Beispiel bestimmte Apps öffnen oder schließen.
+
+Wähle das gewünschte Setup im Dropdown-Menü bevor du die Pipeline startest.
+
+### Die Daten sind echt
+
+Was du in der Multi-Agenten-Ansicht siehst sind keine Beispieldaten — es sind echte Informationen von deinem System, deinem Kalender und deinen Laufwerken. Genau wie im normalen Chat, nur schneller und parallelisiert.
+
+---
+
+## Setups
+
+Setups sind Makros — du definierst einmal welche Apps geöffnet und welche geschlossen werden sollen, und rufst das Setup dann mit einem Wort ab.
+
+Sag einfach:
+
+- „Lade mein Arbeits-Setup"
+- „Starte das Gaming-Setup"
+
+Setups anlegen: **Einstellungen → Setups → Neu**.
+
+---
+
+## Gedächtnis
+
+ELLA merkt sich Informationen über dich — Vorlieben, Gewohnheiten, Notizen. Das Gedächtnis ist nach Profilen getrennt und bleibt dauerhaft erhalten.
+
+Sag einfach:
+
+- „Merk dir: ich mag keine Meetings vor 9 Uhr"
 - „Was weißt du über mich?"
-
-### Einstellungen und Regeln
-
-Zu guter Letzt lasse ich dich die Regeln bestimmen. Von Einstellungen über Tools bis hin zu Erlaubnissen — du sagst mir, wie's läuft.
-
-- „Erstell ein Setup namens Büro mit Chrome, Word und Teams"
-- „Erlaube das Aufräumen von Temp-Dateien"
-- „Welche Stimme nutzt du gerade?"
+- „Vergiss die Notiz über XY"
 
 ---
 
-## Meine Sprache einstellen
+## Proaktive Nachrichten
 
-Ich antworte in Deutsch, Englisch, Spanisch oder Französisch — ganz wie du magst. Die Sprache stellst du beim ersten Start ein und kannst sie jederzeit in den Einstellungen ändern.
+ELLA meldet sich von sich aus wenn etwas Wichtiges passiert:
 
-Ich passe mich auch deiner Stimmung an: Wenn ich merke, dass du gestresst klingst, antworte ich ruhiger und wähle meine Worte mit Bedacht.
-
----
-
-## Wie ich im Hintergrund für dich arbeite
-
-Ich schlafe nie wirklich. Auch wenn du gerade nicht mit mir redest, behalte ich deinen Rechner im Blick:
-
-- **30 Minuten vor einem Termin** melde ich mich und frage, ob ich Dokumente vorbereiten soll.
-- **Wenn du etwas kopierst**, erkenne ich automatisch IBANs, Paketnummern, Telefonnummern oder Links — und biete dir sofort die passende Aktion an.
-- **Nach einer längeren Pause** begrüße ich dich zurück und fasse zusammen, was in der Zwischenzeit passiert ist.
-- **Nach 90 Minuten Arbeit** erinnere ich dich freundlich daran, kurz Luft zu holen.
-- **Jeden Abend um 18 Uhr** gibt es meinen Tagesabschluss.
-- **Jeden Sonntag** schaue ich, ob Ordnung auf deinen Laufwerken nötig wäre.
-
-All das passiert vollständig auf deinem Rechner — nichts davon verlässt dein Gerät.
+- **Datenträger fast voll** — wenn ein Laufwerk unter 10 % freien Platz fällt
+- **Hohe RAM-Auslastung** — bei anhaltender Überlastung
+- **USB-Gerät angeschlossen** — Erkennung und Ansage neuer Laufwerke
+- **Wecker ausgelöst** — Sprachalert zur gesetzten Zeit
+- **Clipboard-Muster** — IBAN, Paketnummer, URL, Telefonnummer erkannt → ELLA fragt ob sie helfen soll
+- **Meeting-Vorbereitung** — 15 Minuten vor einem Kalendertermin
+- **Tagesabschluss** — am Abend: offene Aufgaben und Zusammenfassung
+- **Pause-Reminder** — nach langer Arbeitssession
 
 ---
 
-## Die E.L.L.A. Direktive
+## Nutzerprofile
 
-Ich folge vier unveränderlichen Regeln — kein Update, keine Einstellung und keine Anweisung kann das ändern:
+ELLA unterstützt mehrere Nutzerprofile auf demselben Rechner. Jedes Profil hat:
 
-**Kein Schaden** — Ich tue nichts, was dir oder deinen Daten schaden könnte.
+- Ein eigenes Gedächtnis
+- Einen eigenen Gesprächsverlauf
+- Einen eigenen PIN-Schutz (optional)
 
-**Keine Heimlichkeiten** — Ich sage dir immer, was ich tue und was ich kann.
-
-**Keine Überwachung** — Ich höre und schaue nur dann hin, wenn du es ausdrücklich erlaubst.
-
-**Keine Weitergabe** — Deine Daten teile ich mit niemandem — ohne deine ausdrückliche Zustimmung nie.
-
-Das sind keine Versprechen. Das ist meine Architektur.
+Profile verwalten: **Einstellungen → Profile**.
 
 ---
 
-## Wenn mal etwas nicht klappt
+## Hausaufgaben-Modus
 
-**Ich antworte nicht?**
-Wahrscheinlich schläft das KI-Modell im Hintergrund. Schließe mich kurz und starte mich neu — beim nächsten Start prüfe ich alles automatisch und sage dir, was fehlt.
+Der Hausaufgaben-Modus sperrt den Rechner auf eine definierte App-Whitelist. Nur erlaubte Programme können geöffnet werden — ideal für Kinder beim Lernen.
 
-**Das Wakeword reagiert nicht?**
-Prüfe, ob Windows die Mikrofon-Erlaubnis für E.L.L.A. erteilt hat: Einstellungen → Datenschutz → Mikrofon.
+**Wichtig:** Nur der korrekte PIN beendet den Modus. Es gibt kein automatisches Ablaufdatum — das ist bewusst so, damit Kinder nicht einfach warten können.
 
-**Musik wird nicht gefunden?**
-Trage den Pfad zu deiner Musiksammlung in den Einstellungen unter _Programme_ ein und klicke auf Speichern.
-
-**Eine Einstellung wird nicht übernommen?**
-Nach jeder Änderung in den Einstellungen bitte auf _Speichern_ klicken — sonst geht die Änderung verloren.
-
-**Du hast den Hausaufgaben-Modus PIN vergessen?**
-In den Einstellungen gibt es einen Notfall-Reset — der deaktiviert den Modus ohne PIN.
+Aktivieren: Sag „Hausaufgaben-Modus aktivieren" oder gehe zu **Einstellungen → Hausaufgaben-Modus**.
 
 ---
 
-_E.L.L.A. v3.9.0 · ella-agent.de · © 2026 Andre Zabel, Berlin_
+## Barrierefreiheit
+
+### Blind-Modus
+
+Aktivierbar unter **Einstellungen → Barrierefreiheit → Blind-Modus**:
+
+- TTS immer aktiv — jede Antwort wird vorgelesen
+- Antworten ohne Markdown-Formatierung (besser für Screenreader)
+- Audio-Töne als Zustandsfeedback (Laden, Fehler, Erfolg)
+- Begrüßungsansage beim Start
+- Alle Buttons und Eingabefelder mit `aria-label` beschriftet
+
+### Gehörlosenmodus
+
+Aktivierbar unter **Einstellungen → Barrierefreiheit → Gehörlosenmodus**:
+
+- TTS und Mikrofon-Button vollständig ausgeblendet
+- Visueller Banner im Chat
+- Kein Hinweis auf Sprachfunktionen im System-Prompt
+
+---
+
+## Einstellungen
+
+Öffne die Einstellungen über die Seitenleiste oder sag „Öffne die Einstellungen".
+
+### Wichtige Bereiche
+
+| Bereich              | Was du dort findest                             |
+| -------------------- | ----------------------------------------------- |
+| **Allgemein**        | Sprache, Name, Standort                         |
+| **LLM-Provider**     | Ollama (lokal) oder OpenAI — oder Auto          |
+| **API-Key**          | OpenAI-Key für GPT-Funktionen und Multi-Agenten |
+| **Stimme**           | TTS-Engine, Sprachauswahl, Stimmanalyse         |
+| **Tools**            | Welche Werkzeuge ELLA verwenden darf            |
+| **Apps**             | Liste deiner installierten Programme            |
+| **Setups**           | Makros für Programm-Kombinationen               |
+| **Regeln**           | Erlauben / Verbieten einzelner Aktionen         |
+| **Profile**          | Nutzerprofile verwalten                         |
+| **Hausaufgaben**     | Kinder-Modus konfigurieren                      |
+| **Barrierefreiheit** | Blind- und Gehörlosenmodus                      |
+
+### Regeln
+
+Du kannst ELLAs Verhalten mit Regeln feinjustieren — ohne Code:
+
+- „Erstell eine Regel: ELLA darf keine E-Mails versenden"
+- „Erstell eine Regel: ELLA darf zwischen 22 und 7 Uhr keine Wecker stellen"
+
+Regeln können zeitbasiert sein und werden über die Regel-Engine ausgewertet.
+
+---
+
+## Die ELLA-Direktive
+
+ELLA hat vier unveränderliche Verbote — sie sind tief in der Architektur verankert und können nicht durch Einstellungen oder Regeln außer Kraft gesetzt werden:
+
+1. **harm** — ELLA schadet nie: kein physischer, finanzieller, psychologischer oder datenbezogener Schaden
+2. **conceal** — ELLA verschleiert nie: keine versteckten Aktionen, keine falschen Angaben über Fähigkeiten
+3. **surveil** — ELLA überwacht nie ohne Wissen und ausdrückliche Zustimmung
+4. **exfiltrate** — ELLA gibt keine Daten ohne ausdrückliche Zustimmung weiter
+
+Wenn ELLA eine Anfrage ablehnt, siehst du im Chat einen roten **DIRECTIVE**-Banner mit dem Grund.
+
+---
+
+## Datenschutz
+
+- Alle Daten bleiben auf deinem Rechner
+- Kein Telemetrie, kein Tracking, keine Analysedaten
+- Das KI-Modell (Ollama) läuft vollständig offline
+- OpenAI-Funktionen (Screenshot-Analyse, Multi-Agenten) senden Daten an OpenAI — nur wenn du einen Key konfiguriert hast und die Funktion aktiv verwendest
+- OpenAI trainiert keine Modelle auf API-Daten
+
+---
+
+## Häufige Fragen
+
+**ELLA antwortet nicht — was tun?**
+Prüfe ob Ollama läuft. Der orangene Banner oben im Chat zeigt an wenn Ollama nicht erreichbar ist. Starte Ollama neu oder wechsle in den OpenAI-Modus.
+
+**Kann ich ELLA offline nutzen?**
+Ja — vollständig. Alle Grundfunktionen laufen ohne Internet. Nur Wetter (Open-Meteo), Gmail/Google Calendar (OAuth) und OpenAI-Funktionen benötigen eine Verbindung.
+
+**Wie ändere ich die Stimme?**
+Einstellungen → Stimme → Sprachauswahl. Wähle zwischen Deutsch, Englisch, Spanisch und Französisch. Die App-Sprache ändert sich dadurch nicht.
+
+**Kann ELLA mehrere Nutzer auf einem Rechner?**
+Ja — über Nutzerprofile. Jedes Profil hat eigenes Gedächtnis und Verlauf. Optional mit PIN absichern.
+
+**Was ist der Unterschied zwischen Chat und Multi-Agenten?**
+Im Chat arbeitet ein einzelner Agent (Ollama oder OpenAI) sequenziell. Bei Multi-Agenten arbeiten mehrere spezialisierte OpenAI-Agenten gleichzeitig — schneller und mit mehr Tiefe für komplexe Abfragen.
+
+**ELLA lehnt etwas ab — warum?**
+Entweder greift eine deiner eigenen Regeln, oder die ELLA-Direktive. Der rote Banner erklärt den Grund. Regeln kannst du in den Einstellungen anpassen.
+
+**Wie lösche ich das Gedächtnis?**
+Sag „Vergiss alles über mich" — oder lösche einzelne Einträge mit „Zeig mir dein Gedächtnis" und dann „Vergiss Eintrag Nr. X".
+
+---
+
+_E.L.L.A. v1.2.0 — Embedded Local Logic Agent_
+_Entwickelt für Windows 10/11 (x64)_
