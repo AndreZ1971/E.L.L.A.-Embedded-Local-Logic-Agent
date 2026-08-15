@@ -1,4 +1,4 @@
-Write-Host "E.L.L.A. Installer Build v3.9.1" -ForegroundColor Cyan
+Write-Host "E.L.L.A. Installer Build v1.2.0" -ForegroundColor Cyan
 $root = Split-Path $PSScriptRoot -Parent
 
 Write-Host "[1/6] Shared packages bauen..." -ForegroundColor Yellow
@@ -31,4 +31,4 @@ if (-not (Test-Path $electronLink) -and (Test-Path "$root\node_modules\electron"
 Set-Location "$root\apps\desktop"; npm run dist
 if ($LASTEXITCODE -ne 0) { Write-Host "Installer Build fehlgeschlagen!" -ForegroundColor Red; exit 1 }
 
-Write-Host "Fertig: $root\apps\desktop\dist-installer\E.L.L.A. Setup 3.9.1.exe" -ForegroundColor Green
+Write-Host "Fertig: $root\apps\desktop\dist-installer\E.L.L.A. Setup 1.2.0.exe" -ForegroundColor Green
