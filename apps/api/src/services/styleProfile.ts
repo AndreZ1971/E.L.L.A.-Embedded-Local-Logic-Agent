@@ -7,7 +7,7 @@ async function openAIChat(
   systemPrompt: string,
   userPrompt: string,
   temperature = 0.1,
-  maxTokens = 500,
+  maxTokens = 500
 ): Promise<string> {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -28,7 +28,7 @@ async function openAIChat(
 
   if (!response.ok) {
     throw new Error(
-      `OpenAI error ${response.status}: ${await response.text()}`,
+      `OpenAI error ${response.status}: ${await response.text()}`
     );
   }
 
@@ -72,13 +72,13 @@ export async function buildStyleProfile(): Promise<string> {
     `Analysiere den Schreibstil dieser E-Mails und beschreibe ihn in 3-5 Sätzen. ` +
       `Fokus: Anrede, Tonalität, typische Formulierungen, Abschluss.\n\n${samples}`,
     0.1,
-    300,
+    300
   );
 }
 
 export async function writeInUserStyle(
   task: string,
-  styleProfile: string,
+  styleProfile: string
 ): Promise<string> {
   const { openaiApiKey, ollamaModel, provider } = getSettings();
   const apiKey = openaiApiKey || env.openaiApiKey;

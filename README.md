@@ -30,49 +30,50 @@ Kein Python, kein separates MariaDB-Setup, keine PATH-Konfiguration.
 
 ## Features
 
-| Bereich              | Was E.L.L.A. kann                                                                  |
-| -------------------- | ---------------------------------------------------------------------------------- |
-| Programme            | Apps starten/schließen, Setups laden, Programme auflisten                          |
-| Laufwerke            | Umbenennen, USB-Sticks formatieren (Systemlaufwerke gesperrt)                      |
-| Mail (Outlook)       | Mails lesen, als gelesen/Spam/archiviert markieren                                 |
-| Mail (Gmail)         | Gmail via OAuth 2.0 lesen und markieren                                            |
-| Kalender (Outlook)   | Termine lesen und anlegen                                                          |
-| Kalender (Google)    | Google Calendar lesen und Termine erstellen via OAuth 2.0                          |
-| System               | Temp, Papierkorb, RAM, Festplatte, Diagnose, Herunterfahren                        |
-| Gedächtnis           | Vektor-Embeddings (nomic-embed-text), Cosinus-Suche, 3 Typen, Profil-isoliert      |
-| Spracheingabe        | Web Speech API (Chromium built-in, kein API-Key) - Freihand / Manuell / Wakeword   |
-| Sprachausgabe        | MsEdgeTTS + Kokoro TTS — weibliche Stimmen DE/EN/ES/FR wählbar                     |
-| Stress-Erkennung     | Stimmanalyse (Python/numpy) — passt ELLAs Ton bei Anspannung an (opt-in)           |
-| Pause                | Wakeword 1–120 Minuten deaktivieren, Countdown, automatische Rückkehr              |
-| Web                  | Sofortige Suche ohne Rückfrage (Filme, Personen, Produkte, News)                   |
-| Wetter               | Aktuelles Wetter via Open-Meteo                                                    |
-| Hausaufgaben-Modus   | PIN-gesicherter Kiosk mit App-Whitelist                                            |
-| Regel-Engine         | 57 Default-Regeln, allow/deny, Zeitbedingungen, Directive-Layer                    |
-| Monitoring           | Background-Worker, SSE-Push, Disk/Ollama/RAM-Alerts, PnP-Events                    |
-| USB-Erkennung        | USB-Laufwerke werden erkannt und angesagt (proaktive Nachricht + TTS)              |
-| Netzwerk             | LAN-Scan via ARP, TCP-Verbindungen, DNS/Firewall/WiFi-Überwachung                  |
-| Selbstkonfiguration  | Setups, Regeln, Einstellungen per Gespräch ändern                                  |
-| Musik                | Bibliothek durchsuchen (Künstler/Album/Titel) im Media Player öffnen               |
-| Dateien              | Alle Laufwerke durchsuchen (Windows Search Index, ms-schnell), Dateien öffnen      |
-| Dokumente            | Word/TXT erstellen, .docx/.pdf/.xlsx/.html lesen (mammoth/pdf-parse/SheetJS)       |
-| Wecker               | DB-basierte Wecker mit täglichem Check, proaktive Auslösung im Background-Worker   |
-| Diktat               | Spracheingabe direkt in Word, KI korrigiert Grammatik und Zeichensetzung           |
-| E-Mail verfassen     | Outlook-Entwurf mit KI-korrigiertem Text öffnen (sendet nicht automatisch)         |
-| Prozesse             | Laufende Prozesse anzeigen, CPU-/RAM-Fresser beenden (systemkritische geschützt)   |
-| Systemsteuerung      | Lautstärke setzen/muten, Zwischenablage lesen/schreiben mit 20-Einträge-Historie   |
-| Erinnerungen         | Windows Task Scheduler — feuert als Popup zur gesetzten Zeit                       |
-| Screenshot + Vision  | Bildschirm fotografieren und mit GPT-4o Vision analysieren (OpenAI-Key nötig)      |
-| Schreibstil          | Texte im persönlichen Stil generieren — lernt aus bisherigen E-Mails               |
-| Duplikate            | Doppelte Dateien finden, Speicherplatz-Verschwendung berechnen                     |
-| Autostart            | Programme beim Windows-Start auflisten                                             |
-| Aufgabenliste        | Persistente TODOs mit Priorität und Fälligkeit, im Tagesabschluss integriert       |
-| Proaktiv             | Meeting-Vorbereitung, Tagesabschluss, Comeback, Pause-Reminder, Clipboard-Muster   |
-| Feedback-Loop        | Daumen hoch/runter → Ollama extrahiert Nutzerpräferenzen → Langzeitgedächtnis      |
-| Fenster-Kontext      | ELLA kennt die aktive Anwendung beim Chat (opt-in, Ollama-only)                    |
-| Gesprächskompression | Lange Sessions automatisch komprimieren (lokales Ollama)                           |
-| Nutzerprofile        | Eigenes Gedächtnis und Gesprächsverlauf pro Profil, PBKDF2-gesicherter PIN-Wechsel |
-| Multi-Agenten        | Mehrere KI-Agenten arbeiten parallel (OpenAI) — Morgenbriefing, System-Report      |
-| Tool-Selektor        | Lazy-Loading relevanter Tools pro Anfrage — bis zu 90 % weniger Token-Verbrauch    |
+| Bereich              | Was E.L.L.A. kann                                                                                                                                                                                                     |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Programme            | Apps starten/schließen, Setups laden, Programme auflisten                                                                                                                                                             |
+| Laufwerke            | Umbenennen, USB-Sticks formatieren (Systemlaufwerke gesperrt)                                                                                                                                                         |
+| Mail (Outlook)       | Mails lesen, als gelesen/Spam/archiviert markieren                                                                                                                                                                    |
+| Mail (Gmail)         | Gmail via OAuth 2.0 lesen und markieren                                                                                                                                                                               |
+| Kalender (Outlook)   | Termine lesen und anlegen                                                                                                                                                                                             |
+| Kalender (Google)    | Google Calendar lesen und Termine erstellen via OAuth 2.0                                                                                                                                                             |
+| System               | Temp, Papierkorb, RAM, Festplatte, Diagnose, Herunterfahren                                                                                                                                                           |
+| Gedächtnis           | Vektor-Embeddings (nomic-embed-text), Cosinus-Suche, 3 Typen, Profil-isoliert                                                                                                                                         |
+| Spracheingabe        | Web Speech API (Chromium built-in, kein API-Key) - Freihand / Manuell / Wakeword                                                                                                                                      |
+| Sprachausgabe        | MsEdgeTTS + Kokoro TTS — weibliche Stimmen DE/EN/ES/FR wählbar                                                                                                                                                        |
+| Stress-Erkennung     | Stimmanalyse (Python/numpy) — passt ELLAs Ton bei Anspannung an (opt-in)                                                                                                                                              |
+| Pause                | Wakeword 1–120 Minuten deaktivieren, Countdown, automatische Rückkehr                                                                                                                                                 |
+| Web                  | Sofortige Suche ohne Rückfrage (Filme, Personen, Produkte, News)                                                                                                                                                      |
+| Wetter               | Aktuelles Wetter via Open-Meteo                                                                                                                                                                                       |
+| Hausaufgaben-Modus   | PIN-gesicherter Kiosk mit App-Whitelist                                                                                                                                                                               |
+| Regel-Engine         | 57 Default-Regeln, allow/deny, Zeitbedingungen, Directive-Layer                                                                                                                                                       |
+| Monitoring           | Background-Worker, SSE-Push, Disk/Ollama/RAM-Alerts, PnP-Events                                                                                                                                                       |
+| USB-Erkennung        | USB-Laufwerke werden erkannt und angesagt (proaktive Nachricht + TTS)                                                                                                                                                 |
+| Netzwerk             | LAN-Scan via ARP, TCP-Verbindungen, DNS/Firewall/WiFi-Überwachung                                                                                                                                                     |
+| Selbstkonfiguration  | Setups, Regeln, Einstellungen per Gespräch ändern                                                                                                                                                                     |
+| Musik                | Bibliothek durchsuchen (Künstler/Album/Titel) im Media Player öffnen                                                                                                                                                  |
+| Dateien              | Alle Laufwerke durchsuchen (Windows Search Index, ms-schnell), Dateien öffnen                                                                                                                                         |
+| Dokumente            | Word/TXT erstellen, .docx/.pdf/.xlsx/.html lesen (mammoth/pdf-parse/SheetJS)                                                                                                                                          |
+| Wecker               | DB-basierte Wecker mit täglichem Check, proaktive Auslösung im Background-Worker                                                                                                                                      |
+| Diktat               | Spracheingabe direkt in Word, KI korrigiert Grammatik und Zeichensetzung                                                                                                                                              |
+| E-Mail verfassen     | Outlook-Entwurf mit KI-korrigiertem Text öffnen (sendet nicht automatisch)                                                                                                                                            |
+| Prozesse             | Laufende Prozesse anzeigen, CPU-/RAM-Fresser beenden (systemkritische geschützt)                                                                                                                                      |
+| Systemsteuerung      | Lautstärke setzen/muten, Zwischenablage lesen/schreiben mit 20-Einträge-Historie                                                                                                                                      |
+| Erinnerungen         | Windows Task Scheduler — feuert als Popup zur gesetzten Zeit                                                                                                                                                          |
+| Screenshot + Vision  | Bildschirm fotografieren und mit GPT-4o Vision analysieren (OpenAI-Key nötig)                                                                                                                                         |
+| Schreibstil          | Texte im persönlichen Stil generieren — lernt aus bisherigen E-Mails                                                                                                                                                  |
+| Duplikate            | Doppelte Dateien finden, Speicherplatz-Verschwendung berechnen                                                                                                                                                        |
+| Autostart            | Programme beim Windows-Start auflisten                                                                                                                                                                                |
+| Aufgabenliste        | Persistente TODOs mit Priorität und Fälligkeit, im Tagesabschluss integriert                                                                                                                                          |
+| Proaktiv             | Meeting-Vorbereitung, Tagesabschluss, Comeback, Pause-Reminder, Clipboard-Muster                                                                                                                                      |
+| Feedback-Loop        | Daumen hoch/runter → Ollama extrahiert Nutzerpräferenzen → Langzeitgedächtnis                                                                                                                                         |
+| Fenster-Kontext      | ELLA kennt die aktive Anwendung beim Chat (opt-in, Ollama-only)                                                                                                                                                       |
+| Gesprächskompression | Lange Sessions automatisch komprimieren (lokales Ollama)                                                                                                                                                              |
+| Nutzerprofile        | Eigenes Gedächtnis und Gesprächsverlauf pro Profil, PBKDF2-gesicherter PIN-Wechsel                                                                                                                                    |
+| Multi-Agenten        | Eigene Seite; 2 Pipelines: Morgenbriefing (Kalender+Aufgaben+Wetter) und System-Report (Speicher+Performance+Prozesse+Netzwerk); Live-Streaming pro Agent; Synthese-Zusammenfassung; Setup-Integration nach Abschluss |
+| Tool-Selektor        | Pro Anfrage nur ~12 statt 85 Tools — bis zu 90 % weniger Input-Tokens; ab Runde 1 nur kontextrelevante Tools                                                                                                          |
+| Token-Optimizer      | Tool-Ergebnisse vor Kontexteinbettung komprimiert (Base64-Strip, Array-Truncation)                                                                                                                                    |
 
 ### Die E.L.L.A. Direktive — vier unveränderliche Verbote
 

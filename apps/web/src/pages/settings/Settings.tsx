@@ -208,13 +208,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
 );
 
 type Tab =
-  | "llm"
-  | "tools"
-  | "programme"
-  | "setups"
-  | "modus"
-  | "regeln"
-  | "google";
+  "llm" | "tools" | "programme" | "setups" | "modus" | "regeln" | "google";
 
 const Settings: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -237,6 +231,13 @@ const Settings: React.FC = () => {
   const [saved, setSaved] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [filter, setFilter] = useState("");
+  const [programSearch, setProgramSearch] = useState("");
+  const [programSearchResults, setProgramSearchResults] = useState<Array<{
+    name: string;
+    command: string;
+  }> | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [addedPrograms, setAddedPrograms] = useState<Set<string>>(new Set());
   const [selectedSetupId, setSelectedSetupId] = useState<string | null>(null);
   const [_voices, setVoices] = useState<
     Array<{ name: string; locale: string; gender: string }>
@@ -363,6 +364,47 @@ const Settings: React.FC = () => {
     } finally {
       setScanning(false);
     }
+  };
+
+  const searchProgram = async () => {
+    if (!programSearch.trim()) return;
+    setSearching(true);
+    setProgramSearchResults(null);
+    try {
+      const data = (await fetch(`${API}/api/system/find-program`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: programSearch.trim() }),
+      }).then((r) => r.json())) as {
+        results: Array<{ name: string; command: string }>;
+      };
+      setProgramSearchResults(data.results ?? []);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const addProgram = async (name: string, command: string) => {
+    await fetch(`${API}/api/system/add-program`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, command }),
+    });
+    setAddedPrograms((prev) => new Set(prev).add(command));
+    const fresh = (await fetch(`${API}/api/settings`).then((r) =>
+      r.json(),
+    )) as { apps: AppEntry[] };
+    patch({ apps: fresh.apps ?? [] });
+  };
+
+  const addProgramFromFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // In Electron hat das File-Objekt ein .path-Attribut mit dem vollen Pfad
+    const fullPath = (file as unknown as { path?: string }).path ?? file.name;
+    const name = file.name.replace(/\.exe$/i, "");
+    await addProgram(name, fullPath);
+    e.target.value = "";
   };
 
   const addSetup = () => {
@@ -901,6 +943,94 @@ const Settings: React.FC = () => {
               })()}
             </Section>
 
+            {/* Eigenes / installiertes Modell */}
+            <Section title={t("settings.section_custom_model")}>
+              {/* Alle bereits lokal installierten Modelle */}
+              {models.length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "#64748b",
+                      marginBottom: 8,
+                    }}
+                  >
+                    {t("settings.custom_model_installed")}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {models.map((m) => {
+                      const active = settings.ollamaModel === m;
+                      return (
+                        <button
+                          key={m}
+                          onClick={() =>
+                            patch({ ollamaModel: m, voiceOllamaModel: m })
+                          }
+                          style={{
+                            padding: "5px 12px",
+                            borderRadius: 6,
+                            border: `1px solid ${active ? "#7c6af7" : "#2d3148"}`,
+                            background: active ? "#1a1440" : "#0f1117",
+                            color: active ? "#a78bfa" : "#94a3b8",
+                            fontSize: "0.82rem",
+                            cursor: "pointer",
+                            fontFamily: "monospace",
+                          }}
+                        >
+                          {m}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Freitextfeld für manuell eingetragenes Modell */}
+              <div
+                style={{
+                  fontSize: "0.78rem",
+                  color: "#64748b",
+                  marginBottom: 6,
+                }}
+              >
+                {t("settings.custom_model_manual")}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  defaultValue={settings.ollamaModel}
+                  key={settings.ollamaModel}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v && v !== settings.ollamaModel)
+                      patch({ ollamaModel: v, voiceOllamaModel: v });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const v = (e.target as HTMLInputElement).value.trim();
+                      if (v) patch({ ollamaModel: v, voiceOllamaModel: v });
+                    }
+                  }}
+                  placeholder="z.B. gemma3:12b, qwen2.5:32b, phi4:14b"
+                  style={{
+                    ...input,
+                    flex: 1,
+                    fontFamily: "monospace",
+                    fontSize: "0.85rem",
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  color: "#64748b",
+                  marginTop: 6,
+                  lineHeight: 1.5,
+                }}
+              >
+                {t("settings.custom_model_hint")}
+              </div>
+            </Section>
+
             <Section title={t("settings.section_provider")}>
               {(["auto", "openai", "ollama"] as const).map((p) => (
                 <label
@@ -1039,10 +1169,7 @@ const Settings: React.FC = () => {
                   onChange={(e) =>
                     patch({
                       spokenLanguage: e.target.value as
-                        | "de"
-                        | "en"
-                        | "es"
-                        | "fr",
+                        "de" | "en" | "es" | "fr",
                     })
                   }
                   disabled={!settings.ttsEnabled}
@@ -1552,6 +1679,157 @@ const Settings: React.FC = () => {
               ))}
             </div>
 
+            {/* Programm suchen / manuell hinzufügen */}
+            <div
+              style={{
+                marginTop: 16,
+                borderTop: "1px solid #2d3148",
+                paddingTop: 16,
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  color: "#64748b",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {t("settings.programmes_find_section")}
+              </div>
+
+              {/* Suchzeile */}
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  value={programSearch}
+                  onChange={(e) => setProgramSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && searchProgram()}
+                  placeholder={t("settings.programmes_find_placeholder")}
+                  style={{ ...input, flex: 1 }}
+                />
+                <button
+                  onClick={searchProgram}
+                  disabled={searching || !programSearch.trim()}
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: 6,
+                    background: searching ? "#2d3148" : "#7c6af7",
+                    color: "#fff",
+                    border: "none",
+                    cursor: searching ? "not-allowed" : "pointer",
+                    fontSize: "0.85rem",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {searching
+                    ? t("settings.programmes_find_searching")
+                    : t("settings.programmes_find_button")}
+                </button>
+                {/* Dateiauswahl-Button */}
+                <label
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: 6,
+                    background: "#1e2133",
+                    color: "#94a3b8",
+                    border: "1px solid #2d3148",
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                    whiteSpace: "nowrap",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {t("settings.programmes_browse")}
+                  <input
+                    type="file"
+                    accept=".exe"
+                    style={{ display: "none" }}
+                    onChange={addProgramFromFile}
+                  />
+                </label>
+              </div>
+
+              {/* Suchergebnisse */}
+              {programSearchResults !== null && (
+                <div
+                  style={{
+                    background: "#1a1d27",
+                    border: "1px solid #2d3148",
+                    borderRadius: 8,
+                    overflow: "hidden",
+                  }}
+                >
+                  {programSearchResults.length === 0 ? (
+                    <div
+                      style={{
+                        padding: "12px 16px",
+                        color: "#64748b",
+                        fontSize: "0.85rem",
+                      }}
+                    >
+                      {t("settings.programmes_find_no_results")}
+                    </div>
+                  ) : (
+                    programSearchResults.map((r) => (
+                      <div
+                        key={r.command}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12,
+                          padding: "9px 16px",
+                          borderBottom: "1px solid #1e2133",
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div
+                            style={{ fontSize: "0.875rem", color: "#e2e8f0" }}
+                          >
+                            {r.name}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "0.72rem",
+                              color: "#64748b",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {r.command}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => addProgram(r.name, r.command)}
+                          style={{
+                            padding: "5px 12px",
+                            borderRadius: 5,
+                            background: addedPrograms.has(r.command)
+                              ? "#16a34a"
+                              : "#7c6af7",
+                            color: "#fff",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "0.8rem",
+                            whiteSpace: "nowrap",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {addedPrograms.has(r.command)
+                            ? t("settings.programmes_find_added")
+                            : t("settings.programmes_find_add")}
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Medienwiedergabe */}
             <div
               style={{
@@ -1967,10 +2245,7 @@ const Settings: React.FC = () => {
                   onChange={(e) =>
                     patch({
                       spokenLanguage: e.target.value as
-                        | "de"
-                        | "en"
-                        | "es"
-                        | "fr",
+                        "de" | "en" | "es" | "fr",
                     })
                   }
                   style={{ ...input, width: "100%" }}

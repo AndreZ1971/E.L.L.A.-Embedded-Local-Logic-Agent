@@ -338,7 +338,19 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     const filter = ((args["filter"] as string) ?? "").toLowerCase().trim();
     const { apps } = getSettings();
 
-    let programs = apps.filter((a) => a.allowed).map((a) => a.name);
+    let programs = apps
+      .filter((a) => {
+        if (!a.allowed) return false;
+        const cmdLow = (a.command ?? "").toLowerCase();
+        if (BLOCKED_PATH_FRAGMENTS.some((b) => cmdLow.includes(b)))
+          return false;
+        const exeName = path.basename(cmdLow, ".exe");
+        if (BLOCKED_NAME_PATTERNS.some((b) => exeName.includes(b)))
+          return false;
+        return true;
+      })
+      .map((a) => a.name);
+
     if (filter) {
       programs = programs.filter((name) => name.toLowerCase().includes(filter));
     }

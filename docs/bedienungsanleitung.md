@@ -1,6 +1,6 @@
 # E.L.L.A. — Bedienungsanleitung
 
-Version 1.0.0
+Version 1.2.0
 
 ---
 
@@ -19,7 +19,9 @@ Version 1.0.0
 11. [Einstellungen](#11-einstellungen)
 12. [Die E.L.L.A. Direktive](#12-die-ella-direktive)
 13. [Hausaufgaben-Modus](#13-hausaufgaben-modus)
-14. [Fehlerbehebung](#14-fehlerbehebung)
+14. [Multi-Agenten-Pipeline](#14-multi-agenten-pipeline)
+15. [Token-Optimierung](#15-token-optimierung)
+16. [Fehlerbehebung](#16-fehlerbehebung)
 
 ---
 
@@ -742,7 +744,60 @@ Falls der PIN vergessen wurde: Einstellungen → Notfall-Reset deaktiviert den H
 
 ---
 
-## 14. Fehlerbehebung
+## 14. Multi-Agenten-Pipeline
+
+Die Multi-Agenten-Pipeline lässt mehrere KI-Agenten parallel an einer Aufgabe arbeiten und fasst ihre Ergebnisse automatisch zusammen. Voraussetzung: OpenAI API-Key in den Einstellungen.
+
+### Öffnen
+
+Die Seite ist über **Multi-Agenten** in der Navigation erreichbar.
+
+### Vordefinierte Pipelines
+
+| Pipeline           | Agenten                                      | Ergebnis                                             |
+| ------------------ | -------------------------------------------- | ---------------------------------------------------- |
+| **Morgenbriefing** | Kalender · Aufgaben · Wetter                 | Zusammenfassung des Tages als strukturierter Bericht |
+| **System-Report**  | Speicher · Performance · Prozesse · Netzwerk | Vollständiger Systemstatus auf einen Blick           |
+
+### Ablauf
+
+1. Pipeline auswählen
+2. **Starten** klicken — jeder Agent arbeitet parallel, sein Streaming-Ergebnis erscheint live in seiner Kachel
+3. Sobald alle Agenten fertig sind, erstellt ELLA automatisch eine **Synthese-Zusammenfassung**
+4. Optional: nach Abschluss ein App-Setup ausführen (z. B. Arbeitsprogramme öffnen)
+
+### Hinweis
+
+Die Multi-Agenten-Pipeline nutzt OpenAI GPT-4o und erzeugt mehrere API-Aufrufe parallel. Bei häufiger Nutzung entstehen entsprechende API-Kosten.
+
+---
+
+## 15. Token-Optimierung
+
+Ab v1.2.0 enthält ELLA zwei Mechanismen die API-Kosten und Latenz deutlich reduzieren — ohne dass du etwas konfigurieren musst.
+
+### Tool-Selector
+
+Statt alle 85 Tools bei jeder Anfrage an das Modell zu schicken, analysiert ELLA die Anfrage zuerst und sendet nur die ~12 relevantesten Tools.
+
+- **Bis zu 90 % weniger Input-Tokens** pro Anfrage
+- Ab Runde 1 des Tool-Loops werden nur noch kontextrelevante Tools angeboten
+- Wirkt sich auf Antwortgeschwindigkeit und OpenAI-Kosten aus
+- Keine Konfiguration nötig — läuft automatisch
+
+### Token-Optimizer
+
+Tool-Ergebnisse können sehr groß sein (z. B. Dateilisten, Prozesslisten). Der Token-Optimizer komprimiert diese Ergebnisse bevor sie in den Gesprächskontext eingebettet werden:
+
+- Base64-Daten werden herausgefiltert
+- Große Arrays werden auf die wesentlichen Einträge gekürzt
+- Der tatsächliche Inhalt bleibt vollständig erhalten
+
+Beide Mechanismen arbeiten im Hintergrund und sind dauerhaft aktiv.
+
+---
+
+## 16. Fehlerbehebung
 
 ### ELLA antwortet nicht
 
@@ -806,4 +861,4 @@ Prüfen: `"Ella, wie ist dein Status?"`
 
 ---
 
-_E.L.L.A. v3.4.0 · Proprietär · Alle Rechte vorbehalten_
+_E.L.L.A. v1.2.0 · Proprietär · Alle Rechte vorbehalten_
