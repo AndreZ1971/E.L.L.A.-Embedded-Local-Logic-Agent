@@ -1,6 +1,6 @@
 # E.L.L.A. — User Manual
 
-Version 1.2.0
+Version 1.3.0
 
 ---
 
@@ -10,24 +10,25 @@ E.L.L.A. stands for _Embedded Local Logic Agent_ — your personal AI assistant 
 
 What makes me different: I run entirely on your own machine. Your data stays with you — no cloud server, no subscription, no privacy fine print. Just install and go.
 
+**No ChatGPT. No Groq. No hidden API key that makes it all possible.**
+I don't need any of that — Ollama runs locally, the AI runs locally, your data stays local.
+
 ---
 
 ## Getting Started
 
 ### Installation
 
-1. Run `E.L.L.A Setup 1.2.0.exe`
+1. Run `E.L.L.A Setup 1.3.0.exe`
 2. Choose an installation path (default: `C:\Program Files\E.L.L.A`)
 3. The installer sets everything up automatically — MariaDB, Ollama, Node.js. Nothing else to install.
 
 ### First Launch
 
-On first launch, ELLA guides you through a short onboarding flow:
-
 1. **Language selection** — German or English
 2. **EULA** — accept the terms of use and the ELLA Directive
 3. **Hardware scan** — ELLA detects your system and recommends a suitable language model
-4. **Model selection** — you choose the model that fits your hardware (no download without your consent)
+4. **Model selection** — you choose (no download without your consent)
 5. **Voice selection** — 4 female voices in DE/EN/ES/FR with preview
 6. **Location** — for weather and local information (optional)
 7. **License activation** — enter your license key `ELLA-XXXX-XXXX-XXXX-XXXX`
@@ -39,18 +40,11 @@ On first launch, ELLA guides you through a short onboarding flow:
 
 ### How to Talk to Me
 
-Just write what you need — in plain language, no commands, no special syntax. I understand natural language.
-
-- "How much disk space is left?"
-- "Write an email to Klaus saying I can't make it tomorrow"
-- "What's on the calendar this week?"
-- "Open Spotify"
+Just write what you need — in plain language, no commands, no special syntax.
 
 ### Voice Input
 
-Click the **microphone button** in the input bar — or simply say **"Ella"** if the wakeword is enabled. ELLA listens, converts your speech to text, and responds.
-
-Wakeword modes:
+Click the **microphone button** or say **"Ella"** (wakeword mode). Modes:
 
 - **Off** — no automatic listening
 - **Manual** — microphone button only
@@ -59,258 +53,1039 @@ Wakeword modes:
 
 ### Voice Output (TTS)
 
-ELLA responds with voice too. Two engines are available:
+- **Kokoro TTS** (default) — local neural voice, fully offline
+- **Microsoft Edge TTS** (fallback) — requires internet
 
-- **Kokoro TTS** (default) — local neural voice, fully offline, natural sound
-- **Microsoft Edge TTS** (fallback) — requires internet, very reliable
+### Feedback Loop
 
-The voice language can be set independently of the app language: German, English, Spanish, or French.
-
-### Feedback
-
-Below each response you'll find **thumbs up / thumbs down**. When you give feedback, ELLA learns from it and adjusts her responses to your preferences over time.
+Thumbs up / thumbs down below each response → ELLA learns your preferences and adapts permanently.
 
 ### Tool Display
 
-When ELLA does something — searches a file, opens an app, reads your calendar — you briefly see which tool she used. This gives you insight into what's happening.
+When ELLA does something you briefly see which tool she used — full transparency over every action.
+
+### Provider Display
+
+The avatar panel bottom-left shows a green chip indicating whether **Ollama** (local) or **OpenAI** (cloud-optional) is currently active.
 
 ---
 
-## What I Can Do For You
+## All Tools at a Glance
 
-### PC & System
+ELLA has **85+ tools**. Here are all of them — with examples.
 
-I know Windows inside out. Ask me anything about your machine.
+---
 
-Just say:
+### Programs & Apps
 
-- "Open Chrome"
-- "How much RAM am I using right now?"
-- "Show me all running processes"
-- "Kill the process XY"
-- "Set the volume to 40 percent"
-- "What's in my clipboard?"
-- "Shut down / restart the computer"
-- "Which programs start automatically with Windows?"
+#### `list_programs` — List programs
 
-### Drives & Storage
+Shows all installed and approved programs on your system.
 
-Just say:
+```
+"Which programs do I have installed?"
+"List all apps"
+"What programs can ELLA open?"
+```
 
-- "How much space is left on drive C?"
-- "Find duplicate files on my drives"
-- "Format my USB stick" _(confirmation required)_
-- "Rename drive E to Data"
-- "Empty the recycle bin"
+#### `open_app` — Open app
 
-### Files & Documents
+Opens an installed application.
 
-I can find, open, and create files across all your drives.
+```
+"Open Chrome"
+"Start Spotify"
+"Open Word"
+"Open Task Manager"
+```
 
-Just say:
+#### `launch_app` — Start app with parameters
 
-- "Find the file called Proposal"
-- "Open the Projects folder"
-- "Create a new Word document"
-- "What does this PDF say?" _(attach file or name the path)_
-- "Read me the Excel spreadsheet"
-- "Summarize this document"
+Starts an application with additional arguments or file paths.
 
-### Dictation & Writing
+```
+"Open Notepad with the file C:\config.txt"
+"Start VLC with the video on the desktop"
+```
 
-Just say:
+#### `load_setup` — Run setup
 
-- "Dictate a letter to Ms. Miller"
-- "Write this in the style of my emails"
-- "Correct this text"
-- "Translate this to German"
+Executes a predefined setup macro — automatically opens and closes apps.
+
+```
+"Load my work setup"
+"Start the gaming setup"
+"Run setup Evening"
+```
+
+#### `create_setup` — Create setup
+
+Creates a new setup macro from within the chat.
+
+```
+"Create a setup called Home Office: open Teams, Outlook and Chrome"
+"New setup: in the evening close all apps and open Spotify"
+```
+
+#### `control_window` — Control window
+
+Minimizes, maximizes, closes, or moves application windows.
+
+```
+"Minimize Chrome"
+"Maximize the current window"
+"Close all Word windows"
+```
+
+#### `pause_ella` — Pause ELLA
+
+Disables the wakeword for a set amount of time.
+
+```
+"Pause ELLA for 30 minutes"
+"Mute for an hour"
+"ELLA, quiet please — 20 minutes"
+```
+
+---
+
+### Files & Folders
+
+#### `search_files` — Search files
+
+Searches all drives for files (Windows Search Index + fallback).
+
+```
+"Search for the file Proposal"
+"Find all PDFs with the word Invoice"
+"Where is my resume?"
+```
+
+#### `open_file` — Open file
+
+Opens a file with the default program.
+
+```
+"Open C:\Documents\Report.docx"
+"Open the file you just found"
+```
+
+#### `explore_folder` — Open folder in Explorer
+
+Opens a folder in Windows Explorer.
+
+```
+"Open the Downloads folder"
+"Show me the Desktop folder"
+"Explorer on C:\Projects"
+```
+
+#### `list_folder` — List folder contents
+
+Lists the contents of a folder.
+
+```
+"What's in the Documents folder?"
+"List all files in the Downloads directory"
+```
+
+#### `read_file_content` — Read file content
+
+Reads and understands the contents of documents (.docx, .pdf, .xlsx, .html, .txt).
+
+```
+"What does this PDF say?"
+"Read me the Excel spreadsheet Revenue2024"
+"Summarize the Word document"
+"What's on page 3 of the report?"
+```
+
+#### `create_document` — Create document
+
+Creates a new Word or text document.
+
+```
+"Create a new Word document called Minutes"
+"New text file on the desktop: Notes"
+```
+
+#### `dictate_to_document` — Dictate to document
+
+Opens a Word document and inserts dictated text with AI correction.
+
+```
+"Dictate into the document Report: Dear Sir or Madam..."
+"Write that into my current Word document"
+```
+
+#### `rename_file` — Rename file
+
+Renames a file.
+
+```
+"Rename the file Photo1.jpg to Vacation2024.jpg"
+"Rename C:\old_file.txt to new_file.txt"
+```
+
+#### `copy_file` — Copy file
+
+Copies a file to a new location.
+
+```
+"Copy the document Contract to D:\Backup"
+"Copy all JPGs from the desktop to E:\Photos"
+```
+
+#### `delete_file` — Delete single file
+
+Deletes a specific file (with confirmation).
+
+```
+"Delete the file temp_backup.zip"
+```
+
+#### `delete_files` — Delete multiple files
+
+Deletes multiple files at once.
+
+```
+"Delete all .tmp files in the Temp folder"
+"Remove all old log files from C:\Logs"
+```
+
+#### `create_folder` — Create folder
+
+Creates a new folder.
+
+```
+"Create a folder called Projects 2025 on the desktop"
+"New folder: C:\Archive\2024"
+```
+
+#### `find_duplicates` — Find duplicate files
+
+Searches drives for duplicate files and calculates wasted storage.
+
+```
+"Find duplicate files"
+"How much space am I wasting on duplicates?"
+"Find duplicate photos on drive D"
+```
+
+---
+
+### System & Performance
+
+#### `get_disk_usage` — Disk usage
+
+Shows free and used storage per drive.
+
+```
+"How much space is left on drive C?"
+"Show disk usage"
+"Am I running out of space on D?"
+```
+
+#### `get_system_info` — System information
+
+Shows CPU, RAM, operating system and hardware details.
+
+```
+"What processor do I have?"
+"Show me my system specs"
+"How much RAM is installed?"
+```
+
+#### `get_system_status` — System status
+
+Current status: CPU load, RAM, drives at a glance.
+
+```
+"How is my system running right now?"
+"System check please"
+"Is everything okay with the computer?"
+```
+
+#### `get_temperatures` — Temperatures
+
+Shows CPU and GPU temperatures.
+
+```
+"How hot is my CPU?"
+"Show temperatures"
+"Is my computer overheating?"
+```
+
+#### `get_battery_status` — Battery status
+
+Shows battery status and charge level (laptops).
+
+```
+"How much battery do I have left?"
+"Is my laptop charging?"
+```
+
+#### `free_ram` — Free RAM
+
+Releases unused RAM.
+
+```
+"Free the RAM"
+"Clear memory"
+"My computer is slow, clean up the memory"
+```
+
+#### `clean_temp` — Clean temp files
+
+Deletes temporary system files.
+
+```
+"Clean up the temp files"
+"Clear the cache"
+"Empty the temp folder"
+```
+
+#### `empty_recycle_bin` — Empty recycle bin
+
+Empties the Windows Recycle Bin.
+
+```
+"Empty the recycle bin"
+"Clear the trash"
+```
+
+#### `get_event_log` — Windows event log
+
+Reads Windows system events and errors.
+
+```
+"What's in the Windows event log?"
+"Were there any system errors today?"
+"Show me the latest Windows error messages"
+```
+
+#### `list_autostart` — Autostart programs
+
+Shows all programs that start automatically with Windows.
+
+```
+"Which programs start automatically with Windows?"
+"Show autostart list"
+"What loads when I boot up?"
+```
+
+#### `toggle_dark_mode` — Toggle dark mode
+
+Switches Windows Dark Mode on or off.
+
+```
+"Turn on dark mode"
+"Switch to light theme"
+"Toggle dark mode"
+```
+
+#### `shutdown_system` — Shutdown / restart
+
+Shuts down or restarts Windows.
+
+```
+"Shut down the computer"
+"Restart Windows"
+"Shut down in 5 minutes"
+```
+
+---
+
+### Processes & Services
+
+#### `list_processes` — List processes
+
+Shows all running processes, sorted by CPU or RAM usage.
+
+```
+"Which processes are running?"
+"What's using the most RAM?"
+"Show me the top 10 by CPU usage"
+```
+
+#### `kill_process` — End process
+
+Ends a running process (system-critical processes are protected).
+
+```
+"End the process chrome.exe"
+"Kill the Firefox process"
+"End all frozen Word instances"
+```
+
+#### `manage_service` — Manage Windows services
+
+Starts, stops or lists Windows services.
+
+```
+"List all Windows services"
+"Start the print spooler service"
+"Stop the Windows Update service"
+```
+
+#### `run_command` — Run command
+
+Executes a shell command and returns the result.
+
+```
+"Run the command ipconfig /all"
+"Start the script setup.bat"
+```
+
+---
+
+### Drives & Storage Media
+
+#### `format_drive` — Format drive
+
+Formats a drive (system drives protected, confirmation required).
+
+```
+"Format my USB stick"
+"Format drive F as NTFS"
+```
+
+#### `rename_drive` — Rename drive
+
+Gives a drive a new label.
+
+```
+"Rename drive E to Data"
+"Change the label of D: to Backup"
+```
+
+---
+
+### Network
+
+#### `scan_network` — Scan network
+
+Scans the local network via ARP and shows all connected devices.
+
+```
+"Who's on my network?"
+"Show me all devices on the WiFi"
+"Start a network scan"
+```
+
+#### `list_connections` — TCP connections
+
+Shows active network connections and open ports.
+
+```
+"Show me active TCP connections"
+"Which ports are open?"
+"What's currently connecting to the internet?"
+```
+
+#### `list_devices` — Connected devices
+
+Lists all currently detected devices (USB, network, Bluetooth).
+
+```
+"What devices are connected?"
+"What USB sticks are plugged in?"
+```
+
+#### `get_wifi_info` — WiFi status
+
+Shows WiFi connection details: SSID, signal, IP address.
+
+```
+"What's my WiFi status?"
+"How strong is my WiFi signal?"
+"What network am I connected to?"
+```
+
+---
 
 ### Mail & Calendar
 
-**Outlook:**
+#### `read_emails` — Read Outlook emails
 
-- "Show my unread emails"
-- "Mark the email as read / spam / archived"
-- "Draft an email to Klaus: meeting tomorrow at 2pm?"
-- "What's on my calendar this week?"
-- "Create an appointment: dentist, Friday at 10am"
+Reads unread or filtered Outlook emails.
 
-**Gmail & Google Calendar** (OAuth required, set up once in Settings):
+```
+"Show me my unread emails"
+"What did Klaus write?"
+"New emails from today please"
+```
 
-- "Show me my Gmail emails"
-- "What's on my Google Calendar today?"
+#### `mark_email` — Mark Outlook email
 
-### Tasks
+Marks an email as read, spam, or archived.
 
-ELLA maintains a persistent task list. Tasks survive restarts.
+```
+"Mark the email from Klaus as read"
+"Mark the last email as spam"
+"Archive the email with that subject"
+```
 
-Just say:
+#### `compose_email` — Compose email
 
-- "Add the task 'File taxes'"
-- "Show my open tasks"
-- "Mark 'File taxes' as done"
-- "Delete task XY"
+Opens an Outlook draft with AI-formulated text (does not send automatically).
 
-### Alarms
+```
+"Write a draft to Klaus: meeting tomorrow at 2pm?"
+"Email to team@company.com: the meeting is postponed"
+```
 
-Just say:
+#### `read_gmail` — Read Gmail
 
-- "Set an alarm for 7:30"
-- "Set an alarm for tomorrow morning at 6"
-- "Which alarms are active?"
-- "Delete the 7:30 alarm"
+Reads Gmail emails via OAuth 2.0 (one-time setup in Settings).
 
-Alarms are checked daily and trigger a notification plus a TTS announcement.
+```
+"Show me my Gmail emails"
+"Unread Gmail from today"
+```
 
-### Reminders
+#### `mark_gmail` — Mark Gmail email
 
-Reminders are set via the Windows Task Scheduler and appear as popups at the specified time.
+Marks Gmail emails as read, spam, or archived.
 
-Just say:
+```
+"Mark Gmail email as read"
+"Move spam email in Gmail"
+```
 
-- "Remind me tomorrow at 3pm: call the doctor's office"
-- "What reminders do I have?"
-- "Delete reminder XY"
+#### `read_calendar` — Read Outlook calendar
 
-### Music & Entertainment
+Reads calendar appointments from Outlook.
 
-Just say:
+```
+"What's on my calendar this week?"
+"What appointments do I have tomorrow?"
+"Show me the calendar for next Monday"
+```
 
-- "Play something by Coldplay"
-- "Open my media player with the album 'Brothers in Arms'"
-- "Find Metallica tracks in my library"
+#### `create_appointment` — Create Outlook appointment
 
-### Network & Monitoring
+Creates a new appointment in Outlook.
 
-Just say:
+```
+"Create an appointment: dentist, Friday at 10am"
+"Meeting with Klaus: Thursday 2pm, 1 hour"
+```
 
-- "Who's on my network?"
-- "Show active TCP connections"
-- "What's my Wi-Fi status?"
-- "Show me the firewall rules"
+#### `read_google_calendar` — Read Google Calendar
 
-### Screenshot & Screen Analysis
+Reads Google Calendar via OAuth 2.0.
 
-_(Requires OpenAI key)_
+```
+"What's on my Google Calendar today?"
+"Google appointments for this week"
+```
 
-Just say:
+#### `create_google_appointment` — Create Google appointment
 
-- "Take a screenshot and analyze what you see"
-- "Describe what's happening on screen"
-- "Analyze this image" _(paste an image)_
+Creates an appointment in Google Calendar.
+
+```
+"Appointment in Google Calendar: doctor, Monday 9am"
+```
+
+---
+
+### Tasks & Alarms
+
+#### `add_task` — Add task
+
+Adds a task to the persistent todo list (survives restarts).
+
+```
+"Add the task 'File taxes'"
+"Todo: call back Miller"
+"New to-do: finish the proposal by Friday"
+```
+
+#### `list_tasks` — Show tasks
+
+Shows all open or completed tasks.
+
+```
+"Show me my open tasks"
+"What's still on my todo list?"
+"Show completed tasks"
+```
+
+#### `complete_task` — Complete task
+
+Marks a task as done.
+
+```
+"Mark 'File taxes' as done"
+"Check off task 3"
+```
+
+#### `delete_task` — Delete task
+
+Removes a task from the list.
+
+```
+"Delete the task call back Miller"
+"Remove task 5"
+```
+
+#### `set_alarm` — Set alarm
+
+Sets an alarm — ELLA triggers it with a voice alert.
+
+```
+"Set an alarm for 7:30"
+"Alarm tomorrow morning at 6"
+"Wake me up in 45 minutes"
+```
+
+#### `list_alarms` — Show alarms
+
+Shows all active alarms.
+
+```
+"Which alarms are active?"
+"Show my alarms"
+```
+
+#### `delete_alarm` — Delete alarm
+
+Deletes a set alarm.
+
+```
+"Delete the 7:30 alarm"
+"Remove the alarm for tomorrow"
+```
+
+#### `set_reminder` — Set reminder
+
+Creates a reminder via Windows Task Scheduler — appears as a popup at the set time.
+
+```
+"Remind me tomorrow at 3pm: call the doctor's office"
+"Reminder: Friday 9am — pay invoice"
+```
+
+#### `list_reminders` — Show reminders
+
+Shows all active reminders.
+
+```
+"What reminders do I have?"
+"Show my reminders"
+```
+
+#### `delete_reminder` — Delete reminder
+
+Deletes a scheduled reminder.
+
+```
+"Delete the doctor reminder"
+```
+
+---
+
+### System Control
+
+#### `set_volume` — Control volume
+
+Sets the Windows system volume.
+
+```
+"Set the volume to 40 percent"
+"Quieter please — to 10"
+"Maximum volume"
+"Mute"
+```
+
+#### `get_clipboard` — Read clipboard
+
+Reads the current clipboard contents (including the last 20 entries).
+
+```
+"What's in the clipboard?"
+"What did I last copy?"
+"Show me the clipboard history"
+```
+
+#### `set_clipboard` — Set clipboard
+
+Writes text to the clipboard.
+
+```
+"Copy 'Hello World' to the clipboard"
+"Write my email address to the clipboard"
+```
+
+#### `send_keys` — Simulate keys
+
+Sends keyboard shortcuts to the active window.
+
+```
+"Send Ctrl+C to the active window"
+"Press Enter"
+"Send Alt+F4"
+```
+
+---
+
+### Mouse & Screen Automation
+
+#### `move_mouse` — Move mouse
+
+Moves the mouse cursor to specific coordinates.
+
+```
+"Move the mouse to position 500, 300"
+```
+
+#### `click_at` — Click at position
+
+Clicks at specific screen coordinates.
+
+```
+"Click at position 200, 400"
+"Right-click at 800, 600"
+```
+
+#### `drag_drop` — Drag & drop
+
+Drags an element from one position to another.
+
+```
+"Drag from 100,200 to 500,600"
+```
+
+#### `click_element` — Click element
+
+Clicks on a named element on screen.
+
+```
+"Click the OK button"
+"Click Save"
+```
+
+#### `read_screen` — Read screen
+
+Reads text from the current screen.
+
+```
+"What does my screen say?"
+"Read me the text in the active window"
+```
+
+#### `watch_screen` — Watch screen
+
+Watches the screen and waits for a specific change.
+
+```
+"Wait until the download is done and let me know"
+"Watch the screen for error messages"
+```
+
+#### `describe_screen` — Describe screen
+
+Takes a screenshot and describes what's visible (OpenAI Vision).
+
+```
+"Describe what's happening on screen"
+"What do you see on my monitor right now?"
+```
+
+#### `take_screenshot` — Take screenshot
+
+Takes a screenshot and saves it.
+
+```
+"Take a screenshot"
+"Screenshot of the screen"
+"Photo of the current window"
+```
+
+#### `describe_image` — Analyze image
+
+Analyzes a pasted image with GPT-4o Vision (OpenAI key required).
+
+```
+"What's in this image?" _(paste image)_
+"Analyze this photo"
+"Describe the image I just sent"
+```
+
+#### `describe_webpage` — Analyze webpage
+
+Loads a webpage and summarizes its content.
+
+```
+"What does this website say: https://..."
+"Summarize the article at this URL"
+```
+
+---
+
+### Internet & Search
+
+#### `search_web` / `web_search` — Web search
+
+Searches the internet via DuckDuckGo, no tracking.
+
+```
+"Search for the current Bitcoin price"
+"What's the new iPhone model?"
+"Who won the Champions League?"
+```
+
+#### `fetch_url` — Fetch URL
+
+Loads the content of a URL and returns it.
+
+```
+"Fetch this URL and tell me what's there"
+"Get the content of https://..."
+```
+
+#### `get_weather` — Weather
+
+Gets the current weather for your location (Open-Meteo, no API key needed).
+
+```
+"What's the weather like today?"
+"Weather for tomorrow please"
+"Do I need an umbrella today?"
+```
+
+#### `get_location` — Location
+
+Returns your configured location.
+
+```
+"What's my current location?"
+"Where am I set to?"
+```
+
+---
+
+### Date & Time
+
+#### `get_datetime` — Date and time
+
+Returns the current date and time.
+
+```
+"What time is it?"
+"What's today's date?"
+"How many days until Christmas?"
+```
+
+---
+
+### Music & Media
+
+#### `play_music` — Play music
+
+Searches your music library and opens tracks in the media player.
+
+```
+"Play something by Coldplay"
+"Open the album 'Brothers in Arms' by Dire Straits"
+"Search Metallica tracks in my library"
+"Play my favorite playlist"
+```
+
+#### `control_media` — Control media playback
+
+Controls the current media player (play, pause, next, previous).
+
+```
+"Pause"
+"Next track"
+"Previous song"
+"Start playback"
+```
+
+#### `get_now_playing` — Now playing
+
+Shows what's currently playing.
+
+```
+"What's playing right now?"
+"Which track is on?"
+```
+
+---
+
+### Text & Language
+
+#### `write_for_me` — Write text
+
+Writes texts of any kind on request.
+
+```
+"Write me a professional cover letter for the position of..."
+"Draft a decline for Klaus's invitation"
+"Write an Instagram caption for this photo"
+```
+
+#### `translate_text` — Translate text
+
+Translates text into any language.
+
+```
+"Translate this to German"
+"How do you say this in Spanish?"
+"Translate this paragraph into French"
+```
+
+#### `summarize_text` — Summarize text
+
+Summarizes long text concisely.
+
+```
+"Summarize this text"
+"Short version please"
+"TL;DR of this article"
+```
+
+---
+
+### Memory
+
+#### `remember` — Remember
+
+Saves information permanently in the vector store.
+
+```
+"Remember: I don't drink coffee in the morning"
+"Save: my favorite color is blue"
+"Remember that my car is a VW Golf"
+```
+
+#### `forget` — Forget
+
+Deletes a stored memory.
+
+```
+"Forget the note about coffee"
+"Delete memory entry number 3"
+```
+
+#### `list_memories` — Show memory
+
+Shows all stored memories.
+
+```
+"What do you know about me?"
+"Show me your memory"
+"My saved notes please"
+```
+
+---
+
+### Configuration
+
+#### `update_setting` — Change setting
+
+Changes an ELLA setting through conversation.
+
+```
+"Switch to OpenAI"
+"Set the provider to Ollama"
+"Disable voice output"
+```
+
+#### `create_rule` — Create rule
+
+Creates a new behavioral rule for ELLA.
+
+```
+"Create a rule: ELLA must not send emails"
+"Rule: no alarms between 10pm and 7am"
+"Block ELLA from accessing drive D"
+```
+
+#### `homework_mode` — Homework mode
+
+Activates or deactivates the PIN-secured kiosk mode.
+
+```
+"Activate homework mode"
+"Start children's mode"
+"Deactivate homework mode" _(PIN required)_
+```
 
 ---
 
 ## Multi-Agents
 
-The Multi-Agent feature is ELLA's most powerful mode. Multiple specialized AI agents work **in parallel**, delivering more in less time than a single agent ever could.
+The most powerful feature: multiple AI agents work **in parallel** — faster, deeper, more at once.
 
-> **Note:** Multi-Agents requires a configured OpenAI key (Settings → API Key). Ollama is not used for this feature.
-
-### How to Access It
-
-Navigate to **Multi-Agents** in the sidebar.
+> Requires OpenAI key. Ollama runs separately for normal chat.
 
 ### Predefined Pipelines
 
-**🌅 Morning Briefing**
-Three agents work simultaneously:
+**🌅 Morning Briefing** — 3 agents simultaneously:
 
-- Agent 1 reads today's calendar appointments
-- Agent 2 retrieves your open tasks
-- Agent 3 fetches the current weather for your location
+- Today's calendar appointments
+- Open tasks
+- Current weather
 
-The result: a compact daily briefing combining all three.
+**🖥️ System Report** — 4 agents simultaneously:
 
-**🖥️ System Report**
-Four agents analyze simultaneously:
+- Storage space on all drives
+- RAM and CPU usage
+- Top processes by resource consumption
+- Network status and connections
 
-- Agent 1: Free space on all drives
-- Agent 2: RAM and CPU usage
-- Agent 3: Running processes (top 10 by resource consumption)
-- Agent 4: Network status and open connections
+### Setup After Completion
 
-The result: a complete system health report.
-
-### Live View
-
-While the pipeline runs, you see a live card for each agent showing:
-
-- Real-time status (running / done / error)
-- Live-streamed agent text
-- Which tools the agent is currently using
-
-### Run a Setup After Completion _(optional)_
-
-You can link a pipeline with a **Setup**. After all agents finish, ELLA automatically executes the setup — for example, opening or closing specific apps.
-
-Select the desired setup from the dropdown before starting the pipeline.
-
-### The Data Is Real
-
-What you see in Multi-Agent view is not sample data — it's real information from your system, your calendar, and your drives. Just like in the regular chat, only faster and parallelized.
+Link a pipeline to a setup macro — after completion, apps are automatically opened or closed.
 
 ---
 
 ## Setups
 
-Setups are macros — define once which apps to open and close, then trigger them with a single phrase.
+Macros — define once, call at any time with a word.
 
-Just say:
-
-- "Load my work setup"
-- "Start the gaming setup"
-
-Create setups: **Settings → Setups → New**.
+**Create:** Settings → Setups → New
+**Use:** "Load my work setup"
 
 ---
 
 ## Memory
 
-ELLA remembers information about you — preferences, habits, notes. Memory is separated by profile and persists permanently.
-
-Just say:
-
-- "Remember: I don't like meetings before 9am"
-- "What do you know about me?"
-- "Forget the note about XY"
+Vector-based long-term storage (nomic-embed-text, local). Profile-isolated — each user has their own memory.
 
 ---
 
 ## Proactive Messages
 
-ELLA reaches out proactively when something important happens:
+ELLA reaches out proactively when:
 
-- **Drive nearly full** — when a drive drops below 10% free space
-- **High RAM usage** — under sustained load
-- **USB device connected** — detection and announcement of new drives
-- **Alarm triggered** — voice alert at the set time
-- **Clipboard pattern** — IBAN, tracking number, URL, phone number detected → ELLA asks if she can help
-- **Meeting preparation** — 15 minutes before a calendar appointment
-- **End of day** — evening summary of open tasks
-- **Break reminder** — after a long work session
+- A drive drops below 10% free space
+- RAM is sustained high
+- A USB device is plugged in
+- An alarm triggers
+- An IBAN, tracking number, or phone number is detected in the clipboard
+- A calendar appointment starts in 15 minutes
+- Open tasks remain in the evening
+- A long work session calls for a break
 
 ---
 
 ## User Profiles
 
-ELLA supports multiple user profiles on the same machine. Each profile has:
+Multiple profiles on one machine — each with its own memory, its own history, optional PIN.
 
-- Its own memory
-- Its own conversation history
-- Its own optional PIN protection
-
-Manage profiles: **Settings → Profiles**.
+**Settings → Profiles**
 
 ---
 
 ## Homework Mode
 
-Homework Mode locks the computer to a defined app whitelist. Only approved programs can be opened — ideal for children while studying.
-
-**Important:** Only the correct PIN ends the mode. There is no automatic expiry time — this is intentional, so children cannot simply wait it out.
-
-Activate: Say "Activate homework mode" or go to **Settings → Homework Mode**.
+PIN-secured kiosk: only approved apps can be opened.
+No automatic expiry — only the PIN ends the mode.
 
 ---
 
@@ -318,102 +1093,101 @@ Activate: Say "Activate homework mode" or go to **Settings → Homework Mode**.
 
 ### Blind Mode
 
-Enable under **Settings → Accessibility → Blind Mode**:
-
-- TTS always active — every response is read aloud
-- Responses without Markdown formatting (better for screen readers)
-- Audio tones as status feedback (loading, error, success)
-- Welcome announcement on startup
-- All buttons and inputs labeled with `aria-label`
+- TTS always active
+- No markdown formatting
+- Audio tones as status feedback
+- All elements labeled with `aria-label`
 
 ### Deaf Mode
 
-Enable under **Settings → Accessibility → Deaf Mode**:
-
-- TTS and microphone button completely hidden
+- TTS and microphone completely hidden
 - Visual banner in chat
-- No mention of voice features in system prompt
 
 ---
 
 ## Settings
 
-Open Settings via the sidebar or say "Open settings".
+| Area              | Content                                          |
+| ----------------- | ------------------------------------------------ |
+| **LLM**           | Model tier (Small/Standard/Large) + Custom Model |
+| **Provider**      | Ollama (local) · OpenAI · Auto                   |
+| **API Key**       | OpenAI key for GPT features and Multi-Agents     |
+| **Voice**         | TTS engine, language, stress analysis            |
+| **Tools**         | Enable / disable individual tools                |
+| **Programs**      | Scan + search + manual approval                  |
+| **Setups**        | Macros for app combinations                      |
+| **Rules**         | Allow / deny individual actions                  |
+| **Profiles**      | Manage user profiles                             |
+| **Homework**      | Configure children's mode                        |
+| **Accessibility** | Blind and deaf mode                              |
 
-### Key Areas
+### Custom Model (new in v1.3.0)
 
-| Area              | What you'll find                             |
-| ----------------- | -------------------------------------------- |
-| **General**       | Language, name, location                     |
-| **LLM Provider**  | Ollama (local) or OpenAI — or Auto           |
-| **API Key**       | OpenAI key for GPT features and Multi-Agents |
-| **Voice**         | TTS engine, language, stress analysis        |
-| **Tools**         | Which tools ELLA is allowed to use           |
-| **Apps**          | List of your installed programs              |
-| **Setups**        | Macros for program combinations              |
-| **Rules**         | Allow / deny individual actions              |
-| **Profiles**      | Manage user profiles                         |
-| **Homework**      | Configure children's mode                    |
-| **Accessibility** | Blind and deaf mode                          |
+You're not limited to the three predefined models. Under **Settings → LLM → Custom Model**:
 
-### Rules
+- All models already installed in Ollama appear as clickable options
+- Free text field for any model name after `ollama pull`
 
-You can fine-tune ELLA's behavior with rules — no coding required:
+Example: `ollama pull qwen2.5:32b` in terminal → immediately selectable in ELLA.
 
-- "Create a rule: ELLA must not send emails"
-- "Create a rule: ELLA must not set alarms between 10pm and 7am"
+### Programs (improved in v1.3.0)
 
-Rules can be time-based and are enforced by the rule engine before any tool runs.
+If a program doesn't appear in the scanned list:
+
+1. **Search:** Type the program name → ELLA searches all drives
+2. **Browse:** Navigate directly to the .exe and add it
+
+Newly installed programs are automatically approved after scanning — you only need to explicitly block what ELLA shouldn't use.
 
 ---
 
 ## The ELLA Directive
 
-ELLA has four absolute prohibitions — hardcoded into the architecture, not overridable by any setting or rule:
+Four absolute prohibitions — anchored in the architecture, not disableable:
 
-1. **harm** — ELLA never causes harm: no physical, financial, psychological, or data-related damage
-2. **conceal** — ELLA never conceals: no hidden actions, no false statements about capabilities
-3. **surveil** — ELLA never monitors without awareness and explicit consent
-4. **exfiltrate** — ELLA never shares data without explicit consent
+1. **harm** — no damage: physical, financial, psychological, data-related
+2. **conceal** — no concealment of actions or capabilities
+3. **surveil** — no monitoring without knowledge and consent
+4. **exfiltrate** — no data sharing without explicit consent
 
-When ELLA declines a request, you'll see a red **DIRECTIVE** banner in the chat with the reason.
+Refusals appear as a red **DIRECTIVE** banner in chat.
 
 ---
 
 ## Privacy
 
 - All data stays on your machine
-- No telemetry, no tracking, no analytics
-- The AI model (Ollama) runs fully offline
-- OpenAI features (screenshot analysis, Multi-Agents) send data to OpenAI — only when you've configured a key and actively use the feature
+- No telemetry, no tracking
+- Ollama runs fully offline
+- OpenAI features (Vision, Multi-Agents) only when a key is configured and actively used
 - OpenAI does not train models on API data
 
 ---
 
 ## Frequently Asked Questions
 
-**ELLA isn't responding — what do I do?**
-Check if Ollama is running. The orange banner at the top of the chat appears when Ollama is unreachable. Restart Ollama or switch to OpenAI mode.
+**ELLA isn't responding?**
+Ollama may not be running. The orange banner at the top of the chat indicates this. Restart Ollama or switch to OpenAI.
 
 **Can I use ELLA offline?**
-Yes — completely. All core features run without internet. Only weather (Open-Meteo), Gmail/Google Calendar (OAuth), and OpenAI features need a connection.
+Yes — completely. Only weather (Open-Meteo), Gmail/Google Calendar, and OpenAI features need internet.
 
-**How do I change the voice?**
-Settings → Voice → Language. Choose between German, English, Spanish, and French. The app language is not affected.
+**How do I change the language model?**
+Settings → LLM → choose a model or enter a custom name.
 
-**Can ELLA support multiple users on one machine?**
-Yes — through user profiles. Each profile has its own memory and history. Optionally protect with a PIN.
+**How do I add a program ELLA can't find?**
+Settings → Programs → search field or Browse button.
 
 **What's the difference between Chat and Multi-Agents?**
-In Chat, a single agent (Ollama or OpenAI) works sequentially. In Multi-Agents, multiple specialized OpenAI agents work simultaneously — faster and with more depth for complex queries.
+Chat: one agent, sequential. Multi-Agents: multiple OpenAI agents in parallel — faster, more depth.
 
-**ELLA declined something — why?**
-Either one of your own rules is active, or the ELLA Directive applies. The red banner explains the reason. Rules can be adjusted in Settings.
+**ELLA declined something?**
+Either one of your own rules is active or the ELLA Directive applies. The red banner explains why. Rules can be adjusted in Settings.
 
 **How do I clear the memory?**
-Say "Forget everything about me" — or delete individual entries with "Show me your memory" followed by "Forget entry number X".
+Say "Forget everything about me" — or individual entries: "Show me your memory" → "Forget entry number X".
 
 ---
 
-_E.L.L.A. v1.2.0 — Embedded Local Logic Agent_
+_E.L.L.A. v1.3.0 — Embedded Local Logic Agent_
 _Built for Windows 10/11 (x64)_
