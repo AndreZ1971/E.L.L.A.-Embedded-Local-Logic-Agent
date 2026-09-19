@@ -271,4 +271,19 @@ export async function runMigrations(): Promise<void> {
       created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
+
+  // Eigene Pipelines
+  await exec(`
+    CREATE TABLE IF NOT EXISTS custom_pipelines (
+      id             VARCHAR(36)                   NOT NULL PRIMARY KEY,
+      profile_id     INT                           NULL,
+      name           VARCHAR(255)                  NOT NULL,
+      description    TEXT                          NOT NULL DEFAULT '',
+      icon           VARCHAR(20)                   NOT NULL DEFAULT '⚡',
+      execution_mode ENUM('parallel','sequential') NOT NULL DEFAULT 'parallel',
+      agents         JSON                          NOT NULL,
+      created_at     DATETIME                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at     DATETIME                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
 }

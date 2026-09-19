@@ -28,14 +28,21 @@ function psTmpRun(script: string, timeout = 8000): string {
 }
 
 export function listProcesses(top = 20): RunningProcess[] {
+  // $_.CPU in Get-Process = kumulative CPU-Sekunden seit Start, KEIN Prozentsatz.
+  // Win32_PerfFormattedData_PerfProc_Process liefert echte PercentProcessorTime
+  // (Summe über alle Kerne), dividiert durch Anzahl logischer Prozessoren → 0–100 %.
   const ps = `
-Get-Process | Sort-Object CPU -Descending | Select-Object -First ${top} |
-ForEach-Object {
+$n = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+$raw = Get-CimInstance Win32_PerfFormattedData_PerfProc_Process |
+  Where-Object { $_.Name -ne '_Total' -and $_.Name -ne 'Idle' } |
+  Sort-Object PercentProcessorTime -Descending |
+  Select-Object -First ${top}
+$raw | ForEach-Object {
   [PSCustomObject]@{
-    pid    = $_.Id
-    name   = $_.ProcessName
-    cpuPct = [math]::Round($_.CPU, 1)
-    ramMB  = [math]::Round($_.WorkingSet64 / 1MB, 1)
+    pid    = [int]$_.IDProcess
+    name   = ($_.Name -replace '#\\d+$', '')
+    cpuPct = [math]::Round($_.PercentProcessorTime / $n, 1)
+    ramMB  = [math]::Round($_.WorkingSetPrivate / 1MB, 1)
   }
 } | ConvertTo-Json -Compress`.trim();
 

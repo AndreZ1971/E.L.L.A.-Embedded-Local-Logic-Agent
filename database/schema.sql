@@ -108,3 +108,16 @@ CREATE TABLE IF NOT EXISTS user_feedback (
   INDEX idx_feedback_type    (feedback),
   INDEX idx_feedback_session (session_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS custom_pipelines (
+  id             VARCHAR(36)                        NOT NULL PRIMARY KEY,
+  profile_id     INT                                NULL,
+  name           VARCHAR(255)                       NOT NULL,
+  description    TEXT                               NOT NULL DEFAULT '',
+  icon           VARCHAR(20)                        NOT NULL DEFAULT '⚡',
+  execution_mode ENUM('parallel','sequential')      NOT NULL DEFAULT 'parallel',
+  agents         JSON                               NOT NULL,
+  created_at     DATETIME                           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at     DATETIME                           NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_custom_pipelines_profile (profile_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
