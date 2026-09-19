@@ -28,23 +28,23 @@ function psTmpRun(script: string, timeout = 8000): string {
 }
 
 export function listProcesses(top = 20): RunningProcess[] {
-  // $_.CPU in Get-Process = kumulative CPU-Sekunden seit Start, KEIN Prozentsatz.
-  // Win32_PerfFormattedData_PerfProc_Process liefert echte PercentProcessorTime
-  // (Summe über alle Kerne), dividiert durch Anzahl logischer Prozessoren → 0–100 %.
+  // CPU% aus WMI (echte Rate), RAM aus Get-Process.WorkingSet64 (= Task-Manager-Wert).
+  // WorkingSetPrivate in WMI liefert 0 fuer Prozesse mit hauptsaechlich shared Memory.
   const ps = `
 $n = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
-$raw = Get-CimInstance Win32_PerfFormattedData_PerfProc_Process |
+$cpuMap = @{}
+Get-CimInstance Win32_PerfFormattedData_PerfProc_Process |
   Where-Object { $_.Name -ne '_Total' -and $_.Name -ne 'Idle' } |
-  Sort-Object PercentProcessorTime -Descending |
-  Select-Object -First ${top}
-$raw | ForEach-Object {
+  ForEach-Object { $cpuMap[[int]$_.IDProcess] = [math]::Round($_.PercentProcessorTime / $n, 1) }
+Get-Process | ForEach-Object {
+  $pct = if ($cpuMap.ContainsKey($_.Id)) { $cpuMap[$_.Id] } else { 0 }
   [PSCustomObject]@{
-    pid    = [int]$_.IDProcess
-    name   = ($_.Name -replace '#\\d+$', '')
-    cpuPct = [math]::Round($_.PercentProcessorTime / $n, 1)
-    ramMB  = [math]::Round($_.WorkingSetPrivate / 1MB, 1)
+    pid    = $_.Id
+    name   = $_.ProcessName
+    cpuPct = $pct
+    ramMB  = [math]::Round($_.WorkingSet64 / 1MB, 1)
   }
-} | ConvertTo-Json -Compress`.trim();
+} | Sort-Object cpuPct -Descending | Select-Object -First ${top} | ConvertTo-Json -Compress`.trim();
 
   const out = psTmpRun(ps);
   const data = JSON.parse(out || "[]") as unknown;
