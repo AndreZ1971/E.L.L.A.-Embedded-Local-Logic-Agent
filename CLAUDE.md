@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v1.2.0**
+**Aktueller Stand: v1.3.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -141,6 +141,16 @@ database/
 - **Setup-Integration:** nach Pipeline-Abschluss optional ein Setup (App-Makro) ausführen; `setup_executed`-Event mit Ergebnis-Card in der UI
 - **Multi-Agenten-Seite** (`pages/pipeline/Pipeline.tsx`): Pipeline-Karten, Live-Agent-Karten, Setup-Dropdown, Zusammenfassung; OpenAI-Gate bei fehlendem Key
 - **LLM-Provider-Label:** überall nur noch "OpenAI" statt "OpenAI GPT-4o"
+
+### v1.3.0 — Setup-Aktionen & Netzwerk-Transparenz
+
+- **Setup-Aktionen** (`SetupAction { tool, args, label?, delay_ms? }`): beliebige ELLA-Tool-Calls als geordnete Schritte pro Setup; sequenzielle Ausführung in `loadSetup()` nach open/close; `delay_ms` wartet vor jeder Aktion
+- **"▶ Jetzt"-Button** im Setup-Editor: `POST /api/setup/run` → `toolExecutor.execute({ tool: "load_setup" })`; grüner Button mit ⏳-Ladezustand
+- **Action-Templates** (Settings.tsx): 7 Templates mit dynamischen Formularfeldern — open_app, set_volume, toggle_dark_mode, free_ram, pause_ella, set_clipboard, translate_text
+- **Port-Events im Dashboard:** `port_opened`-SSE-Event mit Prozessname und suspicious-Flag; grau (normal) / orange (kein Prozess zuordenbar); kein Chat-Spam
+- **WiFi-Fix:** `getWifiInfo()` nutzt jetzt `Get-NetConnectionProfile` statt textbasiertem netsh-Parsing — sprachunabhängig, adapter-agnostisch
+- **TCP-Fix:** PS 5.1-kompatibler `if/else`-Ersatz für `??`-Operator; `[int]`-Cast auf beiden Seiten der Prozess-Hashtable — behebt "0 Verbindungen" und "Unknown"-Prozessnamen
+- **Pipeline-Analyse-Qualität:** konkrete Schwellwerte (RAM >85%, Temp >85°C, Akku <15%); Loopback-Adressen ausgeblendet; "Prozessname unbekannt" kein Verdacht mehr
 
 ---
 
@@ -286,16 +296,11 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
 
-
-
-
-
-
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-09-10T08:02:10.080Z._
+_Last synced: 2026-09-19T18:16:27.415Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).

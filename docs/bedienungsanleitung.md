@@ -1,6 +1,6 @@
 # E.L.L.A. — Bedienungsanleitung
 
-Version 1.2.0
+Version 1.3.0
 
 ---
 
@@ -20,8 +20,9 @@ Version 1.2.0
 12. [Die E.L.L.A. Direktive](#12-die-ella-direktive)
 13. [Hausaufgaben-Modus](#13-hausaufgaben-modus)
 14. [Multi-Agenten-Pipeline](#14-multi-agenten-pipeline)
-15. [Token-Optimierung](#15-token-optimierung)
-16. [Fehlerbehebung](#16-fehlerbehebung)
+15. [Setup-Aktionen](#15-setup-aktionen)
+16. [Token-Optimierung](#16-token-optimierung)
+17. [Fehlerbehebung](#17-fehlerbehebung)
 
 ---
 
@@ -629,13 +630,41 @@ Aktiviere oder deaktiviere einzelne ELLA-Fähigkeiten. Deaktivierte Tools werden
 
 ### Tab: Setups
 
-Setups sind Sammlungen von Apps die ELLA mit einem Befehl startet oder schließt.
+Setups sind Automatisierungs-Makros: ELLA startet oder schließt Apps — und kann danach beliebige weitere Aktionen ausführen.
 
-Setups können auch per Gespräch erstellt werden:
+Setups können per Gespräch erstellt werden:
 
 ```
 "Erstell ein Setup namens Büro mit Chrome, Word und Teams"
 ```
+
+#### Setup-Aktionen (ab v1.3.0)
+
+Jedes Setup kann zusätzlich zu den App-Listen eine **Aktionsliste** enthalten. Aktionen werden sequenziell nach dem Öffnen/Schließen der Apps ausgeführt.
+
+**Aktionen hinzufügen:**
+
+1. Im Setup-Editor unter **Aktionen** das gewünschte Template aus dem Dropdown wählen
+2. Parameter ausfüllen (z. B. Lautstärke 60)
+3. Optionale **Bezeichnung** vergeben (erscheint in der Aktionsliste)
+4. Optionale **Verzögerung** in Millisekunden eintragen — z. B. 2000 ms Pause bevor die Lautstärke gesetzt wird
+5. **+ Aktion hinzufügen** klicken
+
+**Verfügbare Aktions-Templates:**
+
+| Template              | Parameter         | Beschreibung                                |
+| --------------------- | ----------------- | ------------------------------------------- |
+| App öffnen            | App-Name          | Öffnet eine konfigurierte App               |
+| Lautstärke setzen     | 0–100             | Setzt die Systemlautstärke                  |
+| Dark/Light Mode       | —                 | Schaltet zwischen Hell und Dunkel um        |
+| RAM freigeben         | —                 | Bereinigt den Arbeitsspeicher               |
+| ELLA pausieren        | Minuten (1–480)   | Deaktiviert das Wakeword für X Minuten      |
+| Zwischenablage setzen | Text              | Befüllt die Zwischenablage mit einem Inhalt |
+| Text übersetzen       | Text, Zielsprache | Übersetzt und gibt das Ergebnis aus         |
+
+**"▶ Jetzt" ausführen:**
+
+Der grüne Jetzt-Button im Setup-Editor führt das Setup sofort aus — ohne den Chat öffnen zu müssen. Während der Ausführung wechselt er auf ⏳.
 
 ### Tab: Programme
 
@@ -772,9 +801,46 @@ Die Multi-Agenten-Pipeline nutzt OpenAI GPT-4o und erzeugt mehrere API-Aufrufe p
 
 ---
 
-## 15. Token-Optimierung
+## 15. Setup-Aktionen
 
-Ab v1.2.0 enthält ELLA zwei Mechanismen die API-Kosten und Latenz deutlich reduzieren — ohne dass du etwas konfigurieren musst.
+Ab v1.3.0 sind Setups nicht mehr auf "Apps öffnen und schließen" beschränkt — sie können beliebige ELLA-Aktionen als geordnete Schritte enthalten.
+
+### Beispiel: Arbeits-Setup
+
+Ein Setup "Arbeiten" könnte folgendes tun:
+
+1. Chrome, Word und Slack **öffnen**
+2. Spotify **schließen**
+3. **500 ms warten** (Apps brauchen einen Moment zum Starten)
+4. **Lautstärke auf 30 %** setzen (kein ablenkendes Hintergrundgeräusch)
+5. **Dark Mode aktivieren** (konzentriert auf dem Bildschirm)
+
+Das alles passiert mit einem einzigen Befehl: `"Starte mein Arbeits-Setup"` — oder per Klick auf **▶ Jetzt** in den Einstellungen.
+
+### Aktionen im Gespräch steuern
+
+```
+"Starte mein Morgen-Setup"
+"Lade das Setup Zocken"
+```
+
+ELLA führt automatisch alle konfigurierten Aktionen in der richtigen Reihenfolge aus und berichtet das Ergebnis.
+
+### Dashboard — Port-Ereignisse (v1.3.0)
+
+Wenn eine Anwendung einen neuen Netzwerk-Port öffnet, erscheint ein Eintrag unter **System-Events (Live)** im Dashboard:
+
+- Port-Nummer und Prozessname werden angezeigt
+- Grau: normaler Vorgang
+- Orange: Port ohne zuordenbaren Prozess (seltener Ausnahmefall)
+
+Diese Transparenz ist stumm — sie belastet den Chat nicht mit technischen Details.
+
+---
+
+## 16. Token-Optimierung
+
+Ab v1.1.0 enthält ELLA zwei Mechanismen die API-Kosten und Latenz deutlich reduzieren — ohne dass du etwas konfigurieren musst.
 
 ### Tool-Selector
 
@@ -797,7 +863,7 @@ Beide Mechanismen arbeiten im Hintergrund und sind dauerhaft aktiv.
 
 ---
 
-## 16. Fehlerbehebung
+## 17. Fehlerbehebung
 
 ### ELLA antwortet nicht
 
@@ -849,6 +915,18 @@ Prüfen: `"Ella, wie ist dein Status?"`
 - In der Google Cloud Console ist "Desktop App" als Anwendungstyp gewählt?
 - Token-Datei löschen und neu verbinden: `google-token.json` im ELLA-Datenordner
 
+### WLAN wird als "deaktiviert" angezeigt
+
+Falls `"Mit welchem WLAN bin ich verbunden?"` trotz bestehender Verbindung "deaktiviert" zurückgibt:
+
+- Ab v1.3.0 behoben: ELLA nutzt jetzt `Get-NetConnectionProfile` statt textbasiertes Parsing — funktioniert mit deutsch und englisch lokalisierten Windows-Versionen
+- Funktioniert für alle Verbindungstypen: WLAN, Hotspot, USB-Tethering
+- Falls weiterhin ein Problem: `Get-NetConnectionProfile` in PowerShell manuell ausführen und prüfen ob eine Verbindung gelistet wird
+
+### Aktive Netzwerkverbindungen zeigen 0 Einträge
+
+Ab v1.3.0 behoben: betraf alle Windows-Systeme mit PowerShell 5.1 (der Standard auf Windows 10/11). Ursache war ein Inkompatibilitäts-Problem mit dem `??`-Operator und einem Typenkonflikt bei Prozess-IDs. Kein Handlungsbedarf — das Update löst das automatisch.
+
 ### Einstellung wird nicht gespeichert
 
 - Immer den **Speichern**-Button klicken — Änderungen werden nicht automatisch übernommen
@@ -861,4 +939,4 @@ Prüfen: `"Ella, wie ist dein Status?"`
 
 ---
 
-_E.L.L.A. v1.2.0 · Proprietär · Alle Rechte vorbehalten_
+_E.L.L.A. v1.3.0 · Proprietär · Alle Rechte vorbehalten_
