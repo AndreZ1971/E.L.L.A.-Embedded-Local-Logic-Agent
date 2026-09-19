@@ -12,6 +12,7 @@ export interface SetupAction {
   tool: string;
   args: Record<string, unknown>;
   label?: string;
+  delay_ms?: number;
 }
 
 export interface Setup {

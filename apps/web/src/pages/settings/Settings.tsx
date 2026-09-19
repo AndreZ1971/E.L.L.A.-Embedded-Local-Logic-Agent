@@ -14,6 +14,7 @@ interface SetupAction {
   tool: string;
   args: Record<string, unknown>;
   label?: string;
+  delay_ms?: number;
 }
 
 interface Setup {
@@ -41,6 +42,19 @@ interface ActionTemplate {
 }
 
 const ACTION_TEMPLATES: ActionTemplate[] = [
+  {
+    tool: "open_app",
+    label: "App öffnen",
+    defaultArgs: { name: "" },
+    fields: [
+      {
+        key: "name",
+        type: "text",
+        label: "App-Name",
+        placeholder: "vscode / chrome / ...",
+      },
+    ],
+  },
   {
     tool: "set_volume",
     label: "Lautstärke setzen",
@@ -570,6 +584,22 @@ const Settings: React.FC = () => {
     ACTION_TEMPLATES[0].defaultArgs,
   );
   const [newActionLabel, setNewActionLabel] = useState("");
+  const [newActionDelay, setNewActionDelay] = useState(0);
+  const [runningSetupId, setRunningSetupId] = useState<string | null>(null);
+
+  const runSetupNow = async (setupName: string, setupId: string) => {
+    setRunningSetupId(setupId);
+    try {
+      await fetch("/api/setup/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: setupName }),
+      });
+    } catch {
+      // ignorieren — Setup wurde trotzdem versucht
+    }
+    setRunningSetupId(null);
+  };
 
   const savePin = async () => {
     if (!pinNew) {
@@ -1543,6 +1573,26 @@ const Settings: React.FC = () => {
                         style={{ ...input, flex: 1 }}
                       />
                       <button
+                        onClick={() => runSetupNow(setup.name, setup.id)}
+                        disabled={runningSetupId === setup.id}
+                        style={{
+                          padding: "8px 12px",
+                          borderRadius: 6,
+                          background: "transparent",
+                          border: "1px solid #22c55e",
+                          color:
+                            runningSetupId === setup.id ? "#475569" : "#22c55e",
+                          cursor:
+                            runningSetupId === setup.id
+                              ? "not-allowed"
+                              : "pointer",
+                          fontSize: "0.8rem",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {runningSetupId === setup.id ? "⏳" : "▶ Jetzt"}
+                      </button>
+                      <button
                         onClick={() => deleteSetup(setup.id)}
                         style={{
                           padding: "8px 12px",
@@ -1740,6 +1790,9 @@ const Settings: React.FC = () => {
                                 }}
                               >
                                 {action.tool}
+                                {action.delay_ms
+                                  ? ` +${action.delay_ms}ms`
+                                  : ""}
                               </span>
                               <button
                                 onClick={() => removeSetupAction(setup.id, idx)}
@@ -1886,6 +1939,40 @@ const Settings: React.FC = () => {
                           );
                         })()}
 
+                        {/* Verzögerung */}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
+                          <label
+                            style={{ fontSize: "0.72rem", color: "#64748b" }}
+                          >
+                            Verzögerung (ms)
+                          </label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={30000}
+                            step={500}
+                            value={newActionDelay}
+                            onChange={(e) =>
+                              setNewActionDelay(Number(e.target.value))
+                            }
+                            style={{
+                              background: "#0f1117",
+                              border: "1px solid #2d3148",
+                              borderRadius: 6,
+                              color: "#e2e8f0",
+                              padding: "5px 8px",
+                              fontSize: "0.82rem",
+                              width: 90,
+                            }}
+                          />
+                        </div>
+
                         <button
                           onClick={() => {
                             const tpl = ACTION_TEMPLATES.find(
@@ -1896,6 +1983,9 @@ const Settings: React.FC = () => {
                               args: { ...newActionArgs },
                               label:
                                 newActionLabel || tpl?.label || newActionTool,
+                              ...(newActionDelay > 0
+                                ? { delay_ms: newActionDelay }
+                                : {}),
                             });
                             // Reset auf ersten Template
                             setNewActionTool(ACTION_TEMPLATES[0].tool);
@@ -1903,6 +1993,7 @@ const Settings: React.FC = () => {
                               ...ACTION_TEMPLATES[0].defaultArgs,
                             });
                             setNewActionLabel("");
+                            setNewActionDelay(0);
                           }}
                           style={{
                             padding: "6px 14px",

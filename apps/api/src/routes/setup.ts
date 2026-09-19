@@ -1,8 +1,22 @@
 import { Router } from "express";
 import { spawn } from "child_process";
 import { env } from "../config/env.js";
+import { toolExecutor } from "../tools/executor.js";
 
 export const setupRouter = Router();
+
+setupRouter.post("/run", async (req, res) => {
+  const { name } = req.body as { name?: string };
+  if (!name) {
+    res.status(400).json({ success: false, error: "name fehlt" });
+    return;
+  }
+  const result = await toolExecutor.execute({
+    tool: "load_setup",
+    args: { name },
+  });
+  res.json(result);
+});
 
 setupRouter.get("/status", async (_req, res) => {
   let ollama = false;

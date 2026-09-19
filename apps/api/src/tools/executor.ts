@@ -312,6 +312,9 @@ async function loadSetup(args: Record<string, unknown>): Promise<ToolResult> {
   const actions: SetupAction[] = setup.actions ?? [];
   const actionResults: string[] = [];
   for (const action of actions) {
+    if (action.delay_ms && action.delay_ms > 0) {
+      await new Promise((r) => setTimeout(r, action.delay_ms));
+    }
     const handler = HANDLERS[action.tool as keyof typeof HANDLERS];
     if (!handler) {
       actionResults.push(`${action.tool}: unbekannt`);
