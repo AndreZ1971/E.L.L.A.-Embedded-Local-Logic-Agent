@@ -2,6 +2,17 @@ import { env } from "../config/env.js";
 import type { Message } from "@ella/shared";
 import { getSettings } from "./settings.js";
 
+export interface OllamaToolProperty {
+  type: string;
+  description?: string;
+  items?: OllamaToolProperty & {
+    properties?: Record<string, OllamaToolProperty>;
+    required?: string[];
+  };
+  properties?: Record<string, OllamaToolProperty>;
+  required?: string[];
+}
+
 export interface OllamaTool {
   type: "function";
   function: {
@@ -9,10 +20,7 @@ export interface OllamaTool {
     description: string;
     parameters: {
       type: "object";
-      properties: Record<
-        string,
-        { type: string; description: string; items?: { type: string } }
-      >;
+      properties: Record<string, OllamaToolProperty>;
       required?: string[];
     };
   };

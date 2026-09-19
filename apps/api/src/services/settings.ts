@@ -8,11 +8,18 @@ export interface AppEntry {
   allowed: boolean;
 }
 
+export interface SetupAction {
+  tool: string;
+  args: Record<string, unknown>;
+  label?: string;
+}
+
 export interface Setup {
   id: string;
   name: string;
   open: string[];
   close: string[];
+  actions?: SetupAction[];
 }
 
 export interface HomeworkModeConfig {

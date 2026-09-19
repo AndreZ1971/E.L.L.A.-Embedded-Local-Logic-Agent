@@ -9,7 +9,11 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 import * as path from "path";
-import { getSettings, saveSettings } from "../services/settings.js";
+import {
+  getSettings,
+  saveSettings,
+  type SetupAction,
+} from "../services/settings.js";
 import { createRule as createRuleInDb } from "../services/rules.js";
 import {
   activateHomeworkMode,
@@ -304,10 +308,33 @@ async function loadSetup(args: Record<string, unknown>): Promise<ToolResult> {
   if ((setup.close ?? []).length > 0)
     parts.push(`${setup.close.length} geschlossen`);
 
+  // Actions sequenziell ausführen
+  const actions: SetupAction[] = setup.actions ?? [];
+  const actionResults: string[] = [];
+  for (const action of actions) {
+    const handler = HANDLERS[action.tool as keyof typeof HANDLERS];
+    if (!handler) {
+      actionResults.push(`${action.tool}: unbekannt`);
+      continue;
+    }
+    try {
+      const r = await (
+        handler as (a: Record<string, unknown>) => Promise<ToolResult>
+      )(action.args ?? {});
+      actionResults.push(action.label ?? action.tool);
+      if (!r.success && r.error)
+        actionResults[actionResults.length - 1] += ` (Fehler: ${r.error})`;
+    } catch {
+      actionResults.push(`${action.tool}: Fehler`);
+    }
+  }
+  if (actionResults.length > 0)
+    parts.push(`Aktionen: ${actionResults.join(", ")}`);
+
   trackToolUsage("load_setup", setup.name);
   return {
     success: true,
-    output: `${setup.name} geladen — ${parts.join(", ") || "nichts zu tun"}.`,
+    output: `${setup.name} geladen — ${parts.join("; ") || "nichts zu tun"}.`,
   };
 }
 
@@ -402,12 +429,21 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
     if (!name) return { success: false, error: "Name darf nicht leer sein." };
     const open = Array.isArray(args.open) ? (args.open as string[]) : [];
     const close = Array.isArray(args.close) ? (args.close as string[]) : [];
+    const actions = Array.isArray(args.actions)
+      ? (args.actions as SetupAction[])
+      : [];
     const id = crypto.randomUUID();
-    await saveSettings({ setups: [...setups, { id, name, open, close }] });
+    await saveSettings({
+      setups: [...setups, { id, name, open, close, actions }],
+    });
     trackToolUsage("create_setup", name);
+    const actionSummary =
+      actions.length > 0
+        ? `, ${actions.length} Aktion(en): ${actions.map((a) => a.label ?? a.tool).join(", ")}`
+        : "";
     return {
       success: true,
-      output: `Setup "${name}" angelegt — ${open.length} App(s) öffnen, ${close.length} App(s) schließen.`,
+      output: `Setup "${name}" angelegt — ${open.length} App(s) öffnen, ${close.length} App(s) schließen${actionSummary}.`,
     };
   },
 

@@ -159,13 +159,13 @@ const CONVERSATION_TOOLS: OllamaTool[] = [
     function: {
       name: "create_setup",
       description:
-        "Legt ein neues App-Setup an. Nutze dies wenn der Nutzer sagt er möchte ein Setup erstellen oder eine Gruppe von Apps gemeinsam starten können.",
+        "Legt ein neues App-Setup an. Kann Apps öffnen/schließen und beliebige ELLA-Tool-Aktionen als Schritte enthalten (z.B. Lautstärke setzen, Dark Mode, Clipboard). Nutze dies wenn der Nutzer ein Setup erstellen oder eine komplexe Prozedur automatisieren möchte.",
       parameters: {
         type: "object",
         properties: {
           name: {
             type: "string",
-            description: 'Name des Setups, z.B. "Arbeit" oder "Gaming"',
+            description: 'Name des Setups, z.B. "Gaming" oder "Arbeiten"',
           },
           open: {
             type: "array",
@@ -178,6 +178,31 @@ const CONVERSATION_TOOLS: OllamaTool[] = [
             items: { type: "string" },
             description:
               "Liste der App-Namen die beim Setup geschlossen werden sollen",
+          },
+          actions: {
+            type: "array",
+            description:
+              "Optionale geordnete Liste von Tool-Aktionen die sequenziell ausgeführt werden. Jede Aktion hat 'tool' (Tool-Name), 'args' (Parameter) und optional 'label' (Beschreibung).",
+            items: {
+              type: "object",
+              properties: {
+                tool: {
+                  type: "string",
+                  description:
+                    "Name des auszuführenden Tools, z.B. 'set_volume', 'toggle_dark_mode', 'set_clipboard'",
+                },
+                args: {
+                  type: "object",
+                  description: "Parameter für das Tool",
+                },
+                label: {
+                  type: "string",
+                  description:
+                    "Menschenlesbare Beschreibung dieser Aktion, z.B. 'Lautstärke auf 80%'",
+                },
+              },
+              required: ["tool", "args"],
+            },
           },
         },
         required: ["name"],
