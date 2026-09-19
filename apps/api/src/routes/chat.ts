@@ -23,7 +23,7 @@ const sessionQueue = new Map<string, Promise<void>>();
 
 function withSessionLock<T>(
   sessionId: string,
-  fn: () => Promise<T>,
+  fn: () => Promise<T>
 ): Promise<T> {
   const prev = sessionQueue.get(sessionId) ?? Promise.resolve();
   const next = prev.catch(() => {}).then(fn);
@@ -31,8 +31,8 @@ function withSessionLock<T>(
     sessionId,
     next.then(
       () => {},
-      () => {},
-    ),
+      () => {}
+    )
   );
   return next;
 }
@@ -133,7 +133,7 @@ chatRouter.post("/", async (req, res, next) => {
     }
 
     const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
-      history.map((m) => ({ ...m, id: "", createdAt: "" })),
+      history.map((m) => ({ ...m, id: "", createdAt: "" }))
     );
 
     let finalReply = "";
@@ -156,7 +156,7 @@ chatRouter.post("/", async (req, res, next) => {
             roundTools,
             activeModel,
             memories,
-            userName,
+            userName
           );
       const assistantMsg = response.message;
 
@@ -188,7 +188,7 @@ chatRouter.post("/", async (req, res, next) => {
           message,
           lastAssistantContent,
           lastToolNames,
-          allTools,
+          allTools
         );
       }
     }
@@ -275,7 +275,7 @@ chatRouter.post("/stream", async (req, res) => {
       }
 
       const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
-        history.map((m) => ({ ...m, id: "", createdAt: "" })),
+        history.map((m) => ({ ...m, id: "", createdAt: "" }))
       );
 
       let finalReply = "";
@@ -298,7 +298,7 @@ chatRouter.post("/stream", async (req, res) => {
               roundTools,
               activeModel,
               memories,
-              userName,
+              userName
             );
 
         let roundContent = "";
@@ -392,7 +392,7 @@ chatRouter.post("/stream", async (req, res) => {
             message,
             lastAssistantContent,
             lastToolNames,
-            allTools,
+            allTools
           );
         }
       }
@@ -421,7 +421,7 @@ chatRouter.get("/provider", (_req, res) => {
   const s = getSettings();
   res.json({
     provider: p,
-    model: p === "openai" ? "gpt-4o" : (s.ollamaModel ?? env.ollamaModel),
+    model: p === "openai" ? "gpt-4o" : s.ollamaModel ?? env.ollamaModel,
   });
 });
 

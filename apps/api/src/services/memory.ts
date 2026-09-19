@@ -38,7 +38,7 @@ async function embed(text: string): Promise<number[] | null> {
 export async function remember(
   type: "user" | "system" | "note",
   content: string,
-  source?: string,
+  source?: string
 ): Promise<ToolResult> {
   const vec = await embed(content);
   if (!vec) {
@@ -50,21 +50,21 @@ export async function remember(
   }
   await pool.execute(
     "INSERT INTO memories (type, content, embedding, source) VALUES (?, ?, ?, ?)",
-    [type, content, JSON.stringify(vec), source ?? null],
+    [type, content, JSON.stringify(vec), source ?? null]
   );
   return { success: true, output: `Gespeichert (${type}): "${content}"` };
 }
 
 export async function recall(
   query: string,
-  limit = RECALL_LIMIT,
+  limit = RECALL_LIMIT
 ): Promise<string[]> {
   const qVec = await embed(query);
   if (!qVec) return [];
 
   const [rows] = await pool.execute<any[]>(
     "SELECT content, embedding FROM memories ORDER BY created_at DESC LIMIT ?",
-    [LOAD_LIMIT],
+    [LOAD_LIMIT]
   );
 
   return rows
@@ -87,7 +87,7 @@ export async function recall(
 export function extractAndRemember(
   userMsg: string,
   assistantMsg: string,
-  sessionId: string,
+  sessionId: string
 ): void {
   setImmediate(async () => {
     try {
@@ -123,7 +123,7 @@ Assistent: ${assistantMsg}`;
 export function processFeedbackMemory(
   excerpt: string,
   feedback: "positive" | "negative",
-  toolName?: string,
+  toolName?: string
 ): void {
   setImmediate(async () => {
     try {
@@ -165,7 +165,7 @@ export function trackToolUsage(tool: string, detail: string): void {
       await remember(
         "system",
         `Nutzer hat ${detail} verwendet (${tool})`,
-        `tool:${tool}`,
+        `tool:${tool}`
       );
     } catch {}
   });
@@ -173,18 +173,18 @@ export function trackToolUsage(tool: string, detail: string): void {
 
 export async function listMemories(
   type?: "user" | "system" | "note",
-  limit = 20,
+  limit = 20
 ): Promise<
   { id: number; type: string; content: string; created_at: string }[]
 > {
   const [rows] = type
     ? await pool.execute<any[]>(
         "SELECT id, type, content, created_at FROM memories WHERE type = ? ORDER BY created_at DESC LIMIT ?",
-        [type, limit],
+        [type, limit]
       )
     : await pool.execute<any[]>(
         "SELECT id, type, content, created_at FROM memories ORDER BY created_at DESC LIMIT ?",
-        [limit],
+        [limit]
       );
   return rows;
 }

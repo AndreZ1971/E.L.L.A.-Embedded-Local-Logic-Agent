@@ -366,11 +366,18 @@ const Dashboard: React.FC = () => {
                 {events.map((ev) => {
                   const isAlert = ev.type === "alert";
                   const severity = ev.payload.severity as string | undefined;
-                  const color = isAlert
-                    ? severity === "error"
-                      ? "#f87171"
-                      : "#fbbf24"
-                    : "#64748b";
+                  const isPortOpened = ev.type === "port_opened";
+                  const portSuspicious = ev.payload.suspicious as
+                    boolean | undefined;
+                  const color = isPortOpened
+                    ? portSuspicious
+                      ? "#f97316"
+                      : "#64748b"
+                    : isAlert
+                      ? severity === "error"
+                        ? "#f87171"
+                        : "#fbbf24"
+                      : "#64748b";
                   const time = new Date(ev.created_at).toLocaleTimeString(
                     i18n.language || "de-DE",
                   );
@@ -387,6 +394,12 @@ const Dashboard: React.FC = () => {
                     summary = `ollama: ${ev.payload.ok ? "ok" : "down"}`;
                   } else if (ev.type === "alert") {
                     summary = (ev.payload.message as string) ?? "alert";
+                  } else if (ev.type === "port_opened") {
+                    const proc = ev.payload.processName as string;
+                    const port = ev.payload.port as number;
+                    summary = portSuspicious
+                      ? `⚠ Port ${port} geöffnet — kein Prozess zuordenbar`
+                      : `Port ${port} → ${proc}`;
                   }
                   return (
                     <div

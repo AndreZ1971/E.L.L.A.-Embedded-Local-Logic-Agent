@@ -59,7 +59,7 @@ export const PREDEFINED_PIPELINES: PipelineConfig[] = [
       {
         id: "performance",
         name: "Performance",
-        role: "Du bist ein Performance-Analyst. Prüfe RAM-Auslastung, CPU-Temperaturen und Systemstatus. Melde auffällige Werte. Gib eine kompakte Übersicht aus.",
+        role: "Du bist ein Performance-Analyst. Prüfe RAM-Auslastung, CPU-Temperaturen und Systemstatus. Melde nur Werte, die konkrete Schwellwerte überschreiten: RAM >85%, Temperatur >85°C, Akku <15%. Unter diesen Schwellen: kein Kommentar, keine Wertung. Gib eine kompakte Übersicht aus.",
         tools: [
           "get_system_status",
           "get_system_info",
@@ -71,13 +71,13 @@ export const PREDEFINED_PIPELINES: PipelineConfig[] = [
       {
         id: "processes",
         name: "Prozesse",
-        role: "Du bist ein Prozess-Analyst. Liste die Top-10 Prozesse nach CPU/RAM-Auslastung auf. Markiere auffällige Prozesse. Gib eine kompakte Liste aus.",
+        role: "Du bist ein Prozess-Analyst. Liste die Top-10 Prozesse nach CPU/RAM-Auslastung auf — Name, CPU%, RAM. Keine Wertungen, keine Verdachtshinweise. Zahlen sprechen für sich.",
         tools: ["list_processes"],
       },
       {
         id: "network",
         name: "Netzwerk",
-        role: "Du bist ein Netzwerk-Analyst. Prüfe WLAN-Verbindung und aktive Netzwerkverbindungen. Melde auffällige Verbindungen. Gib eine kompakte Übersicht aus.",
+        role: "Du bist ein Netzwerk-Analyst. Zeige: (1) WLAN-Verbindung mit SSID falls verfügbar, sonst 'Kein WLAN'. (2) Anzahl aktiver Verbindungen und die Top-10 nach Prozessname gruppiert. Keine Verdachtshinweise, keine Anomaliemeldungen — ELLA hat kein Kriterium, das gut von böse trennt. Loopback-Adressen (127.0.0.1, ::1) in der Ausgabe weglassen — die verlassen das Gerät nicht. Externe HTTPS-Verbindungen (Port 443) sind normaler Internetverkehr. 'Prozessname unbekannt' ist kein Verdacht — das bedeutet nur dass der Owner nicht aufgelöst werden konnte. Zeige Fakten, keine Wertungen.",
         tools: ["get_wifi_info", "list_connections"],
       },
     ],

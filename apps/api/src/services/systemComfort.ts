@@ -174,21 +174,29 @@ export interface WifiInfo {
 }
 
 export function getWifiInfo(): WifiInfo {
-  // "SSID" ist auf DE und EN identisch — sicherer Anker statt State/Status
+  // Get-NetConnectionProfile direkt — kein Adapter-Filter, kein Textparsing, PS 5.1 kompatibel.
+  // netsh nur für Signal/Rate (optional).
   const ps = `
 try {
-  $raw = (netsh wlan show interfaces 2>$null) -join "\`n"
-  if (-not ($raw -match '(?m)^\s+SSID\s*:\s*(.+)$')) {
-    Write-Output '{"connected":false,"reason":"Kein aktives WLAN. PC ist vermutlich per LAN verbunden oder WLAN ist deaktiviert."}'
-  } else {
-    $ssid   = $Matches[1].Trim()
-    $signal = if ($raw -match '(?im)^\s+Signal\s*:\s*(.+)$') { $Matches[1].Trim() } else { '' }
-    $recv   = if ($raw -match '(?im)(Receive rate|Empfangsrate)\s*\(Mbps\)\s*:\s*(.+)$') { $Matches[2].Trim() } else { '' }
-    $send   = if ($raw -match '(?im)(Transmit rate|Senderate)\s*\(Mbps\)\s*:\s*(.+)$') { $Matches[2].Trim() } else { '' }
-    @{ connected=$true; ssid=$ssid; signal=$signal; receiveRate=$recv; sendRate=$send } | ConvertTo-Json -Compress
+  $profiles = @(Get-NetConnectionProfile -ErrorAction SilentlyContinue)
+  if ($profiles.Count -eq 0) {
+    Write-Output '{"connected":false,"reason":"Kein verbundenes Netzwerkprofil gefunden."}'
+    return
   }
+  $profile = $profiles | Select-Object -First 1
+  $ssid = $profile.Name
+
+  $signal = ''; $recv = ''; $send = ''
+  try {
+    $raw = (netsh wlan show interfaces 2>$null) -join "\`n"
+    if ($raw -match '(?im)Signal\\s*:\\s*(\\d+%)') { $signal = $Matches[1] }
+    if ($raw -match '(?im)(Receive rate|Empfangsrate)\\s*\\(Mbps\\)\\s*:\\s*(\\S+)') { $recv = $Matches[2] }
+    if ($raw -match '(?im)(Transmit rate|Senderate)\\s*\\(Mbps\\)\\s*:\\s*(\\S+)') { $send = $Matches[2] }
+  } catch {}
+
+  @{ connected=$true; ssid=$ssid; signal=$signal; receiveRate=$recv; sendRate=$send } | ConvertTo-Json -Compress
 } catch {
-  Write-Output '{"connected":false,"reason":"Fehler beim Abrufen der WLAN-Informationen."}'
+  Write-Output ('{"connected":false,"reason":"' + $_.Exception.Message.Replace('"','') + '"}')
 }`.trim();
 
   try {

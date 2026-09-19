@@ -90,8 +90,7 @@ function getLogicalDrives(): string[] {
     const raw = psSync(script).trim();
     if (!raw) return ["C"];
     const parsed = JSON.parse(raw) as
-      | { DeviceID: string }
-      | { DeviceID: string }[];
+      { DeviceID: string } | { DeviceID: string }[];
     const items = Array.isArray(parsed) ? parsed : [parsed];
     const drives = items
       .map((i) => i.DeviceID.replace(":", "").trim().toUpperCase())
@@ -109,8 +108,7 @@ async function getLogicalDrivesAsync(): Promise<string[]> {
     const raw = (await psAsync(script)).trim();
     if (!raw) return ["C"];
     const parsed = JSON.parse(raw) as
-      | { DeviceID: string }
-      | { DeviceID: string }[];
+      { DeviceID: string } | { DeviceID: string }[];
     const items = Array.isArray(parsed) ? parsed : [parsed];
     const drives = items
       .map((i) => i.DeviceID.replace(":", "").trim().toUpperCase())
@@ -254,10 +252,10 @@ export interface TcpConnection {
 export async function getTcpConnections(): Promise<TcpConnection[]> {
   try {
     const script =
-      "$procs = @{}; Get-Process | ForEach-Object { $procs[$_.Id] = $_.ProcessName }; " +
+      "$procs = @{}; Get-Process | ForEach-Object { $procs[[int]$_.Id] = $_.ProcessName }; " +
       "Get-NetTCPConnection -State Listen,Established | " +
       "Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess | " +
-      "ForEach-Object { $_ | Add-Member -NotePropertyName ProcessName -NotePropertyValue ($procs[$_.OwningProcess] ?? 'Unknown') -Force; $_ } | " +
+      "ForEach-Object { $_ | Add-Member -NotePropertyName ProcessName -NotePropertyValue $(if ($procs[[int]$_.OwningProcess]) { $procs[[int]$_.OwningProcess] } else { 'Unknown' }) -Force; $_ } | " +
       "ConvertTo-Json -Compress";
     const encoded = Buffer.from(script, "utf16le").toString("base64");
     const { stdout } = await execAsync(
@@ -282,17 +280,45 @@ export async function getTcpConnections(): Promise<TcpConnection[]> {
   }
 }
 
-async function getListeningPorts(): Promise<Set<number>> {
+interface ListeningPort {
+  port: number;
+  pid: number;
+  processName: string;
+}
+
+async function getListeningPortsWithProcess(): Promise<
+  Map<number, ListeningPort>
+> {
   try {
     const script =
-      "Get-NetTCPConnection -State Listen | Select-Object -ExpandProperty LocalPort | Sort-Object -Unique | ConvertTo-Json -Compress";
-    const raw = (await psAsync(script)).trim();
-    if (!raw) return new Set();
+      "$procs = @{}; Get-Process | ForEach-Object { $procs[[int]$_.Id] = $_.ProcessName }; " +
+      "Get-NetTCPConnection -State Listen | " +
+      "Select-Object LocalPort,OwningProcess | " +
+      "ForEach-Object { [PSCustomObject]@{ port=$_.LocalPort; pid=$_.OwningProcess; processName=$(if ($procs[[int]$_.OwningProcess]) { $procs[[int]$_.OwningProcess] } else { 'Unknown' }) } } | " +
+      "Sort-Object port -Unique | ConvertTo-Json -Compress";
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    const { stdout } = await execAsync(
+      `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      { timeout: 8000 },
+    );
+    const raw = stdout.trim();
+    if (!raw) return new Map();
     const parsed: unknown = JSON.parse(raw);
     const items = Array.isArray(parsed) ? parsed : [parsed];
-    return new Set(items.filter((p) => typeof p === "number") as number[]);
+    const result = new Map<number, ListeningPort>();
+    for (const item of items as Array<Record<string, unknown>>) {
+      const port = Number(item["port"]) || 0;
+      if (port > 0) {
+        result.set(port, {
+          port,
+          pid: Number(item["pid"]) || 0,
+          processName: (item["processName"] as string) ?? "Unknown",
+        });
+      }
+    }
+    return result;
   } catch {
-    return new Set();
+    return new Map();
   }
 }
 
@@ -410,7 +436,7 @@ let lastDevices: Map<string, PnPDevice> = new Map();
 let devicesInitialized = false;
 let lastArpIps: Set<string> = new Set();
 let arpInitialized = false;
-let lastListeningPorts: Set<number> = new Set();
+let lastListeningPorts: Map<number, ListeningPort> = new Map();
 let portsInitialized = false;
 let lastDnsServers = "";
 let disabledFirewallProfiles: Set<string> = new Set();
@@ -532,18 +558,26 @@ async function tick() {
     lastArpIps = currentArpIps;
   }
 
-  const currentPorts = await getListeningPorts();
+  const currentPorts = await getListeningPortsWithProcess();
   if (!portsInitialized) {
     lastListeningPorts = currentPorts;
     portsInitialized = true;
   } else {
-    for (const port of currentPorts) {
+    for (const [port, info] of currentPorts) {
       if (!lastListeningPorts.has(port)) {
-        // Nur ins Log schreiben — kein SSE-Emit, kein Toast, kein TTS
-        await writeEvent("alert", {
-          severity: "warning",
-          message: `Neuer lauschender Port geöffnet: ${port}`,
+        const suspicious = info.processName === "Unknown";
+        const evId = await writeEvent("port_opened", {
           port,
+          pid: info.pid,
+          processName: info.processName,
+          suspicious,
+        });
+        // Dashboard-SSE — kein Chat, kein TTS
+        emit({
+          id: evId,
+          type: "port_opened",
+          payload: { port, processName: info.processName, suspicious },
+          created_at: now,
         });
       }
     }
