@@ -174,20 +174,17 @@ export interface WifiInfo {
 }
 
 export function getWifiInfo(): WifiInfo {
-  // Get-NetAdapter ist sprachunabhängig — kein DE/EN-Problem wie bei netsh
+  // "SSID" ist auf DE und EN identisch — sicherer Anker statt State/Status
   const ps = `
 try {
-  $adapter = Get-NetAdapter | Where-Object { $_.PhysicalMediaType -like '*802.11*' -and $_.Status -eq 'Up' } | Select-Object -First 1
-  if (-not $adapter) {
-    Write-Output '{"connected":false,"reason":"Kein aktives WLAN-Interface. PC wahrscheinlich per LAN verbunden oder WLAN deaktiviert."}'
+  $raw = (netsh wlan show interfaces 2>$null) -join "\`n"
+  if (-not ($raw -match '(?m)^\s+SSID\s*:\s*(.+)$')) {
+    Write-Output '{"connected":false,"reason":"Kein aktives WLAN. PC ist vermutlich per LAN verbunden oder WLAN ist deaktiviert."}'
   } else {
-    $profile = Get-NetConnectionProfile -InterfaceAlias $adapter.Name -ErrorAction SilentlyContinue
-    $ssid = if ($profile) { $profile.Name } else { $adapter.Name }
-    $raw = (netsh wlan show interfaces 2>$null) -join "\`n"
-    # Regex matcht DE (Signal/Signalstaerke) und EN (Signal)
-    $signal = if ($raw -match '(?im)Signal.*?:\s*(.+)$') { $Matches[1].Trim() } else { '' }
-    $recv   = if ($raw -match '(?im)(Receive rate|Empfangsrate).*?:\s*(.+)$') { $Matches[2].Trim() } else { '' }
-    $send   = if ($raw -match '(?im)(Transmit rate|Senderate).*?:\s*(.+)$') { $Matches[2].Trim() } else { '' }
+    $ssid   = $Matches[1].Trim()
+    $signal = if ($raw -match '(?im)^\s+Signal\s*:\s*(.+)$') { $Matches[1].Trim() } else { '' }
+    $recv   = if ($raw -match '(?im)(Receive rate|Empfangsrate)\s*\(Mbps\)\s*:\s*(.+)$') { $Matches[2].Trim() } else { '' }
+    $send   = if ($raw -match '(?im)(Transmit rate|Senderate)\s*\(Mbps\)\s*:\s*(.+)$') { $Matches[2].Trim() } else { '' }
     @{ connected=$true; ssid=$ssid; signal=$signal; receiveRate=$recv; sendRate=$send } | ConvertTo-Json -Compress
   }
 } catch {
