@@ -10,12 +10,99 @@ interface AppEntry {
   allowed: boolean;
 }
 
+interface SetupAction {
+  tool: string;
+  args: Record<string, unknown>;
+  label?: string;
+}
+
 interface Setup {
   id: string;
   name: string;
   open: string[];
   close: string[];
+  actions?: SetupAction[];
 }
+
+interface ActionField {
+  key: string;
+  type: "number" | "text";
+  label: string;
+  min?: number;
+  max?: number;
+  placeholder?: string;
+}
+
+interface ActionTemplate {
+  tool: string;
+  label: string;
+  defaultArgs: Record<string, unknown>;
+  fields: ActionField[];
+}
+
+const ACTION_TEMPLATES: ActionTemplate[] = [
+  {
+    tool: "set_volume",
+    label: "Lautstärke setzen",
+    defaultArgs: { level: 80 },
+    fields: [
+      {
+        key: "level",
+        type: "number",
+        label: "Lautstärke (0–100)",
+        min: 0,
+        max: 100,
+      },
+    ],
+  },
+  {
+    tool: "toggle_dark_mode",
+    label: "Dark/Light Mode umschalten",
+    defaultArgs: {},
+    fields: [],
+  },
+  {
+    tool: "free_ram",
+    label: "RAM freigeben",
+    defaultArgs: {},
+    fields: [],
+  },
+  {
+    tool: "pause_ella",
+    label: "ELLA pausieren",
+    defaultArgs: { minutes: 30 },
+    fields: [
+      { key: "minutes", type: "number", label: "Minuten", min: 1, max: 480 },
+    ],
+  },
+  {
+    tool: "set_clipboard",
+    label: "Zwischenablage setzen",
+    defaultArgs: { content: "" },
+    fields: [
+      { key: "content", type: "text", label: "Text", placeholder: "Inhalt..." },
+    ],
+  },
+  {
+    tool: "translate_text",
+    label: "Text übersetzen",
+    defaultArgs: { text: "", targetLanguage: "de" },
+    fields: [
+      {
+        key: "text",
+        type: "text",
+        label: "Text",
+        placeholder: "Zu übersetzender Text...",
+      },
+      {
+        key: "targetLanguage",
+        type: "text",
+        label: "Zielsprache",
+        placeholder: "de / en / es...",
+      },
+    ],
+  },
+];
 
 interface HomeworkModeConfig {
   pinHash: string;
@@ -452,6 +539,37 @@ const Settings: React.FC = () => {
       }),
     });
   };
+
+  const addSetupAction = (setupId: string, action: SetupAction) => {
+    if (!settings) return;
+    patch({
+      setups: (settings.setups ?? []).map((s) =>
+        s.id === setupId
+          ? { ...s, actions: [...(s.actions ?? []), action] }
+          : s,
+      ),
+    });
+  };
+
+  const removeSetupAction = (setupId: string, index: number) => {
+    if (!settings) return;
+    patch({
+      setups: (settings.setups ?? []).map((s) =>
+        s.id === setupId
+          ? {
+              ...s,
+              actions: (s.actions ?? []).filter((_, i) => i !== index),
+            }
+          : s,
+      ),
+    });
+  };
+
+  const [newActionTool, setNewActionTool] = useState(ACTION_TEMPLATES[0].tool);
+  const [newActionArgs, setNewActionArgs] = useState<Record<string, unknown>>(
+    ACTION_TEMPLATES[0].defaultArgs,
+  );
+  const [newActionLabel, setNewActionLabel] = useState("");
 
   const savePin = async () => {
     if (!pinNew) {
@@ -1445,8 +1563,8 @@ const Settings: React.FC = () => {
                       style={{
                         display: "flex",
                         gap: 10,
-                        flex: 1,
-                        minHeight: 0,
+                        maxHeight: 220,
+                        minHeight: 120,
                       }}
                     >
                       {(
@@ -1556,6 +1674,250 @@ const Settings: React.FC = () => {
                           </div>
                         </div>
                       ))}
+                    </div>
+
+                    {/* ── Aktionen ── */}
+                    <div style={{ marginTop: 4 }}>
+                      <div
+                        style={{
+                          fontSize: "0.72rem",
+                          color: "#f59e0b",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.06em",
+                          marginBottom: 6,
+                        }}
+                      >
+                        Aktionen
+                      </div>
+
+                      {/* vorhandene Aktionen */}
+                      {(setup.actions ?? []).length > 0 && (
+                        <div
+                          style={{
+                            background: "#1a1d27",
+                            border: "1px solid #2d3148",
+                            borderRadius: 8,
+                            marginBottom: 8,
+                          }}
+                        >
+                          {(setup.actions ?? []).map((action, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "6px 12px",
+                                borderBottom:
+                                  idx < (setup.actions ?? []).length - 1
+                                    ? "1px solid #1e2133"
+                                    : "none",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: "0.72rem",
+                                  color: "#64748b",
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {idx + 1}.
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: "0.85rem",
+                                  color: "#e2e8f0",
+                                  flex: 1,
+                                }}
+                              >
+                                {action.label || action.tool}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: "0.75rem",
+                                  color: "#475569",
+                                  fontFamily: "monospace",
+                                }}
+                              >
+                                {action.tool}
+                              </span>
+                              <button
+                                onClick={() => removeSetupAction(setup.id, idx)}
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  color: "#f87171",
+                                  cursor: "pointer",
+                                  fontSize: "0.8rem",
+                                  padding: "2px 6px",
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* neue Aktion hinzufügen */}
+                      <div
+                        style={{
+                          background: "#1a1d27",
+                          border: "1px solid #2d3148",
+                          borderRadius: 8,
+                          padding: "10px 12px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 8,
+                        }}
+                      >
+                        <div
+                          style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
+                        >
+                          <select
+                            value={newActionTool}
+                            onChange={(e) => {
+                              const tpl = ACTION_TEMPLATES.find(
+                                (t) => t.tool === e.target.value,
+                              );
+                              setNewActionTool(e.target.value);
+                              setNewActionArgs(
+                                tpl ? { ...tpl.defaultArgs } : {},
+                              );
+                              setNewActionLabel(tpl?.label ?? "");
+                            }}
+                            style={{
+                              background: "#0f1117",
+                              border: "1px solid #2d3148",
+                              borderRadius: 6,
+                              color: "#e2e8f0",
+                              padding: "6px 8px",
+                              fontSize: "0.82rem",
+                              flex: 1,
+                              minWidth: 160,
+                            }}
+                          >
+                            {ACTION_TEMPLATES.map((tpl) => (
+                              <option key={tpl.tool} value={tpl.tool}>
+                                {tpl.label}
+                              </option>
+                            ))}
+                          </select>
+                          <input
+                            value={newActionLabel}
+                            onChange={(e) => setNewActionLabel(e.target.value)}
+                            placeholder="Bezeichnung (optional)"
+                            style={{
+                              background: "#0f1117",
+                              border: "1px solid #2d3148",
+                              borderRadius: 6,
+                              color: "#e2e8f0",
+                              padding: "6px 8px",
+                              fontSize: "0.82rem",
+                              flex: 1,
+                              minWidth: 140,
+                            }}
+                          />
+                        </div>
+
+                        {/* dynamische Felder je nach Tool */}
+                        {(() => {
+                          const tpl = ACTION_TEMPLATES.find(
+                            (t) => t.tool === newActionTool,
+                          );
+                          if (!tpl || tpl.fields.length === 0) return null;
+                          return (
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: 8,
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              {tpl.fields.map((field) => (
+                                <div
+                                  key={field.key}
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 3,
+                                    flex: 1,
+                                    minWidth: 100,
+                                  }}
+                                >
+                                  <label
+                                    style={{
+                                      fontSize: "0.72rem",
+                                      color: "#64748b",
+                                    }}
+                                  >
+                                    {field.label}
+                                  </label>
+                                  <input
+                                    type={field.type}
+                                    min={field.min}
+                                    max={field.max}
+                                    placeholder={field.placeholder}
+                                    value={
+                                      (newActionArgs[field.key] as
+                                        string | number) ?? ""
+                                    }
+                                    onChange={(e) =>
+                                      setNewActionArgs((prev) => ({
+                                        ...prev,
+                                        [field.key]:
+                                          field.type === "number"
+                                            ? Number(e.target.value)
+                                            : e.target.value,
+                                      }))
+                                    }
+                                    style={{
+                                      background: "#0f1117",
+                                      border: "1px solid #2d3148",
+                                      borderRadius: 6,
+                                      color: "#e2e8f0",
+                                      padding: "5px 8px",
+                                      fontSize: "0.82rem",
+                                    }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
+
+                        <button
+                          onClick={() => {
+                            const tpl = ACTION_TEMPLATES.find(
+                              (t) => t.tool === newActionTool,
+                            );
+                            addSetupAction(setup.id, {
+                              tool: newActionTool,
+                              args: { ...newActionArgs },
+                              label:
+                                newActionLabel || tpl?.label || newActionTool,
+                            });
+                            // Reset auf ersten Template
+                            setNewActionTool(ACTION_TEMPLATES[0].tool);
+                            setNewActionArgs({
+                              ...ACTION_TEMPLATES[0].defaultArgs,
+                            });
+                            setNewActionLabel("");
+                          }}
+                          style={{
+                            padding: "6px 14px",
+                            borderRadius: 6,
+                            background: "transparent",
+                            border: "1px solid #f59e0b",
+                            color: "#f59e0b",
+                            cursor: "pointer",
+                            fontSize: "0.82rem",
+                            alignSelf: "flex-start",
+                          }}
+                        >
+                          + Aktion hinzufügen
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
