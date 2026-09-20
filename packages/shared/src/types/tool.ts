@@ -107,7 +107,9 @@ export type ToolName =
   | "describe_webpage"
   | "open_chess_window"
   | "list_monitors"
-  | "open_app_on_monitor";
+  | "open_app_on_monitor"
+  | "index_documents"
+  | "search_documents";
 
 export interface ToolCall {
   tool: ToolName;

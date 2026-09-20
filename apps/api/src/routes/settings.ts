@@ -52,6 +52,7 @@ settingsRouter.put("/", async (req, res, next) => {
       language,
       spokenLanguage,
       stressDetectionEnabled,
+      indexedFolders,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -80,6 +81,7 @@ settingsRouter.put("/", async (req, res, next) => {
       language?: string;
       spokenLanguage?: "de" | "en" | "es" | "fr";
       stressDetectionEnabled?: boolean;
+      indexedFolders?: string[];
     };
 
     const raw = {
@@ -108,6 +110,7 @@ settingsRouter.put("/", async (req, res, next) => {
       language,
       spokenLanguage,
       stressDetectionEnabled,
+      indexedFolders,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(

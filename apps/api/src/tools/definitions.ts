@@ -1961,5 +1961,45 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   );
 
+  defs.push(
+    {
+      type: "function",
+      function: {
+        name: "index_documents",
+        description:
+          "Indiziert Dokumente in einem Ordner (TXT, MD, DOCX, PDF, XLSX) mit KI-Embeddings damit ELLA Fragen dazu beantworten kann. Nur neue oder geänderte Dateien werden verarbeitet.",
+        parameters: {
+          type: "object",
+          properties: {
+            folder: {
+              type: "string",
+              description:
+                "Vollständiger Pfad zum Ordner der indiziert werden soll",
+            },
+          },
+          required: ["folder"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "search_documents",
+        description:
+          "Durchsucht indizierte Dokumente semantisch. Nutze dies wenn der Nutzer nach Inhalt in eigenen Dateien fragt, z.B. 'Was stand in dem Vertrag?', 'Finde das Dokument über...'",
+        parameters: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description: "Suchanfrage oder Frage zum Dokumenteninhalt",
+            },
+          },
+          required: ["query"],
+        },
+      },
+    },
+  );
+
   return defs;
 }

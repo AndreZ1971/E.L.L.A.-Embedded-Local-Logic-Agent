@@ -188,6 +188,7 @@ interface Settings {
   searchDrives: string[];
   spokenLanguage: "de" | "en" | "es" | "fr";
   stressDetectionEnabled: boolean;
+  indexedFolders: string[];
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -272,6 +273,8 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "describe_webpage", label: "Webseite beschreiben" },
   { name: "list_monitors", label: "Monitore auflisten" },
   { name: "open_app_on_monitor", label: "App auf Monitor öffnen" },
+  { name: "index_documents", label: "Dokumente indizieren (lokales RAG)" },
+  { name: "search_documents", label: "Dokumente durchsuchen (lokales RAG)" },
 ];
 
 const input: React.CSSProperties = {
@@ -1448,6 +1451,92 @@ const Settings: React.FC = () => {
                 }}
               >
                 {t("settings.stress_desc")}
+              </div>
+            </Section>
+
+            <Section title="Lokales RAG — Dokument-Wissen">
+              <div
+                style={{
+                  fontSize: "0.82rem",
+                  color: "#94a3b8",
+                  marginBottom: 10,
+                }}
+              >
+                ELLA indiziert Dokumente in diesen Ordnern (TXT, MD, DOCX, PDF,
+                XLSX) und zieht relevante Passagen automatisch als Kontext in
+                jede Antwort ein.
+              </div>
+              {(settings.indexedFolders ?? []).map((folder, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: "flex",
+                    gap: 6,
+                    marginBottom: 6,
+                    alignItems: "center",
+                  }}
+                >
+                  <input
+                    style={{
+                      ...input,
+                      flex: 1,
+                      fontFamily: "monospace",
+                      fontSize: "0.82rem",
+                    }}
+                    value={folder}
+                    onChange={(e) => {
+                      const updated = [...(settings.indexedFolders ?? [])];
+                      updated[idx] = e.target.value;
+                      patch({ indexedFolders: updated });
+                    }}
+                    placeholder="z.B. C:\Users\André\Dokumente"
+                  />
+                  <button
+                    style={{
+                      padding: "5px 10px",
+                      background: "#2d1e2f",
+                      border: "1px solid #7c3aed",
+                      color: "#c4b5fd",
+                      borderRadius: 5,
+                      cursor: "pointer",
+                      fontSize: "0.8rem",
+                    }}
+                    onClick={() => {
+                      const updated = (settings.indexedFolders ?? []).filter(
+                        (_, i) => i !== idx,
+                      );
+                      patch({ indexedFolders: updated });
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                style={{
+                  padding: "6px 14px",
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  color: "#94a3b8",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontSize: "0.82rem",
+                  marginTop: 4,
+                }}
+                onClick={() =>
+                  patch({
+                    indexedFolders: [...(settings.indexedFolders ?? []), ""],
+                  })
+                }
+              >
+                + Ordner hinzufügen
+              </button>
+              <div
+                style={{ fontSize: "0.76rem", color: "#475569", marginTop: 8 }}
+              >
+                Indizierung starten: ELLA im Chat bitten „Bitte indiziere meinen
+                Dokumente-Ordner" oder das Tool index_documents aktivieren und
+                aufrufen.
               </div>
             </Section>
           </>

@@ -322,6 +322,35 @@ export async function runMigrations(): Promise<void> {
     `);
   }
 
+  await exec(`
+    INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
+    VALUES (93, 'Dokumente indizieren erlaubt', 'index_documents', 'always', 'allow', TRUE)
+    ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
+  `);
+
+  await exec(`
+    INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
+    VALUES (94, 'Dokumente durchsuchen erlaubt', 'search_documents', 'always', 'allow', TRUE)
+    ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
+  `);
+
+  await exec(`
+    CREATE TABLE IF NOT EXISTS document_chunks (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      file_path   VARCHAR(1000) NOT NULL,
+      filename    VARCHAR(255)  NOT NULL,
+      file_type   VARCHAR(20)   NULL,
+      chunk_index INT           NOT NULL,
+      chunk_text  TEXT          NOT NULL,
+      embedding   MEDIUMTEXT    NOT NULL,
+      file_mtime  BIGINT        NOT NULL,
+      indexed_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      profile_id  INT           NULL,
+      INDEX idx_doc_path    (file_path(255)),
+      INDEX idx_doc_profile (profile_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
   // Eigene Pipelines
   await exec(`
     CREATE TABLE IF NOT EXISTS custom_pipelines (

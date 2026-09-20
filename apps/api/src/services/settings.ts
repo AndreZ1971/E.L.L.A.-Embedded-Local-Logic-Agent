@@ -71,6 +71,7 @@ export interface Settings {
   language: string;
   spokenLanguage: "de" | "en" | "es" | "fr";
   stressDetectionEnabled: boolean;
+  indexedFolders: string[];
 }
 
 // Im Installer: ELLA_USERDATA = %APPDATA%\ELLA (gesetzt von Electron main.ts)
@@ -156,6 +157,8 @@ export const DEFAULT_SETTINGS: Settings = {
     "describe_image",
     "describe_webpage",
     "open_chess_window",
+    "index_documents",
+    "search_documents",
   ],
   sessionLimit: 20,
   openaiApiKey: "",
@@ -194,6 +197,7 @@ export const DEFAULT_SETTINGS: Settings = {
   language: "",
   spokenLanguage: "de",
   stressDetectionEnabled: false,
+  indexedFolders: [],
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -290,6 +294,8 @@ export async function loadSettings(): Promise<void> {
       parsed.voiceOllamaModel = DEFAULT_SETTINGS.voiceOllamaModel;
     if (!["small", "standard", "large"].includes(parsed.modelTier))
       parsed.modelTier = "standard";
+    if (!Array.isArray(parsed.indexedFolders))
+      parsed.indexedFolders = DEFAULT_SETTINGS.indexedFolders;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults

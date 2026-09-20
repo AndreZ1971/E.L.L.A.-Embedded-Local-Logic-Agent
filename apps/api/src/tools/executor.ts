@@ -121,6 +121,11 @@ import {
 } from "../services/ocr.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
 import { eventBus, EVENT_SYSTEM } from "../services/eventBus.js";
+import {
+  indexFolder,
+  recallDocuments,
+  getIndexStats,
+} from "../services/documentIndex.js";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
 
@@ -3285,6 +3290,52 @@ Write-Output '{"ok":true}'
         success: true,
         output: `${entry.name} gestartet. Fenster-Verschiebung fehlgeschlagen: ${String(err)}`,
       };
+    }
+  },
+
+  index_documents: async (args) => {
+    const folder = ((args.folder as string) ?? "").trim();
+    if (!folder) {
+      return { success: false, error: "Bitte einen Ordner-Pfad angeben." };
+    }
+    try {
+      const result = await indexFolder(folder, null);
+      const stats = await getIndexStats();
+      return {
+        success: true,
+        output: {
+          message: `Indizierung abgeschlossen: ${result.indexed} neue Dateien (${result.chunks} Chunks), ${result.skipped} unverändert, ${result.errors} Fehler.`,
+          total_indexed_files: stats.files,
+          total_chunks: stats.chunks,
+        },
+      };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
+  },
+
+  search_documents: async (args) => {
+    const query = ((args.query as string) ?? "").trim();
+    if (!query) {
+      return { success: false, error: "Bitte eine Suchanfrage angeben." };
+    }
+    try {
+      const chunks = await recallDocuments(query, 5);
+      if (chunks.length === 0) {
+        return {
+          success: true,
+          output:
+            "Keine passenden Dokumente gefunden. Stelle sicher dass der Ordner mit 'index_documents' indiziert wurde.",
+        };
+      }
+      const results = chunks.map((c) => ({
+        filename: c.filename,
+        relevanz: Math.round(c.score * 100) + "%",
+        inhalt: c.chunk_text.slice(0, 600),
+      }));
+      return { success: true, output: results };
+    } catch (err) {
+      return { success: false, error: String(err) };
     }
   },
 };

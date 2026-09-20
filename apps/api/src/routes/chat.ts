@@ -7,6 +7,7 @@ import { sessionStore } from "../services/sessions.js";
 import { env } from "../config/env.js";
 import { getSettings } from "../services/settings.js";
 import { recall, extractAndRemember } from "../services/memory.js";
+import { recallDocuments } from "../services/documentIndex.js";
 import { recordActivity } from "../services/worker.js";
 import { getForegroundWindowTitle } from "../services/windowContext.js";
 import { compressSession } from "../services/sessionCompressor.js";
@@ -23,7 +24,7 @@ const sessionQueue = new Map<string, Promise<void>>();
 
 function withSessionLock<T>(
   sessionId: string,
-  fn: () => Promise<T>
+  fn: () => Promise<T>,
 ): Promise<T> {
   const prev = sessionQueue.get(sessionId) ?? Promise.resolve();
   const next = prev.catch(() => {}).then(fn);
@@ -31,8 +32,8 @@ function withSessionLock<T>(
     sessionId,
     next.then(
       () => {},
-      () => {}
-    )
+      () => {},
+    ),
   );
   return next;
 }
@@ -113,6 +114,17 @@ chatRouter.post("/", async (req, res, next) => {
     let memories = await recall(message);
     const userName = settings.userName?.trim() ?? "";
 
+    // Dokument-Kontext (lokales RAG — nur wenn indizierte Ordner konfiguriert)
+    if (settings.indexedFolders.length > 0) {
+      const docChunks = await recallDocuments(message, 3);
+      if (docChunks.length > 0) {
+        const docSnippets = docChunks.map(
+          (c) => `[Aus "${c.filename}"]: ${c.chunk_text.slice(0, 400)}`,
+        );
+        memories = [...memories, ...docSnippets];
+      }
+    }
+
     // Fenster-Kontext (opt-in, kein OpenAI)
     if (settings.windowContextEnabled && !useOpenAI) {
       const winTitle = getForegroundWindowTitle();
@@ -133,7 +145,7 @@ chatRouter.post("/", async (req, res, next) => {
     }
 
     const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
-      history.map((m) => ({ ...m, id: "", createdAt: "" }))
+      history.map((m) => ({ ...m, id: "", createdAt: "" })),
     );
 
     let finalReply = "";
@@ -156,7 +168,7 @@ chatRouter.post("/", async (req, res, next) => {
             roundTools,
             activeModel,
             memories,
-            userName
+            userName,
           );
       const assistantMsg = response.message;
 
@@ -188,7 +200,7 @@ chatRouter.post("/", async (req, res, next) => {
           message,
           lastAssistantContent,
           lastToolNames,
-          allTools
+          allTools,
         );
       }
     }
@@ -255,6 +267,17 @@ chatRouter.post("/stream", async (req, res) => {
       let memories = await recall(message);
       const userName = settings.userName?.trim() ?? "";
 
+      // Dokument-Kontext (lokales RAG)
+      if (settings.indexedFolders.length > 0) {
+        const docChunks = await recallDocuments(message, 3);
+        if (docChunks.length > 0) {
+          const docSnippets = docChunks.map(
+            (c) => `[Aus "${c.filename}"]: ${c.chunk_text.slice(0, 400)}`,
+          );
+          memories = [...memories, ...docSnippets];
+        }
+      }
+
       // Fenster-Kontext (opt-in, kein OpenAI)
       if (settings.windowContextEnabled && !useOpenAI) {
         const winTitle = getForegroundWindowTitle();
@@ -275,7 +298,7 @@ chatRouter.post("/stream", async (req, res) => {
       }
 
       const messages: OllamaMessage[] = ollamaClient.toOllamaMessages(
-        history.map((m) => ({ ...m, id: "", createdAt: "" }))
+        history.map((m) => ({ ...m, id: "", createdAt: "" })),
       );
 
       let finalReply = "";
@@ -298,7 +321,7 @@ chatRouter.post("/stream", async (req, res) => {
               roundTools,
               activeModel,
               memories,
-              userName
+              userName,
             );
 
         let roundContent = "";
@@ -392,7 +415,7 @@ chatRouter.post("/stream", async (req, res) => {
             message,
             lastAssistantContent,
             lastToolNames,
-            allTools
+            allTools,
           );
         }
       }
@@ -421,7 +444,7 @@ chatRouter.get("/provider", (_req, res) => {
   const s = getSettings();
   res.json({
     provider: p,
-    model: p === "openai" ? "gpt-4o" : s.ollamaModel ?? env.ollamaModel,
+    model: p === "openai" ? "gpt-4o" : (s.ollamaModel ?? env.ollamaModel),
   });
 });
 

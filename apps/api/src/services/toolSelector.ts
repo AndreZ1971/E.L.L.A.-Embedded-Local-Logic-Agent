@@ -115,6 +115,12 @@ const LAZY_GROUPS: { pattern: RegExp; tools: string[] }[] = [
     tools: ["open_chess_window"],
   },
   {
+    // Lokale Dokumente / RAG
+    pattern:
+      /was.*(?:stand|steht|enthält|enthält).*(?:dokument|vertrag|datei|bericht|notiz)|such.*(?:in|in meinen).*(?:dateien|dokumenten)|indizier|index.*dokument|dokument.*index|finde.*(?:in|text.*in)|inhalt.*(?:von|der|des).*(?:datei|dokument|pdf|word)/i,
+    tools: ["index_documents", "search_documents"],
+  },
+  {
     // Multi-Monitor
     pattern:
       /monitor|bildschirm.*\d|zweiter.*bildschirm|monitor.*\d|auf.*monitor|welche.*monitore|monitore.*auflisten|zweiter.*monitor|haupt.*monitor|neben.*bildschirm/i,
