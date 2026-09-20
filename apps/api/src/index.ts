@@ -28,6 +28,7 @@ import { googleRouter } from "./routes/google.js";
 import { feedbackRouter } from "./routes/feedback.js";
 import { profilesRouter } from "./routes/profiles.js";
 import { pipelineRouter } from "./routes/pipeline.js";
+import { chessRouter } from "./routes/chess.js";
 import { loadWakewordModels } from "./services/wakewordDetector.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { env } from "./config/env.js";
@@ -73,6 +74,7 @@ app.use("/api/google", googleRouter);
 app.use("/api/feedback", feedbackRouter);
 app.use("/api/profiles", profilesRouter);
 app.use("/api/pipeline", pipelineRouter);
+app.use("/api/chess", chessRouter);
 
 app.get("/api/health", async (_req, res) => {
   const { provider, ollamaModel } = getSettings();

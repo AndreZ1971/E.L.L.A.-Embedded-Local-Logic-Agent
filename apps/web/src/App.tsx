@@ -84,6 +84,7 @@ import Activation from "./pages/activation/Activation";
 import LanguageSelect from "./pages/language/LanguageSelect";
 import ModelSelectOverlay from "./pages/model-select/ModelSelectOverlay";
 import Pipeline from "./pages/pipeline/Pipeline";
+import Chess from "./pages/chess/Chess";
 import i18n from "./i18n";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
@@ -420,9 +421,31 @@ function AppShell() {
     );
   }
 
+  // chess_open SSE-Event → Electron-Fenster öffnen
+  useEffect(() => {
+    const es = new EventSource(`${API}/api/events/stream`);
+    es.onmessage = (ev) => {
+      try {
+        const d = JSON.parse(ev.data) as { type: string };
+        if (d.type === "chess_open") {
+          (
+            window as { electronAPI?: { openChess?: () => void } }
+          ).electronAPI?.openChess?.();
+        }
+      } catch {
+        /* ignorieren */
+      }
+    };
+    return () => es.close();
+  }, []);
+
   if (boot === null || !ollamaReady) return <EllaSplash setupMsg={setupMsg} />;
 
   const path = location.pathname;
+
+  // Chess-Fenster: direkt rendern ohne Boot-Checks
+  if (path === "/chess") return <Chess />;
+
   const isFullscreen =
     path === "/language" ||
     path === "/eula" ||

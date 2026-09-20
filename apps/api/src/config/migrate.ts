@@ -272,6 +272,44 @@ export async function runMigrations(): Promise<void> {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
 
+  // ── Schach ────────────────────────────────────────────────────────────────────
+  await exec(`
+    CREATE TABLE IF NOT EXISTS chess_games (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      profile_id   INT NULL,
+      fen          VARCHAR(120) NOT NULL DEFAULT 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      moves        JSON NULL,
+      status       ENUM('active','checkmate','stalemate','draw','resigned') NOT NULL DEFAULT 'active',
+      player_color ENUM('white','black') NOT NULL DEFAULT 'white',
+      moves_count  INT NOT NULL DEFAULT 0,
+      winner       ENUM('player','ella','draw') NULL,
+      created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  await exec(`
+    INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
+    VALUES (90, 'Schach öffnen erlaubt', 'open_chess_window', 'always', 'allow', TRUE)
+    ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
+  `);
+
+  // Schach-Starter-Memories (einmalig beim ersten Start)
+  const chessMemories = [
+    "♟ Schach-Grundregel: Figuren bewegen sich nach festen Regeln — Bauer vorwärts, Turm gerade, Läufer diagonal, Springer im L, Dame alles, König ein Feld.",
+    "♟ Schach-Prinzip: Kontrolliere das Zentrum (d4, d5, e4, e5) mit Bauern und Figuren — wer das Zentrum hat, hat mehr Raum.",
+    "♟ Schach-Prinzip: Entwickle alle Figuren früh — Springer und Läufer sollten in den ersten Zügen aus ihrer Startposition.",
+    "♟ Schach-Prinzip: Bringe den König durch Rochade in Sicherheit, bevor du angreifst.",
+    "♟ Schach-Selbstbild: Ich lerne Schach durch Erfahrung. Ich denke jeden Zug selbst durch und entwickle meinen eigenen Stil.",
+  ];
+  for (const content of chessMemories) {
+    await exec(`
+      INSERT IGNORE INTO memories (type, content, embedding, profile_id)
+      SELECT 'system', '${content.replace(/'/g, "''")}', '[]', NULL
+      WHERE NOT EXISTS (SELECT 1 FROM memories WHERE content LIKE '%${content.substring(2, 20).replace(/'/g, "''")}%' AND profile_id IS NULL)
+    `);
+  }
+
   // Eigene Pipelines
   await exec(`
     CREATE TABLE IF NOT EXISTS custom_pipelines (

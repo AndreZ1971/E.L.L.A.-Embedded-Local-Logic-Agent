@@ -47,4 +47,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return () => ipcRenderer.removeListener("ella:choose-model", handler);
   },
   modelChosen: (model: string) => ipcRenderer.send("ella:model-chosen", model),
+  openChess: () => ipcRenderer.send("ella:open-chess"),
+  minimizeChess: () => ipcRenderer.send("chess:minimize"),
+  closeChess: () => ipcRenderer.send("chess:close"),
 });

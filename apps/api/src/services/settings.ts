@@ -155,6 +155,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "describe_screen",
     "describe_image",
     "describe_webpage",
+    "open_chess_window",
   ],
   sessionLimit: 20,
   openaiApiKey: "",

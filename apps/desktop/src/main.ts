@@ -47,6 +47,7 @@ function log(msg: string): void {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let chessWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
 let apiProcess: ChildProcess | null = null;
@@ -773,6 +774,37 @@ ipcMain.on("ella:shutdown", (_event, cmd: string) => {
   });
 });
 
+function openChessWindow(): void {
+  if (chessWindow && !chessWindow.isDestroyed()) {
+    chessWindow.focus();
+    return;
+  }
+  chessWindow = new BrowserWindow({
+    width: 520,
+    height: 660,
+    minWidth: 420,
+    minHeight: 560,
+    title: "E.L.L.A. Schach",
+    icon: nativeImage.createFromBuffer(buildPngIcon(64)),
+    frame: false,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      preload: path.join(__dirname, "preload.js"),
+    },
+  });
+  if (isDev) {
+    chessWindow.loadURL(`${FRONTEND_URL}/#/chess`);
+  } else {
+    chessWindow.loadFile(path.join(__dirname, "../../../web/dist/index.html"), {
+      hash: "/chess",
+    });
+  }
+  chessWindow.on("closed", () => {
+    chessWindow = null;
+  });
+}
+
 function registerIpc(): void {
   ipcMain.on("window:minimize", () => mainWindow?.minimize());
   ipcMain.on("window:maximize", () => {
@@ -784,6 +816,9 @@ function registerIpc(): void {
     "window:isMaximized",
     () => mainWindow?.isMaximized() ?? false,
   );
+  ipcMain.on("ella:open-chess", () => openChessWindow());
+  ipcMain.on("chess:minimize", () => chessWindow?.minimize());
+  ipcMain.on("chess:close", () => chessWindow?.close());
 }
 
 // ── App-Lifecycle ─────────────────────────────────────────────────────────────

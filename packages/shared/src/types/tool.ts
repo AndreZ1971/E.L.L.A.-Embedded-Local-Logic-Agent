@@ -104,7 +104,8 @@ export type ToolName =
   | "list_folder"
   | "describe_screen"
   | "describe_image"
-  | "describe_webpage";
+  | "describe_webpage"
+  | "open_chess_window";
 
 export interface ToolCall {
   tool: ToolName;

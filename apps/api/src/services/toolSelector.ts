@@ -109,6 +109,12 @@ const LAZY_GROUPS: { pattern: RegExp; tools: string[] }[] = [
     tools: ["list_programs", "open_app", "launch_app"],
   },
   {
+    // Schach
+    pattern:
+      /schach|chess|partie|spielen.*schach|schach.*spielen|brett|lass.*spielen|spielen.*wir/i,
+    tools: ["open_chess_window"],
+  },
+  {
     // Prozesse & Dienste
     pattern:
       /prozess|process|dienst|service|task[\s-]?manag|beende.*prozess|kill|stoppe.*prozess|windows.*dienst/i,

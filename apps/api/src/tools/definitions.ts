@@ -1908,5 +1908,19 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
+  defs.push({
+    type: "function",
+    function: {
+      name: "open_chess_window",
+      description:
+        "Öffnet das Schachfenster damit ELLA und der Nutzer eine Partie Schach spielen können.",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: [],
+      },
+    },
+  });
+
   return defs;
 }

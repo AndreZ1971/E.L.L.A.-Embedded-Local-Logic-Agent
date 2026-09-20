@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v1.3.0**
+**Aktueller Stand: v1.4.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -141,6 +141,17 @@ database/
 - **Setup-Integration:** nach Pipeline-Abschluss optional ein Setup (App-Makro) ausführen; `setup_executed`-Event mit Ergebnis-Card in der UI
 - **Multi-Agenten-Seite** (`pages/pipeline/Pipeline.tsx`): Pipeline-Karten, Live-Agent-Karten, Setup-Dropdown, Zusammenfassung; OpenAI-Gate bei fehlendem Key
 - **LLM-Provider-Label:** überall nur noch "OpenAI" statt "OpenAI GPT-4o"
+
+### v1.4.0 — Schach & visuelles Brett-Erlebnis
+
+- **Schach-Fenster** (`open_chess_window`-Tool, Rule ID 90): rahmenloses Electron-Fenster mit 4 Themes, Ambient-Glow, Partikel-Hintergrund; eigene IPC-Kanäle `chess:minimize` / `chess:close`
+- **3D-Figuren:** SVG mit radialen Farbverläufen + Drop-Shadow — kein externes Asset-Bundle
+- **Schach-KI:** chess.js liefert legale UCI-Züge → LLM wählt; 3 Versuche + Zufalls-Fallback; Starter-Memories bei erstem Start
+- **Kommentar:** fire-and-forget nach jedem ELLA-Zug → `proactive_message` SSE + TTS
+- **Reflexion:** `reflectOnGame` nach Spielende (Schachmatt, Remis, Aufgeben) → strategische Erkenntnis in `memories`
+- **Geschlagene Figuren:** Unicode-Symbole ♙♟ mit Materialvorteil über/unter dem Brett
+- **Pause/Resume:** `localStorage`-Speicherstand (FEN + Züge + gameId), "▶ Weiter"-Button beim nächsten Öffnen
+- **DB:** `chess_games`-Tabelle; Routen `POST /api/chess/{new,move,resign,reflect}`
 
 ### v1.3.0 — Setup-Aktionen & Netzwerk-Transparenz
 
@@ -300,7 +311,7 @@ https://github.com/AndreZ1971/E.L.L.A.git
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-09-19T18:16:27.415Z._
+_Last synced: 2026-09-20T08:39:16.554Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).

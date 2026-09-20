@@ -120,6 +120,7 @@ import {
   type OcrElement,
 } from "../services/ocr.js";
 import type { ToolCall, ToolResult, ToolName } from "@ella/shared";
+import { eventBus, EVENT_SYSTEM } from "../services/eventBus.js";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
 
@@ -3118,6 +3119,18 @@ else { $results | ConvertTo-Json -Compress }`.trim();
         error: err instanceof Error ? err.message : String(err),
       };
     }
+  },
+
+  open_chess_window: async (_args) => {
+    eventBus.emit(EVENT_SYSTEM, {
+      type: "chess_open",
+      payload: {},
+      created_at: new Date().toISOString(),
+    });
+    return {
+      success: true,
+      output: { message: "Schachfenster wird geöffnet…" },
+    };
   },
 };
 

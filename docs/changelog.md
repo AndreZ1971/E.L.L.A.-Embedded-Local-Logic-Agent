@@ -4,6 +4,71 @@ Alle nennenswerten Änderungen je Release. Neueste Version zuerst.
 
 ---
 
+## v1.4.0 — Schach & visuelles Brett-Erlebnis
+
+**Veröffentlicht:** September 2026
+
+### Neue Funktionen
+
+#### Schach-Fenster
+
+ELLA spielt Schach in einem eigenen rahmenlosen Electron-Fenster, das über `open_chess_window` aus dem Chat geöffnet wird.
+
+- Eigenes Electron-Fenster mit ELLA-Design (dunkler Hintergrund, lila Akzent)
+- Vier Brett-Themes wählbar: **ELLA** (lila), **Holz** (klassisch), **Nacht** (blau), **Grün**
+- Ambient-Glow pulsiert wenn ELLA denkt, Partikel-Hintergrund
+- Eigene Titelleiste mit Minimieren/Schließen (getrennt vom Hauptfenster)
+
+#### 3D-Schachfiguren
+
+Alle 32 Figuren als selbstgezeichnete SVG mit 3D-Optik — keine externen Assets nötig.
+
+- Radiale Farbverläufe simulieren Lichteinfall von links oben
+- Drop-Shadow per SVG-Filter für Tiefe
+- Spekulares Highlight auf jeder Figur
+- Lila-Weiß für Spieler-Figuren, Tief-Lila für ELLA
+
+#### ELLAs Schach-KI
+
+ELLA spielt über das konfigurierte LLM (Ollama oder OpenAI). Keine illegalen Züge möglich.
+
+- chess.js liefert alle legalen UCI-Züge — LLM wählt einen davon, kein Halluzinieren
+- Bis zu 3 Versuche, danach Zufalls-Fallback aus der legalen Liste
+- Schach-Starter-Memories werden beim ersten Start eingespielt (Grundregeln, Prinzipien)
+- Nach jeder Partie: `reflectOnGame` schreibt eine strategische Erkenntnis in ELLAs Gedächtnis
+
+#### Kommentar & Kommunikation
+
+ELLA kommentiert ihre Züge direkt im Chat — fire-and-forget, blockiert das Spiel nicht.
+
+- Charakter-getreue Kommentare: provoziert, neckt, zeigt Respekt oder Überraschung
+- Geht über `proactive_message` SSE in den Chat und wird vorgelesen (TTS)
+
+#### Geschlagene Figuren & Materialvorteil
+
+Unter und über dem Brett werden die geschlagenen Figuren beider Seiten angezeigt.
+
+- Unicode-Symbole (♙♘♗♖♕ / ♟♞♝♜♛), sortiert nach Wert
+- Materialvorteil als `+N` wenn eine Seite führt
+- Punkte-Dot leuchtet auf für die Seite die am Zug ist
+
+#### Pause & Weiter spielen
+
+Partien können pausiert und später fortgesetzt werden — auch nach App-Neustart.
+
+- "⏸ Pause" speichert FEN, Züge und gameId in `localStorage`
+- Beim nächsten Öffnen: gespeicherte Partie erkannt, "▶ Weiter"-Button prominent
+- Spielende (Schachmatt, Remis, Aufgeben) löscht den Speicherstand automatisch
+
+### Technisch
+
+- Neue DB-Tabelle `chess_games` (FEN, Züge, Status, Gewinner, Zug-Zähler)
+- Neue API-Routen: `POST /api/chess/new`, `/move`, `/resign`, `/reflect`
+- Tool `open_chess_window` + Default-Regel ID 90
+- Chess-IPC getrennt vom Hauptfenster: `chess:minimize`, `chess:close`
+
+---
+
 ## v1.3.0 — Setup-Aktionen & Netzwerk-Transparenz
 
 **Veröffentlicht:** September 2026
