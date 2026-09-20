@@ -160,6 +160,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "open_chess_window",
     "index_documents",
     "search_documents",
+    "reflect_on_experiences",
   ],
   sessionLimit: 20,
   openaiApiKey: "",

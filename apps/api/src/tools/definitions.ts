@@ -1999,6 +1999,18 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
         },
       },
     },
+    {
+      type: "function",
+      function: {
+        name: "reflect_on_experiences",
+        description:
+          "ELLA analysiert ihre eigenen Erinnerungen und leitet daraus allgemeine Prinzipien ab, die über den ursprünglichen Kontext hinaus gelten — z.B. von Schach-Taktiken zu allgemeinen Strategie-Prinzipien. Ergebnisse werden als neue Memories gespeichert.",
+        parameters: {
+          type: "object",
+          properties: {},
+        },
+      },
+    },
   );
 
   return defs;

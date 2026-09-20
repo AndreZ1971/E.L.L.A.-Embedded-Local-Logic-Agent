@@ -276,6 +276,10 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "open_app_on_monitor", label: "App auf Monitor öffnen" },
   { name: "index_documents", label: "Dokumente indizieren (lokales RAG)" },
   { name: "search_documents", label: "Dokumente durchsuchen (lokales RAG)" },
+  {
+    name: "reflect_on_experiences",
+    label: "Erfahrungsreflexion (Erkenntnisse aus Memories ableiten)",
+  },
 ];
 
 const input: React.CSSProperties = {

@@ -324,6 +324,12 @@ export async function runMigrations(): Promise<void> {
 
   await exec(`
     INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
+    VALUES (95, 'Erfahrungsreflexion erlaubt', 'reflect_on_experiences', 'always', 'allow', TRUE)
+    ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
+  `);
+
+  await exec(`
+    INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
     VALUES (93, 'Dokumente indizieren erlaubt', 'index_documents', 'always', 'allow', TRUE)
     ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
   `);

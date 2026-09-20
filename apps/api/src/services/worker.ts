@@ -14,6 +14,7 @@ import { analyzeRhythm } from "./rhythmLearner.js";
 import { checkUpcomingMeetings } from "./meetingPrep.js";
 import { checkDayBriefing } from "./dayBriefing.js";
 import { findDuplicates } from "./duplicateFinder.js";
+import { runReflection } from "./reflection.js";
 
 const INTERVAL_MS = Number(process.env.WORKER_INTERVAL_MS ?? 60_000);
 const DISK_ALERT_THRESHOLD = Number(process.env.DISK_ALERT_THRESHOLD ?? 85);
@@ -647,6 +648,20 @@ async function tick() {
   // Rhythmus-Analyse täglich um 12 Uhr
   if (hour === 12 && minute < 1) {
     analyzeRhythm().catch(() => {});
+  }
+
+  // Erfahrungsreflexion mittwochs um 14 Uhr
+  if (now2.getDay() === 3 && hour === 14 && minute < 1) {
+    runReflection()
+      .then((r) => {
+        if (r.derived > 0) {
+          sendProactiveMessage(
+            `Ich habe gerade über meine Erfahrungen nachgedacht und ${r.derived} neue ${r.derived === 1 ? "Erkenntnis" : "Erkenntnisse"} gewonnen.`,
+            "info",
+          );
+        }
+      })
+      .catch(() => {});
   }
 
   // Duplikat-Scan sonntags um 10 Uhr

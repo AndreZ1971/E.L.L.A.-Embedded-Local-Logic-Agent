@@ -115,6 +115,12 @@ const LAZY_GROUPS: { pattern: RegExp; tools: string[] }[] = [
     tools: ["open_chess_window"],
   },
   {
+    // Reflexion / Erfahrungslernen
+    pattern:
+      /reflektier|reflect|was.*gelernt|erkenntnisse.*ableiten|aus.*erfahrungen.*lernen|prinzip.*ableiten|schlussfolger|transfer.*wissen/i,
+    tools: ["reflect_on_experiences"],
+  },
+  {
     // Lokale Dokumente / RAG
     pattern:
       /was.*(?:stand|steht|enthält|enthält).*(?:dokument|vertrag|datei|bericht|notiz)|such.*(?:in|in meinen).*(?:dateien|dokumenten)|indizier|index.*dokument|dokument.*index|finde.*(?:in|text.*in)|inhalt.*(?:von|der|des).*(?:datei|dokument|pdf|word)/i,

@@ -127,6 +127,7 @@ import {
   recallDocuments,
   getIndexStats,
 } from "../services/documentIndex.js";
+import { runReflection } from "../services/reflection.js";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
 
@@ -3358,6 +3359,27 @@ Write-Output '{"ok":true}'
           total_indexed_files: stats.files,
           total_chunks: stats.chunks,
         },
+      };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
+  },
+
+  reflect_on_experiences: async () => {
+    try {
+      const result = await runReflection();
+      if (result.derived === 0) {
+        return {
+          success: true,
+          output:
+            result.skipped > 0
+              ? `Reflexion abgeschlossen — alle ${result.skipped} Erkenntnisse waren bereits bekannt.`
+              : "Noch nicht genug Erfahrungen für eine Reflexion. Bitte mehr mit mir interagieren.",
+        };
+      }
+      return {
+        success: true,
+        output: `Reflexion abgeschlossen: ${result.derived} neue Prinzipien abgeleitet${result.skipped > 0 ? `, ${result.skipped} Duplikate übersprungen` : ""}.`,
       };
     } catch (err) {
       return { success: false, error: String(err) };

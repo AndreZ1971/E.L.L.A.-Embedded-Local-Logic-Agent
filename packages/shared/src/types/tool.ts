@@ -109,7 +109,8 @@ export type ToolName =
   | "list_monitors"
   | "open_app_on_monitor"
   | "index_documents"
-  | "search_documents";
+  | "search_documents"
+  | "reflect_on_experiences";
 
 export interface ToolCall {
   tool: ToolName;
