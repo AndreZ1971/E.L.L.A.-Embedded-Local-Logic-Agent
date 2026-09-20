@@ -13,6 +13,7 @@ import {
   getSettings,
   saveSettings,
   type SetupAction,
+  type AppEntry,
 } from "../services/settings.js";
 import { createRule as createRuleInDb } from "../services/rules.js";
 import {
@@ -129,6 +130,41 @@ import {
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
 
+// ── Fuzzy-Matching ────────────────────────────────────────────────────────────
+
+function levenshtein(a: string, b: string): number {
+  const d = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let j = 1; j <= a.length; j++) {
+    let prev = d[0];
+    d[0] = j;
+    for (let k = 1; k <= b.length; k++) {
+      const tmp = d[k];
+      d[k] = a[j - 1] === b[k - 1] ? prev : 1 + Math.min(prev, d[k], d[k - 1]);
+      prev = tmp;
+    }
+  }
+  return d[b.length];
+}
+
+function fuzzyMatchApp(apps: AppEntry[], name: string): AppEntry | undefined {
+  if (name.length < 4) return undefined;
+  const MAX_DIST = 2;
+  let best: { entry: AppEntry; dist: number } | undefined;
+  for (const a of apps) {
+    const candidates = [
+      a.name.toLowerCase(),
+      ...(a.aliases ?? []).map((x) => x.toLowerCase()),
+    ];
+    for (const c of candidates) {
+      const dist = levenshtein(name, c);
+      if (dist <= MAX_DIST && (!best || dist < best.dist)) {
+        best = { entry: a, dist };
+      }
+    }
+  }
+  return best?.entry;
+}
+
 // ── Drive-Hilfsfunktionen ─────────────────────────────────────────────────────
 
 function escLabel(s: string): string {
@@ -209,7 +245,7 @@ async function openAppWithSettings(
 ): Promise<ToolResult> {
   const { apps, homeworkMode } = getSettings();
   const name = ((args.name as string) ?? "").toLowerCase().trim();
-  // Exakter Match zuerst, dann Alias, dann Teilstring
+  // Exakter Match > Alias > Teilstring > Levenshtein-Fuzzy
   const entry =
     apps.find((a) => a.name.toLowerCase() === name) ??
     apps.find((a) =>
@@ -219,7 +255,8 @@ async function openAppWithSettings(
     apps.find((a) =>
       (a.aliases ?? []).some((al) => al.toLowerCase().includes(name)),
     ) ??
-    apps.find((a) => name.includes(a.name.toLowerCase()));
+    apps.find((a) => name.includes(a.name.toLowerCase())) ??
+    fuzzyMatchApp(apps, name);
   if (!entry) {
     const known = apps
       .filter((a) => a.allowed)
@@ -3208,7 +3245,8 @@ $result | ConvertTo-Json -Compress
       apps.find((a) =>
         (a.aliases ?? []).some((al) => al.toLowerCase().includes(name)),
       ) ??
-      apps.find((a) => name.includes(a.name.toLowerCase()));
+      apps.find((a) => name.includes(a.name.toLowerCase())) ??
+      fuzzyMatchApp(apps, name);
 
     if (!entry) {
       return {
