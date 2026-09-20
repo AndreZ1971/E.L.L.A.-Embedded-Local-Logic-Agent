@@ -294,6 +294,18 @@ export async function runMigrations(): Promise<void> {
     ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
   `);
 
+  await exec(`
+    INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
+    VALUES (91, 'Monitore auflisten erlaubt', 'list_monitors', 'always', 'allow', TRUE)
+    ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
+  `);
+
+  await exec(`
+    INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
+    VALUES (92, 'App auf Monitor öffnen erlaubt', 'open_app_on_monitor', 'always', 'allow', TRUE)
+    ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
+  `);
+
   // Schach-Starter-Memories (einmalig beim ersten Start)
   const chessMemories = [
     "♟ Schach-Grundregel: Figuren bewegen sich nach festen Regeln — Bauer vorwärts, Turm gerade, Läufer diagonal, Springer im L, Dame alles, König ein Feld.",

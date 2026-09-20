@@ -115,6 +115,12 @@ const LAZY_GROUPS: { pattern: RegExp; tools: string[] }[] = [
     tools: ["open_chess_window"],
   },
   {
+    // Multi-Monitor
+    pattern:
+      /monitor|bildschirm.*\d|zweiter.*bildschirm|monitor.*\d|auf.*monitor|welche.*monitore|monitore.*auflisten|zweiter.*monitor|haupt.*monitor|neben.*bildschirm/i,
+    tools: ["list_monitors", "open_app_on_monitor"],
+  },
+  {
     // Prozesse & Dienste
     pattern:
       /prozess|process|dienst|service|task[\s-]?manag|beende.*prozess|kill|stoppe.*prozess|windows.*dienst/i,

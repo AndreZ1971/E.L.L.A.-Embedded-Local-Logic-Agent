@@ -1908,19 +1908,58 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   });
 
-  defs.push({
-    type: "function",
-    function: {
-      name: "open_chess_window",
-      description:
-        "Öffnet das Schachfenster damit ELLA und der Nutzer eine Partie Schach spielen können.",
-      parameters: {
-        type: "object",
-        properties: {},
-        required: [],
+  defs.push(
+    {
+      type: "function",
+      function: {
+        name: "open_chess_window",
+        description:
+          "Öffnet das Schachfenster damit ELLA und der Nutzer eine Partie Schach spielen können.",
+        parameters: {
+          type: "object",
+          properties: {},
+          required: [],
+        },
       },
     },
-  });
+    {
+      type: "function",
+      function: {
+        name: "list_monitors",
+        description:
+          "Listet alle angeschlossenen Monitore mit Index, Auflösung und Position auf.",
+        parameters: {
+          type: "object",
+          properties: {},
+          required: [],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "open_app_on_monitor",
+        description:
+          "Öffnet eine Anwendung auf einem bestimmten Monitor. Nutze list_monitors um die Monitor-Indizes zu kennen.",
+        parameters: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description:
+                'Name der Anwendung, z.B. "chrome", "notepad", "spotify"',
+            },
+            monitor: {
+              type: "number",
+              description:
+                "Monitor-Index (1 = erster/primärer, 2 = zweiter usw.)",
+            },
+          },
+          required: ["name", "monitor"],
+        },
+      },
+    },
+  );
 
   return defs;
 }

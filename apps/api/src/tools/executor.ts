@@ -3132,6 +3132,161 @@ else { $results | ConvertTo-Json -Compress }`.trim();
       output: { message: "Schachfenster wird geöffnet…" },
     };
   },
+
+  list_monitors: async () => {
+    const script = `
+Add-Type -AssemblyName System.Windows.Forms
+$i = 0
+$result = [System.Windows.Forms.Screen]::AllScreens |
+  Sort-Object { $_.Bounds.X } |
+  ForEach-Object {
+    $i++
+    [PSCustomObject]@{
+      index    = $i
+      name     = $_.DeviceName
+      primary  = $_.Primary
+      width    = $_.Bounds.Width
+      height   = $_.Bounds.Height
+      x        = $_.Bounds.X
+      y        = $_.Bounds.Y
+    }
+  }
+$result | ConvertTo-Json -Compress
+`.trim();
+    const encoded = Buffer.from(script, "utf16le").toString("base64");
+    try {
+      const { stdout } = await execAsync(
+        `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+        { timeout: 8000 },
+      );
+      const raw = JSON.parse(stdout.trim()) as unknown;
+      const monitors = (Array.isArray(raw) ? raw : [raw]) as Array<{
+        index: number;
+        name: string;
+        primary: boolean;
+        width: number;
+        height: number;
+        x: number;
+        y: number;
+      }>;
+      const list = monitors.map((m) => ({
+        index: m.index,
+        name: m.name,
+        primary: m.primary,
+        resolution: `${m.width}×${m.height}`,
+        position: `x=${m.x}, y=${m.y}`,
+      }));
+      trackToolUsage("list_monitors", `${list.length} Monitore`);
+      return { success: true, output: { count: list.length, monitors: list } };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
+  },
+
+  open_app_on_monitor: async (args) => {
+    const { apps, homeworkMode } = getSettings();
+    const name = ((args.name as string) ?? "").toLowerCase().trim();
+    const monitorIdx = Math.max(1, Number(args.monitor) || 1);
+
+    const entry =
+      apps.find((a) => a.name.toLowerCase() === name) ??
+      apps.find((a) => a.name.toLowerCase().includes(name)) ??
+      apps.find((a) => name.includes(a.name.toLowerCase()));
+
+    if (!entry) {
+      return {
+        success: false,
+        error: `Unbekannte App: '${name}'. Nutze list_programs um verfügbare Apps zu sehen.`,
+      };
+    }
+    if (!entry.allowed) {
+      return { success: false, error: `'${name}' ist nicht erlaubt.` };
+    }
+    if (
+      homeworkMode.active &&
+      !homeworkMode.apps.map((a) => a.toLowerCase()).includes(name)
+    ) {
+      return {
+        success: false,
+        error: `Hausaufgaben-Modus aktiv — '${name}' ist nicht erlaubt.`,
+      };
+    }
+
+    // App starten (existierende Logik)
+    const launchResult = await openApp({ name }, { [name]: entry.command });
+    if (!launchResult.success) return launchResult;
+
+    // Prozessname aus dem Befehlspfad ableiten
+    const procName = path.basename(entry.command, ".exe").replace(/"/g, "");
+
+    // Fenster auf Ziel-Monitor verschieben (bis 8s warten)
+    const moveScript = `
+Add-Type -AssemblyName System.Windows.Forms
+$screens = [System.Windows.Forms.Screen]::AllScreens | Sort-Object { $_.Bounds.X }
+if (${monitorIdx} -gt $screens.Count) {
+  Write-Output '{"ok":false,"msg":"Monitor nicht verfügbar"}'
+  exit 0
+}
+$target = $screens[${monitorIdx - 1}]
+Add-Type @'
+using System; using System.Runtime.InteropServices;
+public class WM {
+  [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h,IntPtr i,int x,int y,int w,int ht,uint f);
+  [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h,out RECT r);
+  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h,int c);
+  [StructLayout(LayoutKind.Sequential)] public struct RECT{public int L,T,R,B;}
+}
+'@ -ErrorAction SilentlyContinue
+$pname = '${procName.replace(/'/g, "''")}'
+$elapsed = 0; $proc = $null
+while ($elapsed -lt 8) {
+  $proc = Get-Process -Name $pname -ErrorAction SilentlyContinue |
+    Sort-Object StartTime -Descending | Select-Object -First 1
+  if ($proc -and $proc.MainWindowHandle -ne [IntPtr]::Zero) { break }
+  Start-Sleep -Milliseconds 500
+  if ($proc) { $proc.Refresh() }
+  $elapsed += 0.5
+}
+if ($null -eq $proc -or $proc.MainWindowHandle -eq [IntPtr]::Zero) {
+  Write-Output '{"ok":false,"msg":"Fenster nicht gefunden"}'
+  exit 0
+}
+$hwnd = $proc.MainWindowHandle
+$rect = New-Object WM+RECT
+[WM]::GetWindowRect($hwnd,[ref]$rect) | Out-Null
+$w = [Math]::Max($rect.R - $rect.L, 800)
+$h = [Math]::Max($rect.B - $rect.T, 600)
+[WM]::ShowWindow($hwnd, 9) | Out-Null
+[WM]::SetWindowPos($hwnd,[IntPtr]::Zero,($target.Bounds.X+50),($target.Bounds.Y+50),$w,$h,0x0044) | Out-Null
+Write-Output '{"ok":true}'
+`.trim();
+
+    const encoded = Buffer.from(moveScript, "utf16le").toString("base64");
+    try {
+      const { stdout } = await execAsync(
+        `powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+        { timeout: 12000 },
+      );
+      const res = JSON.parse(stdout.trim()) as { ok: boolean; msg?: string };
+      trackToolUsage("open_app_on_monitor", `${name} → Monitor ${monitorIdx}`);
+      if (res.ok) {
+        return {
+          success: true,
+          output: `${entry.name} auf Monitor ${monitorIdx} geöffnet.`,
+        };
+      }
+      return {
+        success: true,
+        output: `${entry.name} gestartet, aber Fenster konnte nicht verschoben werden: ${res.msg ?? "unbekannt"}.`,
+      };
+    } catch (err) {
+      // App wurde gestartet, nur das Verschieben schlug fehl
+      return {
+        success: true,
+        output: `${entry.name} gestartet. Fenster-Verschiebung fehlgeschlagen: ${String(err)}`,
+      };
+    }
+  },
 };
 
 export const toolExecutor = {

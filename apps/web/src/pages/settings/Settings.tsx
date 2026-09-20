@@ -270,6 +270,8 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   },
   { name: "describe_image", label: "Bilddatei beschreiben" },
   { name: "describe_webpage", label: "Webseite beschreiben" },
+  { name: "list_monitors", label: "Monitore auflisten" },
+  { name: "open_app_on_monitor", label: "App auf Monitor öffnen" },
 ];
 
 const input: React.CSSProperties = {
