@@ -209,10 +209,16 @@ async function openAppWithSettings(
 ): Promise<ToolResult> {
   const { apps, homeworkMode } = getSettings();
   const name = ((args.name as string) ?? "").toLowerCase().trim();
-  // Exakter Match zuerst, dann Teilstring-Match (z.B. "firefox" trifft "Mozilla Firefox")
+  // Exakter Match zuerst, dann Alias, dann Teilstring
   const entry =
     apps.find((a) => a.name.toLowerCase() === name) ??
+    apps.find((a) =>
+      (a.aliases ?? []).some((al) => al.toLowerCase() === name),
+    ) ??
     apps.find((a) => a.name.toLowerCase().includes(name)) ??
+    apps.find((a) =>
+      (a.aliases ?? []).some((al) => al.toLowerCase().includes(name)),
+    ) ??
     apps.find((a) => name.includes(a.name.toLowerCase()));
   if (!entry) {
     const known = apps
@@ -3195,7 +3201,13 @@ $result | ConvertTo-Json -Compress
 
     const entry =
       apps.find((a) => a.name.toLowerCase() === name) ??
+      apps.find((a) =>
+        (a.aliases ?? []).some((al) => al.toLowerCase() === name),
+      ) ??
       apps.find((a) => a.name.toLowerCase().includes(name)) ??
+      apps.find((a) =>
+        (a.aliases ?? []).some((al) => al.toLowerCase().includes(name)),
+      ) ??
       apps.find((a) => name.includes(a.name.toLowerCase()));
 
     if (!entry) {

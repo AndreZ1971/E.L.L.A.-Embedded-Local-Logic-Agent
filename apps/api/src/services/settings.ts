@@ -6,6 +6,7 @@ export interface AppEntry {
   name: string;
   command: string;
   allowed: boolean;
+  aliases?: string[];
 }
 
 export interface SetupAction {

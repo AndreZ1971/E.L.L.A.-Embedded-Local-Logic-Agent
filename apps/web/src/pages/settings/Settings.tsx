@@ -8,6 +8,7 @@ interface AppEntry {
   name: string;
   command: string;
   allowed: boolean;
+  aliases?: string[];
 }
 
 interface SetupAction {
@@ -2187,39 +2188,86 @@ const Settings: React.FC = () => {
                 </div>
               )}
               {filteredApps.map((a) => (
-                <label
+                <div
                   key={a.name}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "9px 16px",
                     borderBottom: "1px solid #1e2133",
-                    cursor: "pointer",
                     background: a.allowed ? "transparent" : "#0f111780",
                   }}
                 >
-                  <input
-                    type="checkbox"
-                    checked={a.allowed}
-                    onChange={() => toggleApp(a.name)}
+                  <label
                     style={{
-                      accentColor: "#7c6af7",
-                      width: 15,
-                      height: 15,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <span
-                    style={{
-                      flex: 1,
-                      fontSize: "0.875rem",
-                      color: a.allowed ? "#e2e8f0" : "#64748b",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "9px 16px 6px",
+                      cursor: "pointer",
                     }}
                   >
-                    {a.name}
-                  </span>
-                </label>
+                    <input
+                      type="checkbox"
+                      checked={a.allowed}
+                      onChange={() => toggleApp(a.name)}
+                      style={{
+                        accentColor: "#7c6af7",
+                        width: 15,
+                        height: 15,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: "0.875rem",
+                        color: a.allowed ? "#e2e8f0" : "#64748b",
+                      }}
+                    >
+                      {a.name}
+                    </span>
+                  </label>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "0 16px 7px 43px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "#475569",
+                        flexShrink: 0,
+                      }}
+                    >
+                      Aliase:
+                    </span>
+                    <input
+                      style={{
+                        ...input,
+                        flex: 1,
+                        fontSize: "0.78rem",
+                        padding: "3px 8px",
+                        color: "#94a3b8",
+                        background: "#0d0f18",
+                      }}
+                      placeholder="browser, mein-browser, ..."
+                      value={(a.aliases ?? []).join(", ")}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        const aliases = raw
+                          .split(",")
+                          .map((s) => s.trim().toLowerCase())
+                          .filter(Boolean);
+                        patch({
+                          apps: (settings.apps ?? []).map((x) =>
+                            x.name === a.name ? { ...x, aliases } : x,
+                          ),
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
               ))}
             </div>
 
