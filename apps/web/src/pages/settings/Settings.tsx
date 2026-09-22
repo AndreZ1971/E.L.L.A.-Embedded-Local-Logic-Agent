@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import "./Settings.css";
 
 const API = import.meta.env.VITE_API_BASE ?? "";
 const MASKED = "***";
@@ -302,11 +303,13 @@ const input: React.CSSProperties = {
   fontSize: "0.9rem",
 };
 
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
-  title,
-  children,
-}) => (
+const Section: React.FC<{
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}> = ({ title, children, className }) => (
   <div
+    className={className}
     style={{
       background: "#1a1d27",
       border: "1px solid #2d3148",
@@ -822,15 +825,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        maxWidth: 620,
-        height: "100%",
-        overflow: "hidden",
-      }}
-    >
+    <div className="settings-root">
       <div
         style={{
           display: "flex",
@@ -926,17 +921,7 @@ const Settings: React.FC = () => {
       </div>
 
       {/* ── Scrollbarer Tab-Inhalt ────────────────────────────── */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          minHeight: 0,
-          display: "flex",
-          flexDirection: "column",
-          gap: 14,
-          paddingTop: 14,
-        }}
-      >
+      <div className="settings-grid">
         {/* ── Tab: LLM ─────────────────────────────────────────── */}
         {tab === "llm" && (
           <>
@@ -1361,29 +1346,36 @@ const Settings: React.FC = () => {
         {/* ── Tab: Tools ───────────────────────────────────────── */}
         {tab === "tools" && (
           <>
-            <Section title={t("settings.section_tools_heading")}>
-              {ALL_TOOLS.map((tool) => (
-                <label
-                  key={tool.name}
-                  style={{
-                    ...rowLabel,
-                    color: (settings.enabledTools ?? []).includes(tool.name)
-                      ? "#e2e8f0"
-                      : "#94a3b8",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={(settings.enabledTools ?? []).includes(tool.name)}
-                    onChange={() => toggleTool(tool.name)}
-                    style={{ accentColor: "#7c6af7", width: 15, height: 15 }}
-                  />
-                  {toolLabel(tool.name, tool.label)}
-                  <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
-                    ({tool.name})
-                  </span>
-                </label>
-              ))}
+            <Section
+              title={t("settings.section_tools_heading")}
+              className="settings-section--full"
+            >
+              <div className="settings-tools-grid">
+                {ALL_TOOLS.map((tool) => (
+                  <label
+                    key={tool.name}
+                    style={{
+                      ...rowLabel,
+                      color: (settings.enabledTools ?? []).includes(tool.name)
+                        ? "#e2e8f0"
+                        : "#94a3b8",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={(settings.enabledTools ?? []).includes(
+                        tool.name,
+                      )}
+                      onChange={() => toggleTool(tool.name)}
+                      style={{ accentColor: "#7c6af7", width: 15, height: 15 }}
+                    />
+                    {toolLabel(tool.name, tool.label)}
+                    <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                      ({tool.name})
+                    </span>
+                  </label>
+                ))}
+              </div>
             </Section>
 
             <Section title={t("settings.section_session_limit")}>
@@ -1560,7 +1552,10 @@ const Settings: React.FC = () => {
 
         {/* ── Tab: Setups ──────────────────────────────────────── */}
         {tab === "setups" && (
-          <div style={{ display: "flex", gap: 12, flex: 1, minHeight: 0 }}>
+          <div
+            className="settings-section--full"
+            style={{ display: "flex", gap: 12, flex: 1, minHeight: 0 }}
+          >
             {/* Setup-Liste links */}
             <div
               style={{
@@ -2127,6 +2122,7 @@ const Settings: React.FC = () => {
         {/* ── Tab: Programme ───────────────────────────────────── */}
         {tab === "programme" && (
           <div
+            className="settings-section--full"
             style={{
               display: "flex",
               flexDirection: "column",
@@ -2673,7 +2669,10 @@ const Settings: React.FC = () => {
             </Section>
 
             {/* Erlaubte Apps */}
-            <Section title={t("settings.section_homework_apps")}>
+            <Section
+              title={t("settings.section_homework_apps")}
+              className="settings-section--full"
+            >
               <div
                 style={{
                   fontSize: "0.82rem",
@@ -2929,6 +2928,7 @@ const Settings: React.FC = () => {
         {/* ── Tab: Regeln ──────────────────────────────────────── */}
         {tab === "regeln" && (
           <div
+            className="settings-section--full"
             style={{
               display: "flex",
               flexDirection: "column",
@@ -3131,7 +3131,10 @@ const Settings: React.FC = () => {
         )}
         {/* ── Tab: Google ──────────────────────────────────────── */}
         {tab === "google" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div
+            className="settings-section--full"
+            style={{ display: "flex", flexDirection: "column", gap: 20 }}
+          >
             <div style={{ color: "#94a3b8", fontSize: "0.8rem" }}>
               {t("settings.google_hint")}
             </div>

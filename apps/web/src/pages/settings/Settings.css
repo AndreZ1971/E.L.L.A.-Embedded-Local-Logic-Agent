@@ -1,0 +1,54 @@
+/* ── Settings Page Layout ──────────────────────────────── */
+
+.settings-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  /* no max-width — fills .ella-main fully */
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid #2d3148;
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.settings-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Kachel-Grid ───────────────────────────────────────── */
+
+.settings-grid {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px;
+  padding-top: 14px;
+  align-content: start; /* don't stretch rows to fill height */
+}
+
+/* Sections that must span all columns (lists, editors, rule tables) */
+.settings-section--full {
+  grid-column: 1 / -1;
+}
+
+/* Two-column grid within a full-span section (e.g. tools toggle list) */
+.settings-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 4px 16px;
+}
