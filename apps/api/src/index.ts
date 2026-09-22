@@ -30,6 +30,7 @@ import { profilesRouter } from "./routes/profiles.js";
 import { pipelineRouter } from "./routes/pipeline.js";
 import { chessRouter } from "./routes/chess.js";
 import memoriesRouter from "./routes/memories.js";
+import { backupRouter } from "./routes/backup.js";
 import { loadWakewordModels } from "./services/wakewordDetector.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { env } from "./config/env.js";
@@ -77,6 +78,7 @@ app.use("/api/profiles", profilesRouter);
 app.use("/api/pipeline", pipelineRouter);
 app.use("/api/chess", chessRouter);
 app.use("/api/memories", memoriesRouter);
+app.use("/api/backup", backupRouter);
 
 app.get("/api/health", async (_req, res) => {
   const { provider, ollamaModel } = getSettings();

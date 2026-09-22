@@ -191,15 +191,16 @@ function buildGraph(
   const effectiveType = (m: MemNode) =>
     m.source === "reflection" ? "reflection" : m.type;
 
-  // ── 2. Hub nodes — only for types that exist ──────────────────────────────
-  const presentTypes = [...new Set(data.nodes.map(effectiveType))];
-  const hubNodes: SimNode[] = presentTypes.map((t) => ({
+  // ── 2. Hub nodes — always all 4 types (empty hubs render faded) ──────────
+  const presentTypes = new Set(data.nodes.map(effectiveType));
+  const ALL_TYPES = ["user", "system", "note", "reflection"];
+  const hubNodes: SimNode[] = ALL_TYPES.map((t) => ({
     uid: `hub_${t}`,
     kind: "hub",
     memType: t,
     label:
       lang === "de" ? (HUB_LABEL_DE[t] ?? t) : t[0].toUpperCase() + t.slice(1),
-    radius: 26,
+    radius: presentTypes.has(t) ? 26 : 18,
   }));
 
   // ── 3. Memory nodes ───────────────────────────────────────────────────────
@@ -392,16 +393,24 @@ function buildGraph(
     .append("circle")
     .attr("r", (d) => d.radius)
     .attr("fill", (d) => COLOR[d.memType] ?? COLOR.hub)
-    .attr("fill-opacity", (d) => (d.kind === "hub" ? 1 : 0.82))
+    .attr("fill-opacity", (d) => {
+      if (d.kind !== "hub") return 0.82;
+      return presentTypes.has(d.memType) ? 1 : 0.3;
+    })
     .attr("stroke", (d) =>
       d.kind === "hub" ? "rgba(255,255,255,0.6)" : "none",
     )
     .attr("stroke-width", (d) => (d.kind === "hub" ? 2 : 0))
-    .attr("filter", (d) => (d.kind === "hub" ? "url(#glow)" : "none"));
+    .attr("stroke-opacity", (d) =>
+      d.kind === "hub" && !presentTypes.has(d.memType) ? 0.3 : 1,
+    )
+    .attr("filter", (d) =>
+      d.kind === "hub" && presentTypes.has(d.memType) ? "url(#glow)" : "none",
+    );
 
-  // Hub labels (always visible)
+  // Hub labels (only for types with memories)
   nodeEl
-    .filter((d) => d.kind === "hub")
+    .filter((d) => d.kind === "hub" && presentTypes.has(d.memType))
     .append("text")
     .text((d) => d.label)
     .attr("text-anchor", "middle")

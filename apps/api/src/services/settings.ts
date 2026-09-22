@@ -16,12 +16,18 @@ export interface SetupAction {
   delay_ms?: number;
 }
 
+export interface ScheduleConfig {
+  days: number[]; // 0 = So, 1 = Mo … 6 = Sa
+  time: string; // "HH:MM"
+}
+
 export interface Setup {
   id: string;
   name: string;
   open: string[];
   close: string[];
   actions?: SetupAction[];
+  schedule?: ScheduleConfig;
 }
 
 export interface HomeworkModeConfig {

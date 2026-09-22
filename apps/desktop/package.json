@@ -1,6 +1,6 @@
 {
   "name": "@ella/desktop",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "main": "dist/main/index.js",
   "scripts": {
@@ -78,6 +78,10 @@
       {
         "from": "../../database/schema.sql",
         "to": "database/schema.sql"
+      },
+      {
+        "from": "../../scripts/stress_server.py",
+        "to": "scripts/stress_server.py"
       }
     ],
     "win": {

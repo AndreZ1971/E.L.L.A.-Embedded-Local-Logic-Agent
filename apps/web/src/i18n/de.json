@@ -140,7 +140,10 @@
     "aria_homework_off": "Hausaufgaben-Modus aktivieren",
     "aria_clear": "Gesprächsverlauf löschen",
     "aria_mic_on": "Aufnahme stoppen",
-    "aria_mic_off": "Mikrofon aktivieren"
+    "aria_mic_off": "Mikrofon aktivieren",
+    "pin_error_wrong": "Falscher PIN.",
+    "feedback_helpful": "Hilfreich",
+    "feedback_not_helpful": "Nicht hilfreich"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -290,6 +293,11 @@
     "setups_add": "+ Neues Setup",
     "setups_select_or_add": "Setup auswählen oder neu anlegen.",
     "setups_delete": "Löschen",
+    "setup_schedule_label": "Zeitplan",
+    "setup_schedule_enable": "Automatisch ausführen",
+    "setup_schedule_days": "Wochentage",
+    "setup_schedule_time": "Uhrzeit",
+    "setup_schedule_days_short": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
     "section_homework_apps": "Erlaubte Apps im Hausaufgaben-Modus",
     "homework_apps_hint": "Nur diese Apps laufen wenn der Modus aktiviert wird. Alle anderen bekannten Programme werden geschlossen.",
     "homework_apps_empty": "Erst unter \"Programme\" Apps eintragen.",
@@ -324,7 +332,20 @@
     "profile_create_error": "Fehler beim Erstellen",
     "profile_create_btn": "Profil erstellen",
     "emergency_reset_confirm": "Notschalter: Alle KI-Einstellungen auf sichere Defaults zurücksetzen?\n\nApps, Setups, PIN und Regeln bleiben erhalten.",
-    "search_drives_placeholder": "z.B. C, E, H"
+    "search_drives_placeholder": "z.B. C, E, H",
+    "tab_backup": "Backup",
+    "backup_export_title": "Backup exportieren",
+    "backup_export_desc": "Erstellt eine JSON-Datei mit allen Erinnerungen, Regeln, Weckern, Aufgaben und Setups. Embeddings werden nicht gesichert — sie werden beim Import automatisch neu erstellt.",
+    "backup_export_btn": "⬇ Backup herunterladen",
+    "backup_import_title": "Backup importieren",
+    "backup_import_desc": "Wähle eine vorher exportierte ELLA-Backup-Datei. Zusammenführen fügt neue Einträge hinzu ohne bestehende zu löschen. Ersetzen überschreibt alle Daten.",
+    "backup_import_btn": "⬆ Importieren",
+    "backup_mode_merge": "Zusammenführen",
+    "backup_mode_replace": "Ersetzen",
+    "backup_mode_merge_hint": "Neue Einträge werden hinzugefügt. Bestehende Daten bleiben unverändert.",
+    "backup_mode_replace_hint": "⚠ Alle Erinnerungen, Regeln, Wecker, Aufgaben und Setups werden überschrieben.",
+    "backup_replace_confirm": "Alle Daten ersetzen?\n\nErinnerungen, Regeln, Wecker, Aufgaben und Setups werden vollständig durch das Backup überschrieben. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "backup_import_success": "Import erfolgreich — {{memories}} Erinnerungen, {{rules}} Regeln, {{alarms}} Wecker, {{tasks}} Aufgaben, {{setups}} Setups."
   },
   "common": {
     "loading": "Lädt…",
@@ -455,7 +476,24 @@
     "no_data": "Keine Daten",
     "events_waiting": "Warte auf ersten Worker-Tick…",
     "disk_unavailable": "nicht erreichbar",
-    "disk_free": "frei"
+    "disk_free": "frei",
+    "port_suspicious": "⚠ Port {{port}} geöffnet — kein Prozess zuordenbar",
+    "port_opened": "Port {{port}} → {{proc}}"
+  },
+  "memories": {
+    "heading": "Gedächtnis",
+    "view_list": "Liste",
+    "view_graph": "Graph",
+    "add_btn": "+ Hinzufügen",
+    "search_placeholder": "Suchen…",
+    "type_note": "Notiz",
+    "type_user": "Nutzer",
+    "type_system": "System",
+    "content_placeholder": "Inhalt der Erinnerung…",
+    "save": "Speichern",
+    "saving": "Speichern…",
+    "empty": "Keine Erinnerungen gefunden.",
+    "delete_aria": "Löschen"
   },
   "model_select": {
     "heading": "Bevor wir loslegen —",

@@ -60,12 +60,55 @@ Partien können pausiert und später fortgesetzt werden — auch nach App-Neusta
 - Beim nächsten Öffnen: gespeicherte Partie erkannt, "▶ Weiter"-Button prominent
 - Spielende (Schachmatt, Remis, Aufgeben) löscht den Speicherstand automatisch
 
+#### Gedächtnis-Browser
+
+Neue Seite `/memories` zum Durchsuchen, Filtern und Verwalten aller ELLA-Erinnerungen.
+
+- Volltext-Suche und Typ-Filter (user / system / note) gleichzeitig anwendbar
+- Paginierung mit Hover-Vorschau des Vollinhalts
+- Einzelne Erinnerungen direkt löschen
+
+#### Knowledge-Graph
+
+Semantischer Wissens-Graph als zweiter Tab auf der Memories-Seite.
+
+- D3 Force-Directed Graph — Knoten = Memories, Kanten = semantische Ähnlichkeit (Cosinus-Ähnlichkeit aus Embeddings)
+- Hover zeigt Inhalt, Typ und Ähnlichkeitswert der Verbindung
+- Graph aktualisiert sich beim Tab-Wechsel automatisch
+
+#### Hardware-Detail-Tools
+
+Fünf neue Tools für detaillierte Hardware-Informationen:
+
+- `get_gpu_info` — Grafikkarten-Details (Modell, VRAM, Treiber, Status)
+- `get_ram_details` — RAM-Sticks einzeln (Kapazität, Geschwindigkeit, Typ, Hersteller, Slot)
+- `get_drive_details` — alle Laufwerke (Größe, Typ SSD/HDD, Schnittstelle, Seriennummer)
+- `get_audio_devices` — Ein- und Ausgabegeräte mit Status
+- `get_usb_devices` — angesteckte USB-Geräte mit DeviceID
+
+Alle via `Get-CimInstance`, vollständig Windows 11 22H2+ kompatibel.
+
+#### Backup & Restore
+
+Vollständige Datensicherung und -wiederherstellung über einen neuen Tab in den Einstellungen.
+
+- **Export**: JSON-Download mit allen Memories, Regeln, Weckern, Aufgaben und Setups
+- **Import (Zusammenführen)**: neue Einträge werden hinzugefügt, bestehende bleiben erhalten; Memories werden anhand des Inhalts dedupliziert
+- **Import (Ersetzen)**: alle vorhandenen Daten werden zuerst gelöscht, dann der Backup-Stand vollständig wiederhergestellt
+- Transaktionssicherer Import über MariaDB-Connection mit Rollback bei Fehler
+
+#### i18n vollständig
+
+Alle verbleibenden hardkodierten Strings durch `t()`-Aufrufe ersetzt. Neue Key-Gruppe `memories` in de.json/en.json. Interpolation-Keys für Dashboard-Port-Events.
+
 ### Technisch
 
 - Neue DB-Tabelle `chess_games` (FEN, Züge, Status, Gewinner, Zug-Zähler)
-- Neue API-Routen: `POST /api/chess/new`, `/move`, `/resign`, `/reflect`
-- Tool `open_chess_window` + Default-Regel ID 90
+- Neue API-Routen: `POST /api/chess/*`, `/api/backup/*`, `/api/memories/*`
+- Tool `open_chess_window` + Default-Regel ID 90; Hardware-Detail-Tools Regeln 91–95
 - Chess-IPC getrennt vom Hauptfenster: `chess:minimize`, `chess:close`
+- `stress_server.py` korrekt in `extraResources` eingetragen (Installer-Bugfix)
+- Desktop `package.json` Version auf `1.4.0` gebumpt
 
 ---
 

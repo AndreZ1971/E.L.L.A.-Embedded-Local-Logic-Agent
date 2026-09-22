@@ -4,7 +4,7 @@
 
 Lokaler KI-Assistent für Windows als native Desktop-App. LLM-gesteuerte Automatisierung — vollständig offline via Ollama, optional mit OpenAI.
 
-**Version:** v1.3.0 · Windows 10/11 (x64)
+**Version:** v1.4.0 · Windows 10/11 (x64)
 
 _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -14,7 +14,7 @@ _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
 **Voraussetzungen: keine.** Der Installer bringt alles mit.
 
-1. `E.L.L.A Setup 1.3.0.exe` ausführen
+1. `E.L.L.A Setup 1.4.0.exe` ausführen
 2. Installationspfad wählen (Standard: `C:\Programme\E.L.L.A`)
 3. Beim ersten Start: **Sprachauswahl** (DE/EN) → EULA → Lizenzaktivierung → **Modell-Auswahl** → Onboarding → Chat
 
@@ -47,7 +47,7 @@ Kein Python, kein separates MariaDB-Setup, keine PATH-Konfiguration.
 | Web                  | Sofortige Suche ohne Rückfrage (Filme, Personen, Produkte, News)                                                                                                                                                      |
 | Wetter               | Aktuelles Wetter via Open-Meteo                                                                                                                                                                                       |
 | Hausaufgaben-Modus   | PIN-gesicherter Kiosk mit App-Whitelist                                                                                                                                                                               |
-| Regel-Engine         | 57 Default-Regeln, allow/deny, Zeitbedingungen, Directive-Layer                                                                                                                                                       |
+| Regel-Engine         | 90+ Default-Regeln, allow/deny, Zeitbedingungen, Directive-Layer                                                                                                                                                      |
 | Monitoring           | Background-Worker, SSE-Push, Disk/Ollama/RAM-Alerts, PnP-Events                                                                                                                                                       |
 | USB-Erkennung        | USB-Laufwerke werden erkannt und angesagt (proaktive Nachricht + TTS)                                                                                                                                                 |
 | Netzwerk             | LAN-Scan via ARP, TCP-Verbindungen, DNS/Firewall/WiFi-Überwachung                                                                                                                                                     |
@@ -74,6 +74,11 @@ Kein Python, kein separates MariaDB-Setup, keine PATH-Konfiguration.
 | Multi-Agenten        | Eigene Seite; 2 Pipelines: Morgenbriefing (Kalender+Aufgaben+Wetter) und System-Report (Speicher+Performance+Prozesse+Netzwerk); Live-Streaming pro Agent; Synthese-Zusammenfassung; Setup-Integration nach Abschluss |
 | Tool-Selektor        | Pro Anfrage nur ~12 statt 85 Tools — bis zu 90 % weniger Input-Tokens; ab Runde 1 nur kontextrelevante Tools                                                                                                          |
 | Token-Optimizer      | Tool-Ergebnisse vor Kontexteinbettung komprimiert (Base64-Strip, Array-Truncation)                                                                                                                                    |
+| Schach               | Eigenes Electron-Fenster, 4 Themes, 3D-SVG-Figuren, LLM-gesteuerte KI mit chess.js, Kommentar nach Zug, Pause/Resume, strategische Reflexion in Memories                                                              |
+| Gedächtnis-Browser   | Memories durchsuchen, filtern (nach Typ), paginieren und löschen — eigene Seite in der App                                                                                                                            |
+| Knowledge-Graph      | D3 Force-Directed Graph visualisiert semantische Beziehungen zwischen Erinnerungen (Cosinus-Ähnlichkeit)                                                                                                              |
+| Hardware-Tools       | GPU, RAM, Laufwerke, Audio-Geräte, USB-Geräte detailliert abfragen (Get-CimInstance, Windows 11 22H2+ kompatibel)                                                                                                     |
+| Backup & Restore     | Vollständiger JSON-Export (Memories, Regeln, Wecker, Aufgaben, Setups); Import mit Zusammenführen- oder Ersetzen-Modus                                                                                                |
 
 ### Die E.L.L.A. Direktive — vier unveränderliche Verbote
 
@@ -108,11 +113,12 @@ ELLA nutzt `window.SpeechRecognition` (Chromium built-in) direkt im Renderer:
 - 4 weibliche Stimmen: Katja (DE), Sonia (EN), Elvira (ES), Denise (FR)
 - Wählbar per `spokenLanguage`-Setting (unabhängig von der UI-Sprache)
 
-**Kokoro TTS** (`scripts/tts_server.py`, Port 3003, vollständig offline):
+**Kokoro TTS** (`services/kokoro.ts`, Node.js/ONNX, vollständig offline):
 
-- Lokale neuronale Stimme, kein Internet nötig
+- Lokale neuronale Stimme via `kokoro-js`, kein Python nötig
+- Lazy-geladen beim API-Start von HuggingFace Hub → `%APPDATA%\ELLA\kokoro-cache\`
 - Gleiche 4 Sprachen: `af_sarah` / `bf_emma` / `ef_dora` / `ff_siwis`
-- In den Einstellungen aktivierbar (`ttsEngine: "kokoro"`)
+- Automatisch als primäre Engine wenn bereit (`kokoro_ready` in `/api/health`)
 
 ### Stress-Erkennung in der Stimme (opt-in)
 

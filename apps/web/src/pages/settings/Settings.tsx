@@ -19,12 +19,18 @@ interface SetupAction {
   delay_ms?: number;
 }
 
+interface ScheduleConfig {
+  days: number[]; // 0=So 1=Mo … 6=Sa
+  time: string; // "HH:MM"
+}
+
 interface Setup {
   id: string;
   name: string;
   open: string[];
   close: string[];
   actions?: SetupAction[];
+  schedule?: ScheduleConfig;
 }
 
 interface ActionField {
@@ -333,7 +339,14 @@ const Section: React.FC<{
 );
 
 type Tab =
-  "llm" | "tools" | "programme" | "setups" | "modus" | "regeln" | "google";
+  | "llm"
+  | "tools"
+  | "programme"
+  | "setups"
+  | "modus"
+  | "regeln"
+  | "google"
+  | "backup";
 
 const Settings: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -387,6 +400,16 @@ const Settings: React.FC = () => {
   } | null>(null);
   const [switchPins, setSwitchPins] = useState<Record<number, string>>({});
   const [profileLoading, setProfileLoading] = useState(false);
+
+  // Backup-States
+  const [backupExporting, setBackupExporting] = useState(false);
+  const [backupFile, setBackupFile] = useState<File | null>(null);
+  const [backupMode, setBackupMode] = useState<"merge" | "replace">("merge");
+  const [backupImporting, setBackupImporting] = useState(false);
+  const [backupMsg, setBackupMsg] = useState<{
+    ok: boolean;
+    text: string;
+  } | null>(null);
 
   const loadProfiles = async () => {
     const data = (await fetch(`${API}/api/profiles`).then((r) =>
@@ -603,6 +626,18 @@ const Settings: React.FC = () => {
     });
   };
 
+  const patchSetupSchedule = (
+    setupId: string,
+    schedule: ScheduleConfig | undefined,
+  ) => {
+    if (!settings) return;
+    patch({
+      setups: (settings.setups ?? []).map((s) =>
+        s.id === setupId ? { ...s, schedule } : s,
+      ),
+    });
+  };
+
   const [newActionTool, setNewActionTool] = useState(ACTION_TEMPLATES[0].tool);
   const [newActionArgs, setNewActionArgs] = useState<Record<string, unknown>>(
     ACTION_TEMPLATES[0].defaultArgs,
@@ -813,6 +848,7 @@ const Settings: React.FC = () => {
     google: settings.googleConnected
       ? `${t("settings.tab_google")} ✓`
       : t("settings.tab_google"),
+    backup: t("settings.tab_backup"),
   };
 
   const rowLabel: React.CSSProperties = {
@@ -896,6 +932,7 @@ const Settings: React.FC = () => {
             "modus",
             "regeln",
             "google",
+            "backup",
           ] as Tab[]
         ).map((t) => (
           <button
@@ -2112,6 +2149,154 @@ const Settings: React.FC = () => {
                         </button>
                       </div>
                     </div>
+
+                    {/* ── Zeitplan ── */}
+                    <div style={{ marginTop: 4 }}>
+                      <div
+                        style={{
+                          fontSize: "0.72rem",
+                          color: "#38bdf8",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.06em",
+                          marginBottom: 6,
+                        }}
+                      >
+                        {t("settings.setup_schedule_label")}
+                      </div>
+                      <div
+                        style={{
+                          background: "#1a1d27",
+                          border: "1px solid #2d3148",
+                          borderRadius: 8,
+                          padding: "10px 14px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 10,
+                        }}
+                      >
+                        {/* Aktiv-Schalter */}
+                        <label
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!!setup.schedule}
+                            onChange={(e) =>
+                              patchSetupSchedule(
+                                setup.id,
+                                e.target.checked
+                                  ? {
+                                      days: setup.schedule?.days ?? [
+                                        1, 2, 3, 4, 5,
+                                      ],
+                                      time: setup.schedule?.time ?? "08:00",
+                                    }
+                                  : undefined,
+                              )
+                            }
+                            style={{ accentColor: "#38bdf8" }}
+                          />
+                          <span
+                            style={{ fontSize: "0.85rem", color: "#e2e8f0" }}
+                          >
+                            {t("settings.setup_schedule_enable")}
+                          </span>
+                        </label>
+
+                        {/* Tage + Uhrzeit — nur wenn aktiv */}
+                        {setup.schedule && (
+                          <>
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: "0.72rem",
+                                  color: "#64748b",
+                                  marginBottom: 6,
+                                }}
+                              >
+                                {t("settings.setup_schedule_days")}
+                              </div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: 4,
+                                  flexWrap: "wrap",
+                                }}
+                              >
+                                {(
+                                  t("settings.setup_schedule_days_short", {
+                                    returnObjects: true,
+                                  }) as string[]
+                                ).map((dayLabel, idx) => {
+                                  const active =
+                                    setup.schedule!.days.includes(idx);
+                                  return (
+                                    <button
+                                      key={idx}
+                                      onClick={() => {
+                                        const cur = setup.schedule!.days;
+                                        patchSetupSchedule(setup.id, {
+                                          ...setup.schedule!,
+                                          days: active
+                                            ? cur.filter((d) => d !== idx)
+                                            : [...cur, idx].sort(),
+                                        });
+                                      }}
+                                      style={{
+                                        padding: "4px 10px",
+                                        borderRadius: 6,
+                                        border: `1px solid ${active ? "#38bdf8" : "#2d3148"}`,
+                                        background: active
+                                          ? "#0c3346"
+                                          : "transparent",
+                                        color: active ? "#38bdf8" : "#64748b",
+                                        cursor: "pointer",
+                                        fontSize: "0.78rem",
+                                        fontWeight: active ? 600 : 400,
+                                        minWidth: 34,
+                                      }}
+                                    >
+                                      {dayLabel}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: "0.72rem",
+                                  color: "#64748b",
+                                  marginBottom: 6,
+                                }}
+                              >
+                                {t("settings.setup_schedule_time")}
+                              </div>
+                              <input
+                                type="time"
+                                value={setup.schedule.time}
+                                onChange={(e) =>
+                                  patchSetupSchedule(setup.id, {
+                                    ...setup.schedule!,
+                                    time: e.target.value,
+                                  })
+                                }
+                                style={{
+                                  ...input,
+                                  width: 120,
+                                  colorScheme: "dark",
+                                }}
+                              />
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 );
               })()}
@@ -2572,18 +2757,11 @@ const Settings: React.FC = () => {
 
         {/* ── Tab: Modus ───────────────────────────────────────── */}
         {tab === "modus" && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 14,
-              flex: 1,
-              minHeight: 0,
-            }}
-          >
-            {/* Status-Banner wenn aktiv */}
+          <>
+            {/* Status-Banner wenn aktiv — volle Breite */}
             {settings.homeworkMode?.active && (
               <div
+                className="settings-section--full"
                 style={{
                   background: "#431407",
                   border: "1px solid #c2410c",
@@ -2601,7 +2779,7 @@ const Settings: React.FC = () => {
               </div>
             )}
 
-            {/* PIN-Sektion */}
+            {/* PIN-Sektion — Kachel */}
             <Section title={t("settings.section_homework_pin")}>
               <div
                 style={{
@@ -2922,7 +3100,7 @@ const Settings: React.FC = () => {
                 </label>
               ))}
             </Section>
-          </div>
+          </>
         )}
 
         {/* ── Tab: Regeln ──────────────────────────────────────── */}
@@ -3549,6 +3727,218 @@ const Settings: React.FC = () => {
                     }}
                   >
                     {profileMsg.text}
+                  </div>
+                )}
+              </div>
+            </Section>
+          </React.Fragment>
+        )}
+
+        {/* ── Backup & Restore ──────────────────────────────────── */}
+        {tab === "backup" && (
+          <React.Fragment>
+            <Section title={t("settings.backup_export_title")}>
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#94a3b8",
+                  margin: "0 0 14px 0",
+                  lineHeight: 1.5,
+                }}
+              >
+                {t("settings.backup_export_desc")}
+              </p>
+              <button
+                disabled={backupExporting}
+                onClick={async () => {
+                  setBackupExporting(true);
+                  try {
+                    const res = await fetch(`${API}/api/backup/export`);
+                    const blob = await res.blob();
+                    const cd = res.headers.get("Content-Disposition") ?? "";
+                    const nameMatch = cd.match(/filename="([^"]+)"/);
+                    const filename =
+                      nameMatch?.[1] ??
+                      `ella-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } finally {
+                    setBackupExporting(false);
+                  }
+                }}
+                style={{
+                  padding: "9px 22px",
+                  borderRadius: 6,
+                  background: backupExporting ? "#2d3148" : "#7c6af7",
+                  color: "#fff",
+                  border: "none",
+                  cursor: backupExporting ? "not-allowed" : "pointer",
+                  fontSize: "0.88rem",
+                  fontWeight: 600,
+                }}
+              >
+                {backupExporting ? "…" : t("settings.backup_export_btn")}
+              </button>
+            </Section>
+
+            <Section title={t("settings.backup_import_title")}>
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#94a3b8",
+                  margin: "0 0 14px 0",
+                  lineHeight: 1.5,
+                }}
+              >
+                {t("settings.backup_import_desc")}
+              </p>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 12 }}
+              >
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={(e) => setBackupFile(e.target.files?.[0] ?? null)}
+                    style={{ flex: 1, fontSize: "0.85rem", color: "#e2e8f0" }}
+                  />
+                </label>
+
+                <div style={{ display: "flex", gap: 8 }}>
+                  {(["merge", "replace"] as const).map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setBackupMode(m)}
+                      style={{
+                        padding: "6px 16px",
+                        borderRadius: 6,
+                        background:
+                          backupMode === m ? "#1e1b3a" : "transparent",
+                        border:
+                          backupMode === m
+                            ? "1px solid #7c6af7"
+                            : "1px solid #2d3148",
+                        color: backupMode === m ? "#a5b4fc" : "#64748b",
+                        cursor: "pointer",
+                        fontSize: "0.82rem",
+                      }}
+                    >
+                      {t(
+                        m === "merge"
+                          ? "settings.backup_mode_merge"
+                          : "settings.backup_mode_replace",
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <p
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "#475569",
+                    margin: 0,
+                  }}
+                >
+                  {t(
+                    backupMode === "merge"
+                      ? "settings.backup_mode_merge_hint"
+                      : "settings.backup_mode_replace_hint",
+                  )}
+                </p>
+
+                <button
+                  disabled={!backupFile || backupImporting}
+                  onClick={async () => {
+                    if (!backupFile) return;
+                    if (
+                      backupMode === "replace" &&
+                      !window.confirm(t("settings.backup_replace_confirm"))
+                    )
+                      return;
+                    setBackupImporting(true);
+                    setBackupMsg(null);
+                    try {
+                      const text = await backupFile.text();
+                      const data = JSON.parse(text) as unknown;
+                      const res = await fetch(`${API}/api/backup/import`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ data, mode: backupMode }),
+                      });
+                      const result = (await res.json()) as {
+                        success?: boolean;
+                        stats?: Record<string, number>;
+                        error?: string;
+                      };
+                      if (result.success) {
+                        const s = result.stats ?? {};
+                        setBackupMsg({
+                          ok: true,
+                          text: t("settings.backup_import_success", {
+                            memories: s.memories ?? 0,
+                            rules: s.rules ?? 0,
+                            alarms: s.alarms ?? 0,
+                            tasks: s.tasks ?? 0,
+                            setups: s.setups ?? 0,
+                          }),
+                        });
+                        setBackupFile(null);
+                      } else {
+                        setBackupMsg({
+                          ok: false,
+                          text: result.error ?? t("common.error"),
+                        });
+                      }
+                    } catch {
+                      setBackupMsg({ ok: false, text: t("common.error") });
+                    } finally {
+                      setBackupImporting(false);
+                    }
+                  }}
+                  style={{
+                    padding: "9px 22px",
+                    borderRadius: 6,
+                    background:
+                      !backupFile || backupImporting ? "#2d3148" : "#0f766e",
+                    color: "#fff",
+                    border: "none",
+                    cursor:
+                      !backupFile || backupImporting
+                        ? "not-allowed"
+                        : "pointer",
+                    fontSize: "0.88rem",
+                    fontWeight: 600,
+                    opacity: !backupFile ? 0.5 : 1,
+                  }}
+                >
+                  {backupImporting ? "…" : t("settings.backup_import_btn")}
+                </button>
+
+                {backupMsg && (
+                  <div
+                    style={{
+                      fontSize: "0.82rem",
+                      color: backupMsg.ok ? "#4ade80" : "#f87171",
+                      padding: "8px 12px",
+                      borderRadius: 6,
+                      background: backupMsg.ok
+                        ? "rgba(74,222,128,0.08)"
+                        : "rgba(248,113,113,0.08)",
+                      border: `1px solid ${backupMsg.ok ? "#166534" : "#7f1d1d"}`,
+                    }}
+                  >
+                    {backupMsg.text}
                   </div>
                 )}
               </div>

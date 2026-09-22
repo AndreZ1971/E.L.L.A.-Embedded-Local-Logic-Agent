@@ -140,7 +140,10 @@
     "aria_homework_off": "Activate homework mode",
     "aria_clear": "Clear conversation history",
     "aria_mic_on": "Stop recording",
-    "aria_mic_off": "Activate microphone"
+    "aria_mic_off": "Activate microphone",
+    "pin_error_wrong": "Wrong PIN.",
+    "feedback_helpful": "Helpful",
+    "feedback_not_helpful": "Not helpful"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -290,6 +293,19 @@
     "setups_add": "+ New setup",
     "setups_select_or_add": "Select a setup or create new.",
     "setups_delete": "Delete",
+    "setup_schedule_label": "Schedule",
+    "setup_schedule_enable": "Run automatically",
+    "setup_schedule_days": "Days",
+    "setup_schedule_time": "Time",
+    "setup_schedule_days_short": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
     "section_homework_apps": "Allowed apps in homework mode",
     "homework_apps_hint": "Only these apps run when the mode is activated. All other known programs will be closed.",
     "homework_apps_empty": "First add apps under \"Programs\".",
@@ -324,7 +340,20 @@
     "profile_create_error": "Failed to create",
     "profile_create_btn": "Create profile",
     "emergency_reset_confirm": "Emergency reset: Reset all AI settings to safe defaults?\n\nApps, setups, PIN and rules are preserved.",
-    "search_drives_placeholder": "e.g. C, E, H"
+    "search_drives_placeholder": "e.g. C, E, H",
+    "tab_backup": "Backup",
+    "backup_export_title": "Export backup",
+    "backup_export_desc": "Creates a JSON file with all memories, rules, alarms, tasks and setups. Embeddings are not included — they are regenerated automatically on import.",
+    "backup_export_btn": "⬇ Download backup",
+    "backup_import_title": "Import backup",
+    "backup_import_desc": "Select a previously exported ELLA backup file. Merge adds new entries without deleting existing ones. Replace overwrites all data.",
+    "backup_import_btn": "⬆ Import",
+    "backup_mode_merge": "Merge",
+    "backup_mode_replace": "Replace",
+    "backup_mode_merge_hint": "New entries are added. Existing data remains unchanged.",
+    "backup_mode_replace_hint": "⚠ All memories, rules, alarms, tasks and setups will be overwritten.",
+    "backup_replace_confirm": "Replace all data?\n\nMemories, rules, alarms, tasks and setups will be completely overwritten by the backup. This action cannot be undone.",
+    "backup_import_success": "Import successful — {{memories}} memories, {{rules}} rules, {{alarms}} alarms, {{tasks}} tasks, {{setups}} setups."
   },
   "common": {
     "loading": "Loading…",
@@ -455,7 +484,24 @@
     "no_data": "No data",
     "events_waiting": "Waiting for first worker tick…",
     "disk_unavailable": "unavailable",
-    "disk_free": "free"
+    "disk_free": "free",
+    "port_suspicious": "⚠ Port {{port}} opened — no process assignable",
+    "port_opened": "Port {{port}} → {{proc}}"
+  },
+  "memories": {
+    "heading": "Memory",
+    "view_list": "List",
+    "view_graph": "Graph",
+    "add_btn": "+ Add",
+    "search_placeholder": "Search…",
+    "type_note": "Note",
+    "type_user": "User",
+    "type_system": "System",
+    "content_placeholder": "Memory content…",
+    "save": "Save",
+    "saving": "Saving…",
+    "empty": "No memories found.",
+    "delete_aria": "Delete"
   },
   "model_select": {
     "heading": "Before we begin —",

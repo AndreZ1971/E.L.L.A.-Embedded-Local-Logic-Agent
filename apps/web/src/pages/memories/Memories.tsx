@@ -34,7 +34,7 @@ const TYPE_LABELS: Record<string, { de: string; en: string; color: string }> = {
 };
 
 export default function Memories() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language.startsWith("de") ? "de" : "en";
 
   const [activeType, setActiveType] = useState("all");
@@ -162,27 +162,27 @@ export default function Memories() {
       className={`memories-page${view === "graph" ? " memories-page--graph" : ""}`}
     >
       <div className="memories-header">
-        <h1>{lang === "de" ? "Gedächtnis" : "Memory"}</h1>
+        <h1>{t("memories.heading")}</h1>
         <div className="header-actions">
           <div className="view-toggle">
             <button
               className={view === "list" ? "active" : ""}
               onClick={() => setView("list")}
-              title={lang === "de" ? "Liste" : "List"}
+              title={t("memories.view_list")}
             >
               ☰
             </button>
             <button
               className={view === "graph" ? "active" : ""}
               onClick={() => setView("graph")}
-              title={lang === "de" ? "Graph" : "Graph"}
+              title={t("memories.view_graph")}
             >
               ◉
             </button>
           </div>
           {view === "list" && (
             <button className="btn-add" onClick={() => setShowAdd((v) => !v)}>
-              {showAdd ? "✕" : lang === "de" ? "+ Hinzufügen" : "+ Add"}
+              {showAdd ? "✕" : t("memories.add_btn")}
             </button>
           )}
         </div>
@@ -216,7 +216,7 @@ export default function Memories() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={lang === "de" ? "Suchen…" : "Search…"}
+          placeholder={t("memories.search_placeholder")}
           className="search-input"
         />
         {search && (
@@ -247,18 +247,14 @@ export default function Memories() {
                   setAddType(e.target.value as "user" | "system" | "note")
                 }
               >
-                <option value="note">{lang === "de" ? "Notiz" : "Note"}</option>
-                <option value="user">
-                  {lang === "de" ? "Nutzer" : "User"}
-                </option>
+                <option value="note">{t("memories.type_note")}</option>
+                <option value="user">{t("memories.type_user")}</option>
                 <option value="system">System</option>
               </select>
               <textarea
                 value={addContent}
                 onChange={(e) => setAddContent(e.target.value)}
-                placeholder={
-                  lang === "de" ? "Inhalt der Erinnerung…" : "Memory content…"
-                }
+                placeholder={t("memories.content_placeholder")}
                 rows={3}
               />
               <div className="add-actions">
@@ -267,13 +263,7 @@ export default function Memories() {
                   onClick={handleAdd}
                   disabled={adding || !addContent.trim()}
                 >
-                  {adding
-                    ? lang === "de"
-                      ? "Speichern…"
-                      : "Saving…"
-                    : lang === "de"
-                      ? "Speichern"
-                      : "Save"}
+                  {adding ? t("memories.saving") : t("memories.save")}
                 </button>
               </div>
             </div>
@@ -283,11 +273,7 @@ export default function Memories() {
           <div className="memories-list">
             {loading && <div className="memories-loading">…</div>}
             {!loading && memories.length === 0 && (
-              <div className="memories-empty">
-                {lang === "de"
-                  ? "Keine Erinnerungen gefunden."
-                  : "No memories found."}
-              </div>
+              <div className="memories-empty">{t("memories.empty")}</div>
             )}
             {memories.map((m) => {
               const badge = getTypeBadge(m);
@@ -307,7 +293,7 @@ export default function Memories() {
                     className="btn-delete"
                     onClick={() => handleDelete(m.id)}
                     disabled={deleteId === m.id}
-                    aria-label={lang === "de" ? "Löschen" : "Delete"}
+                    aria-label={t("memories.delete_aria")}
                   >
                     {deleteId === m.id ? "…" : "✕"}
                   </button>

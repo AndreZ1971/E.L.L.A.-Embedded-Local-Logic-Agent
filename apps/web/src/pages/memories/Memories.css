@@ -1,5 +1,9 @@
 .memories-page {
   padding: 24px;
+  height: 100%;
+  overflow-y: auto;
+  min-height: 0;
+  box-sizing: border-box;
   /* no max-width — fills .ella-main like Dashboard and Chat */
 }
 .memories-page--graph {

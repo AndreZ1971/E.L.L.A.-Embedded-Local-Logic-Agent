@@ -1111,7 +1111,7 @@ const Chat: React.FC = () => {
         setShowPinDialog(false);
         setPinInput("");
       } else {
-        setPinError(d.error ?? "Falscher PIN.");
+        setPinError(d.error ?? t("chat.pin_error_wrong"));
       }
     } finally {
       setPinBusy(false);
@@ -1166,7 +1166,7 @@ const Chat: React.FC = () => {
               aria-label={t(
                 ttsEnabled ? "chat.aria_tts_on" : "chat.aria_tts_off",
               )}
-              title={ttsEnabled ? "Sprachausgabe aus" : "Sprachausgabe ein"}
+              title={t(ttsEnabled ? "chat.aria_tts_on" : "chat.aria_tts_off")}
               style={{
                 padding: "4px 10px",
                 borderRadius: 4,
@@ -1189,11 +1189,11 @@ const Chat: React.FC = () => {
                     ? "chat.aria_homework_on"
                     : "chat.aria_homework_off",
                 )}
-                title={
+                title={t(
                   homeworkActive
-                    ? "Hausaufgaben-Modus deaktivieren"
-                    : "Hausaufgaben-Modus aktivieren"
-                }
+                    ? "chat.aria_homework_on"
+                    : "chat.aria_homework_off",
+                )}
                 style={{
                   padding: "4px 10px",
                   borderRadius: 4,
@@ -1531,9 +1531,11 @@ const Chat: React.FC = () => {
                         key={r}
                         onClick={() => sendFeedback(i, r, m.content)}
                         disabled={Boolean(feedback[i])}
-                        title={
-                          r === "positive" ? "Hilfreich" : "Nicht hilfreich"
-                        }
+                        title={t(
+                          r === "positive"
+                            ? "chat.feedback_helpful"
+                            : "chat.feedback_not_helpful",
+                        )}
                         style={{
                           background: "none",
                           border: "none",
@@ -1939,7 +1941,7 @@ const Chat: React.FC = () => {
               aria-label={t(
                 micActive ? "chat.aria_mic_on" : "chat.aria_mic_off",
               )}
-              title={micActive ? "Aufnahme stoppen" : "Mikrofon starten"}
+              title={t(micActive ? "chat.aria_mic_on" : "chat.aria_mic_off")}
               style={{
                 padding: "10px 14px",
                 borderRadius: 6,

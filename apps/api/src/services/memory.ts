@@ -313,14 +313,14 @@ export async function getMemoryGraph(profileId?: number | null): Promise<{
   nodes: GraphMemory[];
   edges: GraphEdge[];
 }> {
-  const conditions: string[] = ["embedding IS NOT NULL"];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const params: any[] = [];
+  const conditions: string[] = [];
   if (profileId !== undefined && profileId !== null) {
     conditions.push("(profile_id = ? OR profile_id IS NULL)");
     params.push(Number(profileId));
   }
-  const where = `WHERE ${conditions.join(" AND ")}`;
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
   const [rows] = await pool.execute<any[]>(
     `SELECT id, type, content, source, created_at, embedding FROM memories ${where} ORDER BY created_at DESC LIMIT ${GRAPH_LIMIT}`,

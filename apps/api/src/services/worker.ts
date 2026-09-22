@@ -9,6 +9,7 @@ import { eventBus, EVENT_SYSTEM, type SystemEvent } from "./eventBus.js";
 import { remember } from "./memory.js";
 import { recordClipboard, detectPattern } from "./clipboardHistory.js";
 import { getSettings } from "./settings.js";
+import { toolExecutor } from "../tools/executor.js";
 import { sendProactiveMessage } from "./proactive.js";
 import { analyzeRhythm } from "./rhythmLearner.js";
 import { checkUpcomingMeetings } from "./meetingPrep.js";
@@ -699,6 +700,56 @@ async function tick() {
     }
   } catch {
     // alarms-Tabelle noch nicht migriert
+  }
+
+  // ── Zeitgesteuerte Setups ────────────────────────────────────
+  checkScheduledSetups().catch(() => {});
+}
+
+// ── Scheduled Setups ──────────────────────────────────────────────────────────
+// In-memory dedup: "<setupId>-YYYY-MM-DDTHH:MM" — resets on restart
+const firedScheduleKeys = new Set<string>();
+
+async function checkScheduledSetups(): Promise<void> {
+  const { setups } = getSettings();
+  if (!setups?.length) return;
+
+  const now = new Date();
+  const day = now.getDay();
+  const timeNow = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const minuteKey = now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
+
+  for (const setup of setups) {
+    if (!setup.schedule) continue;
+    if (!setup.schedule.days.includes(day)) continue;
+    if (setup.schedule.time !== timeNow) continue;
+
+    const key = `${setup.id}-${minuteKey}`;
+    if (firedScheduleKeys.has(key)) continue;
+    firedScheduleKeys.add(key);
+
+    // Cleanup alter Keys (>2h) damit das Set nicht unbegrenzt wächst
+    if (firedScheduleKeys.size > 500) {
+      const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 16);
+      for (const k of firedScheduleKeys) {
+        if (k.endsWith(cutoff.slice(0, 13))) firedScheduleKeys.delete(k);
+      }
+    }
+
+    try {
+      await toolExecutor.execute({
+        tool: "load_setup",
+        args: { name: setup.name },
+      });
+      sendProactiveMessage(
+        `⏰ Setup "${setup.name}" wurde automatisch gestartet.`,
+        "info",
+      );
+    } catch {
+      // Setup nicht gefunden oder Fehler beim Ausführen — still ignorieren
+    }
   }
 }
 

@@ -6,13 +6,7 @@ import { useBootContext } from "../../App";
 const API = import.meta.env.VITE_API_BASE ?? "";
 
 type Step =
-  | "welcome"
-  | "name"
-  | "directive"
-  | "scan"
-  | "voice"
-  | "location"
-  | "done";
+  "welcome" | "name" | "directive" | "scan" | "voice" | "location" | "done";
 
 const s: Record<string, React.CSSProperties> = {
   root: {

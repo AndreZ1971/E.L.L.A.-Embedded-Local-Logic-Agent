@@ -398,8 +398,8 @@ const Dashboard: React.FC = () => {
                     const proc = ev.payload.processName as string;
                     const port = ev.payload.port as number;
                     summary = portSuspicious
-                      ? `⚠ Port ${port} geöffnet — kein Prozess zuordenbar`
-                      : `Port ${port} → ${proc}`;
+                      ? t("dashboard.port_suspicious", { port })
+                      : t("dashboard.port_opened", { port, proc });
                   }
                   return (
                     <div
