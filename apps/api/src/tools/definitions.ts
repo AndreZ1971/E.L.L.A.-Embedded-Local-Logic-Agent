@@ -2097,6 +2097,51 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     {
       type: "function",
       function: {
+        name: "get_gpu_info",
+        description:
+          "Gibt detaillierte GPU-Informationen zurück: Name, VRAM, Treiberversion, aktuelle Auflösung und Bildwiederholrate.",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "get_ram_info",
+        description:
+          "Zeigt RAM-Module mit Kapazität, Typ (DDR4/DDR5), Taktfrequenz und Hersteller. Nützlich für Aufrüstfragen.",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "get_storage_devices",
+        description:
+          "Listet alle physischen Datenträger mit Modell, Größe, Typ (SSD/HDD/NVMe) und Gesundheitsstatus.",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "get_audio_devices",
+        description:
+          "Listet alle installierten Audiogeräte (Soundkarten, Lautsprecher, Headsets, Mikrofone).",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "get_usb_devices",
+        description:
+          "Zeigt alle aktuell angeschlossenen USB-Geräte mit Name und Gerätekategorie.",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+    {
+      type: "function",
+      function: {
         name: "capture_photo",
         description:
           "Nimmt ein Foto mit einer Webcam auf und speichert es in Bilder\\ELLA. Optional eine bestimmte Kamera angeben.",

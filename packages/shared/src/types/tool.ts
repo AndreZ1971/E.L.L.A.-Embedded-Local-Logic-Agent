@@ -117,7 +117,12 @@ export type ToolName =
   | "get_print_jobs"
   | "cancel_print_job"
   | "list_cameras"
-  | "capture_photo";
+  | "capture_photo"
+  | "get_gpu_info"
+  | "get_ram_info"
+  | "get_storage_devices"
+  | "get_audio_devices"
+  | "get_usb_devices";
 
 export interface ToolCall {
   tool: ToolName;

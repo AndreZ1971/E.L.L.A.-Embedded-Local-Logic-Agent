@@ -286,6 +286,11 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "cancel_print_job", label: "Druckjob abbrechen" },
   { name: "list_cameras", label: "Kameras auflisten" },
   { name: "capture_photo", label: "Foto aufnehmen (Webcam)" },
+  { name: "get_gpu_info", label: "GPU-Details abrufen" },
+  { name: "get_ram_info", label: "RAM-Details abrufen" },
+  { name: "get_storage_devices", label: "Datenträger auflisten" },
+  { name: "get_audio_devices", label: "Audiogeräte auflisten" },
+  { name: "get_usb_devices", label: "USB-Geräte auflisten" },
 ];
 
 const input: React.CSSProperties = {

@@ -341,6 +341,11 @@ export async function runMigrations(): Promise<void> {
     [99, "Druckjob abbrechen erlaubt", "cancel_print_job"],
     [100, "Kameras auflisten erlaubt", "list_cameras"],
     [101, "Foto aufnehmen erlaubt", "capture_photo"],
+    [102, "GPU-Info abrufen erlaubt", "get_gpu_info"],
+    [103, "RAM-Info abrufen erlaubt", "get_ram_info"],
+    [104, "Speichergeraete auflisten erlaubt", "get_storage_devices"],
+    [105, "Audiogeraete auflisten erlaubt", "get_audio_devices"],
+    [106, "USB-Geraete auflisten erlaubt", "get_usb_devices"],
   ] as const) {
     await exec(`
       INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)

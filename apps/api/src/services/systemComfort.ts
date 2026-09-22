@@ -173,6 +173,176 @@ export interface WifiInfo {
   error?: string;
 }
 
+// ── Neue Hardware-Info-Tools ─────────────────────────────────────────────────
+
+export function getGpuInfo(): {
+  success: boolean;
+  gpus?: object[];
+  error?: string;
+} {
+  const ps = `
+$gpus = Get-CimInstance Win32_VideoController | ForEach-Object {
+  $vram = if ($_.AdapterRAM -gt 0) { [math]::Round($_.AdapterRAM / 1GB, 1) } else { $null }
+  [PSCustomObject]@{
+    name           = $_.Caption
+    vram_gb        = $vram
+    driver_version = $_.DriverVersion
+    resolution     = if ($_.CurrentHorizontalResolution) { "$($_.CurrentHorizontalResolution)x$($_.CurrentVerticalResolution)" } else { $null }
+    refresh_hz     = $_.CurrentRefreshRate
+  }
+}
+@($gpus) | ConvertTo-Json -Compress -Depth 3`.trim();
+  try {
+    const out = runPs(ps);
+    const raw = JSON.parse(out);
+    const gpus = Array.isArray(raw) ? raw : [raw];
+    return { success: true, gpus };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+export function getRamInfo(): {
+  success: boolean;
+  total?: string;
+  slots_used?: number;
+  modules?: object[];
+  error?: string;
+} {
+  const ps = `
+$memTypeMap = @{20='DDR';21='DDR2';22='DDR2 FB-DIMM';24='DDR3';26='DDR4';34='DDR5'}
+$modules = Get-CimInstance Win32_PhysicalMemory | ForEach-Object {
+  [PSCustomObject]@{
+    slot         = $_.BankLabel
+    gb           = [math]::Round($_.Capacity / 1GB, 0)
+    mhz          = $_.Speed
+    type         = if ($memTypeMap[[int]$_.SMBIOSMemoryType]) { $memTypeMap[[int]$_.SMBIOSMemoryType] } else { "Unknown" }
+    manufacturer = $_.Manufacturer.Trim()
+  }
+}
+$total = "{0:0.0} GB" -f ((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
+@{ total=$total; slots_used=@($modules).Count; modules=@($modules) } | ConvertTo-Json -Compress -Depth 3`.trim();
+  try {
+    const out = runPs(ps);
+    const data = JSON.parse(out) as {
+      total: string;
+      slots_used: number;
+      modules: object[];
+    };
+    return { success: true, ...data };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+export function getStorageDevices(): {
+  success: boolean;
+  devices?: object[];
+  error?: string;
+} {
+  const ps = `
+try {
+  $disks = Get-PhysicalDisk -ErrorAction Stop | ForEach-Object {
+    [PSCustomObject]@{
+      name   = $_.FriendlyName
+      gb     = [math]::Round($_.Size / 1GB, 0)
+      type   = $_.MediaType
+      health = $_.HealthStatus
+      bus    = $_.BusType
+    }
+  }
+  @($disks) | ConvertTo-Json -Compress -Depth 2
+} catch {
+  # Fallback: Win32_DiskDrive
+  $disks = Get-CimInstance Win32_DiskDrive | ForEach-Object {
+    [PSCustomObject]@{
+      name   = $_.Caption
+      gb     = [math]::Round($_.Size / 1GB, 0)
+      type   = "Unknown"
+      health = $_.Status
+      bus    = $_.InterfaceType
+    }
+  }
+  @($disks) | ConvertTo-Json -Compress -Depth 2
+}`.trim();
+  try {
+    const out = runPs(ps);
+    const raw = JSON.parse(out);
+    const devices = Array.isArray(raw) ? raw : [raw];
+    return { success: true, devices };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+export function getAudioDevices(): {
+  success: boolean;
+  devices?: object[];
+  error?: string;
+} {
+  const ps = `
+$devs = Get-CimInstance Win32_SoundDevice | ForEach-Object {
+  [PSCustomObject]@{
+    name         = $_.Caption
+    manufacturer = $_.Manufacturer
+    status       = $_.Status
+  }
+}
+if (@($devs).Count -eq 0) { Write-Output '[]' } else { @($devs) | ConvertTo-Json -Compress -Depth 2 }`.trim();
+  try {
+    const out = runPs(ps);
+    const raw = JSON.parse(!out || out === "[]" ? "[]" : out);
+    const devices = Array.isArray(raw) ? raw : raw ? [raw] : [];
+    return { success: true, devices };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+export function getUsbDevices(): {
+  success: boolean;
+  devices?: object[];
+  error?: string;
+} {
+  const ps = `
+$devs = Get-PnpDevice | Where-Object {
+  $_.InstanceId -like 'USB*' -and
+  $_.Status -eq 'OK' -and
+  $_.Class -ne 'USB' -and
+  $_.FriendlyName -notlike '*Root Hub*' -and
+  $_.FriendlyName -notlike '*Host Controller*'
+} | ForEach-Object {
+  [PSCustomObject]@{
+    name  = $_.FriendlyName
+    class = $_.Class
+  }
+} | Sort-Object name
+if (@($devs).Count -eq 0) { Write-Output '[]' } else { @($devs) | ConvertTo-Json -Compress -Depth 2 }`.trim();
+  try {
+    const out = runPs(ps, 12_000);
+    const raw = JSON.parse(!out || out === "[]" ? "[]" : out);
+    const devices = Array.isArray(raw) ? raw : raw ? [raw] : [];
+    return { success: true, devices };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 export function getWifiInfo(): WifiInfo {
   // Get-NetConnectionProfile direkt — kein Adapter-Filter, kein Textparsing, PS 5.1 kompatibel.
   // netsh nur für Signal/Rate (optional).

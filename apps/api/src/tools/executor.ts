@@ -113,6 +113,11 @@ import {
   getTemperatures,
   getEventLog,
   getWifiInfo,
+  getGpuInfo,
+  getRamInfo,
+  getStorageDevices,
+  getAudioDevices,
+  getUsbDevices,
 } from "../services/systemComfort.js";
 import { translateText, summarizeText } from "../services/textProcessing.js";
 import {
@@ -2919,6 +2924,63 @@ else { $results | ConvertTo-Json -Compress }`.trim();
     return {
       success: true,
       output: { count: result.events?.length ?? 0, events: result.events },
+    };
+  },
+
+  get_gpu_info: async () => {
+    const result = getGpuInfo();
+    trackToolUsage("get_gpu_info", "query");
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, output: { gpus: result.gpus } };
+  },
+
+  get_ram_info: async () => {
+    const result = getRamInfo();
+    trackToolUsage("get_ram_info", "query");
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      output: {
+        total: result.total,
+        slots_used: result.slots_used,
+        modules: result.modules,
+      },
+    };
+  },
+
+  get_storage_devices: async () => {
+    const result = getStorageDevices();
+    trackToolUsage("get_storage_devices", "query");
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      output: { count: result.devices?.length ?? 0, devices: result.devices },
+    };
+  },
+
+  get_audio_devices: async () => {
+    const result = getAudioDevices();
+    trackToolUsage("get_audio_devices", "query");
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      output:
+        (result.devices?.length ?? 0) === 0
+          ? { count: 0, message: "Keine Audiogeräte gefunden." }
+          : { count: result.devices!.length, devices: result.devices },
+    };
+  },
+
+  get_usb_devices: async () => {
+    const result = getUsbDevices();
+    trackToolUsage("get_usb_devices", "query");
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      output:
+        (result.devices?.length ?? 0) === 0
+          ? { count: 0, message: "Keine USB-Geräte angeschlossen." }
+          : { count: result.devices!.length, devices: result.devices },
     };
   },
 
