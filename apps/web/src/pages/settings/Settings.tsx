@@ -284,6 +284,8 @@ const ALL_TOOLS: { name: string; label: string }[] = [
   { name: "print_document", label: "Dokument drucken" },
   { name: "get_print_jobs", label: "Druckwarteschlange anzeigen" },
   { name: "cancel_print_job", label: "Druckjob abbrechen" },
+  { name: "list_cameras", label: "Kameras auflisten" },
+  { name: "capture_photo", label: "Foto aufnehmen (Webcam)" },
 ];
 
 const input: React.CSSProperties = {

@@ -2085,6 +2085,38 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
         },
       },
     },
+    {
+      type: "function",
+      function: {
+        name: "list_cameras",
+        description:
+          "Listet alle angeschlossenen Webcams und Kameras des Systems.",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "capture_photo",
+        description:
+          "Nimmt ein Foto mit einer Webcam auf und speichert es in Bilder\\ELLA. Optional eine bestimmte Kamera angeben.",
+        parameters: {
+          type: "object",
+          properties: {
+            camera: {
+              type: "string",
+              description:
+                "Kameraname aus list_cameras (optional — erste verfügbare Kamera wenn nicht angegeben)",
+            },
+            describe: {
+              type: "boolean",
+              description:
+                "Foto nach der Aufnahme automatisch mit KI beschreiben (optional, Standard: false)",
+            },
+          },
+        },
+      },
+    },
   );
 
   return defs;

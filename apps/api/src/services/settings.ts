@@ -165,6 +165,8 @@ export const DEFAULT_SETTINGS: Settings = {
     "print_document",
     "get_print_jobs",
     "cancel_print_job",
+    "list_cameras",
+    "capture_photo",
   ],
   sessionLimit: 20,
   openaiApiKey: "",

@@ -128,6 +128,7 @@ import {
   getIndexStats,
 } from "../services/documentIndex.js";
 import { runReflection } from "../services/reflection.js";
+import { listCameras, capturePhoto } from "../services/webcam.js";
 
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
 
@@ -3559,6 +3560,63 @@ $jobs | Select-Object @{N='id';E={$_.Id}},@{N='printer';E={$_.PrinterName}},@{N=
       } catch {
         /* best effort */
       }
+    }
+  },
+
+  // ── Peripherie: Webcam ────────────────────────────────────────────────────────
+
+  list_cameras: async () => {
+    try {
+      const cameras = await listCameras();
+      trackToolUsage("list_cameras", `${cameras.length} Kameras`);
+      if (cameras.length === 0) {
+        return {
+          success: true,
+          output: {
+            count: 0,
+            message:
+              "Keine Webcam gefunden. Stelle sicher dass eine Kamera angeschlossen und der Treiber installiert ist.",
+          },
+        };
+      }
+      return { success: true, output: { count: cameras.length, cameras } };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
+  },
+
+  capture_photo: async (args) => {
+    const cameraName = ((args["camera"] as string) ?? "").trim();
+    const describe = Boolean(args["describe"]);
+    try {
+      const result = await capturePhoto(cameraName || undefined);
+      trackToolUsage("capture_photo", result.camera);
+
+      if (describe) {
+        const description = await describeImageFile(
+          result.path,
+          "Beschreibe was auf diesem Foto zu sehen ist.",
+        );
+        return {
+          success: true,
+          output: {
+            path: result.path,
+            camera: result.camera,
+            description,
+          },
+        };
+      }
+
+      return {
+        success: true,
+        output: {
+          path: result.path,
+          camera: result.camera,
+          message: `Foto gespeichert: ${result.path}`,
+        },
+      };
+    } catch (err) {
+      return { success: false, error: String(err) };
     }
   },
 

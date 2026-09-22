@@ -115,7 +115,9 @@ export type ToolName =
   | "print_document"
   | "print_document_confirmed"
   | "get_print_jobs"
-  | "cancel_print_job";
+  | "cancel_print_job"
+  | "list_cameras"
+  | "capture_photo";
 
 export interface ToolCall {
   tool: ToolName;

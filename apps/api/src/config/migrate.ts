@@ -339,6 +339,8 @@ export async function runMigrations(): Promise<void> {
     [97, "Dokument drucken erlaubt", "print_document"],
     [98, "Druckjobs anzeigen erlaubt", "get_print_jobs"],
     [99, "Druckjob abbrechen erlaubt", "cancel_print_job"],
+    [100, "Kameras auflisten erlaubt", "list_cameras"],
+    [101, "Foto aufnehmen erlaubt", "capture_photo"],
   ] as const) {
     await exec(`
       INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)

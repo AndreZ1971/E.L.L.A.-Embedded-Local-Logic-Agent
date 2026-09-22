@@ -138,6 +138,12 @@ const LAZY_GROUPS: { pattern: RegExp; tools: string[] }[] = [
     ],
   },
   {
+    // Webcam, Kamera, Foto
+    pattern:
+      /webcam|kamer[a]|foto|aufnahme|bild.*aufnehmen|snapshot|capture|photo|selfie/i,
+    tools: ["list_cameras", "capture_photo"],
+  },
+  {
     // Multi-Monitor
     pattern:
       /monitor|bildschirm.*\d|zweiter.*bildschirm|monitor.*\d|auf.*monitor|welche.*monitore|monitore.*auflisten|zweiter.*monitor|haupt.*monitor|neben.*bildschirm/i,
