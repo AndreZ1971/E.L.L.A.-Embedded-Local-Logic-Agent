@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import MemoryGraph from "./MemoryGraph";
 import "./Memories.css";
 
 interface Memory {
@@ -49,6 +50,7 @@ export default function Memories() {
   const [addType, setAddType] = useState<"user" | "system" | "note">("note");
   const [adding, setAdding] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [view, setView] = useState<"list" | "graph">("list");
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce search
@@ -156,12 +158,34 @@ export default function Memories() {
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
   return (
-    <div className="memories-page">
+    <div
+      className={`memories-page${view === "graph" ? " memories-page--graph" : ""}`}
+    >
       <div className="memories-header">
         <h1>{lang === "de" ? "Gedächtnis" : "Memory"}</h1>
-        <button className="btn-add" onClick={() => setShowAdd((v) => !v)}>
-          {showAdd ? "✕" : lang === "de" ? "+ Hinzufügen" : "+ Add"}
-        </button>
+        <div className="header-actions">
+          <div className="view-toggle">
+            <button
+              className={view === "list" ? "active" : ""}
+              onClick={() => setView("list")}
+              title={lang === "de" ? "Liste" : "List"}
+            >
+              ☰
+            </button>
+            <button
+              className={view === "graph" ? "active" : ""}
+              onClick={() => setView("graph")}
+              title={lang === "de" ? "Graph" : "Graph"}
+            >
+              ◉
+            </button>
+          </div>
+          {view === "list" && (
+            <button className="btn-add" onClick={() => setShowAdd((v) => !v)}>
+              {showAdd ? "✕" : lang === "de" ? "+ Hinzufügen" : "+ Add"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stats bar */}
@@ -208,99 +232,111 @@ export default function Memories() {
         )}
       </div>
 
-      {/* Add form */}
-      {showAdd && (
-        <div className="add-memory-form">
-          <select
-            value={addType}
-            onChange={(e) =>
-              setAddType(e.target.value as "user" | "system" | "note")
-            }
-          >
-            <option value="note">{lang === "de" ? "Notiz" : "Note"}</option>
-            <option value="user">{lang === "de" ? "Nutzer" : "User"}</option>
-            <option value="system">System</option>
-          </select>
-          <textarea
-            value={addContent}
-            onChange={(e) => setAddContent(e.target.value)}
-            placeholder={
-              lang === "de" ? "Inhalt der Erinnerung…" : "Memory content…"
-            }
-            rows={3}
-          />
-          <div className="add-actions">
-            <button
-              className="btn-save"
-              onClick={handleAdd}
-              disabled={adding || !addContent.trim()}
-            >
-              {adding
-                ? lang === "de"
-                  ? "Speichern…"
-                  : "Saving…"
-                : lang === "de"
-                  ? "Speichern"
-                  : "Save"}
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Graph view */}
+      {view === "graph" && <MemoryGraph lang={lang} />}
 
-      {/* Memory list */}
-      <div className="memories-list">
-        {loading && <div className="memories-loading">…</div>}
-        {!loading && memories.length === 0 && (
-          <div className="memories-empty">
-            {lang === "de"
-              ? "Keine Erinnerungen gefunden."
-              : "No memories found."}
-          </div>
-        )}
-        {memories.map((m) => {
-          const badge = getTypeBadge(m);
-          return (
-            <div key={m.id} className="memory-card">
-              <div className="memory-meta">
-                <span className={`badge ${badge.cls}`}>{badge.label}</span>
-                {m.source && m.source !== "reflection" && (
-                  <span className="source-tag">{m.source}</span>
-                )}
-                <span className="memory-date">{formatDate(m.created_at)}</span>
-              </div>
-              <p className="memory-content">{m.content}</p>
-              <button
-                className="btn-delete"
-                onClick={() => handleDelete(m.id)}
-                disabled={deleteId === m.id}
-                aria-label={lang === "de" ? "Löschen" : "Delete"}
+      {/* List view only below */}
+      {view === "list" && (
+        <>
+          {/* Add form */}
+          {showAdd && (
+            <div className="add-memory-form">
+              <select
+                value={addType}
+                onChange={(e) =>
+                  setAddType(e.target.value as "user" | "system" | "note")
+                }
               >
-                {deleteId === m.id ? "…" : "✕"}
+                <option value="note">{lang === "de" ? "Notiz" : "Note"}</option>
+                <option value="user">
+                  {lang === "de" ? "Nutzer" : "User"}
+                </option>
+                <option value="system">System</option>
+              </select>
+              <textarea
+                value={addContent}
+                onChange={(e) => setAddContent(e.target.value)}
+                placeholder={
+                  lang === "de" ? "Inhalt der Erinnerung…" : "Memory content…"
+                }
+                rows={3}
+              />
+              <div className="add-actions">
+                <button
+                  className="btn-save"
+                  onClick={handleAdd}
+                  disabled={adding || !addContent.trim()}
+                >
+                  {adding
+                    ? lang === "de"
+                      ? "Speichern…"
+                      : "Saving…"
+                    : lang === "de"
+                      ? "Speichern"
+                      : "Save"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Memory list */}
+          <div className="memories-list">
+            {loading && <div className="memories-loading">…</div>}
+            {!loading && memories.length === 0 && (
+              <div className="memories-empty">
+                {lang === "de"
+                  ? "Keine Erinnerungen gefunden."
+                  : "No memories found."}
+              </div>
+            )}
+            {memories.map((m) => {
+              const badge = getTypeBadge(m);
+              return (
+                <div key={m.id} className="memory-card">
+                  <div className="memory-meta">
+                    <span className={`badge ${badge.cls}`}>{badge.label}</span>
+                    {m.source && m.source !== "reflection" && (
+                      <span className="source-tag">{m.source}</span>
+                    )}
+                    <span className="memory-date">
+                      {formatDate(m.created_at)}
+                    </span>
+                  </div>
+                  <p className="memory-content">{m.content}</p>
+                  <button
+                    className="btn-delete"
+                    onClick={() => handleDelete(m.id)}
+                    disabled={deleteId === m.id}
+                    aria-label={lang === "de" ? "Löschen" : "Delete"}
+                  >
+                    {deleteId === m.id ? "…" : "✕"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="memories-pagination">
+              <button
+                disabled={offset === 0}
+                onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
+              >
+                ←
+              </button>
+              <span>
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                disabled={offset + PAGE_SIZE >= total}
+                onClick={() => setOffset((o) => o + PAGE_SIZE)}
+              >
+                →
               </button>
             </div>
-          );
-        })}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="memories-pagination">
-          <button
-            disabled={offset === 0}
-            onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
-          >
-            ←
-          </button>
-          <span>
-            {currentPage} / {totalPages}
-          </span>
-          <button
-            disabled={offset + PAGE_SIZE >= total}
-            onClick={() => setOffset((o) => o + PAGE_SIZE)}
-          >
-            →
-          </button>
-        </div>
+          )}
+        </>
       )}
     </div>
   );
