@@ -19,12 +19,17 @@ Entwicklungsverlauf seit der ersten öffentlichen Version. Neue Funktionen sind 
 - **(neu) Hardware-Detail-Tools** — `get_gpu_info`, `get_ram_details`, `get_drive_details`, `get_audio_devices`, `get_usb_devices`; alle via Get-CimInstance, Windows 11 22H2+ kompatibel
 - **(neu) Backup & Restore** — JSON-Export aller Daten (Memories, Regeln, Wecker, Aufgaben, Setups); Import mit Merge- oder Ersetzen-Modus; eigener Tab in den Einstellungen
 - **(neu) i18n vollständig** — alle verbleibenden hardkodierten Strings in Chat.tsx, Dashboard.tsx und Memories.tsx durch `t()`-Aufrufe ersetzt; Memories-Sektion neu in de.json/en.json
+- **(neu) Dokument-Wissens-Graph** — Knowledge-Graph zeigt optional Dokument-Knoten (hellblau) mit gestrichelten Kanten zu semantisch ähnlichen Memories; Toggle-Button "📄 Dokumente einblenden" im Graph; Hover/Klick zeigt Dateiname, Pfad, Typ und Chunk-Anzahl
+- **(neu) `list_indexed_folders`-Tool** — zeigt alle bekannten Ordner mit Statistik (Dateien, Chunks, letztes Update); ELLA weiß was sie kennt
+- **(neu) Auto-Re-Index** — Worker indiziert täglich um 03:00 Uhr alle gespeicherten Ordner neu; bei neuen Dateien proaktive Chat-Nachricht
+- **(neu) Ordner-Persistenz** — `index_documents` merkt sich den Ordner automatisch in den Settings; kein erneutes Angeben nötig
 
 ### Technisch
 
 - Neue DB-Tabelle `chess_games`
 - Neue API-Routen: `/api/chess/*`, `/api/backup/*`, `/api/memories/*`
-- Tool `open_chess_window` + Default-Regel ID 90; Hardware-Detail-Tools Regeln 91–95
+- `GET /api/memories/graph?docs=1` — erweiterter Graph mit `docNodes` + `crossEdges`
+- Tool `open_chess_window` + Regel 90; Hardware-Detail-Tools Regeln 91–95; `list_indexed_folders` Regel 107
 - `stress_server.py` korrekt in `extraResources` eingetragen (Bugfix Installer)
 - Desktop-Version auf `1.4.0` gebumpt
 

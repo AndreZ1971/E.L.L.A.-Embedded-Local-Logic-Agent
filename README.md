@@ -76,9 +76,10 @@ Kein Python, kein separates MariaDB-Setup, keine PATH-Konfiguration.
 | Token-Optimizer      | Tool-Ergebnisse vor Kontexteinbettung komprimiert (Base64-Strip, Array-Truncation)                                                                                                                                    |
 | Schach               | Eigenes Electron-Fenster, 4 Themes, 3D-SVG-Figuren, LLM-gesteuerte KI mit chess.js, Kommentar nach Zug, Pause/Resume, strategische Reflexion in Memories                                                              |
 | Gedächtnis-Browser   | Memories durchsuchen, filtern (nach Typ), paginieren und löschen — eigene Seite in der App                                                                                                                            |
-| Knowledge-Graph      | D3 Force-Directed Graph visualisiert semantische Beziehungen zwischen Erinnerungen (Cosinus-Ähnlichkeit)                                                                                                              |
+| Knowledge-Graph      | D3 Force-Directed Graph visualisiert semantische Beziehungen zwischen Erinnerungen und Dokumenten (Cosinus-Ähnlichkeit); Toggle "Dokumente einblenden" zeigt indizierte Dateien als vernetzte Knoten                  |
 | Hardware-Tools       | GPU, RAM, Laufwerke, Audio-Geräte, USB-Geräte detailliert abfragen (Get-CimInstance, Windows 11 22H2+ kompatibel)                                                                                                     |
 | Backup & Restore     | Vollständiger JSON-Export (Memories, Regeln, Wecker, Aufgaben, Setups); Import mit Zusammenführen- oder Ersetzen-Modus                                                                                                |
+| Dokument-RAG         | Ordner indizieren (TXT/MD/DOCX/PDF/XLSX), semantische Suche, Auto-Re-Index täglich 03:00 Uhr, `list_indexed_folders` zeigt bekannte Ordner mit Statistik                                                              |
 
 ### Die E.L.L.A. Direktive — vier unveränderliche Verbote
 

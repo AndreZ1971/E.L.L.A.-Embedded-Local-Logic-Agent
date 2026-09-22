@@ -70,9 +70,12 @@ Neue Seite `/memories` zum Durchsuchen, Filtern und Verwalten aller ELLA-Erinner
 
 #### Knowledge-Graph
 
-Semantischer Wissens-Graph als zweiter Tab auf der Memories-Seite.
+Semantischer Wissens-Graph als zweiter Tab auf der Memories-Seite — jetzt mit optionaler Dokument-Ebene.
 
 - D3 Force-Directed Graph — Knoten = Memories, Kanten = semantische Ähnlichkeit (Cosinus-Ähnlichkeit aus Embeddings)
+- Toggle-Button **"📄 Dokumente einblenden"** oben rechts lädt Dokument-Knoten (hellblau) zusätzlich
+- Gestrichelte Kanten verbinden Memories mit semantisch ähnlichen Dokumenten (Cosinus ≥ 0.4)
+- Hover/Klick auf Dokument-Knoten zeigt Dateiname, vollständigen Pfad, Dateityp und Chunk-Anzahl
 - Hover zeigt Inhalt, Typ und Ähnlichkeitswert der Verbindung
 - Graph aktualisiert sich beim Tab-Wechsel automatisch
 
@@ -101,11 +104,22 @@ Vollständige Datensicherung und -wiederherstellung über einen neuen Tab in den
 
 Alle verbleibenden hardkodierten Strings durch `t()`-Aufrufe ersetzt. Neue Key-Gruppe `memories` in de.json/en.json. Interpolation-Keys für Dashboard-Port-Events.
 
+#### Dokument-RAG — Erweiterungen
+
+Das Dokumenten-Indizierungssystem wurde um drei Funktionen ergänzt, die ELLA zur echten Projekt-Assistentin machen.
+
+**`list_indexed_folders`-Tool** — ELLA zeigt auf Nachfrage alle indizierten Ordner mit vollständiger Statistik: Anzahl der Dateien, Anzahl der Chunks und wann der Ordner zuletzt aktualisiert wurde. Damit weiß der Nutzer jederzeit, was ELLA kennt.
+
+**Auto-Re-Index** — Der Background-Worker prüft täglich um 03:00 Uhr alle gespeicherten Ordner auf neue oder geänderte Dateien und indiziert sie automatisch nach. Unveränderliche Dateien werden übersprungen. Bei neuen Funden sendet ELLA eine proaktive Chat-Nachricht mit der Anzahl neuer Dateien.
+
+**Ordner-Persistenz** — `index_documents` speichert den Ordnerpfad ab sofort automatisch in den Settings. Der Nutzer muss den Pfad nicht erneut angeben — ELLA erinnert sich.
+
 ### Technisch
 
 - Neue DB-Tabelle `chess_games` (FEN, Züge, Status, Gewinner, Zug-Zähler)
 - Neue API-Routen: `POST /api/chess/*`, `/api/backup/*`, `/api/memories/*`
-- Tool `open_chess_window` + Default-Regel ID 90; Hardware-Detail-Tools Regeln 91–95
+- `GET /api/memories/graph?docs=1` — erweiterter Graph-Endpunkt mit `docNodes` + `crossEdges`
+- Tool `open_chess_window` + Default-Regel ID 90; Hardware-Detail-Tools Regeln 91–95; `list_indexed_folders` Regel 107
 - Chess-IPC getrennt vom Hauptfenster: `chess:minimize`, `chess:close`
 - `stress_server.py` korrekt in `extraResources` eingetragen (Installer-Bugfix)
 - Desktop `package.json` Version auf `1.4.0` gebumpt
