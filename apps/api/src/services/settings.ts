@@ -178,6 +178,7 @@ export const DEFAULT_SETTINGS: Settings = {
     "get_storage_devices",
     "get_audio_devices",
     "get_usb_devices",
+    "list_indexed_folders",
   ],
   sessionLimit: 20,
   openaiApiKey: "",

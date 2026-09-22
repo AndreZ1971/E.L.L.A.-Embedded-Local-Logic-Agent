@@ -13,14 +13,28 @@ interface MemEdge {
   target: number;
   weight: number;
 }
+interface DocNode {
+  id: string;
+  filename: string;
+  file_path: string;
+  file_type: string;
+  chunks: number;
+}
+interface CrossEdge {
+  source: string;
+  target: string;
+  weight: number;
+}
 interface GraphData {
   nodes: MemNode[];
   edges: MemEdge[];
+  docNodes?: DocNode[];
+  crossEdges?: CrossEdge[];
 }
 
 interface SimNode extends d3.SimulationNodeDatum {
   uid: string;
-  kind: "hub" | "memory";
+  kind: "hub" | "memory" | "doc";
   memType: string;
   label: string;
   radius: number;
@@ -29,9 +43,14 @@ interface SimNode extends d3.SimulationNodeDatum {
   content?: string;
   source?: string | null;
   created_at?: string;
+  // doc-only
+  filename?: string;
+  file_path?: string;
+  file_type?: string;
+  chunks?: number;
 }
 interface SimLink extends d3.SimulationLinkDatum<SimNode> {
-  linkType: "hub" | "semantic" | "session";
+  linkType: "hub" | "semantic" | "session" | "cross";
   weight: number;
 }
 
@@ -41,12 +60,14 @@ const COLOR: Record<string, string> = {
   note: "#10b981",
   reflection: "#a78bfa",
   hub: "#8b5cf6",
+  doc: "#38bdf8",
 };
 const HUB_LABEL_DE: Record<string, string> = {
   user: "Nutzer",
   system: "System",
   note: "Notiz",
   reflection: "Reflexion",
+  doc: "Dokument",
 };
 
 interface Props {
@@ -60,6 +81,7 @@ export default function MemoryGraph({ lang }: Props) {
     "loading",
   );
   const [errMsg, setErrMsg] = useState("");
+  const [showDocs, setShowDocs] = useState(false);
 
   // Stable render ref so we can call it after resize
   const renderRef = useRef<(data: GraphData) => void>(() => {});
@@ -67,8 +89,12 @@ export default function MemoryGraph({ lang }: Props) {
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      setStatus("loading");
       try {
-        const res = await fetch("/api/memories/graph");
+        const url = showDocs
+          ? "/api/memories/graph?docs=1"
+          : "/api/memories/graph";
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = (await res.json()) as GraphData;
         if (cancelled) return;
@@ -89,7 +115,7 @@ export default function MemoryGraph({ lang }: Props) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showDocs]);
 
   useEffect(() => {
     renderRef.current = (data: GraphData) =>
@@ -132,10 +158,34 @@ export default function MemoryGraph({ lang }: Props) {
 
       <svg ref={svgRef} className="graph-svg" />
 
+      {/* Docs toggle */}
+      <button
+        className={`graph-docs-toggle ${showDocs ? "active" : ""}`}
+        onClick={() => setShowDocs((v) => !v)}
+        title={
+          lang === "de"
+            ? showDocs
+              ? "Dokumente ausblenden"
+              : "Dokumente einblenden"
+            : showDocs
+              ? "Hide documents"
+              : "Show documents"
+        }
+      >
+        📄{" "}
+        {lang === "de"
+          ? showDocs
+            ? "Dokumente ausblenden"
+            : "Dokumente einblenden"
+          : showDocs
+            ? "Hide documents"
+            : "Show documents"}
+      </button>
+
       {/* Legend — only non-empty types */}
       <div className="graph-legend">
         {Object.entries(COLOR)
-          .filter(([k]) => k !== "hub")
+          .filter(([k]) => k !== "hub" && (k !== "doc" || showDocs))
           .map(([t, col]) => (
             <span key={t} className="legend-item">
               <span className="legend-dot" style={{ background: col }} />
@@ -146,7 +196,7 @@ export default function MemoryGraph({ lang }: Props) {
           ))}
       </div>
 
-      {/* Info panel */}
+      {/* Info panel — memory */}
       {selected && selected.kind === "memory" && (
         <div className="graph-panel">
           <button className="panel-close" onClick={() => setSelected(null)}>
@@ -165,6 +215,29 @@ export default function MemoryGraph({ lang }: Props) {
           )}
           <p className="panel-content">{selected.content}</p>
           <div className="panel-date">{formatDate(selected.created_at)}</div>
+        </div>
+      )}
+
+      {/* Info panel — document */}
+      {selected && selected.kind === "doc" && (
+        <div className="graph-panel">
+          <button className="panel-close" onClick={() => setSelected(null)}>
+            ✕
+          </button>
+          <div className="panel-badge" style={{ background: COLOR.doc }}>
+            {selected.file_type?.toUpperCase() ?? "DOC"}
+          </div>
+          <div className="panel-source">{selected.filename}</div>
+          <p
+            className="panel-content"
+            style={{ fontSize: "0.72rem", opacity: 0.7 }}
+          >
+            {selected.file_path}
+          </p>
+          <div className="panel-date">
+            {selected.chunks}{" "}
+            {lang === "de" ? "Abschnitte indiziert" : "indexed chunks"}
+          </div>
         </div>
       )}
     </div>
@@ -193,6 +266,7 @@ function buildGraph(
 
   // ── 2. Hub nodes — always all 4 types (empty hubs render faded) ──────────
   const presentTypes = new Set(data.nodes.map(effectiveType));
+  const hasDocs = (data.docNodes?.length ?? 0) > 0;
   const ALL_TYPES = ["user", "system", "note", "reflection"];
   const hubNodes: SimNode[] = ALL_TYPES.map((t) => ({
     uid: `hub_${t}`,
@@ -216,10 +290,25 @@ function buildGraph(
     created_at: m.created_at,
   }));
 
-  const nodeById = new Map<string, SimNode>();
-  [...hubNodes, ...memNodes].forEach((n) => nodeById.set(n.uid, n));
+  // ── 3b. Document nodes ────────────────────────────────────────────────────
+  const docSimNodes: SimNode[] = (data.docNodes ?? []).map((d) => ({
+    uid: d.id,
+    kind: "doc",
+    memType: "doc",
+    label: d.filename.slice(0, 28) + (d.filename.length > 28 ? "…" : ""),
+    radius: 11,
+    filename: d.filename,
+    file_path: d.file_path,
+    file_type: d.file_type,
+    chunks: d.chunks,
+  }));
 
-  const nodes: SimNode[] = [...hubNodes, ...memNodes];
+  const nodeById = new Map<string, SimNode>();
+  [...hubNodes, ...memNodes, ...docSimNodes].forEach((n) =>
+    nodeById.set(n.uid, n),
+  );
+
+  const nodes: SimNode[] = [...hubNodes, ...memNodes, ...docSimNodes];
 
   // ── 4. Links ──────────────────────────────────────────────────────────────
   const links: SimLink[] = [];
@@ -274,6 +363,18 @@ function buildGraph(
       });
   });
 
+  // Cross-edges: memory ↔ document
+  (data.crossEdges ?? []).forEach((e) => {
+    if (nodeById.has(e.source) && nodeById.has(e.target)) {
+      links.push({
+        source: e.source,
+        target: e.target,
+        linkType: "cross",
+        weight: e.weight,
+      });
+    }
+  });
+
   // ── 5. SVG ────────────────────────────────────────────────────────────────
   const svg = d3.select(el).attr("width", W).attr("height", H);
 
@@ -315,7 +416,8 @@ function buildGraph(
         .strength((d) => {
           if (d.linkType === "hub") return 0.7;
           if (d.linkType === "session") return 0.5;
-          return 0.15 + (d.weight - 0.45) * 0.5; // semantic: 0.15–0.40
+          if (d.linkType === "cross") return 0.12 + d.weight * 0.2;
+          return 0.15 + (d.weight - 0.45) * 0.5;
         })
         .distance((d) => {
           if (d.linkType === "hub") {
@@ -323,6 +425,7 @@ function buildGraph(
             return src.kind === "hub" ? 140 : 70;
           }
           if (d.linkType === "semantic") return 60 + (1 - d.weight) * 80;
+          if (d.linkType === "cross") return 90 + (1 - d.weight) * 60;
           return 50;
         }),
     )
@@ -330,7 +433,9 @@ function buildGraph(
       "charge",
       d3
         .forceManyBody<SimNode>()
-        .strength((d) => (d.kind === "hub" ? -350 : -45)),
+        .strength((d) =>
+          d.kind === "hub" ? -350 : d.kind === "doc" ? -80 : -45,
+        ),
     )
     .force("center", d3.forceCenter(W / 2, H / 2).strength(0.05))
     .force(
@@ -350,16 +455,16 @@ function buildGraph(
     .attr("stroke", (d) => {
       if (d.linkType === "hub") return "#ffffff18";
       if (d.linkType === "session") return "#ffffff30";
+      if (d.linkType === "cross") return `${COLOR.doc}80`;
       return "#ffffff40";
     })
     .attr("stroke-width", (d) => {
       if (d.linkType === "hub") return 0.8;
       if (d.linkType === "session") return 1;
-      return 0.6 + d.weight * 1.4; // semantic: thicker = more similar
+      if (d.linkType === "cross") return 0.5 + d.weight * 1.2;
+      return 0.6 + d.weight * 1.4;
     })
-    .attr("stroke-dasharray", (d) =>
-      d.linkType === "semantic" ? "none" : "none",
-    );
+    .attr("stroke-dasharray", (d) => (d.linkType === "cross" ? "4 3" : "none"));
 
   // ── 8. Render nodes ───────────────────────────────────────────────────────
   const nodeEl = g
@@ -386,7 +491,9 @@ function buildGraph(
           d.fy = null;
         }),
     )
-    .on("click", (_ev, d) => setSelected(d.kind === "memory" ? d : null));
+    .on("click", (_ev, d) =>
+      setSelected(d.kind === "memory" || d.kind === "doc" ? d : null),
+    );
 
   // Circles
   nodeEl
@@ -397,16 +504,33 @@ function buildGraph(
       if (d.kind !== "hub") return 0.82;
       return presentTypes.has(d.memType) ? 1 : 0.3;
     })
-    .attr("stroke", (d) =>
-      d.kind === "hub" ? "rgba(255,255,255,0.6)" : "none",
+    .attr("stroke", (d) => {
+      if (d.kind === "hub") return "rgba(255,255,255,0.6)";
+      if (d.kind === "doc") return `${COLOR.doc}cc`;
+      return "none";
+    })
+    .attr("stroke-width", (d) =>
+      d.kind === "hub" ? 2 : d.kind === "doc" ? 1.5 : 0,
     )
-    .attr("stroke-width", (d) => (d.kind === "hub" ? 2 : 0))
     .attr("stroke-opacity", (d) =>
       d.kind === "hub" && !presentTypes.has(d.memType) ? 0.3 : 1,
     )
     .attr("filter", (d) =>
-      d.kind === "hub" && presentTypes.has(d.memType) ? "url(#glow)" : "none",
+      (d.kind === "hub" && presentTypes.has(d.memType)) ||
+      (d.kind === "doc" && hasDocs)
+        ? "url(#glow)"
+        : "none",
     );
+
+  // Doc icon label inside circle
+  nodeEl
+    .filter((d) => d.kind === "doc")
+    .append("text")
+    .text("📄")
+    .attr("text-anchor", "middle")
+    .attr("dy", "0.35em")
+    .attr("font-size", "9px")
+    .attr("pointer-events", "none");
 
   // Hub labels (only for types with memories)
   nodeEl
@@ -420,37 +544,42 @@ function buildGraph(
     .attr("font-weight", "700")
     .attr("pointer-events", "none");
 
-  // Memory hover labels
+  // Hover labels for memories and docs
   const hoverLabel = nodeEl
-    .filter((d) => d.kind === "memory")
+    .filter((d) => d.kind === "memory" || d.kind === "doc")
     .append("text")
     .text((d) => d.label)
-    .attr("x", 12)
+    .attr("x", 13)
     .attr("y", 4)
-    .attr("fill", "#ffffffbb")
+    .attr("fill", (d) => (d.kind === "doc" ? `${COLOR.doc}ee` : "#ffffffbb"))
     .attr("font-size", "7.5px")
     .attr("pointer-events", "none")
     .attr("opacity", 0);
 
   nodeEl
-    .filter((d) => d.kind === "memory")
-    .on("mouseenter", function () {
+    .filter((d) => d.kind === "memory" || d.kind === "doc")
+    .on("mouseenter", function (_, d) {
       d3.select(this)
         .select("circle")
         .attr("fill-opacity", 1)
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 1.5)
-        .attr("r", 12);
-      d3.select(this).select("text").attr("opacity", 1);
+        .attr("stroke", d.kind === "doc" ? COLOR.doc : "#fff")
+        .attr("stroke-width", 2)
+        .attr("r", d.radius + 3);
+      d3.select(this).selectAll("text").attr("opacity", 1);
     })
     .on("mouseleave", function (_, d) {
       d3.select(this)
         .select("circle")
         .attr("fill-opacity", 0.82)
-        .attr("stroke", "none")
-        .attr("stroke-width", 0)
+        .attr("stroke", d.kind === "doc" ? `${COLOR.doc}cc` : "none")
+        .attr("stroke-width", d.kind === "doc" ? 1.5 : 0)
         .attr("r", d.radius);
-      d3.select(this).select("text").attr("opacity", 0);
+      d3.select(this)
+        .selectAll("text")
+        .filter(function () {
+          return d3.select(this).attr("x") !== null;
+        })
+        .attr("opacity", 0);
     });
 
   void hoverLabel;

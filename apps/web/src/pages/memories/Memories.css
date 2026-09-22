@@ -399,6 +399,35 @@
   color: #f87171;
 }
 
+/* Docs toggle button — top-right */
+.graph-docs-toggle {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.08);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+  z-index: 10;
+}
+.graph-docs-toggle:hover {
+  background: rgba(56, 189, 248, 0.18);
+  color: #fff;
+  border-color: rgba(56, 189, 248, 0.7);
+}
+.graph-docs-toggle.active {
+  background: rgba(56, 189, 248, 0.22);
+  color: #38bdf8;
+  border-color: #38bdf8;
+}
+
 /* Legend bottom-left */
 .graph-legend {
   position: absolute;

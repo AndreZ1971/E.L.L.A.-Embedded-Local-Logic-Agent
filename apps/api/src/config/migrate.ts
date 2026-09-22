@@ -391,4 +391,10 @@ export async function runMigrations(): Promise<void> {
       updated_at     DATETIME                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
+
+  await exec(`
+    INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
+    VALUES (107, 'Indizierte Ordner anzeigen erlaubt', 'list_indexed_folders', 'always', 'allow', TRUE)
+    ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
+  `);
 }

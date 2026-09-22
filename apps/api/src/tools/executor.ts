@@ -3415,12 +3415,63 @@ Write-Output '{"ok":true}'
     try {
       const result = await indexFolder(folder, null);
       const stats = await getIndexStats();
+      // Ordner in Settings speichern damit der Worker ihn kennt
+      const { indexedFolders } = getSettings();
+      if (!indexedFolders.includes(folder)) {
+        await saveSettings({ indexedFolders: [...indexedFolders, folder] });
+      }
       return {
         success: true,
         output: {
           message: `Indizierung abgeschlossen: ${result.indexed} neue Dateien (${result.chunks} Chunks), ${result.skipped} unverändert, ${result.errors} Fehler.`,
           total_indexed_files: stats.files,
           total_chunks: stats.chunks,
+        },
+      };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
+  },
+
+  list_indexed_folders: async () => {
+    try {
+      const { indexedFolders } = getSettings();
+      if (indexedFolders.length === 0) {
+        return {
+          success: true,
+          output:
+            "Ich kenne noch keine Ordner. Sag mir mit 'Indiziere den Ordner X' welche Dokumente ich lernen soll.",
+        };
+      }
+      const stats = await getIndexStats();
+      const folderStats = await Promise.all(
+        indexedFolders.map(async (f) => {
+          const { pool: dbPool } = await import("../config/database.js");
+          type FolderRow = import("mysql2").RowDataPacket & {
+            files: number;
+            chunks: number;
+            last_indexed: string | null;
+          };
+          const [rows] = await dbPool.execute<FolderRow[]>(
+            "SELECT COUNT(DISTINCT file_path) AS files, COUNT(*) AS chunks, MAX(indexed_at) AS last_indexed FROM document_chunks WHERE file_path LIKE ?",
+            [`${f}%`],
+          );
+          const r = rows[0];
+          return {
+            folder: f,
+            files: r?.files ?? 0,
+            chunks: r?.chunks ?? 0,
+            last_indexed: r?.last_indexed ?? null,
+          };
+        }),
+      );
+      return {
+        success: true,
+        output: {
+          folders: folderStats,
+          total_files: stats.files,
+          total_chunks: stats.chunks,
+          auto_reindex: "täglich 03:00 Uhr",
         },
       };
     } catch (err) {

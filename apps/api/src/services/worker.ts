@@ -16,6 +16,7 @@ import { checkUpcomingMeetings } from "./meetingPrep.js";
 import { checkDayBriefing } from "./dayBriefing.js";
 import { findDuplicates } from "./duplicateFinder.js";
 import { runReflection } from "./reflection.js";
+import { indexFolder, getIndexStats } from "./documentIndex.js";
 
 const INTERVAL_MS = Number(process.env.WORKER_INTERVAL_MS ?? 60_000);
 const DISK_ALERT_THRESHOLD = Number(process.env.DISK_ALERT_THRESHOLD ?? 85);
@@ -663,6 +664,29 @@ async function tick() {
         }
       })
       .catch(() => {});
+  }
+
+  // Dokument-Re-Index täglich um 03:00 Uhr
+  if (hour === 3 && minute < 1) {
+    const { indexedFolders } = getSettings();
+    if (indexedFolders.length > 0) {
+      let totalNew = 0;
+      for (const folder of indexedFolders) {
+        try {
+          const r = await indexFolder(folder, null);
+          totalNew += r.indexed;
+        } catch {
+          // Ordner nicht verfügbar — überspringen
+        }
+      }
+      if (totalNew > 0) {
+        const stats = await getIndexStats();
+        sendProactiveMessage(
+          `Ich habe heute Nacht deine ${indexedFolders.length} indizierten ${indexedFolders.length === 1 ? "Ordner" : "Ordner"} aktualisiert — ${totalNew} neue ${totalNew === 1 ? "Datei" : "Dateien"} eingelesen. Insgesamt kenne ich jetzt ${stats.files} Dokumente.`,
+          "info",
+        );
+      }
+    }
   }
 
   // Duplikat-Scan sonntags um 10 Uhr

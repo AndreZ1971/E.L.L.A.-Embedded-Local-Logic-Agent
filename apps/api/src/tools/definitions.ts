@@ -2002,6 +2002,18 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     {
       type: "function",
       function: {
+        name: "list_indexed_folders",
+        description:
+          "Zeigt alle Ordner die ELLA kennt (indizierte Dokumente) mit Statistik: Anzahl Dateien, Chunks und wann zuletzt aktualisiert. Nutze dies wenn der Nutzer fragt 'Was kennst du?', 'Welche Ordner hast du?', oder vor einer Dokumentensuche.",
+        parameters: {
+          type: "object",
+          properties: {},
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
         name: "reflect_on_experiences",
         description:
           "ELLA analysiert ihre eigenen Erinnerungen und leitet daraus allgemeine Prinzipien ab, die über den ursprünglichen Kontext hinaus gelten — z.B. von Schach-Taktiken zu allgemeinen Strategie-Prinzipien. Ergebnisse werden als neue Memories gespeichert.",

@@ -122,7 +122,8 @@ export type ToolName =
   | "get_ram_info"
   | "get_storage_devices"
   | "get_audio_devices"
-  | "get_usb_devices";
+  | "get_usb_devices"
+  | "list_indexed_folders";
 
 export interface ToolCall {
   tool: ToolName;
