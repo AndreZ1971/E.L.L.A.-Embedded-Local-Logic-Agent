@@ -146,6 +146,7 @@
     "dashboard": "Dashboard",
     "chat": "Chat",
     "pipeline": "Multi-Agents",
+    "memories": "Memory",
     "settings": "Settings"
   },
   "app": {

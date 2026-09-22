@@ -189,6 +189,108 @@ export async function listMemories(
   return rows;
 }
 
+export async function listMemoriesPaged(opts: {
+  type?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+  profileId?: number | null;
+}): Promise<{
+  memories: {
+    id: number;
+    type: string;
+    content: string;
+    source: string | null;
+    created_at: string;
+  }[];
+  total: number;
+}> {
+  const { type, search, limit = 50, offset = 0, profileId } = opts;
+
+  const conditions: string[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const params: any[] = [];
+
+  if (type && type !== "all") {
+    if (type === "reflection") {
+      conditions.push("source = 'reflection'");
+    } else {
+      conditions.push("type = ?");
+      params.push(type);
+      conditions.push("(source IS NULL OR source != 'reflection')");
+    }
+  }
+  if (search) {
+    conditions.push("content LIKE ?");
+    params.push(`%${search}%`);
+  }
+  if (profileId !== undefined) {
+    if (profileId === null) {
+      conditions.push("profile_id IS NULL");
+    } else {
+      conditions.push("(profile_id = ? OR profile_id IS NULL)");
+      params.push(profileId);
+    }
+  }
+
+  const where =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const [countRows] = await pool.execute<any[]>(
+    `SELECT COUNT(*) as total FROM memories ${where}`,
+    params,
+  );
+  const total = (countRows[0] as { total: number }).total;
+
+  const [rows] = await pool.execute<any[]>(
+    `SELECT id, type, content, source, created_at FROM memories ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    [...params, limit, offset],
+  );
+
+  return { memories: rows, total };
+}
+
+export async function getMemoryStats(profileId?: number | null): Promise<{
+  total: number;
+  user: number;
+  system: number;
+  note: number;
+  reflection: number;
+}> {
+  const conditions: string[] = ["1=1"];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const params: any[] = [];
+  if (profileId !== undefined && profileId !== null) {
+    conditions.push("(profile_id = ? OR profile_id IS NULL)");
+    params.push(Number(profileId));
+  }
+  const where = conditions.join(" AND ");
+
+  const sql =
+    "SELECT COUNT(*) as total," +
+    " SUM(CASE WHEN type='user' AND (source IS NULL OR source != 'reflection') THEN 1 ELSE 0 END) as user_count," +
+    " SUM(CASE WHEN type='system' AND (source IS NULL OR source != 'reflection') THEN 1 ELSE 0 END) as system_count," +
+    " SUM(CASE WHEN type='note' THEN 1 ELSE 0 END) as note_count," +
+    " SUM(CASE WHEN source='reflection' THEN 1 ELSE 0 END) as reflection_count" +
+    ` FROM memories WHERE ${where}`;
+
+  const [rows] = await pool.execute<any[]>(sql, params);
+  const r = rows[0] as {
+    total: number;
+    user_count: number;
+    system_count: number;
+    note_count: number;
+    reflection_count: number;
+  };
+  return {
+    total: Number(r.total),
+    user: Number(r.user_count),
+    system: Number(r.system_count),
+    note: Number(r.note_count),
+    reflection: Number(r.reflection_count),
+  };
+}
+
 export async function forgetById(id: number): Promise<ToolResult> {
   if (!Number.isFinite(id) || id <= 0) {
     return {
