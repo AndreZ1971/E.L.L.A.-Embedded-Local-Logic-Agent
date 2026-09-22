@@ -367,8 +367,9 @@
 .graph-container {
   position: relative;
   width: 100%;
-  height: calc(100vh - 160px);
-  min-height: 480px;
+  height: calc(100vh - 200px);
+  min-height: 420px;
+  max-height: 700px;
   background: #0d0e14;
   border-radius: 12px;
   overflow: hidden;
@@ -381,8 +382,7 @@
   display: block;
 }
 
-.graph-loading,
-.graph-error {
+.graph-overlay {
   position: absolute;
   inset: 0;
   display: flex;
@@ -390,6 +390,10 @@
   justify-content: center;
   color: #6b7280;
   font-size: 0.9rem;
+  pointer-events: none;
+}
+.graph-overlay.graph-error {
+  color: #f87171;
 }
 
 /* Legend bottom-left */

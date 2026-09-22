@@ -291,6 +291,86 @@ export async function getMemoryStats(profileId?: number | null): Promise<{
   };
 }
 
+export interface GraphMemory {
+  id: number;
+  type: string;
+  content: string;
+  source: string | null;
+  created_at: string;
+}
+export interface GraphEdge {
+  source: number;
+  target: number;
+  weight: number;
+}
+
+// Top-K semantic neighbours per node (keeps edge count manageable)
+const GRAPH_LIMIT = 150;
+const SIM_THRESHOLD = 0.45;
+const TOP_K = 4;
+
+export async function getMemoryGraph(profileId?: number | null): Promise<{
+  nodes: GraphMemory[];
+  edges: GraphEdge[];
+}> {
+  const conditions: string[] = ["embedding IS NOT NULL"];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const params: any[] = [];
+  if (profileId !== undefined && profileId !== null) {
+    conditions.push("(profile_id = ? OR profile_id IS NULL)");
+    params.push(Number(profileId));
+  }
+  const where = `WHERE ${conditions.join(" AND ")}`;
+
+  const [rows] = await pool.execute<any[]>(
+    `SELECT id, type, content, source, created_at, embedding FROM memories ${where} ORDER BY created_at DESC LIMIT ${GRAPH_LIMIT}`,
+    params,
+  );
+
+  const nodes: GraphMemory[] = rows.map((r) => ({
+    id: r.id as number,
+    type: r.type as string,
+    content: r.content as string,
+    source: r.source as string | null,
+    created_at: r.created_at as string,
+  }));
+
+  // Parse embeddings once
+  const vecs: (number[] | null)[] = rows.map((r) => {
+    try {
+      return JSON.parse(r.embedding as string) as number[];
+    } catch {
+      return null;
+    }
+  });
+
+  // Pairwise cosine — keep top-K per node above threshold
+  const edgeMap = new Map<string, GraphEdge>();
+
+  for (let i = 0; i < rows.length; i++) {
+    if (!vecs[i]) continue;
+    const candidates: { j: number; sim: number }[] = [];
+    for (let j = i + 1; j < rows.length; j++) {
+      if (!vecs[j]) continue;
+      const sim = cosine(vecs[i]!, vecs[j]!);
+      if (sim >= SIM_THRESHOLD) candidates.push({ j, sim });
+    }
+    candidates.sort((a, b) => b.sim - a.sim);
+    for (const { j, sim } of candidates.slice(0, TOP_K)) {
+      const key = `${nodes[i].id}-${nodes[j].id}`;
+      if (!edgeMap.has(key)) {
+        edgeMap.set(key, {
+          source: nodes[i].id,
+          target: nodes[j].id,
+          weight: Math.round(sim * 100) / 100,
+        });
+      }
+    }
+  }
+
+  return { nodes, edges: Array.from(edgeMap.values()) };
+}
+
 export async function forgetById(id: number): Promise<ToolResult> {
   if (!Number.isFinite(id) || id <= 0) {
     return {

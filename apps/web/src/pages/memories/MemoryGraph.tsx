@@ -1,42 +1,48 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 
-interface Memory {
+interface MemNode {
   id: number;
   type: string;
   content: string;
   source: string | null;
   created_at: string;
 }
+interface MemEdge {
+  source: number;
+  target: number;
+  weight: number;
+}
+interface GraphData {
+  nodes: MemNode[];
+  edges: MemEdge[];
+}
 
-interface GraphNode extends d3.SimulationNodeDatum {
-  id: string;
-  label: string;
-  group: "hub" | "memory";
+interface SimNode extends d3.SimulationNodeDatum {
+  uid: string;
+  kind: "hub" | "memory";
   memType: string;
+  label: string;
+  radius: number;
+  // memory-only
+  memId?: number;
   content?: string;
   source?: string | null;
   created_at?: string;
-  memId?: number;
-  radius: number;
+}
+interface SimLink extends d3.SimulationLinkDatum<SimNode> {
+  linkType: "hub" | "semantic" | "session";
+  weight: number;
 }
 
-interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
-  strength: number;
-}
-
-const TYPE_COLOR: Record<string, string> = {
-  hub_user: "#8b5cf6",
-  hub_system: "#8b5cf6",
-  hub_note: "#8b5cf6",
-  hub_reflection: "#8b5cf6",
+const COLOR: Record<string, string> = {
   user: "#f97316",
   system: "#f59e0b",
   note: "#10b981",
   reflection: "#a78bfa",
+  hub: "#8b5cf6",
 };
-
-const TYPE_DE: Record<string, string> = {
+const HUB_LABEL_DE: Record<string, string> = {
   user: "Nutzer",
   system: "System",
   note: "Notiz",
@@ -49,254 +55,46 @@ interface Props {
 
 export default function MemoryGraph({ lang }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [selected, setSelected] = useState<GraphNode | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [selected, setSelected] = useState<SimNode | null>(null);
+  const [status, setStatus] = useState<"loading" | "empty" | "ok" | "error">(
+    "loading",
+  );
+  const [errMsg, setErrMsg] = useState("");
+
+  // Stable render ref so we can call it after resize
+  const renderRef = useRef<(data: GraphData) => void>(() => {});
 
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
       try {
-        const res = await fetch("/api/memories?limit=200&offset=0");
-        if (!res.ok) throw new Error("Fehler beim Laden");
-        const data = (await res.json()) as { memories: Memory[] };
+        const res = await fetch("/api/memories/graph");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as GraphData;
         if (cancelled) return;
-        renderGraph(data.memories);
+        if (data.nodes.length === 0) {
+          setStatus("empty");
+          return;
+        }
+        setStatus("ok");
+        renderRef.current(data);
       } catch (e) {
-        if (!cancelled) setError(String(e));
-      } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setErrMsg(String(e));
+          setStatus("error");
+        }
       }
     }
-
     load();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  function renderGraph(memories: Memory[]) {
-    if (!svgRef.current) return;
-
-    const el = svgRef.current;
-    const W = el.clientWidth || 900;
-    const H = el.clientHeight || 600;
-
-    d3.select(el).selectAll("*").remove();
-
-    // --- Build nodes & links ---
-    const hubs: GraphNode[] = ["user", "system", "note", "reflection"].map(
-      (t) => ({
-        id: `hub_${t}`,
-        label:
-          lang === "de" ? TYPE_DE[t] : t.charAt(0).toUpperCase() + t.slice(1),
-        group: "hub",
-        memType: t,
-        radius: 28,
-      }),
-    );
-
-    const memNodes: GraphNode[] = memories.map((m) => {
-      const effectiveType = m.source === "reflection" ? "reflection" : m.type;
-      return {
-        id: `mem_${m.id}`,
-        label: m.content.slice(0, 28) + (m.content.length > 28 ? "…" : ""),
-        group: "memory",
-        memType: effectiveType,
-        content: m.content,
-        source: m.source,
-        created_at: m.created_at,
-        memId: m.id,
-        radius: 10,
-      };
-    });
-
-    const nodes: GraphNode[] = [...hubs, ...memNodes];
-
-    // Each memory → its hub
-    const links: GraphLink[] = memNodes.map((n) => ({
-      source: n.id,
-      target: `hub_${n.memType}`,
-      strength: 0.6,
-    }));
-
-    // Connect memories from the same session source
-    const bySource: Record<string, GraphNode[]> = {};
-    for (const n of memNodes) {
-      if (n.source && n.source.startsWith("session:")) {
-        const k = n.source;
-        if (!bySource[k]) bySource[k] = [];
-        bySource[k].push(n);
-      }
-    }
-    for (const group of Object.values(bySource)) {
-      for (let i = 0; i < group.length - 1; i++) {
-        links.push({
-          source: group[i].id,
-          target: group[i + 1].id,
-          strength: 0.2,
-        });
-      }
-    }
-
-    // --- SVG setup ---
-    const svg = d3.select(el).attr("width", W).attr("height", H);
-
-    const defs = svg.append("defs");
-    // Glow filter
-    const filter = defs.append("filter").attr("id", "glow");
-    filter
-      .append("feGaussianBlur")
-      .attr("stdDeviation", "4")
-      .attr("result", "coloredBlur");
-    const feMerge = filter.append("feMerge");
-    feMerge.append("feMergeNode").attr("in", "coloredBlur");
-    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
-
-    const g = svg.append("g");
-
-    // Zoom
-    const zoom = d3
-      .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.2, 4])
-      .on("zoom", (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
-        g.attr("transform", event.transform.toString());
-      });
-    svg.call(zoom);
-
-    // Force simulation
-    const sim = d3
-      .forceSimulation<GraphNode>(nodes)
-      .force(
-        "link",
-        d3
-          .forceLink<GraphNode, GraphLink>(links)
-          .id((d) => d.id)
-          .strength((d) => d.strength)
-          .distance((d) => {
-            const src = d.source as GraphNode;
-            return src.group === "hub" ? 80 : 120;
-          }),
-      )
-      .force(
-        "charge",
-        d3
-          .forceManyBody<GraphNode>()
-          .strength((d) => (d.group === "hub" ? -400 : -60)),
-      )
-      .force("center", d3.forceCenter(W / 2, H / 2))
-      .force(
-        "collision",
-        d3.forceCollide<GraphNode>().radius((d) => d.radius + 4),
-      );
-
-    // Links
-    const link = g
-      .append("g")
-      .selectAll<SVGLineElement, GraphLink>("line")
-      .data(links)
-      .join("line")
-      .attr("stroke", "#ffffff22")
-      .attr("stroke-width", (d) => (d.strength > 0.3 ? 1.5 : 0.8));
-
-    // Node groups
-    const node = g
-      .append("g")
-      .selectAll<SVGGElement, GraphNode>("g")
-      .data(nodes)
-      .join("g")
-      .attr("cursor", "pointer")
-      .call(
-        d3
-          .drag<SVGGElement, GraphNode>()
-          .on("start", (event, d) => {
-            if (!event.active) sim.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-          })
-          .on("drag", (event, d) => {
-            d.fx = event.x;
-            d.fy = event.y;
-          })
-          .on("end", (event, d) => {
-            if (!event.active) sim.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-          }),
-      )
-      .on("click", (_event, d) => setSelected(d));
-
-    // Circles
-    node
-      .append("circle")
-      .attr("r", (d) => d.radius)
-      .attr("fill", (d) =>
-        d.group === "hub"
-          ? (TYPE_COLOR[`hub_${d.memType}`] ?? "#8b5cf6")
-          : (TYPE_COLOR[d.memType] ?? "#f97316"),
-      )
-      .attr("fill-opacity", (d) => (d.group === "hub" ? 0.95 : 0.85))
-      .attr("stroke", (d) => (d.group === "hub" ? "#fff" : "none"))
-      .attr("stroke-width", (d) => (d.group === "hub" ? 2 : 0))
-      .attr("filter", (d) => (d.group === "hub" ? "url(#glow)" : "none"));
-
-    // Hub labels
-    node
-      .filter((d) => d.group === "hub")
-      .append("text")
-      .text((d) => d.label)
-      .attr("text-anchor", "middle")
-      .attr("dy", "0.35em")
-      .attr("fill", "#fff")
-      .attr("font-size", "11px")
-      .attr("font-weight", "700")
-      .attr("pointer-events", "none");
-
-    // Memory hover labels
-    const tooltip = node
-      .filter((d) => d.group === "memory")
-      .append("text")
-      .text((d) => d.label)
-      .attr("x", 13)
-      .attr("y", 4)
-      .attr("fill", "#ffffff99")
-      .attr("font-size", "8px")
-      .attr("pointer-events", "none")
-      .attr("opacity", 0);
-
-    node
-      .filter((d) => d.group === "memory")
-      .on("mouseenter", function () {
-        d3.select(this)
-          .select("circle")
-          .attr("fill-opacity", 1)
-          .attr("stroke", "#fff")
-          .attr("stroke-width", 1.5);
-        d3.select(this).select("text").attr("opacity", 1);
-      })
-      .on("mouseleave", function () {
-        d3.select(this)
-          .select("circle")
-          .attr("fill-opacity", 0.85)
-          .attr("stroke", "none")
-          .attr("stroke-width", 0);
-        d3.select(this).select("text").attr("opacity", 0);
-      });
-
-    void tooltip; // used via mouseenter
-
-    // Tick
-    sim.on("tick", () => {
-      link
-        .attr("x1", (d) => (d.source as GraphNode).x ?? 0)
-        .attr("y1", (d) => (d.source as GraphNode).y ?? 0)
-        .attr("x2", (d) => (d.target as GraphNode).x ?? 0)
-        .attr("y2", (d) => (d.target as GraphNode).y ?? 0);
-
-      node.attr("transform", (d) => `translate(${d.x ?? 0},${d.y ?? 0})`);
-    });
-  }
+  useEffect(() => {
+    renderRef.current = (data: GraphData) =>
+      buildGraph(data, svgRef, lang, setSelected);
+  }, [lang]);
 
   const formatDate = (iso?: string) => {
     if (!iso) return "";
@@ -309,43 +107,58 @@ export default function MemoryGraph({ lang }: Props) {
     });
   };
 
+  const usedTypes = selected ? [] : [];
+  void usedTypes;
+
   return (
     <div className="graph-container">
-      {loading && (
-        <div className="graph-loading">
-          {lang === "de" ? "Lade Graph…" : "Loading graph…"}
+      {status === "loading" && (
+        <div className="graph-overlay">
+          {lang === "de"
+            ? "Berechne semantisches Netz…"
+            : "Computing semantic graph…"}
         </div>
       )}
-      {error && <div className="graph-error">{error}</div>}
+      {status === "empty" && (
+        <div className="graph-overlay">
+          {lang === "de"
+            ? "Noch keine Erinnerungen vorhanden."
+            : "No memories yet."}
+        </div>
+      )}
+      {status === "error" && (
+        <div className="graph-overlay graph-error">{errMsg}</div>
+      )}
 
       <svg ref={svgRef} className="graph-svg" />
 
-      {/* Legend */}
+      {/* Legend — only non-empty types */}
       <div className="graph-legend">
-        {["user", "system", "note", "reflection"].map((t) => (
-          <span key={t} className="legend-item">
-            <span
-              className="legend-dot"
-              style={{ background: TYPE_COLOR[t] }}
-            />
-            {lang === "de"
-              ? TYPE_DE[t]
-              : t.charAt(0).toUpperCase() + t.slice(1)}
-          </span>
-        ))}
+        {Object.entries(COLOR)
+          .filter(([k]) => k !== "hub")
+          .map(([t, col]) => (
+            <span key={t} className="legend-item">
+              <span className="legend-dot" style={{ background: col }} />
+              {lang === "de"
+                ? HUB_LABEL_DE[t]
+                : t[0].toUpperCase() + t.slice(1)}
+            </span>
+          ))}
       </div>
 
       {/* Info panel */}
-      {selected && selected.group === "memory" && (
+      {selected && selected.kind === "memory" && (
         <div className="graph-panel">
           <button className="panel-close" onClick={() => setSelected(null)}>
             ✕
           </button>
           <div
             className="panel-badge"
-            style={{ background: TYPE_COLOR[selected.memType] }}
+            style={{ background: COLOR[selected.memType] ?? COLOR.hub }}
           >
-            {lang === "de" ? TYPE_DE[selected.memType] : selected.memType}
+            {lang === "de"
+              ? (HUB_LABEL_DE[selected.memType] ?? selected.memType)
+              : selected.memType}
           </div>
           {selected.source && (
             <div className="panel-source">{selected.source}</div>
@@ -356,4 +169,305 @@ export default function MemoryGraph({ lang }: Props) {
       )}
     </div>
   );
+}
+
+// ─── graph builder ────────────────────────────────────────────────────────────
+
+function buildGraph(
+  data: GraphData,
+  svgRef: React.RefObject<SVGSVGElement | null>,
+  lang: "de" | "en",
+  setSelected: (n: SimNode | null) => void,
+) {
+  const el = svgRef.current;
+  if (!el) return;
+
+  const W = el.clientWidth || 900;
+  const H = el.clientHeight || 560;
+
+  d3.select(el).selectAll("*").remove();
+
+  // ── 1. Derive effective type for each memory ──────────────────────────────
+  const effectiveType = (m: MemNode) =>
+    m.source === "reflection" ? "reflection" : m.type;
+
+  // ── 2. Hub nodes — only for types that exist ──────────────────────────────
+  const presentTypes = [...new Set(data.nodes.map(effectiveType))];
+  const hubNodes: SimNode[] = presentTypes.map((t) => ({
+    uid: `hub_${t}`,
+    kind: "hub",
+    memType: t,
+    label:
+      lang === "de" ? (HUB_LABEL_DE[t] ?? t) : t[0].toUpperCase() + t.slice(1),
+    radius: 26,
+  }));
+
+  // ── 3. Memory nodes ───────────────────────────────────────────────────────
+  const memNodes: SimNode[] = data.nodes.map((m) => ({
+    uid: `mem_${m.id}`,
+    kind: "memory",
+    memType: effectiveType(m),
+    label: m.content.slice(0, 32) + (m.content.length > 32 ? "…" : ""),
+    radius: 9,
+    memId: m.id,
+    content: m.content,
+    source: m.source,
+    created_at: m.created_at,
+  }));
+
+  const nodeById = new Map<string, SimNode>();
+  [...hubNodes, ...memNodes].forEach((n) => nodeById.set(n.uid, n));
+
+  const nodes: SimNode[] = [...hubNodes, ...memNodes];
+
+  // ── 4. Links ──────────────────────────────────────────────────────────────
+  const links: SimLink[] = [];
+
+  // Each memory → its type hub
+  memNodes.forEach((n) =>
+    links.push({
+      source: n.uid,
+      target: `hub_${n.memType}`,
+      linkType: "hub",
+      weight: 1,
+    }),
+  );
+
+  // Hubs ↔ hubs (keeps the graph connected when types differ)
+  for (let i = 0; i < hubNodes.length - 1; i++) {
+    links.push({
+      source: hubNodes[i].uid,
+      target: hubNodes[i + 1].uid,
+      linkType: "hub",
+      weight: 0.1,
+    });
+  }
+
+  // Semantic edges from server
+  const memUid = (id: number) => `mem_${id}`;
+  data.edges.forEach((e) =>
+    links.push({
+      source: memUid(e.source),
+      target: memUid(e.target),
+      linkType: "semantic",
+      weight: e.weight,
+    }),
+  );
+
+  // Session edges (same session:xxx source)
+  const bySession: Record<string, SimNode[]> = {};
+  memNodes.forEach((n) => {
+    if (n.source?.startsWith("session:")) {
+      const k = n.source;
+      if (!bySession[k]) bySession[k] = [];
+      bySession[k].push(n);
+    }
+  });
+  Object.values(bySession).forEach((grp) => {
+    for (let i = 0; i < grp.length - 1; i++)
+      links.push({
+        source: grp[i].uid,
+        target: grp[i + 1].uid,
+        linkType: "session",
+        weight: 0.4,
+      });
+  });
+
+  // ── 5. SVG ────────────────────────────────────────────────────────────────
+  const svg = d3.select(el).attr("width", W).attr("height", H);
+
+  // Glow filter for hubs
+  const defs = svg.append("defs");
+  const filter = defs
+    .append("filter")
+    .attr("id", "glow")
+    .attr("x", "-50%")
+    .attr("y", "-50%")
+    .attr("width", "200%")
+    .attr("height", "200%");
+  filter
+    .append("feGaussianBlur")
+    .attr("stdDeviation", "5")
+    .attr("result", "blur");
+  const fm = filter.append("feMerge");
+  fm.append("feMergeNode").attr("in", "blur");
+  fm.append("feMergeNode").attr("in", "SourceGraphic");
+
+  const g = svg.append("g");
+
+  // Zoom
+  svg.call(
+    d3
+      .zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.15, 5])
+      .on("zoom", (ev) => g.attr("transform", ev.transform.toString())),
+  );
+
+  // ── 6. Simulation ─────────────────────────────────────────────────────────
+  const sim = d3
+    .forceSimulation<SimNode>(nodes)
+    .force(
+      "link",
+      d3
+        .forceLink<SimNode, SimLink>(links)
+        .id((d) => d.uid)
+        .strength((d) => {
+          if (d.linkType === "hub") return 0.7;
+          if (d.linkType === "session") return 0.5;
+          return 0.15 + (d.weight - 0.45) * 0.5; // semantic: 0.15–0.40
+        })
+        .distance((d) => {
+          if (d.linkType === "hub") {
+            const src = d.source as SimNode;
+            return src.kind === "hub" ? 140 : 70;
+          }
+          if (d.linkType === "semantic") return 60 + (1 - d.weight) * 80;
+          return 50;
+        }),
+    )
+    .force(
+      "charge",
+      d3
+        .forceManyBody<SimNode>()
+        .strength((d) => (d.kind === "hub" ? -350 : -45)),
+    )
+    .force("center", d3.forceCenter(W / 2, H / 2).strength(0.05))
+    .force(
+      "collision",
+      d3
+        .forceCollide<SimNode>()
+        .radius((d) => d.radius + 5)
+        .strength(0.9),
+    );
+
+  // ── 7. Render links ───────────────────────────────────────────────────────
+  const linkEl = g
+    .append("g")
+    .selectAll<SVGLineElement, SimLink>("line")
+    .data(links)
+    .join("line")
+    .attr("stroke", (d) => {
+      if (d.linkType === "hub") return "#ffffff18";
+      if (d.linkType === "session") return "#ffffff30";
+      return "#ffffff40";
+    })
+    .attr("stroke-width", (d) => {
+      if (d.linkType === "hub") return 0.8;
+      if (d.linkType === "session") return 1;
+      return 0.6 + d.weight * 1.4; // semantic: thicker = more similar
+    })
+    .attr("stroke-dasharray", (d) =>
+      d.linkType === "semantic" ? "none" : "none",
+    );
+
+  // ── 8. Render nodes ───────────────────────────────────────────────────────
+  const nodeEl = g
+    .append("g")
+    .selectAll<SVGGElement, SimNode>("g")
+    .data(nodes)
+    .join("g")
+    .attr("cursor", "pointer")
+    .call(
+      d3
+        .drag<SVGGElement, SimNode>()
+        .on("start", (ev, d) => {
+          if (!ev.active) sim.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        })
+        .on("drag", (ev, d) => {
+          d.fx = ev.x;
+          d.fy = ev.y;
+        })
+        .on("end", (ev, d) => {
+          if (!ev.active) sim.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        }),
+    )
+    .on("click", (_ev, d) => setSelected(d.kind === "memory" ? d : null));
+
+  // Circles
+  nodeEl
+    .append("circle")
+    .attr("r", (d) => d.radius)
+    .attr("fill", (d) => COLOR[d.memType] ?? COLOR.hub)
+    .attr("fill-opacity", (d) => (d.kind === "hub" ? 1 : 0.82))
+    .attr("stroke", (d) =>
+      d.kind === "hub" ? "rgba(255,255,255,0.6)" : "none",
+    )
+    .attr("stroke-width", (d) => (d.kind === "hub" ? 2 : 0))
+    .attr("filter", (d) => (d.kind === "hub" ? "url(#glow)" : "none"));
+
+  // Hub labels (always visible)
+  nodeEl
+    .filter((d) => d.kind === "hub")
+    .append("text")
+    .text((d) => d.label)
+    .attr("text-anchor", "middle")
+    .attr("dy", "0.35em")
+    .attr("fill", "#fff")
+    .attr("font-size", "10px")
+    .attr("font-weight", "700")
+    .attr("pointer-events", "none");
+
+  // Memory hover labels
+  const hoverLabel = nodeEl
+    .filter((d) => d.kind === "memory")
+    .append("text")
+    .text((d) => d.label)
+    .attr("x", 12)
+    .attr("y", 4)
+    .attr("fill", "#ffffffbb")
+    .attr("font-size", "7.5px")
+    .attr("pointer-events", "none")
+    .attr("opacity", 0);
+
+  nodeEl
+    .filter((d) => d.kind === "memory")
+    .on("mouseenter", function () {
+      d3.select(this)
+        .select("circle")
+        .attr("fill-opacity", 1)
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1.5)
+        .attr("r", 12);
+      d3.select(this).select("text").attr("opacity", 1);
+    })
+    .on("mouseleave", function (_, d) {
+      d3.select(this)
+        .select("circle")
+        .attr("fill-opacity", 0.82)
+        .attr("stroke", "none")
+        .attr("stroke-width", 0)
+        .attr("r", d.radius);
+      d3.select(this).select("text").attr("opacity", 0);
+    });
+
+  void hoverLabel;
+
+  // ── 9. Tick ───────────────────────────────────────────────────────────────
+  sim.on("tick", () => {
+    linkEl
+      .attr("x1", (d) => (d.source as SimNode).x ?? 0)
+      .attr("y1", (d) => (d.source as SimNode).y ?? 0)
+      .attr("x2", (d) => (d.target as SimNode).x ?? 0)
+      .attr("y2", (d) => (d.target as SimNode).y ?? 0);
+    nodeEl.attr("transform", (d) => `translate(${d.x ?? 0},${d.y ?? 0})`);
+  });
+
+  // Fit view after simulation settles
+  sim.on("end", () => {
+    const xs = nodes.map((n) => n.x ?? 0);
+    const ys = nodes.map((n) => n.y ?? 0);
+    const x0 = Math.min(...xs) - 40,
+      x1 = Math.max(...xs) + 40;
+    const y0 = Math.min(...ys) - 40,
+      y1 = Math.max(...ys) + 40;
+    const scale = Math.min(W / (x1 - x0), H / (y1 - y0), 1.4);
+    const tx = W / 2 - scale * ((x0 + x1) / 2);
+    const ty = H / 2 - scale * ((y0 + y1) / 2);
+    const t = d3.zoomIdentity.translate(tx, ty).scale(scale);
+    g.transition().duration(700).attr("transform", t.toString());
+  });
 }

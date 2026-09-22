@@ -4,6 +4,7 @@ import {
   getMemoryStats,
   remember,
   forgetById,
+  getMemoryGraph,
 } from "../services/memory.js";
 import { getSettings } from "../services/settings.js";
 
@@ -22,6 +23,17 @@ router.get("/", async (req, res) => {
       profileId: activeProfileId,
     });
     res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// GET /api/memories/graph  — semantic graph data (nodes + similarity edges)
+router.get("/graph", async (_req, res) => {
+  try {
+    const { activeProfileId } = getSettings();
+    const data = await getMemoryGraph(activeProfileId);
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }
