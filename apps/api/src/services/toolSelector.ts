@@ -127,6 +127,17 @@ const LAZY_GROUPS: { pattern: RegExp; tools: string[] }[] = [
     tools: ["index_documents", "search_documents"],
   },
   {
+    // Drucker, Drucken
+    pattern:
+      /drucker|drucken|druckauftrag|print(?:er|job|auftrag)?|warteschlange.*druck|druck.*warteschlange|druckliste|seitenanzahl/i,
+    tools: [
+      "list_printers",
+      "print_document",
+      "get_print_jobs",
+      "cancel_print_job",
+    ],
+  },
+  {
     // Multi-Monitor
     pattern:
       /monitor|bildschirm.*\d|zweiter.*bildschirm|monitor.*\d|auf.*monitor|welche.*monitore|monitore.*auflisten|zweiter.*monitor|haupt.*monitor|neben.*bildschirm/i,

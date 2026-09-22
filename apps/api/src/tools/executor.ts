@@ -3410,6 +3410,200 @@ Write-Output '{"ok":true}'
       return { success: false, error: String(err) };
     }
   },
+
+  // ── Peripherie: Drucker ───────────────────────────────────────────────────────
+
+  list_printers: async () => {
+    const script = `
+Get-Printer | Select-Object @{N='name';E={$_.Name}},@{N='status';E={$_.PrinterStatus.ToString()}},@{N='default';E={$_.Default}},@{N='driver';E={$_.DriverName}} | ConvertTo-Json -Compress
+`.trim();
+    const tmpFile = path.join(os.tmpdir(), `ella-printers-${Date.now()}.ps1`);
+    const fs = await import("fs");
+    try {
+      fs.writeFileSync(tmpFile, script, "utf-8");
+      const { stdout } = await execAsync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+        { timeout: 8000 },
+      );
+      const raw = JSON.parse(stdout.trim() || "[]") as unknown;
+      const printers = Array.isArray(raw) ? raw : [raw];
+      trackToolUsage("list_printers", `${printers.length} Drucker`);
+      return { success: true, output: { count: printers.length, printers } };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    } finally {
+      try {
+        (await import("fs")).unlinkSync(tmpFile);
+      } catch {
+        /* best effort */
+      }
+    }
+  },
+
+  print_document: async (args) => {
+    const filePath = ((args["path"] as string) ?? "").trim();
+    const printer = ((args["printer"] as string) ?? "").trim();
+    if (!filePath) return { success: false, error: "Dateipfad fehlt." };
+
+    const label = `${path.basename(filePath)}${printer ? ` → ${printer}` : ""}`;
+    return {
+      success: false,
+      requiresConfirmation: true,
+      confirmationMessage: `Dokument drucken: "${label}"?`,
+      pendingAction: {
+        tool: "print_document_confirmed",
+        args: { path: filePath, printer },
+      },
+    };
+  },
+
+  print_document_confirmed: async (args) => {
+    const filePath = ((args["path"] as string) ?? "").trim();
+    const printer = ((args["printer"] as string) ?? "").trim();
+    if (!filePath) return { success: false, error: "Dateipfad fehlt." };
+
+    const safePath = filePath.replace(/'/g, "''");
+    const safePrinter = printer.replace(/'/g, "''");
+
+    const script = printer
+      ? `
+$currentDefault = (Get-CimInstance Win32_Printer | Where-Object { $_.Default }).Name
+$target = Get-CimInstance Win32_Printer -Filter "Name='${safePrinter}'"
+if (-not $target) { Write-Output 'PRINTER_NOT_FOUND'; exit 1 }
+$target | Invoke-CimMethod -MethodName SetDefaultPrinter | Out-Null
+Start-Sleep -Milliseconds 800
+Start-Process -FilePath '${safePath}' -Verb Print -WindowStyle Hidden
+Start-Sleep -Seconds 3
+if ($currentDefault) {
+  $restore = Get-CimInstance Win32_Printer -Filter "Name='$($currentDefault.Replace("'","''"))'"
+  if ($restore) { $restore | Invoke-CimMethod -MethodName SetDefaultPrinter | Out-Null }
+}
+Write-Output 'OK'
+`.trim()
+      : `Start-Process -FilePath '${safePath}' -Verb Print -WindowStyle Hidden; Write-Output 'OK'`;
+
+    const tmpFile = path.join(os.tmpdir(), `ella-print-${Date.now()}.ps1`);
+    const fs = await import("fs");
+    try {
+      fs.writeFileSync(tmpFile, script, "utf-8");
+      const { stdout } = await execAsync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+        { timeout: 15_000 },
+      );
+      if (stdout.includes("PRINTER_NOT_FOUND")) {
+        return {
+          success: false,
+          error: `Drucker '${printer}' nicht gefunden. Nutze list_printers für verfügbare Drucker.`,
+        };
+      }
+      trackToolUsage("print_document", path.basename(filePath));
+      return {
+        success: true,
+        output: `Druckauftrag gesendet: ${path.basename(filePath)}${printer ? ` an ${printer}` : " (Standard-Drucker)"}.`,
+      };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    } finally {
+      try {
+        (await import("fs")).unlinkSync(tmpFile);
+      } catch {
+        /* best effort */
+      }
+    }
+  },
+
+  get_print_jobs: async (args) => {
+    const printer = ((args["printer"] as string) ?? "").trim();
+    const safePrinter = printer.replace(/'/g, "''");
+
+    const script = printer
+      ? `
+$jobs = Get-PrintJob -PrinterName '${safePrinter}' -ErrorAction SilentlyContinue
+$jobs | Select-Object @{N='id';E={$_.Id}},@{N='printer';E={$_.PrinterName}},@{N='document';E={$_.DocumentName}},@{N='user';E={$_.UserName}},@{N='status';E={$_.JobStatus.ToString()}},@{N='pages';E={$_.TotalPages}},@{N='pages_printed';E={$_.PagesPrinted}} | ConvertTo-Json -Compress
+`.trim()
+      : `
+$jobs = @()
+Get-Printer | ForEach-Object {
+  try { $jobs += Get-PrintJob -PrinterName $_.Name -ErrorAction SilentlyContinue } catch {}
+}
+if ($jobs.Count -eq 0) { Write-Output '[]'; exit 0 }
+$jobs | Select-Object @{N='id';E={$_.Id}},@{N='printer';E={$_.PrinterName}},@{N='document';E={$_.DocumentName}},@{N='user';E={$_.UserName}},@{N='status';E={$_.JobStatus.ToString()}},@{N='pages';E={$_.TotalPages}},@{N='pages_printed';E={$_.PagesPrinted}} | ConvertTo-Json -Compress
+`.trim();
+
+    const tmpFile = path.join(os.tmpdir(), `ella-printjobs-${Date.now()}.ps1`);
+    const fs = await import("fs");
+    try {
+      fs.writeFileSync(tmpFile, script, "utf-8");
+      const { stdout } = await execAsync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+        { timeout: 8000 },
+      );
+      const trimmed = stdout.trim();
+      const raw = JSON.parse(
+        !trimmed || trimmed === "" ? "[]" : trimmed,
+      ) as unknown;
+      const jobs = Array.isArray(raw) ? raw : raw ? [raw] : [];
+      trackToolUsage("get_print_jobs", `${jobs.length} Jobs`);
+      return {
+        success: true,
+        output:
+          jobs.length === 0
+            ? { count: 0, message: "Keine aktiven Druckjobs." }
+            : { count: jobs.length, jobs },
+      };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    } finally {
+      try {
+        (await import("fs")).unlinkSync(tmpFile);
+      } catch {
+        /* best effort */
+      }
+    }
+  },
+
+  cancel_print_job: async (args) => {
+    const printer = ((args["printer"] as string) ?? "").trim();
+    const jobId = Number(args["job_id"]);
+    if (!printer) return { success: false, error: "Druckername fehlt." };
+    if (!jobId) return { success: false, error: "Job-ID fehlt." };
+
+    const safePrinter = printer.replace(/'/g, "''");
+    const script = `
+try {
+  Remove-PrintJob -PrinterName '${safePrinter}' -ID ${jobId} -ErrorAction Stop
+  Write-Output 'OK'
+} catch {
+  Write-Output "ERROR: $($_.Exception.Message)"
+}
+`.trim();
+    const tmpFile = path.join(os.tmpdir(), `ella-canceljob-${Date.now()}.ps1`);
+    const fs = await import("fs");
+    try {
+      fs.writeFileSync(tmpFile, script, "utf-8");
+      const { stdout } = await execAsync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+        { timeout: 8000 },
+      );
+      const out = stdout.trim();
+      if (out.startsWith("ERROR:")) {
+        return { success: false, error: out.replace("ERROR: ", "") };
+      }
+      trackToolUsage("cancel_print_job", `Job ${jobId} @ ${printer}`);
+      return {
+        success: true,
+        output: `Druckjob ${jobId} auf "${printer}" abgebrochen.`,
+      };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    } finally {
+      try {
+        (await import("fs")).unlinkSync(tmpFile);
+      } catch {
+        /* best effort */
+      }
+    }
+  },
 };
 
 export const toolExecutor = {

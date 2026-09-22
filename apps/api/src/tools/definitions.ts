@@ -2013,5 +2013,79 @@ export function buildToolDefinitions(setups: Setup[] = []): OllamaTool[] {
     },
   );
 
+  defs.push(
+    {
+      type: "function",
+      function: {
+        name: "list_printers",
+        description:
+          "Listet alle installierten Drucker mit Name, Status und ob sie als Standard gesetzt sind.",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "print_document",
+        description:
+          "Druckt eine Datei auf dem angegebenen oder Standard-Drucker. Unterstützt PDF, DOCX, TXT und Bilder.",
+        parameters: {
+          type: "object",
+          properties: {
+            path: {
+              type: "string",
+              description: "Vollständiger Dateipfad der zu druckenden Datei",
+            },
+            printer: {
+              type: "string",
+              description:
+                "Druckername (optional — Standard-Drucker wird verwendet wenn nicht angegeben)",
+            },
+          },
+          required: ["path"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "get_print_jobs",
+        description:
+          "Zeigt die aktuelle Druckwarteschlange — alle wartenden oder laufenden Druckjobs.",
+        parameters: {
+          type: "object",
+          properties: {
+            printer: {
+              type: "string",
+              description:
+                "Druckername (optional — alle Drucker wenn nicht angegeben)",
+            },
+          },
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "cancel_print_job",
+        description: "Bricht einen laufenden oder wartenden Druckjob ab.",
+        parameters: {
+          type: "object",
+          properties: {
+            printer: {
+              type: "string",
+              description: "Name des Druckers",
+            },
+            job_id: {
+              type: "number",
+              description: "Job-ID aus get_print_jobs",
+            },
+          },
+          required: ["printer", "job_id"],
+        },
+      },
+    },
+  );
+
   return defs;
 }

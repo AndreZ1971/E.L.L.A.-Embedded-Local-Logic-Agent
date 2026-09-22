@@ -110,7 +110,12 @@ export type ToolName =
   | "open_app_on_monitor"
   | "index_documents"
   | "search_documents"
-  | "reflect_on_experiences";
+  | "reflect_on_experiences"
+  | "list_printers"
+  | "print_document"
+  | "print_document_confirmed"
+  | "get_print_jobs"
+  | "cancel_print_job";
 
 export interface ToolCall {
   tool: ToolName;

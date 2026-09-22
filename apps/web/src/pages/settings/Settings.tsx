@@ -280,6 +280,10 @@ const ALL_TOOLS: { name: string; label: string }[] = [
     name: "reflect_on_experiences",
     label: "Erfahrungsreflexion (Erkenntnisse aus Memories ableiten)",
   },
+  { name: "list_printers", label: "Drucker auflisten" },
+  { name: "print_document", label: "Dokument drucken" },
+  { name: "get_print_jobs", label: "Druckwarteschlange anzeigen" },
+  { name: "cancel_print_job", label: "Druckjob abbrechen" },
 ];
 
 const input: React.CSSProperties = {

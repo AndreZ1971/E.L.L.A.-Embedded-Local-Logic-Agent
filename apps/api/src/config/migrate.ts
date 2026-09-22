@@ -334,6 +334,19 @@ export async function runMigrations(): Promise<void> {
     ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
   `);
 
+  for (const [id, name, tool_name] of [
+    [96, "Drucker auflisten erlaubt", "list_printers"],
+    [97, "Dokument drucken erlaubt", "print_document"],
+    [98, "Druckjobs anzeigen erlaubt", "get_print_jobs"],
+    [99, "Druckjob abbrechen erlaubt", "cancel_print_job"],
+  ] as const) {
+    await exec(`
+      INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
+      VALUES (${id}, '${name}', '${tool_name}', 'always', 'allow', TRUE)
+      ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
+    `);
+  }
+
   await exec(`
     INSERT INTO rules (id, name, tool_name, \`trigger\`, action, enabled)
     VALUES (94, 'Dokumente durchsuchen erlaubt', 'search_documents', 'always', 'allow', TRUE)
