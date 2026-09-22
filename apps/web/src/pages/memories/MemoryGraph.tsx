@@ -82,6 +82,7 @@ export default function MemoryGraph({ lang }: Props) {
   );
   const [errMsg, setErrMsg] = useState("");
   const [showDocs, setShowDocs] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   // Stable render ref so we can call it after resize
   const renderRef = useRef<(data: GraphData) => void>(() => {});
@@ -115,7 +116,7 @@ export default function MemoryGraph({ lang }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [showDocs]);
+  }, [showDocs, reloadKey]);
 
   useEffect(() => {
     renderRef.current = (data: GraphData) =>
@@ -153,7 +154,24 @@ export default function MemoryGraph({ lang }: Props) {
         </div>
       )}
       {status === "error" && (
-        <div className="graph-overlay graph-error">{errMsg}</div>
+        <div className="graph-overlay graph-error">
+          <span>{errMsg}</span>
+          <button
+            onClick={() => setReloadKey((k) => k + 1)}
+            style={{
+              marginTop: 10,
+              padding: "4px 14px",
+              borderRadius: 6,
+              border: "1px solid rgba(255,255,255,0.3)",
+              background: "transparent",
+              color: "inherit",
+              cursor: "pointer",
+              fontSize: "0.8rem",
+            }}
+          >
+            {lang === "de" ? "Neu laden" : "Retry"}
+          </button>
+        </div>
       )}
 
       <svg ref={svgRef} className="graph-svg" />

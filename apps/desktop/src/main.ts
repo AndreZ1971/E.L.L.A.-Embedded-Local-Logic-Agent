@@ -7,6 +7,7 @@ import {
   ipcMain,
   session,
   shell,
+  dialog,
 } from "electron";
 import type { Event as ElectronEvent } from "electron";
 import { spawn, exec } from "child_process";
@@ -819,6 +820,14 @@ function registerIpc(): void {
   ipcMain.on("ella:open-chess", () => openChessWindow());
   ipcMain.on("chess:minimize", () => chessWindow?.minimize());
   ipcMain.on("chess:close", () => chessWindow?.close());
+
+  ipcMain.handle("dialog:pickFolder", async () => {
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      properties: ["openDirectory"],
+      title: "Ordner für ELLA auswählen",
+    });
+    return result.canceled ? null : (result.filePaths[0] ?? null);
+  });
 }
 
 // ── App-Lifecycle ─────────────────────────────────────────────────────────────

@@ -50,4 +50,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openChess: () => ipcRenderer.send("ella:open-chess"),
   minimizeChess: () => ipcRenderer.send("chess:minimize"),
   closeChess: () => ipcRenderer.send("chess:close"),
+  pickFolder: (): Promise<string | null> =>
+    ipcRenderer.invoke("dialog:pickFolder"),
 });

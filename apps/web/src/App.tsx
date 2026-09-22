@@ -119,6 +119,7 @@ function OllamaBanner() {
   const check = useCallback(async () => {
     try {
       const r = await fetch(`${API}/api/health`);
+      if (!r.ok) return;
       const d = (await r.json()) as { ollama: boolean; provider: string };
       setOffline(d.provider !== "openai" && !d.ollama);
     } catch {
@@ -376,6 +377,7 @@ function AppShell() {
     const check = async () => {
       try {
         const r = await fetch(`${API}/api/health`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const d = (await r.json()) as {
           ollama: boolean;
           provider: string;

@@ -377,6 +377,8 @@ const Settings: React.FC = () => {
   const [searching, setSearching] = useState(false);
   const [addedPrograms, setAddedPrograms] = useState<Set<string>>(new Set());
   const [selectedSetupId, setSelectedSetupId] = useState<string | null>(null);
+  const [folderInputVisible, setFolderInputVisible] = useState(false);
+  const [folderInputValue, setFolderInputValue] = useState("");
   const [_voices, setVoices] = useState<
     Array<{ name: string; locale: string; gender: string }>
   >([]);
@@ -1519,32 +1521,33 @@ const Settings: React.FC = () => {
                     gap: 6,
                     marginBottom: 6,
                     alignItems: "center",
+                    background: "rgba(124,58,237,0.06)",
+                    border: "1px solid rgba(124,58,237,0.2)",
+                    borderRadius: 6,
+                    padding: "6px 10px",
                   }}
                 >
-                  <input
+                  <span
                     style={{
-                      ...input,
                       flex: 1,
                       fontFamily: "monospace",
                       fontSize: "0.82rem",
+                      color: "#c4b5fd",
+                      wordBreak: "break-all",
                     }}
-                    value={folder}
-                    onChange={(e) => {
-                      const updated = [...(settings.indexedFolders ?? [])];
-                      updated[idx] = e.target.value;
-                      patch({ indexedFolders: updated });
-                    }}
-                    placeholder="z.B. C:\Users\André\Dokumente"
-                  />
+                  >
+                    📁 {folder}
+                  </span>
                   <button
                     style={{
-                      padding: "5px 10px",
-                      background: "#2d1e2f",
-                      border: "1px solid #7c3aed",
-                      color: "#c4b5fd",
-                      borderRadius: 5,
+                      padding: "3px 8px",
+                      background: "transparent",
+                      border: "1px solid rgba(239,68,68,0.4)",
+                      color: "#f87171",
+                      borderRadius: 4,
                       cursor: "pointer",
-                      fontSize: "0.8rem",
+                      fontSize: "0.75rem",
+                      flexShrink: 0,
                     }}
                     onClick={() => {
                       const updated = (settings.indexedFolders ?? []).filter(
@@ -1553,35 +1556,141 @@ const Settings: React.FC = () => {
                       patch({ indexedFolders: updated });
                     }}
                   >
-                    ✕
+                    Entfernen
                   </button>
                 </div>
               ))}
+              {folderInputVisible && (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 6,
+                    marginTop: 4,
+                    alignItems: "center",
+                  }}
+                >
+                  <input
+                    autoFocus
+                    style={{
+                      ...input,
+                      flex: 1,
+                      fontFamily: "monospace",
+                      fontSize: "0.82rem",
+                    }}
+                    value={folderInputValue}
+                    onChange={(e) => setFolderInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const f = folderInputValue.trim();
+                        if (f && !(settings.indexedFolders ?? []).includes(f)) {
+                          patch({
+                            indexedFolders: [
+                              ...(settings.indexedFolders ?? []),
+                              f,
+                            ],
+                          });
+                        }
+                        setFolderInputValue("");
+                        setFolderInputVisible(false);
+                      }
+                      if (e.key === "Escape") {
+                        setFolderInputValue("");
+                        setFolderInputVisible(false);
+                      }
+                    }}
+                    placeholder="z.B. C:\Users\André\Projekte"
+                  />
+                  <button
+                    style={{
+                      padding: "5px 12px",
+                      background: "#4c1d95",
+                      border: "1px solid #7c3aed",
+                      color: "#c4b5fd",
+                      borderRadius: 5,
+                      cursor: "pointer",
+                      fontSize: "0.82rem",
+                    }}
+                    onClick={() => {
+                      const f = folderInputValue.trim();
+                      if (f && !(settings.indexedFolders ?? []).includes(f)) {
+                        patch({
+                          indexedFolders: [
+                            ...(settings.indexedFolders ?? []),
+                            f,
+                          ],
+                        });
+                      }
+                      setFolderInputValue("");
+                      setFolderInputVisible(false);
+                    }}
+                  >
+                    Hinzufügen
+                  </button>
+                  <button
+                    style={{
+                      padding: "5px 10px",
+                      background: "transparent",
+                      border: "1px solid #334155",
+                      color: "#64748b",
+                      borderRadius: 5,
+                      cursor: "pointer",
+                      fontSize: "0.82rem",
+                    }}
+                    onClick={() => {
+                      setFolderInputValue("");
+                      setFolderInputVisible(false);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               <button
                 style={{
-                  padding: "6px 14px",
-                  background: "#1e293b",
-                  border: "1px solid #334155",
-                  color: "#94a3b8",
+                  padding: "8px 16px",
+                  background: "linear-gradient(135deg,#4c1d95,#2d1e2f)",
+                  border: "1px solid #7c3aed",
+                  color: "#c4b5fd",
                   borderRadius: 6,
                   cursor: "pointer",
-                  fontSize: "0.82rem",
+                  fontSize: "0.85rem",
                   marginTop: 4,
+                  fontWeight: 500,
                 }}
-                onClick={() =>
-                  patch({
-                    indexedFolders: [...(settings.indexedFolders ?? []), ""],
-                  })
-                }
+                onClick={async () => {
+                  const api = (
+                    window as {
+                      electronAPI?: {
+                        pickFolder?: () => Promise<string | null>;
+                      };
+                    }
+                  ).electronAPI;
+                  if (api?.pickFolder) {
+                    const folder = await api.pickFolder();
+                    if (
+                      folder &&
+                      !(settings.indexedFolders ?? []).includes(folder)
+                    ) {
+                      patch({
+                        indexedFolders: [
+                          ...(settings.indexedFolders ?? []),
+                          folder,
+                        ],
+                      });
+                    }
+                  } else {
+                    setFolderInputVisible(true);
+                    setFolderInputValue("");
+                  }
+                }}
               >
-                + Ordner hinzufügen
+                📂 Ordner auswählen
               </button>
               <div
                 style={{ fontSize: "0.76rem", color: "#475569", marginTop: 8 }}
               >
-                Indizierung starten: ELLA im Chat bitten „Bitte indiziere meinen
-                Dokumente-Ordner" oder das Tool index_documents aktivieren und
-                aufrufen.
+                Nach dem Hinzufügen ELLA bitten: „Bitte indiziere meinen
+                Dokumente-Ordner" — danach kennt sie alle Dateien darin.
               </div>
             </Section>
           </>
