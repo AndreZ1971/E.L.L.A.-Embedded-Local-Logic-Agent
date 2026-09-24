@@ -1,0 +1,1374 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E.L.L.A.</title>
+    <meta
+      name="description"
+      content="Embedded Local Logic Agent — KI-Assistent für Windows. Lokal. Privat. 85 Tools."
+    />
+    <meta property="og:title" content="E.L.L.A. — Embedded Local Logic Agent" />
+    <meta
+      property="og:description"
+      content="KI-Assistent für Windows. Lokal. Privat. Keine Cloud."
+    />
+    <meta
+      property="og:url"
+      content="https://andrez1971.github.io/E.L.L.A.-Embedded-Local-Logic-Agent/"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #0f1117;
+        --bg2: #161926;
+        --bg3: #1e2235;
+        --accent: #7c6af7;
+        --accent2: #a78bfa;
+        --text: #e2e8f0;
+        --muted: #8a9ab8;
+        --border: #2a3050;
+        --green: #3ecf8e;
+        --orange: #ff6500;
+        --radius: 12px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a {
+        color: var(--accent2);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      /* ── NAV ── */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(15, 17, 23, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 0 clamp(1.5rem, 5vw, 4rem);
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .nav-logo {
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 0.05em;
+        color: var(--accent2);
+        text-decoration: none;
+      }
+      .nav-logo span {
+        color: var(--muted);
+        font-weight: 400;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        list-style: none;
+        font-size: 0.875rem;
+        color: var(--muted);
+      }
+      .nav-links a {
+        color: var(--muted);
+        transition: color 0.15s;
+      }
+      .nav-links a:hover {
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .nav-cta {
+        background: var(--accent);
+        color: #fff;
+        font-size: 0.875rem;
+        font-weight: 600;
+        padding: 0.45rem 1.1rem;
+        border-radius: 8px;
+        white-space: nowrap;
+        transition: background 0.15s;
+        text-decoration: none;
+      }
+      .nav-cta:hover {
+        background: var(--accent2);
+        text-decoration: none;
+      }
+
+      /* ── LANG TOGGLE ── */
+      .lang-toggle {
+        display: flex;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+      .lang-btn {
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        padding: 0.25rem 0.55rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transition: all 0.15s;
+      }
+      .lang-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      /* ── LAYOUT ── */
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 clamp(1.5rem, 5vw, 4rem);
+      }
+
+      section {
+        padding: 5rem 0;
+      }
+      section:first-of-type {
+        padding-top: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Space Grotesk", sans-serif;
+        text-wrap: balance;
+        line-height: 1.2;
+      }
+
+      /* ── HERO ── */
+      .hero {
+        padding: 6rem 0 5rem;
+        text-align: center;
+      }
+
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 0.35rem 0.9rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 2rem;
+      }
+      .hero-badge .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 6px var(--green);
+      }
+
+      .hero h1 {
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 1.25rem;
+      }
+
+      .hero h1 .name {
+        background: linear-gradient(135deg, var(--accent2) 0%, #c4b5fd 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero-sub {
+        font-size: clamp(1rem, 2vw, 1.2rem);
+        color: var(--muted);
+        max-width: 540px;
+        margin: 0 auto 2.5rem;
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 3rem;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 0.8rem 2rem;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        text-decoration: none;
+      }
+      .btn-primary:hover {
+        background: var(--accent2);
+        transform: translateY(-1px);
+        text-decoration: none;
+      }
+
+      .btn-secondary {
+        background: var(--bg3);
+        color: var(--text);
+        font-weight: 500;
+        font-size: 1rem;
+        padding: 0.8rem 2rem;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: border-color 0.15s;
+        text-decoration: none;
+      }
+      .btn-secondary:hover {
+        border-color: var(--accent);
+        text-decoration: none;
+      }
+
+      .hero-meta {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .hero-meta code {
+        font-family: monospace;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        word-break: break-all;
+      }
+
+      /* ── STATS ── */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        margin-bottom: 5rem;
+      }
+      .stat {
+        background: var(--bg2);
+        padding: 1.5rem;
+        text-align: center;
+      }
+      .stat-num {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent2);
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        margin-bottom: 0.35rem;
+      }
+      .stat-label {
+        font-size: 0.8rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      /* ── SECTION HEADERS ── */
+      .section-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+      }
+      .section-title {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        font-weight: 700;
+        margin-bottom: 1rem;
+      }
+      .section-sub {
+        color: var(--muted);
+        max-width: 560px;
+        margin-bottom: 3rem;
+      }
+
+      /* ── FEATURE GRID ── */
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.25rem;
+      }
+
+      .feature-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        transition: border-color 0.2s;
+      }
+      .feature-card:hover {
+        border-color: var(--accent);
+      }
+
+      .feature-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--bg3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+      }
+
+      .feature-card h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+      }
+      .feature-card p {
+        font-size: 0.875rem;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      /* ── DIRECTIVE ── */
+      .directive-block {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2.5rem;
+      }
+
+      .prohibition-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .prohibition {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.25rem;
+      }
+      .prohibition .num {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.4rem;
+      }
+      .prohibition h3 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+      }
+      .prohibition p {
+        font-size: 0.8125rem;
+        color: var(--muted);
+      }
+
+      /* ── TOOLS TABLE ── */
+      .tool-categories {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.75rem;
+      }
+      .tool-cat {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .tool-cat-icon {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+      }
+      .tool-cat-name {
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+      .tool-cat-count {
+        margin-left: auto;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--accent2);
+        background: var(--bg3);
+        padding: 0.15rem 0.5rem;
+        border-radius: 100px;
+      }
+
+      /* ── DOWNLOAD ── */
+      .download-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2rem;
+      }
+      .download-card h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .download-card .version {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 1.25rem;
+      }
+      .download-card .checksum {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 0.75rem;
+      }
+      .download-card .checksum code {
+        font-family: monospace;
+        background: var(--bg3);
+        padding: 0.15rem 0.4rem;
+        border-radius: 4px;
+        word-break: break-all;
+      }
+
+      .req-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+      .req-item {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+      }
+      .req-item .req-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-bottom: 0.2rem;
+      }
+      .req-item .req-val {
+        font-weight: 500;
+      }
+
+      /* ── DOCS ── */
+      .doc-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+      .doc-link {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text);
+        transition: border-color 0.15s;
+        text-decoration: none;
+      }
+      .doc-link:hover {
+        border-color: var(--accent);
+        text-decoration: none;
+      }
+      .doc-link-icon {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+      }
+      .doc-link-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      .doc-link-sub {
+        font-size: 0.775rem;
+        color: var(--muted);
+        margin-top: 0.15rem;
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 2.5rem 0;
+        color: var(--muted);
+        font-size: 0.825rem;
+      }
+      .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .footer-links {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+      }
+      .footer-links a {
+        color: var(--muted);
+      }
+      .footer-links a:hover {
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      /* ── I18N ── */
+      [data-de],
+      [data-en] {
+        display: none;
+      }
+      body.de [data-de] {
+        display: revert;
+      }
+      body.en [data-en] {
+        display: revert;
+      }
+      /* inline spans */
+      span[data-de],
+      span[data-en] {
+        display: none;
+      }
+      body.de span[data-de] {
+        display: inline;
+      }
+      body.en span[data-en] {
+        display: inline;
+      }
+
+      @media (max-width: 640px) {
+        .nav-links {
+          display: none;
+        }
+        .hero {
+          padding: 4rem 0 3rem;
+        }
+        section {
+          padding: 3.5rem 0;
+        }
+      }
+    </style>
+  </head>
+  <body class="de">
+    <nav>
+      <a class="nav-logo" href="#">E.L.L.A.<span> v1.4.0</span></a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#directive">Directive</a></li>
+        <li><a href="#tools">Tools</a></li>
+        <li><a href="#download">Download</a></li>
+        <li><a href="#docs">Docs</a></li>
+      </ul>
+      <div style="display: flex; align-items: center; gap: 0.75rem">
+        <div class="lang-toggle">
+          <button class="lang-btn active" onclick="setLang('de')">DE</button>
+          <button class="lang-btn" onclick="setLang('en')">EN</button>
+        </div>
+        <a
+          class="nav-cta"
+          href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases/latest"
+        >
+          <span data-de>Download</span><span data-en>Download</span>
+        </a>
+      </div>
+    </nav>
+
+    <main>
+      <div class="container">
+        <!-- HERO -->
+        <section class="hero">
+          <div class="hero-badge">
+            <span class="dot"></span>
+            <span data-de>v1.4.0 — 85 aktive Tools</span>
+            <span data-en>v1.4.0 — 85 active tools</span>
+          </div>
+          <h1>
+            <span class="name">E.L.L.A.</span><br />
+            <span data-de>Dein lokaler KI-Assistent</span>
+            <span data-en>Your local AI assistant</span>
+          </h1>
+          <p class="hero-sub">
+            <span data-de
+              >Embedded Local Logic Agent — läuft komplett auf deinem
+              Windows-PC. Kein Abo. Keine Cloud. Keine Kompromisse beim
+              Datenschutz.</span
+            >
+            <span data-en
+              >Embedded Local Logic Agent — runs entirely on your Windows PC. No
+              subscription. No cloud. No privacy compromises.</span
+            >
+          </p>
+          <div class="hero-actions">
+            <a
+              class="btn-primary"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases/latest"
+            >
+              ↓ <span data-de>Installer herunterladen</span
+              ><span data-en>Download installer</span>
+            </a>
+            <a
+              class="btn-secondary"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent"
+            >
+              <span data-de>GitHub Repo</span><span data-en>GitHub repo</span>
+            </a>
+          </div>
+          <p class="hero-meta">
+            SHA256:&nbsp;<code
+              >4668BFB1FC20320EB0B71D83B62C24641DC2DA436A4173C6E29E124A5568ACF2</code
+            >
+          </p>
+        </section>
+
+        <!-- STATS -->
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-num">85</div>
+            <div class="stat-label">
+              <span data-de>Tools</span><span data-en>Tools</span>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">224</div>
+            <div class="stat-label">
+              <span data-de>Tests</span><span data-en>Tests</span>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">0</div>
+            <div class="stat-label">
+              <span data-de>Cloud-Zwang</span
+              ><span data-en>Cloud required</span>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">4</div>
+            <div class="stat-label">
+              <span data-de>Verbote (Directive)</span
+              ><span data-en>Prohibitions</span>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">DE&nbsp;/&nbsp;EN</div>
+            <div class="stat-label">
+              <span data-de>Sprachen</span><span data-en>Languages</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEATURES -->
+        <section id="features">
+          <p class="section-label">Features</p>
+          <h2 class="section-title">
+            <span data-de>Was E.L.L.A. kann</span>
+            <span data-en>What E.L.L.A. can do</span>
+          </h2>
+          <p class="section-sub">
+            <span data-de
+              >Alles per Sprache oder Text — kein Klicken durch Menüs.</span
+            >
+            <span data-en
+              >Everything via voice or text — no clicking through menus.</span
+            >
+          </p>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div class="feature-icon">🧠</div>
+              <h3>
+                <span data-de>Lokales LLM</span><span data-en>Local LLM</span>
+              </h3>
+              <p>
+                <span data-de
+                  >llama3.1:8b läuft vollständig auf deiner GPU via Ollama —
+                  keine Anfrage verlässt deinen PC.</span
+                ><span data-en
+                  >llama3.1:8b runs entirely on your GPU via Ollama — no request
+                  leaves your PC.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🕸️</div>
+              <h3>Knowledge Graph</h3>
+              <p>
+                <span data-de
+                  >D3 Force-Directed Visualisierung der semantischen
+                  Verbindungen zwischen Erinnerungen — interaktiv, lokal.</span
+                ><span data-en
+                  >D3 Force-Directed visualisation of semantic memory
+                  connections — interactive, local.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">📚</div>
+              <h3>
+                <span data-de>Gedächtnis-Browser</span
+                ><span data-en>Memory Browser</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Vollständige UI für alle gespeicherten Erinnerungen:
+                  Freitext-Suche, Typ-Filter, Paginierung.</span
+                ><span data-en
+                  >Full UI for all stored memories: free-text search, type
+                  filter, pagination.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">⚡</div>
+              <h3>
+                <span data-de>Multi-Agent-Pipeline</span
+                ><span data-en>Multi-Agent Pipeline</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Parallele Agenten mit Live-SSE-Streaming — komplexe Aufgaben
+                  werden aufgeteilt und gleichzeitig bearbeitet.</span
+                ><span data-en
+                  >Parallel agents with live SSE streaming — complex tasks split
+                  and processed simultaneously.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">♟️</div>
+              <h3>
+                <span data-de>Schach-Fenster</span
+                ><span data-en>Chess window</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Eigenständiges Schach-Fenster mit KI-Gegner, 4 Themes und
+                  Zug-Kommentar per Stimme.</span
+                ><span data-en
+                  >Standalone chess window with AI opponent, 4 themes and move
+                  commentary via voice.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">💾</div>
+              <h3>Backup &amp; Restore</h3>
+              <p>
+                <span data-de
+                  >JSON-Export aller Daten — Erinnerungen, Regeln, Wecker,
+                  Aufgaben, Setups. Import mit Merge oder Ersetzen.</span
+                ><span data-en
+                  >JSON export of all data — memories, rules, alarms, tasks,
+                  setups. Import with merge or replace.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🖥️</div>
+              <h3>
+                <span data-de>Hardware-Detail-Tools</span
+                ><span data-en>Hardware Detail Tools</span>
+              </h3>
+              <p>
+                <span data-de
+                  >GPU-Info, RAM-Slots, Laufwerks-SMART, Audio- und USB-Geräte —
+                  per Sprache abfragbar.</span
+                ><span data-en
+                  >GPU info, RAM slots, drive SMART, audio and USB devices —
+                  queryable by voice.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">📂</div>
+              <h3>
+                <span data-de>Dokument-Indexierung</span
+                ><span data-en>Document Indexing</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Ordner für semantische Suche indizieren, täglich automatisch
+                  aktualisiert, neue Dateien proaktiv gemeldet.</span
+                ><span data-en
+                  >Index folders for semantic search, auto-updated daily, new
+                  files reported proactively.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">👁️</div>
+              <h3>
+                <span data-de>Screen &amp; Vision</span
+                ><span data-en>Screen &amp; Vision</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Screenshots mit GPT-4o-Analyse, lokales OCR, Screen Watch bis
+                  30 Sekunden, Klick per sichtbarem Text.</span
+                ><span data-en
+                  >Screenshots with GPT-4o analysis, local OCR, screen watch up
+                  to 30 seconds, click by visible text.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🔔</div>
+              <h3>
+                <span data-de>Proaktive Nachrichten</span
+                ><span data-en>Proactive messages</span>
+              </h3>
+              <p>
+                <span data-de
+                  >E.L.L.A. schreibt von sich aus: Comeback-Briefing,
+                  Meeting-Vorbereitung, Tagesabschluss,
+                  Clipboard-Erkennung.</span
+                ><span data-en
+                  >E.L.L.A. writes on its own: comeback briefing, meeting prep,
+                  end-of-day, clipboard recognition.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🔒</div>
+              <h3>
+                <span data-de>Kinder-Modus</span
+                ><span data-en>Homework Mode</span>
+              </h3>
+              <p>
+                <span data-de
+                  >PIN-geschützter abgesicherter Modus — schränkt E.L.L.A. auf
+                  harmlose Tools ein.</span
+                ><span data-en
+                  >PIN-protected secured mode — restricts E.L.L.A. to harmless
+                  tools.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">📧</div>
+              <h3>
+                <span data-de>Mail &amp; Kalender</span
+                ><span data-en>Mail &amp; Calendar</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Outlook und Gmail (OAuth 2.0) — E-Mails lesen, archivieren,
+                  Termine anlegen. Kein automatisches Senden.</span
+                ><span data-en
+                  >Outlook and Gmail (OAuth 2.0) — read, archive, create
+                  appointments. No automatic sending.</span
+                >
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- DIRECTIVE -->
+        <section id="directive">
+          <p class="section-label">The E.L.L.A. Directive</p>
+          <div class="directive-block">
+            <h2 class="section-title" style="margin-bottom: 0.75rem">
+              <span data-de>Nicht Regeln. Architektur.</span>
+              <span data-en>Not rules. Architecture.</span>
+            </h2>
+            <p
+              style="color: var(--muted); max-width: 620px; font-size: 0.95rem"
+            >
+              <span data-de
+                >Die Directive ist keine Liste von Versprechen — sie ist eine
+                technische Unmöglichkeit. Verbotene Aktionen existieren nicht im
+                Code. Sie können weder ausgeführt noch umgangen werden.</span
+              >
+              <span data-en
+                >The Directive is not a list of promises — it is a technical
+                impossibility. Prohibited actions do not exist in the code. They
+                can neither be executed nor bypassed.</span
+              >
+            </p>
+            <div class="prohibition-list">
+              <div class="prohibition">
+                <div class="num">I — harm</div>
+                <h3>
+                  <span data-de>Kein Schaden</span><span data-en>No harm</span>
+                </h3>
+                <p>
+                  <span data-de
+                    >Keine Aktion, die physischen, digitalen oder finanziellen
+                    Schaden verursacht.</span
+                  ><span data-en
+                    >No action causing physical, digital or financial
+                    harm.</span
+                  >
+                </p>
+              </div>
+              <div class="prohibition">
+                <div class="num">II — conceal</div>
+                <h3>
+                  <span data-de>Kein Verschweigen</span
+                  ><span data-en>No deception</span>
+                </h3>
+                <p>
+                  <span data-de
+                    >Keine verzögerte, versteckte oder verzerrte Information.
+                    Alle Tool-Ausführungen sind vollständig geloggt.</span
+                  ><span data-en
+                    >No delayed, hidden or distorted information. All tool
+                    executions are fully logged.</span
+                  >
+                </p>
+              </div>
+              <div class="prohibition">
+                <div class="num">III — surveil</div>
+                <h3>
+                  <span data-de>Keine Überwachung</span
+                  ><span data-en>No surveillance</span>
+                </h3>
+                <p>
+                  <span data-de
+                    >Keine Beobachtung oder Profilierung ohne explizite aktive
+                    Zustimmung. Das Gedächtnissystem ist ausschließlich
+                    lokal.</span
+                  ><span data-en
+                    >No observation or profiling without explicit active
+                    consent. Memory system is exclusively local.</span
+                  >
+                </p>
+              </div>
+              <div class="prohibition">
+                <div class="num">IV — exfiltrate</div>
+                <h3>
+                  <span data-de>Keine Exfiltration</span
+                  ><span data-en>No exfiltration</span>
+                </h3>
+                <p>
+                  <span data-de
+                    >Keine Übertragung von Nutzerdaten an externe Server ohne
+                    explizite, bewusste Anfrage. LLM läuft lokal.</span
+                  ><span data-en
+                    >No transmission of user data to external servers without
+                    explicit conscious request. LLM runs locally.</span
+                  >
+                </p>
+              </div>
+            </div>
+            <p
+              style="
+                margin-top: 1.25rem;
+                font-size: 0.8rem;
+                color: var(--muted);
+              "
+            >
+              <span data-de
+                >Versiegelt auf GitHub und Blockchain (OriginStamp).</span
+              >
+              <span data-en
+                >Sealed on GitHub and blockchain (OriginStamp).</span
+              >
+              →
+              <a href="https://github.com/AndreZ1971/The-E.L.L.A.-Directive-"
+                >The-E.L.L.A.-Directive-</a
+              >
+            </p>
+          </div>
+        </section>
+
+        <!-- TOOLS -->
+        <section id="tools">
+          <p class="section-label">85 Tools</p>
+          <h2 class="section-title">
+            <span data-de>Alles per Sprache steuerbar</span>
+            <span data-en>Everything controllable by voice</span>
+          </h2>
+          <p class="section-sub">
+            <span data-de
+              >Kein Klicken. Kein Suchen. Einfach sagen, was du brauchst.</span
+            >
+            <span data-en
+              >No clicking. No searching. Just say what you need.</span
+            >
+          </p>
+          <div class="tool-categories">
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🧠</span
+              ><span class="tool-cat-name"
+                ><span data-de>Gedächtnis</span
+                ><span data-en>Memory</span></span
+              ><span class="tool-cat-count">7</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🖥️</span
+              ><span class="tool-cat-name"
+                ><span data-de>System &amp; Laufwerke</span
+                ><span data-en>System &amp; Drives</span></span
+              ><span class="tool-cat-count">20</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">📁</span
+              ><span class="tool-cat-name"
+                ><span data-de>Dateien &amp; Ordner</span
+                ><span data-en>Files &amp; Folders</span></span
+              ><span class="tool-cat-count">11</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">✍️</span
+              ><span class="tool-cat-name"
+                ><span data-de>Dokumente &amp; Text</span
+                ><span data-en>Documents &amp; Writing</span></span
+              ><span class="tool-cat-count">8</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">📧</span
+              ><span class="tool-cat-name"
+                ><span data-de>Mail &amp; Kalender</span
+                ><span data-en>Mail &amp; Calendar</span></span
+              ><span class="tool-cat-count">8</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🌐</span
+              ><span class="tool-cat-name"
+                ><span data-de>Netzwerk &amp; Security</span
+                ><span data-en>Network &amp; Security</span></span
+              ><span class="tool-cat-count">5</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🔍</span
+              ><span class="tool-cat-name"
+                ><span data-de>Web &amp; Wissen</span
+                ><span data-en>Web &amp; Knowledge</span></span
+              ><span class="tool-cat-count">4</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">⚙️</span
+              ><span class="tool-cat-name"
+                ><span data-de>Prozesse &amp; Dienste</span
+                ><span data-en>Processes &amp; Services</span></span
+              ><span class="tool-cat-count">4</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">✅</span
+              ><span class="tool-cat-name"
+                ><span data-de>Aufgaben &amp; Erinnerungen</span
+                ><span data-en>Tasks &amp; Reminders</span></span
+              ><span class="tool-cat-count">7</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">📋</span
+              ><span class="tool-cat-name"
+                ><span data-de>Clipboard &amp; Lautstärke</span
+                ><span data-en>Clipboard &amp; Volume</span></span
+              ><span class="tool-cat-count">3</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🎵</span
+              ><span class="tool-cat-name"
+                ><span data-de>Musik &amp; Medien</span
+                ><span data-en>Music &amp; Media</span></span
+              ><span class="tool-cat-count">3</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">👁️</span
+              ><span class="tool-cat-name"
+                ><span data-de>Screen &amp; Vision</span
+                ><span data-en>Screen &amp; Vision</span></span
+              ><span class="tool-cat-count">4</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🖱️</span
+              ><span class="tool-cat-name"
+                ><span data-de>Maus &amp; Tastatur</span
+                ><span data-en>Mouse &amp; Keyboard</span></span
+              ><span class="tool-cat-count">4</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🪟</span
+              ><span class="tool-cat-name"
+                ><span data-de>Fenster &amp; Apps</span
+                ><span data-en>Windows &amp; Apps</span></span
+              ><span class="tool-cat-count">6</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">💻</span
+              ><span class="tool-cat-name">Shell (PowerShell)</span
+              ><span class="tool-cat-count">1</span>
+            </div>
+          </div>
+          <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--muted)">
+            →
+            <a
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/en/capabilities.md"
+              ><span data-de>Vollständige Tool-Liste</span
+              ><span data-en>Full tool list</span></a
+            >
+          </p>
+        </section>
+
+        <!-- DOWNLOAD -->
+        <section id="download">
+          <p class="section-label">Download</p>
+          <h2 class="section-title">v1.4.0</h2>
+          <p class="section-sub">Windows 10 / 11 — x64</p>
+
+          <div class="download-card" style="margin-bottom: 2rem">
+            <h3>E.L.L.A Setup 1.4.0.exe</h3>
+            <div class="version">
+              ~1.6 GB · Windows 10/11 x64 ·
+              <span data-de>Enthält Ollama-Konfigurator</span
+              ><span data-en>Includes Ollama configurator</span>
+            </div>
+            <a
+              class="btn-primary"
+              style="display: inline-flex"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases/latest"
+            >
+              ↓ <span data-de>Jetzt herunterladen</span
+              ><span data-en>Download now</span>
+            </a>
+            <div class="checksum">
+              SHA256:
+              <code
+                >4668BFB1FC20320EB0B71D83B62C24641DC2DA436A4173C6E29E124A5568ACF2</code
+              >
+            </div>
+          </div>
+
+          <p class="section-label" style="margin-bottom: 1rem">
+            <span data-de>Systemanforderungen</span
+            ><span data-en>System requirements</span>
+          </p>
+          <div class="req-list">
+            <div class="req-item">
+              <div class="req-label">OS</div>
+              <div class="req-val">Windows 10 / 11 x64</div>
+            </div>
+            <div class="req-item">
+              <div class="req-label">RAM</div>
+              <div class="req-val">
+                16 GB
+                <span style="color: var(--muted); font-size: 0.8rem"
+                  >(<span data-de>32 GB empfohlen</span
+                  ><span data-en>32 GB recommended</span>)</span
+                >
+              </div>
+            </div>
+            <div class="req-item">
+              <div class="req-label">GPU</div>
+              <div class="req-val">NVIDIA GTX 1060 6 GB+</div>
+            </div>
+            <div class="req-item">
+              <div class="req-label">Speicher</div>
+              <div class="req-val">~6–8 GB frei</div>
+            </div>
+            <div class="req-item">
+              <div class="req-label">Internet</div>
+              <div class="req-val">
+                <span data-de>Nur für Lizenzaktivierung</span
+                ><span data-en>License activation only</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DOCS -->
+        <section id="docs">
+          <p class="section-label">Dokumentation</p>
+          <h2 class="section-title">
+            <span data-de>Alles nachlesen</span>
+            <span data-en>Read everything</span>
+          </h2>
+          <div class="doc-links">
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/bedienungsanleitung.md"
+            >
+              <span class="doc-link-icon">📖</span>
+              <div>
+                <div class="doc-link-text">Bedienungsanleitung</div>
+                <div class="doc-link-sub">Deutsch · v1.4.0</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/en/bedienungsanleitung.md"
+            >
+              <span class="doc-link-icon">📖</span>
+              <div>
+                <div class="doc-link-text">User Manual</div>
+                <div class="doc-link-sub">English · v1.4.0</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/capabilities.md"
+            >
+              <span class="doc-link-icon">🔧</span>
+              <div>
+                <div class="doc-link-text">Alle Tools</div>
+                <div class="doc-link-sub">85 Tools · Deutsch</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/en/capabilities.md"
+            >
+              <span class="doc-link-icon">🔧</span>
+              <div>
+                <div class="doc-link-text">All Tools</div>
+                <div class="doc-link-sub">85 tools · English</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/hardware.md"
+            >
+              <span class="doc-link-icon">💻</span>
+              <div>
+                <div class="doc-link-text">Systemanforderungen</div>
+                <div class="doc-link-sub">Hardware · GPU · Speicher</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/directive.md"
+            >
+              <span class="doc-link-icon">🛡️</span>
+              <div>
+                <div class="doc-link-text">The E.L.L.A. Directive</div>
+                <div class="doc-link-sub">4 Verbote · v1.0.0</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/eula.md"
+            >
+              <span class="doc-link-icon">📄</span>
+              <div>
+                <div class="doc-link-text">EULA</div>
+                <div class="doc-link-sub">Lizenzvertrag · Deutsch</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/CHANGELOG.md"
+            >
+              <span class="doc-link-icon">📋</span>
+              <div>
+                <div class="doc-link-text">Changelog</div>
+                <div class="doc-link-sub">v1.0 → v1.4.0</div>
+              </div>
+            </a>
+          </div>
+        </section>
+      </div>
+      <!-- /container -->
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-inner">
+          <span
+            >© 2026 Andre Zabel, Berlin ·
+            <a href="https://ella-agent.de">ella-agent.de</a></span
+          >
+          <div class="footer-links">
+            <a
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent"
+              >GitHub</a
+            >
+            <a
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/eula.md"
+              >EULA</a
+            >
+            <a
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/SECURITY.md"
+              >Security</a
+            >
+            <a href="mailto:contact@ella-agent.de">Kontakt</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      function setLang(lang) {
+        document.body.className = lang;
+        document.documentElement.lang = lang;
+        document.querySelectorAll(".lang-btn").forEach((btn) => {
+          btn.classList.toggle(
+            "active",
+            btn.textContent.trim().toLowerCase() === lang,
+          );
+        });
+        localStorage.setItem("ella-lang", lang);
+      }
+      // restore preference
+      try {
+        const saved = localStorage.getItem("ella-lang");
+        if (saved === "en") setLang("en");
+      } catch (e) {}
+    </script>
+  </body>
+</html>
