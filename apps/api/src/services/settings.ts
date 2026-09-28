@@ -70,7 +70,7 @@ export interface Settings {
   accessibilityMode: "none" | "blind" | "deaf";
   searchDrives: string[];
   voiceOllamaModel: string;
-  modelTier: "small" | "standard" | "large";
+  modelTier: "small" | "standard" | "balanced" | "large";
   licenseActivated: boolean;
   licenseKey: string;
   licenseToken: string;
@@ -312,7 +312,7 @@ export async function loadSettings(): Promise<void> {
       parsed.searchDrives = DEFAULT_SETTINGS.searchDrives;
     if (typeof parsed.voiceOllamaModel !== "string" || !parsed.voiceOllamaModel)
       parsed.voiceOllamaModel = DEFAULT_SETTINGS.voiceOllamaModel;
-    if (!["small", "standard", "large"].includes(parsed.modelTier))
+    if (!["small", "standard", "balanced", "large"].includes(parsed.modelTier))
       parsed.modelTier = "standard";
     if (!Array.isArray(parsed.indexedFolders))
       parsed.indexedFolders = DEFAULT_SETTINGS.indexedFolders;

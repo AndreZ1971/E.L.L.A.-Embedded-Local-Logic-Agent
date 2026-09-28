@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-type ModelTier = "small" | "standard" | "large";
+type ModelTier = "small" | "standard" | "balanced" | "large";
 
 const TIER_DATA: {
   key: ModelTier;
@@ -11,6 +11,7 @@ const TIER_DATA: {
 }[] = [
   { key: "small", model: "llama3.2:3b", size: "~2 GB", vram: "4 GB+" },
   { key: "standard", model: "llama3.1:8b", size: "~5 GB", vram: "6 GB+" },
+  { key: "balanced", model: "qwen2.5:7b", size: "~5 GB", vram: "8 GB+" },
   { key: "large", model: "qwen2.5:14b", size: "~8.5 GB", vram: "12 GB+" },
 ];
 

@@ -9,6 +9,12 @@ export const MODEL_TIERS = {
     size: "~5 GB",
     vram: "6 GB+",
   },
+  balanced: {
+    model: "qwen2.5:7b",
+    label: "Ausgewogen",
+    size: "~5 GB",
+    vram: "8 GB+",
+  },
   large: {
     model: "qwen2.5:14b",
     label: "Groß",
