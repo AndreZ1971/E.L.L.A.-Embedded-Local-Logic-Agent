@@ -180,18 +180,45 @@ export function getGpuInfo(): {
   gpus?: object[];
   error?: string;
 } {
+  // nvidia-smi liefert korrekte VRAM-Werte (Win32_VideoController.AdapterRAM
+  // ist auf Windows bei >4 GB VRAM oft falsch). Fallback auf WMI wenn kein NVIDIA.
   const ps = `
-$gpus = Get-CimInstance Win32_VideoController | ForEach-Object {
-  $vram = if ($_.AdapterRAM -gt 0) { [math]::Round($_.AdapterRAM / 1GB, 1) } else { $null }
+$nvidiaGpus = @()
+try {
+  $smi = & nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>$null
+  if ($smi) {
+    $nvidiaGpus = @($smi -split "\`n" | Where-Object { $_.Trim() }) | ForEach-Object {
+      $parts = $_ -split ',\\s*'
+      [PSCustomObject]@{
+        name           = $parts[0].Trim()
+        vram_gb        = if ($parts[1]) { [math]::Round([double]$parts[1] / 1024, 1) } else { $null }
+        driver_version = if ($parts[2]) { $parts[2].Trim() } else { $null }
+        resolution     = $null
+        refresh_hz     = $null
+        source         = 'nvidia-smi'
+      }
+    }
+  }
+} catch {}
+
+$wmiGpus = Get-CimInstance Win32_VideoController | ForEach-Object {
+  $name = $_.Caption
+  if ($nvidiaGpus | Where-Object { $_.name -like "*$($name.Split(' ')[2])*" }) { return }
+  $vram = if ($_.AdapterRAM -gt 4GB) { [math]::Round($_.AdapterRAM / 1GB, 1) }
+          elseif ($_.AdapterRAM -gt 0) { [math]::Round($_.AdapterRAM / 1GB, 1) }
+          else { $null }
   [PSCustomObject]@{
-    name           = $_.Caption
+    name           = $name
     vram_gb        = $vram
     driver_version = $_.DriverVersion
     resolution     = if ($_.CurrentHorizontalResolution) { "$($_.CurrentHorizontalResolution)x$($_.CurrentVerticalResolution)" } else { $null }
     refresh_hz     = $_.CurrentRefreshRate
+    source         = 'wmi'
   }
 }
-@($gpus) | ConvertTo-Json -Compress -Depth 3`.trim();
+
+$all = @($nvidiaGpus) + @($wmiGpus) | Where-Object { $_ -ne $null }
+if ($all.Count -eq 0) { Write-Output '[]' } else { @($all) | ConvertTo-Json -Compress -Depth 3 }`.trim();
   try {
     const out = runPs(ps);
     const raw = JSON.parse(out);
