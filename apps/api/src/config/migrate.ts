@@ -397,4 +397,16 @@ export async function runMigrations(): Promise<void> {
     VALUES (107, 'Indizierte Ordner anzeigen erlaubt', 'list_indexed_folders', 'always', 'allow', TRUE)
     ON DUPLICATE KEY UPDATE name=VALUES(name), action=VALUES(action), enabled=TRUE
   `);
+
+  await exec(`
+    CREATE TABLE IF NOT EXISTS chat_sessions (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      session_key   VARCHAR(100) NOT NULL,
+      started_at    DATETIME     NOT NULL,
+      ended_at      DATETIME     NOT NULL,
+      message_count INT          NOT NULL DEFAULT 0,
+      profile_id    INT          NULL,
+      INDEX idx_sessions_ended (ended_at DESC)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
 }

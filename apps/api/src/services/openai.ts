@@ -31,9 +31,13 @@ function buildOpenAIMessages(
   messages: OllamaMessage[],
   memories: string[] = [],
   userName = "",
+  temporalContext = "",
 ): OpenAIMessage[] {
   return [
-    { role: "system", content: buildSystemPrompt(memories, userName) },
+    {
+      role: "system",
+      content: buildSystemPrompt(memories, userName, temporalContext),
+    },
     ...messages.map((m): OpenAIMessage => {
       const msg: OpenAIMessage = { role: m.role, content: m.content || null };
       if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
@@ -97,6 +101,7 @@ export const openaiClient = {
     tools: OllamaTool[],
     memories: string[] = [],
     userName = "",
+    temporalContext = "",
   ): Promise<{ message: OllamaMessage; done: boolean }> => {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -106,7 +111,12 @@ export const openaiClient = {
       },
       body: JSON.stringify({
         model: "gpt-4o",
-        messages: buildOpenAIMessages(messages, memories, userName),
+        messages: buildOpenAIMessages(
+          messages,
+          memories,
+          userName,
+          temporalContext,
+        ),
         ...(tools.length > 0 && {
           tools: tools.map((t) => ({ type: "function", function: t.function })),
         }),
@@ -144,6 +154,7 @@ export const openaiClient = {
     tools: OllamaTool[],
     memories: string[] = [],
     userName = "",
+    temporalContext = "",
   ): AsyncGenerator<
     | { type: "chunk"; text: string }
     | { type: "done"; toolCalls?: OllamaMessage["tool_calls"] }
@@ -157,7 +168,12 @@ export const openaiClient = {
       body: JSON.stringify({
         model: "gpt-4o",
         stream: true,
-        messages: buildOpenAIMessages(messages, memories, userName),
+        messages: buildOpenAIMessages(
+          messages,
+          memories,
+          userName,
+          temporalContext,
+        ),
         ...(tools.length > 0 && {
           tools: tools.map((t) => ({ type: "function", function: t.function })),
         }),

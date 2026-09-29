@@ -273,6 +273,7 @@ Keine Erwähnung von Sprachausgabe oder Tönen in Antworten.`;
 export function buildSystemPrompt(
   memories: string[] = [],
   userName = "",
+  temporalContext = "",
 ): string {
   const { ttsEnabled, accessibilityMode, homeworkMode } = getSettings();
   const datetime = getCurrentDateTimeString();
@@ -291,6 +292,7 @@ export function buildSystemPrompt(
     formatting,
   );
   let prompt = `${resolved}\n\nAktuelle Zeit: ${datetime}`;
+  if (temporalContext) prompt += `\n${temporalContext}`;
 
   if (isBlind) prompt += `\n\n${BLIND_MODE_INSTRUCTION}`;
   if (isDeaf) prompt += `\n\n${DEAF_MODE_INSTRUCTION}`;
@@ -313,6 +315,7 @@ export const ollamaClient = {
     model: string,
     memories: string[] = [],
     userName = "",
+    temporalContext = "",
   ): Promise<OllamaChatResponse> => {
     const response = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
       method: "POST",
@@ -320,7 +323,10 @@ export const ollamaClient = {
       body: JSON.stringify({
         model,
         messages: [
-          { role: "system", content: buildSystemPrompt(memories, userName) },
+          {
+            role: "system",
+            content: buildSystemPrompt(memories, userName, temporalContext),
+          },
           ...messages,
         ],
         tools: tools.length > 0 ? tools : undefined,
@@ -350,6 +356,7 @@ export const ollamaClient = {
     model: string,
     memories: string[] = [],
     userName = "",
+    temporalContext = "",
   ): AsyncGenerator<
     | { type: "chunk"; text: string }
     | { type: "done"; toolCalls?: OllamaMessage["tool_calls"] }
@@ -360,7 +367,10 @@ export const ollamaClient = {
       body: JSON.stringify({
         model,
         messages: [
-          { role: "system", content: buildSystemPrompt(memories, userName) },
+          {
+            role: "system",
+            content: buildSystemPrompt(memories, userName, temporalContext),
+          },
           ...messages,
         ],
         tools: tools.length > 0 ? tools : undefined,

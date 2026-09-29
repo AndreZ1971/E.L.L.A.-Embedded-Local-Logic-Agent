@@ -16,6 +16,10 @@ import {
   selectToolsForContext,
 } from "../services/toolSelector.js";
 import { optimizeToolResult } from "../services/tokenOptimizer.js";
+import {
+  recordChatMessage,
+  getTemporalContext,
+} from "../services/temporalContext.js";
 import type { ToolName } from "@ella/shared";
 
 // Per-session mutex: serializes concurrent requests for the same session
@@ -111,6 +115,10 @@ chatRouter.post("/", async (req, res, next) => {
 
     history.push({ role: "user", content: message });
 
+    // Zeitbewusstsein: Session tracken + Kontext aufbauen
+    await recordChatMessage(sessionId);
+    const temporalContext = await getTemporalContext(sessionId);
+
     let memories = await recall(message);
     const userName = settings.userName?.trim() ?? "";
 
@@ -162,13 +170,20 @@ chatRouter.post("/", async (req, res, next) => {
 
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const response = useOpenAI
-        ? await openaiClient.chat(messages, roundTools, memories, userName)
+        ? await openaiClient.chat(
+            messages,
+            roundTools,
+            memories,
+            userName,
+            temporalContext,
+          )
         : await ollamaClient.chat(
             messages,
             roundTools,
             activeModel,
             memories,
             userName,
+            temporalContext,
           );
       const assistantMsg = response.message;
 
@@ -264,6 +279,10 @@ chatRouter.post("/stream", async (req, res) => {
 
       history.push({ role: "user", content: message });
 
+      // Zeitbewusstsein: Session tracken + Kontext aufbauen
+      await recordChatMessage(sessionId);
+      const temporalContext = await getTemporalContext(sessionId);
+
       let memories = await recall(message);
       const userName = settings.userName?.trim() ?? "";
 
@@ -315,13 +334,20 @@ chatRouter.post("/stream", async (req, res) => {
 
       for (let round = 0; round < MAX_ROUNDS; round++) {
         const stream = useOpenAI
-          ? openaiClient.chatStream(messages, roundTools, memories, userName)
+          ? openaiClient.chatStream(
+              messages,
+              roundTools,
+              memories,
+              userName,
+              temporalContext,
+            )
           : ollamaClient.chatStream(
               messages,
               roundTools,
               activeModel,
               memories,
               userName,
+              temporalContext,
             );
 
         let roundContent = "";
