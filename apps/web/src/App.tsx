@@ -74,6 +74,8 @@ class ErrorBoundary extends React.Component<
   }
 }
 import TitleBar from "./components/TitleBar";
+import GestureOverlay from "./components/GestureOverlay";
+import { useGestures } from "./hooks/useGestures";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Chat from "./pages/chat/Chat";
 import Settings from "./pages/settings/Settings";
@@ -288,6 +290,7 @@ function EllaSplash({ setupMsg }: { setupMsg: string }) {
 function AppShell() {
   const { t } = useTranslation();
   const location = useLocation();
+  const gestures = useGestures();
   const [boot, setBoot] = useState<BootStatus | null>(null);
   const [ollamaReady, setOllamaReady] = useState(false);
   const [setupMsg, setSetupMsg] = useState("");
@@ -553,6 +556,7 @@ function AppShell() {
         <TitleBar />
         {modelPullBanner}
         <OllamaBanner />
+        {gestures.enabled && <GestureOverlay showSkeleton />}
         <div className="ella-layout">
           <nav className="ella-sidebar">
             <h1 className="ella-logo">E.L.L.A.</h1>
@@ -561,6 +565,54 @@ function AppShell() {
             <NavLink to="/pipeline">{t("nav.pipeline")}</NavLink>
             <NavLink to="/memories">{t("nav.memories")}</NavLink>
             <NavLink to="/settings">{t("nav.settings")}</NavLink>
+            <div style={{ flex: 1 }} />
+            <button
+              onClick={gestures.toggle}
+              disabled={gestures.loading}
+              title={
+                gestures.enabled ? t("nav.gesture_off") : t("nav.gesture_on")
+              }
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "8px 12px",
+                marginTop: 8,
+                borderRadius: 8,
+                border: gestures.enabled
+                  ? "1px solid rgba(124, 106, 247, 0.6)"
+                  : "1px solid #2d3148",
+                background: gestures.enabled
+                  ? "rgba(124, 106, 247, 0.15)"
+                  : "transparent",
+                color: gestures.enabled ? "#a78bfa" : "#64748b",
+                fontSize: "0.78rem",
+                cursor: gestures.loading ? "wait" : "pointer",
+                transition: "all 0.2s",
+              }}
+            >
+              {gestures.loading ? "⏳" : "🖐"}
+              <span>
+                {gestures.loading
+                  ? t("nav.gesture_loading")
+                  : gestures.enabled
+                    ? t("nav.gesture_active")
+                    : t("nav.gesture_label")}
+              </span>
+            </button>
+            {gestures.error && (
+              <div
+                style={{
+                  fontSize: "0.7rem",
+                  color: "#f87171",
+                  padding: "4px 8px",
+                  marginTop: 4,
+                }}
+              >
+                {gestures.error}
+              </div>
+            )}
           </nav>
           <main className="ella-main">
             <ErrorBoundary>

@@ -150,7 +150,12 @@
     "chat": "Chat",
     "pipeline": "Multi-Agents",
     "memories": "Memory",
-    "settings": "Settings"
+    "settings": "Settings",
+    "gesture_label": "Gestures",
+    "gesture_active": "Gestures active",
+    "gesture_loading": "Loading…",
+    "gesture_on": "Enable gesture control",
+    "gesture_off": "Disable gesture control"
   },
   "app": {
     "ollama_offline": "Ollama is offline — AI functions unavailable.",
