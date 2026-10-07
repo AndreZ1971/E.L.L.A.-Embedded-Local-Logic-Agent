@@ -50,5 +50,5 @@ export async function checkDayBriefing(): Promise<void> {
   }
   msg += ` Gute Nacht.`;
 
-  sendProactiveMessage(msg, "info");
+  sendProactiveMessage(msg, "info", "day_briefing");
 }

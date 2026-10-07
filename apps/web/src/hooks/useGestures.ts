@@ -31,11 +31,14 @@ export function useGestures() {
     else void enable();
   }, [enable, disable]);
 
+  // Sync state if engine was stopped externally
   useEffect(() => {
-    return () => {
-      if (gestureEngine.running) gestureEngine.stop();
+    const check = () => {
+      if (enabled && !gestureEngine.running) setEnabled(false);
     };
-  }, []);
+    const id = setInterval(check, 2000);
+    return () => clearInterval(id);
+  }, [enabled]);
 
   return { enabled, loading, error, enable, disable, toggle };
 }

@@ -8,6 +8,7 @@ interface Landmark {
 
 interface HandLandmarkerResult {
   landmarks: Landmark[][];
+  handedness: { categoryName: string }[][];
 }
 
 interface HandLandmarkerInstance {
@@ -37,16 +38,28 @@ export interface CursorPos {
   screenY: number; // px
 }
 
+export interface HandData {
+  landmarks: Landmark[];
+  gesture: GestureType;
+  pinchDistance: number;
+  handedness: "Left" | "Right";
+}
+
 export interface GestureFrame {
   gesture: GestureType;
   cursor: CursorPos;
   pinchDistance: number;
   landmarks: Landmark[] | null;
+  hands: HandData[];
 }
 
 type Listener = (frame: GestureFrame) => void;
 
-const PINCH_THRESHOLD = 0.06;
+// Hysteresis: must be closer than ON to start pinching,
+// must be farther than OFF to stop — prevents flickering
+const PINCH_ON = 0.065;
+const PINCH_OFF = 0.095;
+const PINCH_HOLD_FRAMES = 3; // frames pinch must hold before engaging
 const SWIPE_VELOCITY = 1.2;
 const SMOOTH = 0.35;
 
@@ -62,9 +75,10 @@ export class GestureEngine {
   private _running = false;
   private _loading = false;
 
-  private prevWristX = 0;
+  private prevWristX: number[] = [0, 0];
   private prevTime = 0;
-  private wasPinch = false;
+  private pinchActive: boolean[] = [false, false];
+  private pinchFrames: number[] = [0, 0];
   private smooth = { x: 0.5, y: 0.5 };
 
   get running() {
@@ -97,7 +111,7 @@ export class GestureEngine {
           delegate: "GPU",
         },
         runningMode: "VIDEO",
-        numHands: 1,
+        numHands: 2,
       })) as HandLandmarkerInstance;
 
       this.video = document.createElement("video");
@@ -129,7 +143,8 @@ export class GestureEngine {
     }
     this.hl?.close();
     this.hl = null;
-    this.wasPinch = false;
+    this.pinchActive = [false, false];
+    this.pinchFrames = [0, 0];
     this.prevTime = 0;
   }
 
@@ -152,9 +167,28 @@ export class GestureEngine {
     const now = performance.now();
     const res = this.hl.detectForVideo(this.video, now);
 
-    if (res.landmarks?.length > 0) {
-      const lm = res.landmarks[0];
-      const g = this.classify(lm, now);
+    const handCount = res.landmarks?.length ?? 0;
+
+    if (handCount > 0) {
+      const hands: HandData[] = [];
+
+      for (let h = 0; h < handCount; h++) {
+        const lm = res.landmarks[h];
+        const g = this.classifyHand(lm, now, h);
+        const rawHandedness = res.handedness?.[h]?.[0]?.categoryName ?? "Right";
+        // MediaPipe reports handedness from the camera's perspective (mirrored)
+        const handedness = rawHandedness === "Left" ? "Right" : "Left";
+        hands.push({
+          landmarks: lm,
+          gesture: g.type,
+          pinchDistance: g.pinchDist,
+          handedness: handedness as "Left" | "Right",
+        });
+      }
+
+      // Primary hand = first detected → drives cursor
+      const primary = hands[0];
+      const lm = primary.landmarks;
 
       const rawX = 1 - lm[8].x;
       const rawY = lm[8].y;
@@ -162,15 +196,16 @@ export class GestureEngine {
       this.smooth.y += (rawY - this.smooth.y) * SMOOTH;
 
       const frame: GestureFrame = {
-        gesture: g.type,
+        gesture: primary.gesture,
         cursor: {
           x: this.smooth.x,
           y: this.smooth.y,
           screenX: this.smooth.x * window.innerWidth,
           screenY: this.smooth.y * window.innerHeight,
         },
-        pinchDistance: g.pinchDist,
+        pinchDistance: primary.pinchDistance,
         landmarks: lm,
+        hands,
       };
 
       for (const cb of this.listeners) cb(frame);
@@ -179,14 +214,36 @@ export class GestureEngine {
     this.raf = requestAnimationFrame(this.detect);
   };
 
-  private classify(lm: Landmark[], now: number) {
+  private classifyHand(lm: Landmark[], now: number, handIdx: number) {
     const idxExt = lm[8].y < lm[6].y;
     const midExt = lm[12].y < lm[10].y;
     const ringExt = lm[16].y < lm[14].y;
     const pinkyExt = lm[20].y < lm[18].y;
 
     const pinchDist = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
-    const isPinch = pinchDist < PINCH_THRESHOLD;
+
+    // Hysteresis: different thresholds for engage/disengage
+    const wasActive = this.pinchActive[handIdx];
+    const rawPinch = wasActive
+      ? pinchDist < PINCH_OFF // already pinching → need wider distance to release
+      : pinchDist < PINCH_ON; // not pinching → need closer distance to engage
+
+    // Frame counter: require stable pinch for PINCH_HOLD_FRAMES before activating
+    if (rawPinch) {
+      this.pinchFrames[handIdx] = Math.min(
+        this.pinchFrames[handIdx] + 1,
+        PINCH_HOLD_FRAMES + 1,
+      );
+    } else {
+      this.pinchFrames[handIdx] = 0;
+    }
+
+    const isPinch = wasActive
+      ? rawPinch // already active → stay active until hysteresis releases
+      : this.pinchFrames[handIdx] >= PINCH_HOLD_FRAMES; // not active → need stable frames
+
+    const isDrag = isPinch && wasActive;
+    this.pinchActive[handIdx] = isPinch;
 
     const isPoint = idxExt && !midExt && !ringExt && !pinkyExt && !isPinch;
     const isPalm = idxExt && midExt && ringExt && pinkyExt && !isPinch;
@@ -194,15 +251,13 @@ export class GestureEngine {
 
     const wX = lm[0].x;
     const dt = (now - this.prevTime) / 1000;
-    const vel = dt > 0 && this.prevTime > 0 ? (wX - this.prevWristX) / dt : 0;
-    this.prevWristX = wX;
-    this.prevTime = now;
+    const vel =
+      dt > 0 && this.prevTime > 0 ? (wX - this.prevWristX[handIdx]) / dt : 0;
+    this.prevWristX[handIdx] = wX;
+    if (handIdx === 0) this.prevTime = now;
 
     const swipeR = vel > SWIPE_VELOCITY;
     const swipeL = vel < -SWIPE_VELOCITY;
-
-    const isDrag = isPinch && this.wasPinch;
-    this.wasPinch = isPinch;
 
     let type: GestureType = "none";
     if (isDrag) type = "pinch_drag";

@@ -6,6 +6,7 @@ import {
   remember,
   forgetById,
   getMemoryGraph,
+  deduplicateMemories,
   cosine,
 } from "../services/memory.js";
 import { getSettings } from "../services/settings.js";
@@ -171,6 +172,17 @@ router.post("/", async (req, res) => {
       : "note";
     const result = await remember(validType, content.trim(), "manual");
     res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// POST /api/memories/deduplicate
+router.post("/deduplicate", async (_req, res) => {
+  try {
+    const { activeProfileId } = getSettings();
+    const result = await deduplicateMemories(activeProfileId);
+    res.json({ ok: true, ...result });
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }

@@ -19,6 +19,7 @@ export async function checkUpcomingMeetings(): Promise<void> {
             (event.location ? ` in ${event.location}` : "") +
             `. Soll ich relevante Dokumente suchen und dein Arbeits-Setup laden?`,
           "suggestion",
+          "meeting_prep",
         );
       }
     }

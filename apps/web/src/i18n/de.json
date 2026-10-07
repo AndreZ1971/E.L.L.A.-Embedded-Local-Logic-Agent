@@ -143,7 +143,9 @@
     "aria_mic_off": "Mikrofon aktivieren",
     "pin_error_wrong": "Falscher PIN.",
     "feedback_helpful": "Hilfreich",
-    "feedback_not_helpful": "Nicht hilfreich"
+    "feedback_not_helpful": "Nicht hilfreich",
+    "proactive_dismiss": "Nicht mehr so oft zeigen",
+    "proactive_mute": "Diesen Hinweistyp stummschalten"
   },
   "nav": {
     "dashboard": "Dashboard",

@@ -430,7 +430,7 @@ async function triggerComebackBriefing(): Promise<void> {
     if (alertRows.length > 0) {
       msg += ` Während du weg warst: ${alertRows.length} System-Alert${alertRows.length > 1 ? "s" : ""}.`;
     }
-    sendProactiveMessage(msg, "info");
+    sendProactiveMessage(msg, "info", "comeback_briefing");
   } catch {
     // DB nicht verfügbar
   }
@@ -636,6 +636,7 @@ async function tick() {
       `Du arbeitest seit ${Math.round(timeSinceBreak / 60000)} Minuten ohne Pause. ` +
         `Kurze Unterbrechung empfohlen.`,
       "info",
+      "break_reminder",
     );
   }
 
@@ -660,6 +661,7 @@ async function tick() {
           sendProactiveMessage(
             `Ich habe gerade über meine Erfahrungen nachgedacht und ${r.derived} neue ${r.derived === 1 ? "Erkenntnis" : "Erkenntnisse"} gewonnen.`,
             "info",
+            "reflection",
           );
         }
       })
@@ -684,6 +686,7 @@ async function tick() {
         sendProactiveMessage(
           `Ich habe heute Nacht deine ${indexedFolders.length} indizierten ${indexedFolders.length === 1 ? "Ordner" : "Ordner"} aktualisiert — ${totalNew} neue ${totalNew === 1 ? "Datei" : "Dateien"} eingelesen. Insgesamt kenne ich jetzt ${stats.files} Dokumente.`,
           "info",
+          "document_reindex",
         );
       }
     }
@@ -699,6 +702,7 @@ async function tick() {
           `Ich habe ${dupes.length} doppelte Dateigruppen gefunden die ${totalWasted.toFixed(0)} MB belegen. ` +
             `Soll ich dir die Liste zeigen?`,
           "suggestion",
+          "duplicate_scan",
         );
       }
     } catch {
@@ -720,7 +724,7 @@ async function tick() {
         todayStr,
         alarm.id,
       ]);
-      sendProactiveMessage(`⏰ Wecker: ${alarm.label}`, "alarm");
+      sendProactiveMessage(`⏰ Wecker: ${alarm.label}`, "alarm", "alarm");
     }
   } catch {
     // alarms-Tabelle noch nicht migriert
@@ -770,6 +774,7 @@ async function checkScheduledSetups(): Promise<void> {
       sendProactiveMessage(
         `⏰ Setup "${setup.name}" wurde automatisch gestartet.`,
         "info",
+        "scheduled_setup",
       );
     } catch {
       // Setup nicht gefunden oder Fehler beim Ausführen — still ignorieren
@@ -807,7 +812,11 @@ export const worker = {
           if (getSettings().clipboardPatternEnabled) {
             const pattern = detectPattern(clip);
             if (pattern) {
-              sendProactiveMessage(pattern.suggestion, "suggestion");
+              sendProactiveMessage(
+                pattern.suggestion,
+                "suggestion",
+                "clipboard_pattern",
+              );
             }
           }
         }

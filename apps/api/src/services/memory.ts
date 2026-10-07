@@ -35,6 +35,9 @@ async function embed(text: string): Promise<number[] | null> {
   }
 }
 
+const DEDUP_THRESHOLD = 0.85;
+const DEDUP_CHECK_LIMIT = 200;
+
 export async function remember(
   type: "user" | "system" | "note",
   content: string,
@@ -48,6 +51,25 @@ export async function remember(
         "Embedding-Modell nicht verfügbar. Bitte 'ollama pull nomic-embed-text' ausführen.",
     };
   }
+
+  const [existing] = await pool.execute<any[]>(
+    "SELECT id, content, embedding FROM memories WHERE type = ? ORDER BY created_at DESC LIMIT ?",
+    [type, DEDUP_CHECK_LIMIT],
+  );
+  for (const row of existing) {
+    try {
+      const existingVec = JSON.parse(row.embedding as string) as number[];
+      if (cosine(vec, existingVec) >= DEDUP_THRESHOLD) {
+        return {
+          success: true,
+          output: `Ähnliche Erinnerung existiert bereits (ID ${row.id}), übersprungen.`,
+        };
+      }
+    } catch {
+      continue;
+    }
+  }
+
   await pool.execute(
     "INSERT INTO memories (type, content, embedding, source) VALUES (?, ?, ?, ?)",
     [type, content, JSON.stringify(vec), source ?? null],
@@ -67,7 +89,7 @@ export async function recall(
     [LOAD_LIMIT],
   );
 
-  return rows
+  const cosineResults = rows
     .map((r) => {
       try {
         const vec = JSON.parse(r.embedding as string) as number[];
@@ -80,18 +102,138 @@ export async function recall(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((m) => m.content);
+
+  const graphResults = await recallByGraph(query, cosineResults);
+
+  const seen = new Set(cosineResults);
+  const merged = [...cosineResults];
+  for (const g of graphResults) {
+    if (!seen.has(g)) {
+      merged.push(g);
+      seen.add(g);
+    }
+  }
+  return merged.slice(0, limit + 3);
 }
 
-// Hintergrund-Extraktion: LLM extrahiert lernwürdige Fakten aus einem Gesprächsturn.
+async function recallByGraph(
+  query: string,
+  cosineHits: string[],
+): Promise<string[]> {
+  const queryLower = query.toLowerCase();
+  const words = queryLower.split(/[\s,.!?;:]+/).filter((w) => w.length >= 3);
+  if (words.length === 0) return [];
+
+  try {
+    const conditions = words.map(() => "(subject LIKE ? OR object LIKE ?)");
+    const params = words.flatMap((w) => [`%${w}%`, `%${w}%`]);
+
+    const [tripleRows] = await pool.execute<any[]>(
+      `SELECT DISTINCT subject, predicate, object FROM knowledge_triples
+       WHERE ${conditions.join(" OR ")}
+       ORDER BY created_at DESC LIMIT 20`,
+      params,
+    );
+    if (!tripleRows.length) return [];
+
+    const relatedEntities = new Set<string>();
+    for (const t of tripleRows) {
+      relatedEntities.add(t.subject as string);
+      relatedEntities.add(t.object as string);
+    }
+
+    const entityConditions = Array.from(relatedEntities)
+      .slice(0, 10)
+      .map(() => "(subject = ? OR object = ?)");
+    const entityParams = Array.from(relatedEntities)
+      .slice(0, 10)
+      .flatMap((e) => [e, e]);
+
+    const [expandedRows] = await pool.execute<any[]>(
+      `SELECT DISTINCT subject, predicate, object FROM knowledge_triples
+       WHERE ${entityConditions.join(" OR ")}
+       ORDER BY confidence DESC, created_at DESC LIMIT 30`,
+      entityParams,
+    );
+
+    const tripleStrings = expandedRows.map(
+      (t) => `${t.subject} → ${t.predicate} → ${t.object}`,
+    );
+
+    const cosineSet = new Set(cosineHits.map((h) => h.toLowerCase()));
+    return tripleStrings.filter((ts) => !cosineSet.has(ts.toLowerCase()));
+  } catch {
+    return [];
+  }
+}
+
+async function saveTriples(
+  triples: { subject: string; predicate: string; object: string }[],
+  memoryId: number | null,
+  profileId: number | null,
+): Promise<void> {
+  for (const t of triples) {
+    await pool.execute(
+      `INSERT INTO knowledge_triples (subject, predicate, object, memory_id, profile_id)
+       VALUES (?, ?, ?, ?, ?)`,
+      [
+        t.subject.toLowerCase(),
+        t.predicate.toLowerCase(),
+        t.object.toLowerCase(),
+        memoryId,
+        profileId,
+      ],
+    );
+  }
+}
+
+function parseTriples(
+  text: string,
+): { subject: string; predicate: string; object: string }[] {
+  const results: { subject: string; predicate: string; object: string }[] = [];
+  const tripleLine = text
+    .split("\n")
+    .find((l) => l.toUpperCase().startsWith("TRIPEL:"));
+  if (!tripleLine) return results;
+
+  const raw = tripleLine.replace(/^TRIPEL:\s*/i, "").trim();
+  if (raw.toUpperCase() === "KEINE") return results;
+
+  for (const part of raw.split(";")) {
+    const segments = part.split("|").map((s) => s.trim());
+    if (segments.length === 3 && segments[0] && segments[1] && segments[2]) {
+      results.push({
+        subject: segments[0].slice(0, 255),
+        predicate: segments[1].slice(0, 100),
+        object: segments[2].slice(0, 255),
+      });
+    }
+  }
+  return results.slice(0, 5);
+}
+
+// Hintergrund-Extraktion: LLM extrahiert lernwürdige Fakten + Knowledge-Graph-Tripel.
 // Fire-and-forget — blockiert keine Antwort an den Nutzer.
 export function extractAndRemember(
   userMsg: string,
   assistantMsg: string,
   sessionId: string,
+  profileId?: number | null,
 ): void {
   setImmediate(async () => {
     try {
-      const prompt = `Analysiere diesen Gesprächsauszug und antworte mit genau einem lernwürdigen Fakt über den Nutzer oder sein System — oder mit "NICHTS" wenn kein relevanter Fakt vorliegt. Keine Erklärung, nur der Fakt oder "NICHTS".
+      const prompt = `Analysiere diesen Gesprächsauszug und antworte in GENAU diesem Format:
+
+FAKT: <ein lernwürdiger Fakt über den Nutzer oder sein System, oder NICHTS>
+TRIPEL: <Subjekt|Prädikat|Objekt>; <...> oder KEINE
+
+Tripel-Beispiele:
+- Nutzer|bevorzugt|Python
+- Nutzer|öffnet morgens|Outlook
+- Nutzer|arbeitet als|Entwickler
+- Chrome|ist|Standardbrowser
+
+Maximal 3 Tripel. Nur relevante Fakten und Beziehungen.
 
 Nutzer: ${userMsg}
 Assistent: ${assistantMsg}`;
@@ -103,15 +245,55 @@ Assistent: ${assistantMsg}`;
           model: getSettings().ollamaModel,
           prompt,
           stream: false,
-          options: { temperature: 0.1, num_predict: 60 },
+          options: { temperature: 0.1, num_predict: 150 },
         }),
       });
       if (!r.ok) return;
       const data = (await r.json()) as { response?: string };
-      const fact = data.response?.trim();
-      if (!fact || fact.toUpperCase().startsWith("NICHTS")) return;
+      const response = data.response?.trim();
+      if (!response) return;
 
-      await remember("user", fact, `session:${sessionId}`);
+      const factLine = response
+        .split("\n")
+        .find((l) => l.toUpperCase().startsWith("FAKT:"));
+      const fact = factLine?.replace(/^FAKT:\s*/i, "").trim();
+
+      let memoryId: number | null = null;
+      if (fact && !fact.toUpperCase().startsWith("NICHTS")) {
+        const factVec = (await embed(fact)) ?? [];
+        if (factVec.length > 0) {
+          const [existing] = await pool.execute<any[]>(
+            "SELECT id, embedding FROM memories WHERE type = 'user' ORDER BY created_at DESC LIMIT ?",
+            [DEDUP_CHECK_LIMIT],
+          );
+          const isDuplicate = existing.some((row) => {
+            try {
+              const v = JSON.parse(row.embedding as string) as number[];
+              return cosine(factVec, v) >= DEDUP_THRESHOLD;
+            } catch {
+              return false;
+            }
+          });
+          if (!isDuplicate) {
+            const result = await pool.execute(
+              "INSERT INTO memories (type, content, embedding, source, profile_id) VALUES (?, ?, ?, ?, ?)",
+              [
+                "user",
+                fact,
+                JSON.stringify(factVec),
+                `session:${sessionId}`,
+                profileId ?? null,
+              ],
+            );
+            memoryId = (result[0] as { insertId?: number }).insertId ?? null;
+          }
+        }
+      }
+
+      const triples = parseTriples(response);
+      if (triples.length > 0) {
+        await saveTriples(triples, memoryId, profileId ?? null);
+      }
     } catch {
       // Fehler in Hintergrundextraktion sind nicht kritisch
     }
@@ -302,6 +484,7 @@ export interface GraphEdge {
   source: number;
   target: number;
   weight: number;
+  label?: string;
 }
 
 // Top-K semantic neighbours per node (keeps edge count manageable)
@@ -368,7 +551,127 @@ export async function getMemoryGraph(profileId?: number | null): Promise<{
     }
   }
 
+  const nodeIds = new Set(nodes.map((n) => n.id));
+  try {
+    const memoryIds = nodes.map((n) => n.id);
+    if (memoryIds.length > 0) {
+      const placeholders = memoryIds.map(() => "?").join(",");
+      const [tripleRows] = await pool.execute<any[]>(
+        `SELECT t1.memory_id AS src, t2.memory_id AS tgt, t1.predicate
+         FROM knowledge_triples t1
+         JOIN knowledge_triples t2
+           ON t1.subject = t2.subject OR t1.object = t2.subject OR t1.subject = t2.object
+         WHERE t1.memory_id IN (${placeholders})
+           AND t2.memory_id IN (${placeholders})
+           AND t1.memory_id != t2.memory_id
+           AND t1.id < t2.id
+         LIMIT 200`,
+        [...memoryIds, ...memoryIds],
+      );
+      for (const tr of tripleRows) {
+        const src = tr.src as number;
+        const tgt = tr.tgt as number;
+        if (!nodeIds.has(src) || !nodeIds.has(tgt)) continue;
+        const key = `${src}-${tgt}`;
+        if (!edgeMap.has(key)) {
+          edgeMap.set(key, {
+            source: src,
+            target: tgt,
+            weight: 0.8,
+            label: tr.predicate as string,
+          });
+        }
+      }
+    }
+  } catch {
+    // Knowledge-Triples sind optional — Graph funktioniert auch ohne
+  }
+
   return { nodes, edges: Array.from(edgeMap.values()) };
+}
+
+export async function deduplicateMemories(
+  profileId?: number | null,
+): Promise<{ removed: number; kept: number }> {
+  const conditions: string[] = [];
+  const params: any[] = [];
+  if (profileId !== undefined && profileId !== null) {
+    conditions.push("(profile_id = ? OR profile_id IS NULL)");
+    params.push(Number(profileId));
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const [rows] = await pool.execute<any[]>(
+    `SELECT id, type, content, embedding, created_at FROM memories ${where} ORDER BY created_at ASC`,
+    params,
+  );
+
+  const parsed: {
+    id: number;
+    type: string;
+    content: string;
+    vec: number[] | null;
+  }[] = rows.map((r) => ({
+    id: r.id as number,
+    type: r.type as string,
+    content: r.content as string,
+    vec: (() => {
+      try {
+        return JSON.parse(r.embedding as string) as number[];
+      } catch {
+        return null;
+      }
+    })(),
+  }));
+
+  const toDelete: number[] = [];
+  const kept: number[] = [];
+
+  for (let i = 0; i < parsed.length; i++) {
+    if (toDelete.includes(parsed[i].id)) continue;
+
+    let isDupOfEarlier = false;
+    for (const keptId of kept) {
+      const keptEntry = parsed.find((p) => p.id === keptId);
+      if (
+        !keptEntry ||
+        keptEntry.type !== parsed[i].type ||
+        !keptEntry.vec ||
+        !parsed[i].vec
+      )
+        continue;
+      if (cosine(keptEntry.vec, parsed[i].vec!) >= DEDUP_THRESHOLD) {
+        isDupOfEarlier = true;
+        break;
+      }
+    }
+
+    if (isDupOfEarlier) {
+      toDelete.push(parsed[i].id);
+    } else {
+      kept.push(parsed[i].id);
+    }
+  }
+
+  if (toDelete.length > 0) {
+    const batches = [];
+    for (let i = 0; i < toDelete.length; i += 100) {
+      batches.push(toDelete.slice(i, i + 100));
+    }
+    for (const batch of batches) {
+      const placeholders = batch.map(() => "?").join(",");
+      await pool.execute(
+        `DELETE FROM memories WHERE id IN (${placeholders})`,
+        batch,
+      );
+      await pool.execute(
+        `DELETE FROM knowledge_triples WHERE memory_id IN (${placeholders})`,
+        batch,
+      );
+    }
+  }
+
+  return { removed: toDelete.length, kept: kept.length };
 }
 
 export async function forgetById(id: number): Promise<ToolResult> {

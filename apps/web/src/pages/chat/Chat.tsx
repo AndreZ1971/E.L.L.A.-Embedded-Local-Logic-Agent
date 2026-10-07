@@ -46,6 +46,7 @@ interface Message {
   content: string;
   toolName?: string;
   proactive?: boolean;
+  proactiveCategory?: string;
   usedTools?: string[];
 }
 interface PendingAction {
@@ -448,9 +449,15 @@ const Chat: React.FC = () => {
         );
       } else if (ev.type === "proactive_message") {
         const msg = (ev.payload.message as string) ?? "";
+        const cat = (ev.payload.category as string) ?? "";
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: msg, proactive: true },
+          {
+            role: "assistant",
+            content: msg,
+            proactive: true,
+            proactiveCategory: cat,
+          },
         ]);
         speakEdge(msg);
       }
@@ -740,6 +747,34 @@ const Chat: React.FC = () => {
       }).catch(() => {});
     },
     [feedback],
+  );
+
+  const [mutedCategories, setMutedCategories] = useState<
+    Record<string, boolean>
+  >({});
+
+  const dismissProactive = useCallback(
+    async (category: string, mute: boolean) => {
+      const endpoint = mute ? "mute" : "dismiss";
+      const body = mute ? { category, muted: true } : { category };
+      try {
+        const res = await fetch(`${API}/api/proactive/${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = (await res.json()) as {
+          muted?: boolean;
+          message?: string;
+        };
+        if (data.muted) {
+          setMutedCategories((prev) => ({ ...prev, [category]: true }));
+        }
+      } catch {
+        // API nicht erreichbar
+      }
+    },
+    [],
   );
 
   /* ── Spracheingabe (Web Speech API, kein OpenAI nötig) ── */
@@ -1554,6 +1589,64 @@ const Chat: React.FC = () => {
                         {r === "positive" ? "👍" : "👎"}
                       </button>
                     ))}
+                  </div>
+                )}
+                {m.proactive && m.proactiveCategory && (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 6,
+                      marginTop: 6,
+                      opacity: mutedCategories[m.proactiveCategory] ? 1 : 0.35,
+                      transition: "opacity 0.2s",
+                    }}
+                    onMouseEnter={(e) =>
+                      ((e.currentTarget as HTMLDivElement).style.opacity = "1")
+                    }
+                    onMouseLeave={(e) =>
+                      ((e.currentTarget as HTMLDivElement).style.opacity =
+                        mutedCategories[m.proactiveCategory!] ? "1" : "0.35")
+                    }
+                  >
+                    <button
+                      onClick={() =>
+                        dismissProactive(m.proactiveCategory!, false)
+                      }
+                      title={t("chat.proactive_dismiss")}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "0.75rem",
+                        padding: "2px 4px",
+                        borderRadius: 4,
+                        color: "#64748b",
+                      }}
+                    >
+                      👋
+                    </button>
+                    <button
+                      onClick={() =>
+                        dismissProactive(m.proactiveCategory!, true)
+                      }
+                      disabled={mutedCategories[m.proactiveCategory] === true}
+                      title={t("chat.proactive_mute")}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: mutedCategories[m.proactiveCategory]
+                          ? "default"
+                          : "pointer",
+                        fontSize: "0.75rem",
+                        padding: "2px 4px",
+                        borderRadius: 4,
+                        color: mutedCategories[m.proactiveCategory]
+                          ? "#f87171"
+                          : "#64748b",
+                      }}
+                    >
+                      🔇
+                    </button>
                   </div>
                 )}
               </div>

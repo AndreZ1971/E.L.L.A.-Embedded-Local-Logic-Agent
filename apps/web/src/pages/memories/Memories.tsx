@@ -51,6 +51,8 @@ export default function Memories() {
   const [adding, setAdding] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [view, setView] = useState<"list" | "graph">("list");
+  const [deduping, setDeduping] = useState(false);
+  const [dedupResult, setDedupResult] = useState<string | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce search
@@ -113,6 +115,29 @@ export default function Memories() {
       }
     } finally {
       setDeleteId(null);
+    }
+  };
+
+  const handleDeduplicate = async () => {
+    setDeduping(true);
+    setDedupResult(null);
+    try {
+      const res = await fetch("/api/memories/deduplicate", { method: "POST" });
+      if (res.ok) {
+        const data = (await res.json()) as {
+          removed: number;
+          kept: number;
+        };
+        setDedupResult(
+          lang === "de"
+            ? `${data.removed} Duplikate entfernt, ${data.kept} behalten.`
+            : `${data.removed} duplicates removed, ${data.kept} kept.`,
+        );
+        fetchMemories();
+        fetchStats();
+      }
+    } finally {
+      setDeduping(false);
     }
   };
 
@@ -181,9 +206,26 @@ export default function Memories() {
             </button>
           </div>
           {view === "list" && (
-            <button className="btn-add" onClick={() => setShowAdd((v) => !v)}>
-              {showAdd ? "✕" : t("memories.add_btn")}
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                className="btn-add"
+                onClick={handleDeduplicate}
+                disabled={deduping}
+                title={
+                  lang === "de" ? "Duplikate entfernen" : "Remove duplicates"
+                }
+                style={{ opacity: deduping ? 0.5 : 1 }}
+              >
+                {deduping
+                  ? "⏳"
+                  : lang === "de"
+                    ? "🧹 Aufräumen"
+                    : "🧹 Clean up"}
+              </button>
+              <button className="btn-add" onClick={() => setShowAdd((v) => !v)}>
+                {showAdd ? "✕" : t("memories.add_btn")}
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -207,6 +249,36 @@ export default function Memories() {
               </span>
             ),
           )}
+        </div>
+      )}
+
+      {dedupResult && (
+        <div
+          style={{
+            background: "#1a2e1a",
+            border: "1px solid #2d5a2d",
+            borderRadius: 8,
+            padding: "8px 14px",
+            fontSize: "0.85rem",
+            color: "#4ade80",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>✓ {dedupResult}</span>
+          <button
+            onClick={() => setDedupResult(null)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#4ade80",
+              cursor: "pointer",
+              fontSize: "1rem",
+            }}
+          >
+            ✕
+          </button>
         </div>
       )}
 

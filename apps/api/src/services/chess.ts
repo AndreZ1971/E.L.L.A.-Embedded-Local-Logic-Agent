@@ -3,7 +3,7 @@ import { pool } from "../config/database.js";
 import { getSettings, getActiveApiKey } from "./settings.js";
 import { env } from "../config/env.js";
 import { listMemories } from "./memory.js";
-import { eventBus, EVENT_SYSTEM } from "./eventBus.js";
+import { sendProactiveMessage } from "./proactive.js";
 import type { ResultSetHeader } from "mysql2";
 
 export interface ChessGame {
@@ -140,11 +140,7 @@ export async function applyPlayerMove(
     chess.history().at(-1) ?? ellaMove,
     allMoves,
   ).then((comment) => {
-    eventBus.emit(EVENT_SYSTEM, {
-      type: "proactive_message",
-      payload: { message: comment },
-      created_at: new Date().toISOString(),
-    });
+    sendProactiveMessage(comment, "info", "chess");
   });
 
   return {

@@ -136,3 +136,28 @@ CREATE TABLE IF NOT EXISTS custom_pipelines (
   updated_at     DATETIME                           NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_custom_pipelines_profile (profile_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS proactive_preferences (
+  id              INT AUTO_INCREMENT PRIMARY KEY,
+  profile_id      INT          NULL,
+  category        VARCHAR(100) NOT NULL,
+  shown_count     INT          NOT NULL DEFAULT 0,
+  dismissed_count INT          NOT NULL DEFAULT 0,
+  muted           BOOLEAN      NOT NULL DEFAULT FALSE,
+  updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_profile_category (profile_id, category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS knowledge_triples (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  subject     VARCHAR(255)  NOT NULL,
+  predicate   VARCHAR(100)  NOT NULL,
+  object      VARCHAR(255)  NOT NULL,
+  memory_id   INT           NULL,
+  profile_id  INT           NULL,
+  confidence  FLOAT         NOT NULL DEFAULT 1.0,
+  created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_triples_subject   (subject),
+  INDEX idx_triples_object    (object),
+  INDEX idx_triples_predicate (predicate)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

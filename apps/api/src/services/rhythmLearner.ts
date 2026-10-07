@@ -24,13 +24,14 @@ export async function analyzeRhythm(): Promise<void> {
   const morningRows = rows.filter((r) => r.hour >= 6 && r.hour <= 9);
   if (morningRows.length >= 3) {
     const alreadyHasMorning = setups.some((s) =>
-      s.name.toLowerCase().includes("morgen")
+      s.name.toLowerCase().includes("morgen"),
     );
     if (!alreadyHasMorning) {
       sendProactiveMessage(
         `Ich habe gemerkt dass du jeden Morgen ähnliche Programme öffnest. ` +
           `Soll ich daraus ein "Morgen-Setup" erstellen das alles auf einmal startet?`,
-        "suggestion"
+        "suggestion",
+        "rhythm_analysis",
       );
     }
   }

@@ -12,6 +12,7 @@ interface MemEdge {
   source: number;
   target: number;
   weight: number;
+  label?: string;
 }
 interface DocNode {
   id: string;
@@ -50,8 +51,9 @@ interface SimNode extends d3.SimulationNodeDatum {
   chunks?: number;
 }
 interface SimLink extends d3.SimulationLinkDatum<SimNode> {
-  linkType: "hub" | "semantic" | "session" | "cross";
+  linkType: "hub" | "semantic" | "session" | "cross" | "knowledge";
   weight: number;
+  label?: string;
 }
 
 const COLOR: Record<string, string> = {
@@ -61,6 +63,7 @@ const COLOR: Record<string, string> = {
   reflection: "#a78bfa",
   hub: "#8b5cf6",
   doc: "#38bdf8",
+  knowledge: "#a78bfa",
 };
 const HUB_LABEL_DE: Record<string, string> = {
   user: "Nutzer",
@@ -68,6 +71,7 @@ const HUB_LABEL_DE: Record<string, string> = {
   note: "Notiz",
   reflection: "Reflexion",
   doc: "Dokument",
+  knowledge: "Wissen",
 };
 
 interface Props {
@@ -351,14 +355,15 @@ function buildGraph(
     });
   }
 
-  // Semantic edges from server
+  // Semantic + Knowledge edges from server
   const memUid = (id: number) => `mem_${id}`;
   data.edges.forEach((e) =>
     links.push({
       source: memUid(e.source),
       target: memUid(e.target),
-      linkType: "semantic",
+      linkType: e.label ? "knowledge" : "semantic",
       weight: e.weight,
+      label: e.label,
     }),
   );
 
@@ -435,6 +440,7 @@ function buildGraph(
           if (d.linkType === "hub") return 0.7;
           if (d.linkType === "session") return 0.5;
           if (d.linkType === "cross") return 0.12 + d.weight * 0.2;
+          if (d.linkType === "knowledge") return 0.4;
           return 0.15 + (d.weight - 0.45) * 0.5;
         })
         .distance((d) => {
@@ -444,6 +450,7 @@ function buildGraph(
           }
           if (d.linkType === "semantic") return 60 + (1 - d.weight) * 80;
           if (d.linkType === "cross") return 90 + (1 - d.weight) * 60;
+          if (d.linkType === "knowledge") return 55;
           return 50;
         }),
     )
@@ -474,15 +481,37 @@ function buildGraph(
       if (d.linkType === "hub") return "#ffffff18";
       if (d.linkType === "session") return "#ffffff30";
       if (d.linkType === "cross") return `${COLOR.doc}80`;
+      if (d.linkType === "knowledge") return "#a78bfa90";
       return "#ffffff40";
     })
     .attr("stroke-width", (d) => {
       if (d.linkType === "hub") return 0.8;
       if (d.linkType === "session") return 1;
       if (d.linkType === "cross") return 0.5 + d.weight * 1.2;
+      if (d.linkType === "knowledge") return 1.5;
       return 0.6 + d.weight * 1.4;
     })
-    .attr("stroke-dasharray", (d) => (d.linkType === "cross" ? "4 3" : "none"));
+    .attr("stroke-dasharray", (d) => {
+      if (d.linkType === "cross") return "4 3";
+      if (d.linkType === "knowledge") return "6 3";
+      return "none";
+    });
+
+  // Knowledge edge labels
+  const knowledgeLinks = links.filter(
+    (l) => l.linkType === "knowledge" && l.label,
+  );
+  const linkLabelEl = g
+    .append("g")
+    .selectAll<SVGTextElement, SimLink>("text")
+    .data(knowledgeLinks)
+    .join("text")
+    .text((d) => d.label ?? "")
+    .attr("fill", "#a78bfacc")
+    .attr("font-size", "6.5px")
+    .attr("text-anchor", "middle")
+    .attr("pointer-events", "none")
+    .attr("opacity", 0.7);
 
   // ── 8. Render nodes ───────────────────────────────────────────────────────
   const nodeEl = g
@@ -609,6 +638,19 @@ function buildGraph(
       .attr("y1", (d) => (d.source as SimNode).y ?? 0)
       .attr("x2", (d) => (d.target as SimNode).x ?? 0)
       .attr("y2", (d) => (d.target as SimNode).y ?? 0);
+    linkLabelEl
+      .attr(
+        "x",
+        (d) =>
+          (((d.source as SimNode).x ?? 0) + ((d.target as SimNode).x ?? 0)) / 2,
+      )
+      .attr(
+        "y",
+        (d) =>
+          (((d.source as SimNode).y ?? 0) + ((d.target as SimNode).y ?? 0)) /
+            2 -
+          4,
+      );
     nodeEl.attr("transform", (d) => `translate(${d.x ?? 0},${d.y ?? 0})`);
   });
 
