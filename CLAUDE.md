@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v1.4.0**
+**Aktueller Stand: v1.5.0**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -53,7 +53,7 @@ database/
 - 85 Tools mit Handlern + Audit-Log (`tool_executions`)
 - Rule Engine: Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → allow
 - **Directive-Denial UI:** roter Badge im Chat bei Regel-Ablehnung
-- ML Memory: nomic-embed-text, cosine similarity, 3 Typen (user/system/note)
+- ML Memory: nomic-embed-text, cosine similarity, 3 Typen (user/system/note), Duplikat-Prävention (≥85% Cosine)
 - **Nutzerprofile:** Profil-isoliertes Gedächtnis, PBKDF2+Salt PIN-Hash
 - **Per-session Mutex:** Race-Condition bei parallelen Anfragen verhindert
 
@@ -107,7 +107,7 @@ database/
 
 - Background Worker (60s): Disk/RAM/Ollama-Alerts, PnP, ARP, TCP, Firewall/WiFi/DNS, Alarm-Check, **Hausaufgaben-Zeitlimit-Ablauf**
 - Clipboard-Polling (3s): History + Muster-Erkennung: IBAN, Paketnummer, Telefon, URL, E-Mail
-- **Gesprächskompression:** `sessionCompressor.ts` — Ollama-only, älteste 10 Messages → Summary ab 15 Nachrichten
+- **Gesprächskompression:** `sessionCompressor.ts` — zweistufig: regelbasierte Vorkompression (kein LLM) + Ollama-Summary ab 16 Nachrichten
 - **Fenster-Kontext:** `windowContext.ts` — GetForegroundWindow, sensible Titel gefiltert, Ollama-only, opt-in
 - `recordActivity()` → Comeback-Briefing; Meeting-Prep, Tagesabschluss (+fällige Tasks), Pause-Reminder
 - Rhythmus-Analyse (12 Uhr), Duplikat-Scan (So 10 Uhr)
@@ -123,6 +123,7 @@ database/
 - **format_drive 3-Zonen-Regel:** Zone 1 = C:, ELLA-Laufwerk (auto via `process.cwd()[0]`), `protectedDrives` → directive; Zone 2 = Netzwerk/CD/Unbekannt → directive; Zone 3 = alle anderen inkl. interne HDDs → Bestätigungsdialog
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
+- **DB v1.5.0:** `knowledge_triples`-Tabelle, `proactive_preferences`-Tabelle
 - **254 Tests — alle grün** (Vitest Unit + Integration)
 - **Smoke Tests:** `scripts/smoke-test.ps1` — 13 End-to-End-Tests (Health, Homework Mode, Ollama, Chat+Tools, Lizenz)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
@@ -162,6 +163,20 @@ database/
 - **WiFi-Fix:** `getWifiInfo()` nutzt jetzt `Get-NetConnectionProfile` statt textbasiertem netsh-Parsing — sprachunabhängig, adapter-agnostisch
 - **TCP-Fix:** PS 5.1-kompatibler `if/else`-Ersatz für `??`-Operator; `[int]`-Cast auf beiden Seiten der Prozess-Hashtable — behebt "0 Verbindungen" und "Unknown"-Prozessnamen
 - **Pipeline-Analyse-Qualität:** konkrete Schwellwerte (RAM >85%, Temp >85°C, Akku <15%); Loopback-Adressen ausgeblendet; "Prozessname unbekannt" kein Verdacht mehr
+
+### v1.5.0 — Knowledge Graph & Intelligentes Gedächtnis
+
+- **Knowledge Graph** (`knowledge_triples`-Tabelle): Subjekt/Prädikat/Objekt-Triples automatisch aus Gesprächen extrahiert; kein Extra-LLM-Call — piggyback auf `extractAndRemember()`
+- **Hybrid-Recall:** `recall()` kombiniert Cosine-Suche mit Graph-Traversal — findet Zusammenhänge, nicht nur Textähnlichkeit
+- **Dashboard-Graph:** Echte Relationen als lila gestrichelte Kanten mit Labels im Memory-Graph (D3.js)
+- **Proactive Approval-Memory** (`proactive_preferences`-Tabelle): 14 Kategorien, Auto-Mute nach 5x Dismiss, `alarm`+`scheduled_setup` nicht stummschaltbar
+- **Proactive API:** `POST /api/proactive/dismiss`, `POST /api/proactive/mute`, `GET /api/proactive/preferences`
+- **Mute-Buttons:** 👋 Dismiss + 🔇 Mute an jeder proaktiven Nachricht im Chat; SSE-Event enthält `category`
+- **Rule-Based Pre-Compression** (`precompress()`): leere Nachrichten, Duplikate, >2000 Zeichen kürzen — kein LLM nötig; `compressSession()` nutzt jetzt zweistufig: precompress() → LLM ab 16 Nachrichten
+- **Token-Output-Limits:** Hard-Cap 3000 Zeichen pro Tool-Ergebnis, 500 Zeichen pro JSON-String-Wert
+- **Memory-Duplikat-Prävention:** Cosine-Check (≥85%) vor jedem Speichern in `remember()` und `extractAndRemember()`
+- **Memory-Deduplizierung:** `deduplicateMemories()` für rückwirkende Bereinigung; `POST /api/memories/deduplicate`; 🧹-Button im Memories-Dashboard
+- **Alle proaktiven Nachrichten kategorisiert:** worker.ts, chess.ts, dayBriefing.ts, meetingPrep.ts, rhythmLearner.ts
 
 ---
 
@@ -266,7 +281,7 @@ cd apps/desktop && node build-main.mjs && cd ../..
 $env:ELLA_DEV = "1"; cd apps\desktop; .\node_modules\electron\dist\electron.exe .
 
 # Tests
-npm test                       # 224 Unit + Integration Tests (Vitest)
+npm test                       # 254 Unit + Integration Tests (Vitest)
 npm run lint
 
 # Ollama prüfen
@@ -306,12 +321,6 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 ```
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
-
-
-
-
-
-
 
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
