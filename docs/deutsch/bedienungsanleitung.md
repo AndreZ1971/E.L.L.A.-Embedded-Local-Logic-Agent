@@ -1,6 +1,6 @@
 # E.L.L.A. — Bedienungsanleitung
 
-Version 1.3.0
+Version 1.5.0
 
 ---
 
@@ -19,7 +19,7 @@ Ich brauche das alles nicht — Ollama läuft lokal, die KI läuft lokal, deine 
 
 ### Installation
 
-1. `E.L.L.A Setup 1.3.0.exe` ausführen
+1. `E.L.L.A Setup 1.5.0.exe` ausführen
 2. Installationspfad wählen (Standard: `C:\Programme\E.L.L.A`)
 3. Der Installer richtet alles automatisch ein — MariaDB, Ollama, Node.js. Nichts weiter installieren.
 
@@ -53,8 +53,8 @@ Klicke den **Mikrofon-Button** oder sag **„Ella"** (Wakeword-Modus). Modi:
 
 ### Sprachausgabe (TTS)
 
-- **Kokoro TTS** (Standard) — lokale neuronale Stimme, vollständig offline
-- **Microsoft Edge TTS** (Fallback) — benötigt Internet
+- **Kokoro TTS** (Standard) — lokale neuronale Stimme via `kokoro-js`, vollständig offline, Modell wird beim ersten Start automatisch heruntergeladen
+- **Microsoft Edge TTS** (Fallback) — automatischer Rückfall wenn Kokoro nicht verfügbar
 
 ### Feedback-Loop
 
@@ -1053,9 +1053,59 @@ Makros — einmal definieren, jederzeit per Wort abrufen.
 
 ---
 
+## Schach
+
+Ab v1.4.0 kann ELLA Schach spielen — in einem eigenen visuellen Fenster.
+
+```
+„Lass uns Schach spielen"
+„Öffne das Schachbrett"
+```
+
+- **Visuelles Brett** — rahmenloses Electron-Fenster mit 4 Themes (Classic, Neon, Marble, Midnight), Ambient-Glow und Partikel-Hintergrund
+- **3D-Figuren** — SVG mit radialen Farbverläufen und Drop-Shadow
+- **KI-Gegner** — ELLA wählt ihren Zug per LLM aus legalen Optionen; kommentiert live mit Persönlichkeit
+- **Pause/Resume** — Partien jederzeit unterbrechen, beim nächsten Öffnen „▶ Weiter" klicken
+- **Reflexion** — nach Spielende speichert ELLA strategische Erkenntnisse in ihrem Gedächtnis
+- **Geschlagene Figuren** — Unicode-Symbole mit Materialvorteil über/unter dem Brett
+
+---
+
+## Knowledge Graph
+
+Ab v1.5.0 versteht ELLA Zusammenhänge — nicht nur einzelne Erinnerungen.
+
+ELLA extrahiert automatisch Beziehungen aus Gesprächen als Triples (Subjekt/Prädikat/Objekt):
+
+_„Mein Sohn heißt Max"_ → `Sohn → heißt → Max`
+_„Max geht aufs Einstein-Gymnasium"_ → `Max → besucht → Einstein-Gymnasium`
+
+Fragst du später _„Auf welche Schule geht mein Sohn?"_, findet ELLA die Verbindung: Sohn → Max → Einstein-Gymnasium.
+
+- **Kein Extra-LLM-Call** — piggyback auf dem bestehenden Memory-Prozess
+- **Hybrid-Recall** — Cosine-Similarity + Graph-Traversal arbeiten zusammen
+- **Visualisierung** — im Memory-Dashboard als lila gestrichelte Kanten mit Beschriftung
+
+### Proactive Approval-Memory
+
+ELLA lernt welche Benachrichtigungen du willst:
+
+- **👋 Dismiss** — einzelne Nachricht wegdrücken
+- **🔇 Mute** — Kategorie dauerhaft stummschalten
+- **Auto-Mute** — nach 5x Dismiss automatisch stumm
+
+Systemkritische Kategorien (Wecker, geplante Setups) bleiben immer aktiv.
+
+### Memory-Deduplizierung
+
+- **Präventiv** — vor jedem Speichern prüft ELLA auf Duplikate (≥85% Ähnlichkeit)
+- **Rückwirkend** — 🧹 Aufräumen-Button im Memory-Dashboard bereinigt alles auf einmal
+
+---
+
 ## Gedächtnis
 
-Vektorbasierter Langzeitspeicher (nomic-embed-text, lokal). Profil-isoliert — jeder Nutzer hat sein eigenes Gedächtnis.
+Vektorbasierter Langzeitspeicher (nomic-embed-text, lokal). Profil-isoliert — jeder Nutzer hat sein eigenes Gedächtnis. Knowledge Graph erweitert die reine Textsuche um semantische Verbindungen.
 
 ---
 
@@ -1189,5 +1239,5 @@ Eigene Regel greift oder ELLA-Direktive. Roter Banner erklärt den Grund. Regeln
 
 ---
 
-_E.L.L.A. v1.3.0 — Embedded Local Logic Agent_
+_E.L.L.A. v1.5.0 — Embedded Local Logic Agent_
 _Entwickelt für Windows 10/11 (x64)_

@@ -1,6 +1,6 @@
 # E.L.L.A. — Bedienungsanleitung
 
-Version 1.3.0
+Version 1.5.0
 
 ---
 
@@ -21,8 +21,10 @@ Version 1.3.0
 13. [Hausaufgaben-Modus](#13-hausaufgaben-modus)
 14. [Multi-Agenten-Pipeline](#14-multi-agenten-pipeline)
 15. [Setup-Aktionen](#15-setup-aktionen)
-16. [Token-Optimierung](#16-token-optimierung)
-17. [Fehlerbehebung](#17-fehlerbehebung)
+16. [Schach](#16-schach)
+17. [Knowledge Graph & Gedächtnis-Verbesserungen](#17-knowledge-graph--gedächtnis-verbesserungen)
+18. [Token-Optimierung](#18-token-optimierung)
+19. [Fehlerbehebung](#19-fehlerbehebung)
 
 ---
 
@@ -54,7 +56,7 @@ Im **Auto**-Modus verwendet ELLA automatisch OpenAI wenn ein API-Key vorhanden i
 | **Ollama**      | Lokales KI-Modell (Offline-Betrieb)            | ollama.ai   |
 | **MariaDB**     | Datenbank für Gedächtnis, Aufgaben, Protokolle | mariadb.org |
 | **Node.js 20+** | Laufzeitumgebung                               | nodejs.org  |
-| **Python 3.12** | Wakeword-Erkennung, optional Kokoro TTS        | python.org  |
+| **Python 3.12** | Wakeword-Erkennung, Stressanalyse (optional)   | python.org  |
 
 ### Ollama-Modelle laden (einmalig)
 
@@ -69,15 +71,11 @@ ollama pull nomic-embed-text   # Gedächtnis-Modell (ca. 274 MB)
 py -3.12 -m pip install openwakeword onnxruntime soundfile
 ```
 
-### Optional: Kokoro TTS für bessere Sprachausgabe
+### Kokoro TTS (automatisch)
 
-```powershell
-py -3.12 -m pip install kokoro-onnx sounddevice numpy
-```
+Kokoro TTS ist seit v1.4.0 als Node.js-Modul (`kokoro-js`) direkt in ELLA integriert — keine separate Python-Installation nötig. Die ONNX-Modelldateien werden beim ersten Start automatisch von HuggingFace heruntergeladen und unter `%APPDATA%/ELLA/kokoro-cache/` gespeichert. Kokoro klingt deutlich natürlicher als die Windows-Standardstimmen und läuft vollständig offline.
 
-Kokoro ist eine lokale neuronale TTS-Engine die natürlicher klingt als die eingebauten Windows-Stimmen. Sie läuft vollständig offline und kann in den Einstellungen aktiviert werden.
-
-> **Hinweis:** `numpy` ist bereits erforderlich und wird mit Kokoro mitinstalliert. Der Stress-Analyse-Server (`stress_server.py`) benötigt keine weiteren Pakete.
+Falls Kokoro nicht verfügbar ist, fällt ELLA automatisch auf Microsoft Edge TTS zurück.
 
 ---
 
@@ -509,9 +507,9 @@ ELLA liest Antworten, Alerts und proaktive Nachrichten automatisch vor wenn TTS 
 
 ### Kokoro TTS — bessere Stimme
 
-Wenn `kokoro-onnx` installiert ist, kann in den Einstellungen unter **Modus → TTS-Engine** auf "Kokoro" umgestellt werden. Kokoro klingt deutlich natürlicher als Windows-Standardstimmen und läuft vollständig lokal.
+Kokoro TTS ist als Node.js-Modul direkt in ELLA integriert — keine separate Installation nötig. Die ONNX-Modelldateien werden beim ersten Start automatisch heruntergeladen. In den Einstellungen unter **Modus → TTS-Engine** kann zwischen "Kokoro" und "System" (Windows) gewählt werden.
 
-Wenn Kokoro nicht verfügbar ist, fällt ELLA automatisch auf die Windows-Stimme zurück.
+Wenn Kokoro nicht verfügbar ist, fällt ELLA automatisch auf Microsoft Edge TTS zurück.
 
 ### Gesprächssprache und Stimme
 
@@ -576,7 +574,12 @@ _"Ich sehe du arbeitest gerade in Word an 'Angebot_2024.docx' — soll ich den T
 
 ### Gesprächskompression
 
-Bei langen Gesprächen (ab 15 Nachrichten) fasst ELLA die ältesten Nachrichten automatisch zusammen, um den Kontext effizienter zu nutzen. Du bemerkst davon nichts — das Gespräch läuft normal weiter.
+Bei langen Gesprächen komprimiert ELLA automatisch in zwei Stufen:
+
+1. **Regelbasierte Vorkompression** (ab 15 Nachrichten) — leere Nachrichten, Duplikate und überlange Texte werden ohne LLM-Kosten gekürzt
+2. **LLM-Summary** (ab 16 Nachrichten nach Vorkompression) — Ollama fasst die ältesten Nachrichten zu einer Zusammenfassung zusammen
+
+Du bemerkst davon nichts — das Gespräch läuft normal weiter.
 
 > Diese Funktion nutzt ausschließlich das lokale Ollama-Modell und sendet keine Gesprächsinhalte nach außen.
 
@@ -838,7 +841,98 @@ Diese Transparenz ist stumm — sie belastet den Chat nicht mit technischen Deta
 
 ---
 
-## 16. Token-Optimierung
+## 16. Schach
+
+Ab v1.4.0 kann ELLA Schach spielen — in einem eigenen visuellen Fenster mit KI-Gegner.
+
+### Starten
+
+```
+"Lass uns Schach spielen"
+"Öffne das Schachfenster"
+```
+
+ELLA öffnet ein rahmenloses Electron-Fenster mit animiertem Schachbrett.
+
+### Spielen
+
+- Du spielst mit Weiß, ELLA mit Schwarz
+- Klicke eine Figur an, dann das Zielfeld — erlaubte Züge werden hervorgehoben
+- ELLA wählt ihren Zug per LLM aus den legalen Optionen (chess.js) — mit bis zu 3 Versuchen und Zufalls-Fallback
+- Nach jedem Zug kommentiert ELLA die Partie im Chat und liest den Kommentar vor (TTS)
+
+### Themes
+
+4 visuelle Themes wählbar über das Menü im Schachfenster:
+
+| Theme    | Beschreibung                             |
+| -------- | ---------------------------------------- |
+| Classic  | Traditionelles Holz-Design               |
+| Neon     | Leuchtende Neon-Farben auf dunklem Grund |
+| Marble   | Elegantes Marmor-Design                  |
+| Midnight | Dunkles Theme mit sanftem Glow           |
+
+### 3D-Figuren
+
+Die Schachfiguren sind als SVG mit radialen Farbverläufen und Drop-Shadow gestaltet — keine externen Assets nötig.
+
+### Pause & Resume
+
+Du kannst eine Partie jederzeit unterbrechen. Beim nächsten Öffnen erscheint ein **"▶ Weiter"**-Button der die letzte Position wiederherstellt. Der Spielstand wird lokal gespeichert.
+
+### Spielende
+
+Bei Schachmatt, Remis oder Aufgabe reflektiert ELLA über die Partie und speichert strategische Erkenntnisse in ihrem Gedächtnis — sie wird mit der Zeit besser.
+
+### Geschlagene Figuren
+
+Über und unter dem Brett werden die geschlagenen Figuren als Unicode-Symbole (♙♟) mit Materialvorteil angezeigt.
+
+---
+
+## 17. Knowledge Graph & Gedächtnis-Verbesserungen
+
+Ab v1.5.0 versteht ELLA nicht nur einzelne Erinnerungen, sondern auch die **Zusammenhänge** zwischen ihnen.
+
+### Knowledge Graph
+
+ELLA extrahiert automatisch Zusammenhänge aus Gesprächen als Triples (Subjekt/Prädikat/Objekt):
+
+_"Mein Sohn heißt Max"_ → `Sohn → heißt → Max`
+_"Max geht auf das Einstein-Gymnasium"_ → `Max → besucht → Einstein-Gymnasium`
+
+Wenn du später fragst _"Auf welche Schule geht mein Sohn?"_, findet ELLA die Verbindung über den Graph: Sohn → Max → Einstein-Gymnasium.
+
+- **Kein Extra-LLM-Call** — die Triple-Extraktion läuft als Teil des bestehenden Memory-Prozesses
+- **Hybrid-Recall** — Cosine-Similarity (Textähnlichkeit) + Graph-Traversal (Verbindungen) arbeiten zusammen
+- **Visualisierung** — im Memory-Dashboard als lila gestrichelte Kanten mit Beschriftung sichtbar
+
+### Proactive Approval-Memory
+
+ELLA lernt welche proaktiven Nachrichten du nützlich findest und welche nicht:
+
+- **Dismiss** (👋) — einzelne Nachricht wegdrücken
+- **Mute** (🔇) — diese Kategorie dauerhaft stummschalten
+- **Auto-Mute** — nach 5x Dismiss wird die Kategorie automatisch stummgeschaltet
+
+14 Kategorien sind definiert (Disk-Warnung, RAM-Alert, USB-Erkennung, Clipboard-Muster, Kalender, Tagesabschluss, Pause-Erinnerung, Rhythmus-Analyse etc.). Systemkritische Kategorien (Wecker, geplante Setups) können nicht stummgeschaltet werden.
+
+Einstellungen → Proaktive Nachrichten zeigt alle Kategorien und ihren Status.
+
+### Memory-Deduplizierung
+
+Im Laufe der Zeit sammeln sich doppelte Erinnerungen an. ELLA bietet zwei Mechanismen:
+
+1. **Präventiv** — vor jedem Speichern prüft ELLA ob eine ähnliche Erinnerung bereits existiert (≥85% Cosine-Similarity)
+2. **Rückwirkend** — der 🧹 **Aufräumen**-Button im Memory-Dashboard bereinigt alle bestehenden Duplikate auf einmal
+
+### Token-Output-Limits
+
+Tool-Ergebnisse werden auf maximal 3.000 Zeichen begrenzt, einzelne JSON-String-Werte auf 500 Zeichen. Das verhindert dass überlange Antworten den Gesprächskontext überfluten.
+
+---
+
+## 18. Token-Optimierung
 
 Ab v1.1.0 enthält ELLA zwei Mechanismen die API-Kosten und Latenz deutlich reduzieren — ohne dass du etwas konfigurieren musst.
 
@@ -863,7 +957,7 @@ Beide Mechanismen arbeiten im Hintergrund und sind dauerhaft aktiv.
 
 ---
 
-## 17. Fehlerbehebung
+## 19. Fehlerbehebung
 
 ### ELLA antwortet nicht
 
@@ -904,10 +998,11 @@ Prüfen: `"Ella, wie ist dein Status?"`
 
 ### Kokoro TTS funktioniert nicht
 
-- Python-Pakete installiert? `py -3.12 -m pip list | findstr kokoro`
+- Internetverbindung beim ersten Start nötig (Modell-Download von HuggingFace)
 - Einstellungen → Modus → TTS-Engine auf "Kokoro" gestellt?
-- ELLA fällt automatisch auf die Windows-Stimme zurück wenn Kokoro nicht startet
-- ELLA neu starten damit der Kokoro-Prozess gestartet wird
+- ELLA fällt automatisch auf Microsoft Edge TTS zurück wenn Kokoro nicht startet
+- ELLA neu starten damit Kokoro initialisiert wird
+- Cache prüfen: `%APPDATA%\ELLA\kokoro-cache\` sollte ONNX-Dateien enthalten
 
 ### Google-Verbindung schlägt fehl
 
@@ -939,4 +1034,4 @@ Ab v1.3.0 behoben: betraf alle Windows-Systeme mit PowerShell 5.1 (der Standard 
 
 ---
 
-_E.L.L.A. v1.3.0 · Proprietär · Alle Rechte vorbehalten_
+_E.L.L.A. v1.5.0 · Proprietär · Alle Rechte vorbehalten_
