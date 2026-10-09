@@ -736,6 +736,9 @@ const Chat: React.FC = () => {
     async (idx: number, rating: "positive" | "negative", content: string) => {
       if (feedback[idx]) return;
       setFeedback((prev) => ({ ...prev, [idx]: rating }));
+      const prevMsg = messages[idx - 1];
+      const userMessage =
+        prevMsg && prevMsg.role === "user" ? prevMsg.content.slice(0, 500) : "";
       fetch(`${API}/api/feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -743,10 +746,11 @@ const Chat: React.FC = () => {
           sessionId: SESSION_ID,
           messageExcerpt: content.slice(0, 300),
           feedback: rating,
+          userMessage,
         }),
       }).catch(() => {});
     },
-    [feedback],
+    [feedback, messages],
   );
 
   const [mutedCategories, setMutedCategories] = useState<

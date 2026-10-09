@@ -340,6 +340,95 @@ Antworte mit genau einem deutschen Satz der mit "Nutzer bevorzugt" (bei POSITIV)
   });
 }
 
+// ── Self-Learning: goldene Q&A-Paare ────────────────────────────────────────
+
+const LEARNING_DEDUP_THRESHOLD = 0.85;
+const LEARNING_LOAD_LIMIT = 200;
+const LEARNING_RECALL_LIMIT = 3;
+const LEARNING_MIN_SCORE = 0.4;
+
+export function storeLearningExample(
+  userMessage: string,
+  assistantReply: string,
+  profileId: number | null,
+): void {
+  setImmediate(async () => {
+    try {
+      const vec = await embed(userMessage);
+      if (!vec) return;
+
+      const [existing] = await pool.execute<any[]>(
+        "SELECT id, embedding FROM learning_examples ORDER BY created_at DESC LIMIT ?",
+        [LEARNING_LOAD_LIMIT],
+      );
+      for (const row of existing) {
+        try {
+          const existingVec = JSON.parse(row.embedding as string) as number[];
+          if (cosine(vec, existingVec) >= LEARNING_DEDUP_THRESHOLD) return;
+        } catch {
+          continue;
+        }
+      }
+
+      await pool.execute(
+        `INSERT INTO learning_examples (profile_id, user_message, assistant_reply, embedding)
+         VALUES (?, ?, ?, ?)`,
+        [profileId, userMessage, assistantReply, JSON.stringify(vec)],
+      );
+    } catch {
+      // Fehler beim Speichern goldener Beispiele sind nicht kritisch
+    }
+  });
+}
+
+export async function recallExamples(
+  query: string,
+  limit = LEARNING_RECALL_LIMIT,
+): Promise<{ userMessage: string; assistantReply: string }[]> {
+  const qVec = await embed(query);
+  if (!qVec) return [];
+
+  const [rows] = await pool.execute<any[]>(
+    "SELECT id, user_message, assistant_reply, embedding FROM learning_examples ORDER BY created_at DESC LIMIT ?",
+    [LEARNING_LOAD_LIMIT],
+  );
+
+  const scored = rows
+    .map((r) => {
+      try {
+        const vec = JSON.parse(r.embedding as string) as number[];
+        return {
+          id: r.id as number,
+          userMessage: r.user_message as string,
+          assistantReply: r.assistant_reply as string,
+          score: cosine(qVec, vec),
+        };
+      } catch {
+        return null;
+      }
+    })
+    .filter(
+      (m): m is NonNullable<typeof m> =>
+        m !== null && m.score >= LEARNING_MIN_SCORE,
+    )
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+
+  for (const hit of scored) {
+    pool
+      .execute(
+        "UPDATE learning_examples SET use_count = use_count + 1 WHERE id = ?",
+        [hit.id],
+      )
+      .catch(() => {});
+  }
+
+  return scored.map((s) => ({
+    userMessage: s.userMessage,
+    assistantReply: s.assistantReply,
+  }));
+}
+
 // Wird nach open_app / load_setup aufgerufen um Nutzungsverhalten zu lernen
 export function trackToolUsage(tool: string, detail: string): void {
   setImmediate(async () => {

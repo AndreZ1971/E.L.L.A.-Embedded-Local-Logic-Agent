@@ -439,4 +439,19 @@ export async function runMigrations(): Promise<void> {
       INDEX idx_triples_predicate (predicate)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
+
+  // Self-Learning: goldene Q&A-Paare aus positivem Feedback
+  await exec(`
+    CREATE TABLE IF NOT EXISTS learning_examples (
+      id              INT AUTO_INCREMENT PRIMARY KEY,
+      profile_id      INT          NULL,
+      user_message    TEXT         NOT NULL,
+      assistant_reply TEXT         NOT NULL,
+      embedding       MEDIUMTEXT   NOT NULL,
+      quality         FLOAT        NOT NULL DEFAULT 1.0,
+      use_count       INT          NOT NULL DEFAULT 0,
+      created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_learning_profile (profile_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
 }

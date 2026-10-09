@@ -197,6 +197,7 @@ interface Settings {
   searchDrives: string[];
   spokenLanguage: "de" | "en" | "es" | "fr";
   stressDetectionEnabled: boolean;
+  selfLearningEnabled: boolean;
   indexedFolders: string[];
 }
 
@@ -1499,6 +1500,36 @@ const Settings: React.FC = () => {
                 }}
               >
                 {t("settings.stress_desc")}
+              </div>
+            </Section>
+
+            <Section title="Self-Learning">
+              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={settings.selfLearningEnabled ?? true}
+                  onChange={(e) =>
+                    patch({ selfLearningEnabled: e.target.checked })
+                  }
+                />
+                <span
+                  style={{
+                    color: settings.selfLearningEnabled ? "#e2e8f0" : "#94a3b8",
+                  }}
+                >
+                  Aus Feedback lernen
+                </span>
+              </label>
+              <div
+                style={{
+                  fontSize: "0.78rem",
+                  color: "#64748b",
+                  marginTop: 4,
+                }}
+              >
+                Positives Feedback (👍) wird als Lernbeispiel gespeichert. ELLA
+                nutzt ähnliche erfolgreiche Antworten als Orientierung für
+                zukünftige Gespräche.
               </div>
             </Section>
 

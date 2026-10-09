@@ -78,6 +78,7 @@ export interface Settings {
   language: string;
   spokenLanguage: "de" | "en" | "es" | "fr";
   stressDetectionEnabled: boolean;
+  selfLearningEnabled: boolean;
   indexedFolders: string[];
 }
 
@@ -217,6 +218,7 @@ export const DEFAULT_SETTINGS: Settings = {
   language: "",
   spokenLanguage: "de",
   stressDetectionEnabled: false,
+  selfLearningEnabled: true,
   indexedFolders: [],
   apps: [
     { name: "vscode", command: "code", allowed: true },

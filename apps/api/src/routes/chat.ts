@@ -6,7 +6,11 @@ import { buildToolDefinitions } from "../tools/definitions.js";
 import { sessionStore } from "../services/sessions.js";
 import { env } from "../config/env.js";
 import { getSettings } from "../services/settings.js";
-import { recall, extractAndRemember } from "../services/memory.js";
+import {
+  recall,
+  extractAndRemember,
+  recallExamples,
+} from "../services/memory.js";
 import { recallDocuments } from "../services/documentIndex.js";
 import { recordActivity } from "../services/worker.js";
 import { getForegroundWindowTitle } from "../services/windowContext.js";
@@ -122,6 +126,10 @@ chatRouter.post("/", async (req, res, next) => {
     let memories = await recall(message);
     const userName = settings.userName?.trim() ?? "";
 
+    const learningExamples = settings.selfLearningEnabled
+      ? await recallExamples(message)
+      : [];
+
     // Dokument-Kontext (lokales RAG — nur wenn indizierte Ordner konfiguriert)
     if (settings.indexedFolders.length > 0) {
       const docChunks = await recallDocuments(message, 3);
@@ -176,6 +184,7 @@ chatRouter.post("/", async (req, res, next) => {
             memories,
             userName,
             temporalContext,
+            learningExamples,
           )
         : await ollamaClient.chat(
             messages,
@@ -184,6 +193,7 @@ chatRouter.post("/", async (req, res, next) => {
             memories,
             userName,
             temporalContext,
+            learningExamples,
           );
       const assistantMsg = response.message;
 
@@ -286,6 +296,10 @@ chatRouter.post("/stream", async (req, res) => {
       let memories = await recall(message);
       const userName = settings.userName?.trim() ?? "";
 
+      const learningExamples = settings.selfLearningEnabled
+        ? await recallExamples(message)
+        : [];
+
       // Dokument-Kontext (lokales RAG)
       if (settings.indexedFolders.length > 0) {
         const docChunks = await recallDocuments(message, 3);
@@ -340,6 +354,7 @@ chatRouter.post("/stream", async (req, res) => {
               memories,
               userName,
               temporalContext,
+              learningExamples,
             )
           : ollamaClient.chatStream(
               messages,
@@ -348,6 +363,7 @@ chatRouter.post("/stream", async (req, res) => {
               memories,
               userName,
               temporalContext,
+              learningExamples,
             );
 
         let roundContent = "";

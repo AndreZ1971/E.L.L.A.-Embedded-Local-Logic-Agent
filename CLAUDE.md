@@ -123,8 +123,8 @@ database/
 - **format_drive 3-Zonen-Regel:** Zone 1 = C:, ELLA-Laufwerk (auto via `process.cwd()[0]`), `protectedDrives` → directive; Zone 2 = Netzwerk/CD/Unbekannt → directive; Zone 3 = alle anderen inkl. interne HDDs → Bestätigungsdialog
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
-- **DB v1.5.0:** `knowledge_triples`-Tabelle, `proactive_preferences`-Tabelle
-- **254 Tests — alle grün** (Vitest Unit + Integration)
+- **DB v1.5.0:** `knowledge_triples`-Tabelle, `proactive_preferences`-Tabelle, `learning_examples`-Tabelle
+- **261 Tests — alle grün** (Vitest Unit + Integration)
 - **Smoke Tests:** `scripts/smoke-test.ps1` — 13 End-to-End-Tests (Health, Homework Mode, Ollama, Chat+Tools, Lizenz)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 - **LLM als Non-Gatekeeper:** System-Prompt Regel "KRITISCH — DU BIST NICHT DER GATEKEEPER" — LLM ruft Tools immer auf, Directive + Rule Engine entscheiden; verhindert Text-Ablehnung anstelle des Directive-Banners
@@ -177,6 +177,8 @@ database/
 - **Memory-Duplikat-Prävention:** Cosine-Check (≥85%) vor jedem Speichern in `remember()` und `extractAndRemember()`
 - **Memory-Deduplizierung:** `deduplicateMemories()` für rückwirkende Bereinigung; `POST /api/memories/deduplicate`; 🧹-Button im Memories-Dashboard
 - **Alle proaktiven Nachrichten kategorisiert:** worker.ts, chess.ts, dayBriefing.ts, meetingPrep.ts, rhythmLearner.ts
+- **Self-Learning** (`learning_examples`-Tabelle): positives Feedback (👍) speichert Q&A-Paare als goldene Beispiele; `recallExamples()` findet per Cosine-Similarity ähnliche Paare und injiziert sie als Few-Shot in den System-Prompt; `selfLearningEnabled`-Setting (default: an); Duplikat-Prävention (≥85% Cosine); `use_count`-Tracking pro Beispiel
+- **261 Tests — alle grün** (Vitest Unit + Integration)
 
 ---
 
@@ -326,7 +328,7 @@ https://github.com/AndreZ1971/E.L.L.A.git
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-10-07T08:10:56.570Z._
+_Last synced: 2026-10-09T07:42:20.777Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).

@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { pool } from "../config/database.js";
-import { processFeedbackMemory } from "../services/memory.js";
+import {
+  processFeedbackMemory,
+  storeLearningExample,
+} from "../services/memory.js";
 
 export const feedbackRouter = Router();
 
@@ -13,6 +16,7 @@ feedbackRouter.post("/", async (req, res, next) => {
       feedback,
       category,
       profileId,
+      userMessage,
     } = req.body as {
       sessionId?: string;
       toolName?: string;
@@ -20,6 +24,7 @@ feedbackRouter.post("/", async (req, res, next) => {
       feedback: "positive" | "negative";
       category?: string;
       profileId?: number;
+      userMessage?: string;
     };
 
     if (!messageExcerpt || !["positive", "negative"].includes(feedback)) {
@@ -47,6 +52,14 @@ feedbackRouter.post("/", async (req, res, next) => {
       .catch(() => {});
 
     processFeedbackMemory(excerpt, feedback, toolName);
+
+    if (feedback === "positive" && userMessage) {
+      storeLearningExample(
+        String(userMessage).slice(0, 500),
+        excerpt,
+        profileId ?? null,
+      );
+    }
 
     res.json({ ok: true });
   } catch (e) {

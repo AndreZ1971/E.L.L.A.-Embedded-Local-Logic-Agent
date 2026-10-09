@@ -270,10 +270,16 @@ const DEAF_MODE_INSTRUCTION = `WICHTIG: Der Nutzer ist gehörlos. Es gibt keine 
 Kommuniziere ausschließlich über den Chat. Nutze Markdown zur Strukturierung — es wird gelesen, nicht gehört.
 Keine Erwähnung von Sprachausgabe oder Tönen in Antworten.`;
 
+export interface LearningExample {
+  userMessage: string;
+  assistantReply: string;
+}
+
 export function buildSystemPrompt(
   memories: string[] = [],
   userName = "",
   temporalContext = "",
+  learningExamples: LearningExample[] = [],
 ): string {
   const { ttsEnabled, accessibilityMode, homeworkMode } = getSettings();
   const datetime = getCurrentDateTimeString();
@@ -303,6 +309,17 @@ export function buildSystemPrompt(
   if (userName) {
     prompt += `\nName des Nutzers: ${userName}. Nutze den Namen gelegentlich — natürlich, nicht bei jeder Antwort.`;
   }
+
+  if (learningExamples.length > 0) {
+    const examplesBlock = learningExamples
+      .map(
+        (ex) =>
+          `Nutzer: "${ex.userMessage.slice(0, 200)}"\nDeine Antwort: "${ex.assistantReply.slice(0, 300)}"`,
+      )
+      .join("\n\n");
+    prompt += `\n\nErfolgreiche Antworten (der Nutzer fand diese Antworten gut — orientiere dich an Stil und Tonfall):\n${examplesBlock}`;
+  }
+
   if (memories.length === 0) return prompt;
   const ctx = memories.map((m) => `- ${m}`).join("\n");
   return `${prompt}\n\nRelevantes Gedächtnis (nutze dies als Kontext):\n${ctx}`;
@@ -316,6 +333,7 @@ export const ollamaClient = {
     memories: string[] = [],
     userName = "",
     temporalContext = "",
+    learningExamples: LearningExample[] = [],
   ): Promise<OllamaChatResponse> => {
     const response = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
       method: "POST",
@@ -325,7 +343,12 @@ export const ollamaClient = {
         messages: [
           {
             role: "system",
-            content: buildSystemPrompt(memories, userName, temporalContext),
+            content: buildSystemPrompt(
+              memories,
+              userName,
+              temporalContext,
+              learningExamples,
+            ),
           },
           ...messages,
         ],
@@ -357,6 +380,7 @@ export const ollamaClient = {
     memories: string[] = [],
     userName = "",
     temporalContext = "",
+    learningExamples: LearningExample[] = [],
   ): AsyncGenerator<
     | { type: "chunk"; text: string }
     | { type: "done"; toolCalls?: OllamaMessage["tool_calls"] }
@@ -369,7 +393,12 @@ export const ollamaClient = {
         messages: [
           {
             role: "system",
-            content: buildSystemPrompt(memories, userName, temporalContext),
+            content: buildSystemPrompt(
+              memories,
+              userName,
+              temporalContext,
+              learningExamples,
+            ),
           },
           ...messages,
         ],

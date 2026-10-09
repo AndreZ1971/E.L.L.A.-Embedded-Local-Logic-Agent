@@ -1,6 +1,6 @@
 import { env } from "../config/env.js";
 import { getActiveApiKey } from "./settings.js";
-import { buildSystemPrompt } from "./ollama.js";
+import { buildSystemPrompt, type LearningExample } from "./ollama.js";
 import type { OllamaMessage, OllamaTool } from "./ollama.js";
 
 interface OpenAIMessage {
@@ -32,11 +32,17 @@ function buildOpenAIMessages(
   memories: string[] = [],
   userName = "",
   temporalContext = "",
+  learningExamples: LearningExample[] = [],
 ): OpenAIMessage[] {
   return [
     {
       role: "system",
-      content: buildSystemPrompt(memories, userName, temporalContext),
+      content: buildSystemPrompt(
+        memories,
+        userName,
+        temporalContext,
+        learningExamples,
+      ),
     },
     ...messages.map((m): OpenAIMessage => {
       const msg: OpenAIMessage = { role: m.role, content: m.content || null };
@@ -102,6 +108,7 @@ export const openaiClient = {
     memories: string[] = [],
     userName = "",
     temporalContext = "",
+    learningExamples: LearningExample[] = [],
   ): Promise<{ message: OllamaMessage; done: boolean }> => {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -116,6 +123,7 @@ export const openaiClient = {
           memories,
           userName,
           temporalContext,
+          learningExamples,
         ),
         ...(tools.length > 0 && {
           tools: tools.map((t) => ({ type: "function", function: t.function })),
@@ -155,6 +163,7 @@ export const openaiClient = {
     memories: string[] = [],
     userName = "",
     temporalContext = "",
+    learningExamples: LearningExample[] = [],
   ): AsyncGenerator<
     | { type: "chunk"; text: string }
     | { type: "done"; toolCalls?: OllamaMessage["tool_calls"] }
@@ -173,6 +182,7 @@ export const openaiClient = {
           memories,
           userName,
           temporalContext,
+          learningExamples,
         ),
         ...(tools.length > 0 && {
           tools: tools.map((t) => ({ type: "function", function: t.function })),
