@@ -1,6 +1,6 @@
-# E.L.L.A. — Fähigkeiten (v1.4.0)
+# E.L.L.A. — Fähigkeiten (v1.5.0)
 
-85 aktive Tools. Alles per natürlicher Sprache.
+90 aktive Tools. Alles per natürlicher Sprache.
 
 ---
 
@@ -59,6 +59,7 @@
 | `delete_file`          | Datei/Ordner in den Papierkorb _(kein permanentes Löschen)_ |
 | `find_duplicates`      | Doppelte Dateien nach Hash finden                           |
 | `index_documents`      | Ordner für semantische Suche indizieren                     |
+| `search_documents`     | Semantische Suche über indizierte Dokumente (RAG)           |
 | `list_indexed_folders` | Alle indizierten Ordner mit Statistik anzeigen              |
 
 ---
@@ -185,14 +186,25 @@
 
 ## Fenster & Apps
 
-| Tool                | Was es tut                                                      |
-| ------------------- | --------------------------------------------------------------- |
-| `open_app`          | App per Name öffnen                                             |
-| `launch_app`        | App per Name oder Pfad starten _(Systempfade gesperrt)_         |
-| `control_window`    | Fenster: fokussieren / minimieren / maximieren / schließen      |
-| `homework_mode`     | Gesicherten Kindermodus aktivieren/deaktivieren (PIN-geschützt) |
-| `pause_ella`        | ELLA pausieren (1–120 Minuten)                                  |
-| `open_chess_window` | Schach-Fenster öffnen                                           |
+| Tool                  | Was es tut                                                      |
+| --------------------- | --------------------------------------------------------------- |
+| `open_app`            | App per Name öffnen                                             |
+| `launch_app`          | App per Name oder Pfad starten _(Systempfade gesperrt)_         |
+| `control_window`      | Fenster: fokussieren / minimieren / maximieren / schließen      |
+| `homework_mode`       | Gesicherten Kindermodus aktivieren/deaktivieren (PIN-geschützt) |
+| `pause_ella`          | ELLA pausieren (1–120 Minuten)                                  |
+| `open_chess_window`   | Schach-Fenster öffnen                                           |
+| `list_monitors`       | Alle verbundenen Monitore mit Auflösung auflisten               |
+| `open_app_on_monitor` | App auf einem bestimmten Monitor öffnen                         |
+
+---
+
+## Peripherie
+
+| Tool              | Was es tut                                           |
+| ----------------- | ---------------------------------------------------- |
+| `control_webcam`  | Bild oder Video von angeschlossener Webcam aufnehmen |
+| `control_printer` | Drucker auflisten, Dokumente drucken                 |
 
 ---
 
@@ -206,29 +218,33 @@
 
 ## Immer aktiv — ohne Tool-Aufruf
 
-| Feature                           | Was es tut                                                     |
-| --------------------------------- | -------------------------------------------------------------- |
-| **Wakeword "ella"**               | Sprachaktivierung via openWakeWord + ONNX (lokal, offline)     |
-| **Kokoro TTS**                    | Neuronale Sprachausgabe (offline, kein Python)                 |
-| **Proaktive Nachrichten**         | ELLA schreibt von sich aus in den Chat                         |
-| **Clipboard-Mustererkennung**     | IBAN, Paketnummer, Telefon, URL, E-Mail — Polling alle 3 s     |
-| **Background Worker**             | Disk/RAM/Alerts, USB, Netzwerk — alle 60 s                     |
-| **Gesprächskompression**          | Ab 15 Nachrichten: älteste 10 → lokale Zusammenfassung         |
-| **Fenster-Kontext**               | Aktives Fenster als Kontext (opt-in, sensible Titel gefiltert) |
-| **Nutzerprofile**                 | Mehrere Profile, PIN-geschützt                                 |
-| **Knowledge-Graph**               | D3-Visualisierung semantischer Gedächtnis-Verbindungen         |
-| **Multi-Agenten-Pipeline**        | Parallele Agenten mit Live-Streaming                           |
-| **Comeback-Briefing**             | Was hat sich verändert während du weg warst                    |
-| **Meeting-Prep / Tagesabschluss** | Automatisch fällige Aufgaben + Kalender                        |
+| Feature                           | Was es tut                                                              |
+| --------------------------------- | ----------------------------------------------------------------------- |
+| **Wakeword "ella"**               | Sprachaktivierung via openWakeWord + ONNX (lokal, offline)              |
+| **Kokoro TTS**                    | Neuronale Sprachausgabe (offline, kein Python)                          |
+| **Proaktive Nachrichten**         | ELLA schreibt von sich aus in den Chat (14 Kategorien)                  |
+| **Proaktives Approval-Memory**    | Auto-Mute nach 5x Wegwischen; Mute-Button an jeder Nachricht            |
+| **Clipboard-Mustererkennung**     | IBAN, Paketnummer, Telefon, URL, E-Mail — Polling alle 3 s              |
+| **Background Worker**             | Disk/RAM/Alerts, USB, Netzwerk — alle 60 s                              |
+| **Gesprächskompression**          | Regelbasierte Pre-Compression (kein LLM nötig) + lokale Zusammenfassung |
+| **Fenster-Kontext**               | Aktives Fenster als Kontext (opt-in, sensible Titel gefiltert)          |
+| **Nutzerprofile**                 | Mehrere Profile, PIN-geschützt                                          |
+| **Knowledge-Graph**               | D3-Visualisierung mit Subjekt/Prädikat/Objekt-Triples                   |
+| **Multi-Agenten-Pipeline**        | Parallele Agenten mit Live-Streaming                                    |
+| **Self-Learning Loop**            | Positives Feedback → Few-Shot-Injection in zukünftige Gespräche         |
+| **Gestensteuerung**               | Handerkennung via MediaPipe Hands (Stufe 1)                             |
+| **Zeitbewusstsein**               | Session-Dauer, Pausen-Erkennung, letzte Interaktion                     |
+| **Comeback-Briefing**             | Was hat sich verändert während du weg warst                             |
+| **Meeting-Prep / Tagesabschluss** | Automatisch fällige Aufgaben + Kalender                                 |
 
 ---
 
 ## Zahlen
 
-| Kennzahl         | Wert                                                  |
-| ---------------- | ----------------------------------------------------- |
-| Tools (aktiv)    | **85**                                                |
-| Tests            | **224 grün**                                          |
-| LLM-Backends     | Ollama llama3.1:8b (lokal) + OpenAI GPT-4o (optional) |
-| Datenbank        | MariaDB, lokal, kein Cloud-Zugriff                    |
-| Netzwerk-Ausgang | Nur auf expliziten Nutzer-Befehl                      |
+| Kennzahl         | Wert                                                               |
+| ---------------- | ------------------------------------------------------------------ |
+| Tools (aktiv)    | **90**                                                             |
+| Tests            | **261 grün**                                                       |
+| LLM-Backends     | Ollama llama3.1:8b · qwen2.5:7b (lokal) + OpenAI GPT-4o (optional) |
+| Datenbank        | MariaDB, lokal, kein Cloud-Zugriff                                 |
+| Netzwerk-Ausgang | Nur auf expliziten Nutzer-Befehl                                   |

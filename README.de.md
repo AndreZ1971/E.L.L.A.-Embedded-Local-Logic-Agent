@@ -8,7 +8,7 @@
 
 **Ein persönlicher KI-Assistent für Windows — vollständig offline, vollständig deiner.**
 
-[![Version](https://img.shields.io/badge/version-1.4.0-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A./releases)
+[![Version](https://img.shields.io/badge/version-1.5.0-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A./releases)
 [![Plattform](https://img.shields.io/badge/plattform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows)](https://ella-agent.de)
 [![Lizenz](https://img.shields.io/badge/lizenz-Proprietär-ff6500?style=flat-square)](LICENSE)
 [![Directive](https://img.shields.io/badge/Directive-v1.0.0%20%E2%80%94%20versiegelt-3ecf8e?style=flat-square)](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
@@ -23,7 +23,7 @@
 
 E.L.L.A. ist ein persönlicher KI-Assistent der vollständig auf deinem Windows-PC läuft. Keine Cloud. Kein Abo. Keine Daten die deinen Rechner verlassen.
 
-ELLA versteht natürliche Sprache und kann deinen Computer bedienen — Apps starten, Dateien suchen, E-Mails lesen, Termine verwalten, Medien steuern, das System überwachen und vieles mehr. Mit 85 Tools, persistentem Vektorspeicher-Gedächtnis, proaktivem Monitoring und einer eingebauten Ethik-Schicht ist E.L.L.A. kein Chatbot. Sie ist ein Agent.
+ELLA versteht natürliche Sprache und kann deinen Computer bedienen — Apps starten, Dateien suchen, E-Mails lesen, Termine verwalten, Medien steuern, das System überwachen und vieles mehr. Mit 90 Tools, persistentem Vektorspeicher-Gedächtnis, einem Knowledge-Graph, proaktivem Monitoring, Self-Learning und einer eingebauten Ethik-Schicht ist E.L.L.A. kein Chatbot. Sie ist ein Agent.
 
 > _"Ich wollte nur einen Assistenten der unter dieser Directive arbeiten kann."_
 > — Andre Zabel, Mai 2026
@@ -34,7 +34,7 @@ ELLA versteht natürliche Sprache und kann deinen Computer bedienen — Apps sta
 
 ### 🧠 Lokale KI — Kein Cloud-Zwang
 
-Das LLM läuft auf deinem Rechner über [Ollama](https://ollama.com) (`llama3.1:8b`). Jedes Gespräch, jede Erinnerung, jeder Tool-Aufruf bleibt lokal. OpenAI GPT-4o ist ein optionaler Fallback — ausschließlich auf explizite Anforderung.
+Das LLM läuft auf deinem Rechner über [Ollama](https://ollama.com) (`llama3.1:8b`, `qwen2.5:7b` und mehr). Jedes Gespräch, jede Erinnerung, jeder Tool-Aufruf bleibt lokal. OpenAI GPT-4o ist ein optionaler Fallback — ausschließlich auf explizite Anforderung.
 
 ### 🔒 Die E.L.L.A. Directive
 
@@ -49,19 +49,20 @@ Vier hardcodierte Verbote die kein Prompt, keine Regel und keine Einstellung umg
 
 Das sind keine Regeln. Es sind architektonische Unmöglichkeiten — kein Codepfad führt zu ihnen. [→ Vollständige Directive](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
 
-### 🛠️ 85 Tools
+### 🛠️ 90 Tools
 
 Vollständige Systemsteuerung per natürlicher Sprache:
 
 - **Dateien & Ordner** — suchen, öffnen, kopieren, umbenennen, Duplikate finden
-- **Dokumente** — Word-Dateien erstellen, diktieren, zusammenfassen, übersetzen, korrigieren
+- **Dokumente** — Word-Dateien erstellen, diktieren, zusammenfassen, übersetzen, korrigieren, semantische Suche (RAG)
 - **Kommunikation** — Outlook + Gmail lesen, Kalender verwalten (Outlook + Google)
-- **System** — Prozesse, Dienste, Festplattennutzung, Temperaturen, Ereignisprotokoll
-- **Gedächtnis** — persistentes Vektorspeicher-Gedächtnis mit ML-Embeddings (Cosinus-Ähnlichkeit)
+- **System** — Prozesse, Dienste, Festplattennutzung, Temperaturen, Ereignisprotokoll, GPU, RAM-Details
+- **Gedächtnis** — persistentes Vektorspeicher-Gedächtnis mit ML-Embeddings, Knowledge-Graph-Triples
 - **Bildschirm & Vision** — Screenshot + GPT-4o Analyse, lokales OCR, Bildschirmbeobachtung
 - **Maus & Tastatur** — klicken, ziehen, Tastatureingaben senden (mit Bestätigung)
 - **Medien** — Musikbibliothek, Mediensteuerung, aktuell spielenden Titel erkennen
 - **Netzwerk** — ARP-Scan, TCP-Verbindungen, WLAN-Info, Port-Monitoring
+- **Peripherie** — Webcam-Steuerung, Drucker-Steuerung, Multi-Monitor-Support
 - **Produktivität** — Aufgaben, Erinnerungen, Zwischenablage-Historie, Setups
 
 [→ Vollständige Fähigkeitenliste](docs/de/capabilities.md)
@@ -72,7 +73,7 @@ Parallele und sequenzielle Agenten-Pipelines mit Live-SSE-Streaming. Eingebaute 
 
 ### 🕸️ Knowledge-Graph
 
-D3 Force-Directed Graph semantischer Verbindungen zwischen Erinnerungen. Visuelle Karte von dem was E.L.L.A. weiß und wie es zusammenhängt — inklusive indexierter Dokumente.
+Subjekt/Prädikat/Objekt-Triples mit Hybrid-Recall. D3 Force-Directed Graph semantischer Verbindungen zwischen Erinnerungen — echte Relationen als beschriftete Kanten, inklusive indexierter Dokumente. Visuelle Karte von dem was E.L.L.A. weiß und wie es zusammenhängt.
 
 ### 🎙️ Stimme — Vollständig Lokal
 
@@ -84,6 +85,14 @@ D3 Force-Directed Graph semantischer Verbindungen zwischen Erinnerungen. Visuell
 
 Ein vollständiges Schach-Fenster mit 4 Brett-Themes, einer Schach-KI, Zug-Kommentar via TTS und persistentem Spielstand. Kein Demo — ein echtes Feature das zeigt was E.L.L.A. kann: eigenständige Fenster, eine Sub-KI und persistenten Zustand gleichzeitig verwalten.
 
+### 🧬 Self-Learning Loop
+
+Positives Feedback (Daumen hoch) erzeugt goldene Q&A-Paare. Diese werden als Few-Shot-Beispiele in zukünftige Gespräche injiziert — E.L.L.A. lernt aus Erfahrung, lokal.
+
+### 🖐️ Gestensteuerung
+
+Handerkennung via MediaPipe Hands (Stufe 1). E.L.L.A. steuern ohne die Tastatur zu berühren.
+
 ### 👁️ Proaktive Intelligenz
 
 E.L.L.A. überwacht und schreibt von sich aus in den Chat wenn etwas wichtig ist:
@@ -94,6 +103,8 @@ E.L.L.A. überwacht und schreibt von sich aus in den Chat wenn etwas wichtig ist
 - Zwischenablage-Mustererkennung (IBAN, Paketnummern, URLs)
 - Comeback-Briefing nach Abwesenheit
 - Meeting-Prep, Tagesabschluss, Pause-Erinnerungen
+- 14 Approval-Kategorien mit Auto-Mute nach 5x Wegwischen
+- Mute-Buttons an jeder proaktiven Nachricht
 
 ---
 
@@ -122,7 +133,7 @@ Der Installer enthält alles: Node.js, MariaDB und Ollama als portable Binaries.
 
 | Datei                     | Beschreibung                |
 | ------------------------- | --------------------------- |
-| `E.L.L.A.Setup.1.4.0.exe` | Windows-Installer (NSIS)    |
+| `E.L.L.A.Setup.1.5.0.exe` | Windows-Installer (NSIS)    |
 | `SHA256SUMS.txt`          | Prüfsummen zur Verifikation |
 
 ---

@@ -1,6 +1,6 @@
 ﻿# E.L.L.A. â€” User Manual
 
-Version 1.4.0
+Version 1.5.0
 
 ---
 
@@ -19,7 +19,7 @@ I don't need any of that â€” Ollama runs locally, the AI runs locally, your
 
 ### Installation
 
-1. Run `E.L.L.A Setup 1.4.0.exe`
+1. Run `E.L.L.A Setup 1.5.0.exe`
 2. Choose an installation path (default: `C:\Program Files\E.L.L.A`)
 3. The installer sets everything up automatically â€” MariaDB, Ollama, Node.js. Nothing else to install.
 
@@ -72,7 +72,7 @@ The avatar panel bottom-left shows a green chip indicating whether **Ollama** (l
 
 ## All Tools at a Glance
 
-ELLA has **85+ tools**. Here are all of them â€” with examples.
+ELLA has **90+ tools**. Here are all of them â€” with examples.
 
 ---
 
@@ -1200,19 +1200,15 @@ _Built for Windows 10/11 (x64)_
 
 E.L.L.A. opens a standalone chess window - 4 board themes, AI opponent, move commentary via voice, game state saved automatically.
 
-`
-Open the chess window
-Let's play a game of chess
-`
+`Open the chess window
+Let's play a game of chess`
 
 ### Memory Browser
 
 Full UI for browsing and managing all stored memories - full-text search, type filter, pagination.
 
-`
-Show me all memories about work
-List all system notes
-`
+`Show me all memories about work
+List all system notes`
 
 ### Knowledge Graph
 
@@ -1230,23 +1226,55 @@ Available via: **Settings -> Backup**
 
 New tools: GPU info, RAM details, drive health, audio devices, USB devices.
 
-`
-Show me my GPU details
+`Show me my GPU details
 How healthy is my hard drive?
-Which audio devices are connected?
-`
+Which audio devices are connected?`
 
 ### Document Indexing and Auto-Re-Index
 
 E.L.L.A. indexes folders for semantic search and keeps them updated daily. New files are reported proactively.
 
-`
-Index the folder Projects
+`Index the folder Projects
 Which folders do you know?
-Search my documents for privacy policy
-`
+Search my documents for privacy policy`
 
 ---
 
-_E.L.L.A. v1.4.0 - Embedded Local Logic Agent_
+---
+
+## New in v1.5.0
+
+### Knowledge Graph Triples
+
+E.L.L.A. stores knowledge as subject/predicate/object triples with hybrid recall. The dashboard graph shows real relations as purple labeled edges — not just similarity, but meaning.
+
+### Self-Learning Loop
+
+Positive feedback (thumbs up) creates golden Q&A pairs that are injected as few-shot examples into future conversations. E.L.L.A. learns from your preferences — locally, without cloud.
+
+### Proactive Approval-Memory
+
+14 categories for proactive messages. After 5 dismissals of a category, it is auto-muted. Every proactive message has a mute button.
+
+### Gesture Control (Stage 1)
+
+Hand gesture recognition via MediaPipe Hands. Control E.L.L.A. without touching the keyboard.
+
+### Time Awareness
+
+E.L.L.A. tracks session duration, detects pauses, and knows when you last interacted.
+
+### Token Optimization
+
+- Rule-based pre-compression (no LLM tokens consumed)
+- Tool output capped at 3000 chars, JSON strings at 500 chars
+- Memory duplicate prevention + periodic deduplication
+
+### New Model Tier
+
+`qwen2.5:7b` available as balanced model tier — good performance with lower VRAM requirements.
+
+---
+
+_E.L.L.A. v1.5.0 - Embedded Local Logic Agent_
 _Developed for Windows 10/11 (x64)_

@@ -1,6 +1,6 @@
 ﻿# E.L.L.A. â€” Bedienungsanleitung
 
-Version 1.4.0
+Version 1.5.0
 
 ---
 
@@ -19,7 +19,7 @@ Ich brauche das alles nicht â€” Ollama lÃ¤uft lokal, die KI lÃ¤uft loka
 
 ### Installation
 
-1. `E.L.L.A Setup 1.4.0.exe` ausfÃ¼hren
+1. `E.L.L.A Setup 1.5.0.exe` ausfÃ¼hren
 2. Installationspfad wÃ¤hlen (Standard: `C:\Programme\E.L.L.A`)
 3. Der Installer richtet alles automatisch ein â€” MariaDB, Ollama, Node.js. Nichts weiter installieren.
 
@@ -72,7 +72,7 @@ Im Avatar-Panel unten links zeigt ein grÃ¼ner Chip ob gerade **Ollama** (lokal
 
 ## Alle Tools im Ãœberblick
 
-ELLA hat **85+ Werkzeuge**. Hier sind alle â€” mit Beispielen.
+ELLA hat **90+ Werkzeuge**. Hier sind alle â€” mit Beispielen.
 
 ---
 
@@ -1107,18 +1107,18 @@ Kein automatisches Ablaufdatum â€” nur der PIN beendet den Modus.
 
 ## Einstellungen
 
-| Bereich              | Inhalt                                             |
-| -------------------- | -------------------------------------------------- |
+| Bereich              | Inhalt                                              |
+| -------------------- | --------------------------------------------------- |
 | **LLM**              | Modell-Tier (Klein/Standard/GroÃŸ) + Eigenes Modell |
-| **Provider**         | Ollama (lokal) Â· OpenAI Â· Auto                     |
+| **Provider**         | Ollama (lokal) Â· OpenAI Â· Auto                    |
 | **API-Key**          | OpenAI-Key fÃ¼r GPT-Funktionen und Multi-Agenten    |
-| **Stimme**           | TTS-Engine, Sprachauswahl, Stressanalyse           |
-| **Tools**            | Werkzeuge aktivieren / deaktivieren                |
-| **Programme**        | Scan + Suche + manuelle Freigabe                   |
+| **Stimme**           | TTS-Engine, Sprachauswahl, Stressanalyse            |
+| **Tools**            | Werkzeuge aktivieren / deaktivieren                 |
+| **Programme**        | Scan + Suche + manuelle Freigabe                    |
 | **Setups**           | Makros fÃ¼r App-Kombinationen                       |
-| **Regeln**           | Erlauben / Verbieten einzelner Aktionen            |
-| **Profile**          | Nutzerprofile verwalten                            |
-| **Hausaufgaben**     | Kinder-Modus konfigurieren                         |
+| **Regeln**           | Erlauben / Verbieten einzelner Aktionen             |
+| **Profile**          | Nutzerprofile verwalten                             |
+| **Hausaufgaben**     | Kinder-Modus konfigurieren                          |
 | **Barrierefreiheit** | Blind- und GehÃ¶rlosenmodus                         |
 
 ### Eigenes Modell (neu in v1.3.0)
@@ -1200,19 +1200,15 @@ _Entwickelt fÃ¼r Windows 10/11 (x64)_
 
 ELLA oeffnet ein eigenstaendiges Schach-Fenster - 4 Brett-Themes, KI-Gegner, Zug-Kommentar per Stimme, Spielstand bleibt gespeichert.
 
-`
-Oeffne das Schach-Fenster
-Spielen wir eine Partie Schach
-`
+`Oeffne das Schach-Fenster
+Spielen wir eine Partie Schach`
 
 ### Gedaechtnis-Browser
 
 Vollstaendige UI zum Durchsuchen und Verwalten aller gespeicherten Erinnerungen - Freitext-Suche, Typ-Filter, Paginierung.
 
-`
-Zeig mir alle Erinnerungen ueber Arbeit
-Liste alle System-Notizen
-`
+`Zeig mir alle Erinnerungen ueber Arbeit
+Liste alle System-Notizen`
 
 ### Knowledge-Graph
 
@@ -1230,23 +1226,55 @@ Erreichbar ueber: **Einstellungen -> Backup**
 
 Neue Tools: GPU-Info, RAM-Details, Laufwerks-Gesundheit, Audio-Geraete, USB-Geraete.
 
-`
-Zeig mir meine GPU-Details
+`Zeig mir meine GPU-Details
 Wie gesund ist meine Festplatte?
-Welche Audiogeraete sind angeschlossen?
-`
+Welche Audiogeraete sind angeschlossen?`
 
 ### Dokument-Indexierung und Auto-Re-Index
 
 ELLA indiziert Ordner fuer semantische Suche und haelt sie taeglich automatisch aktuell. Neue Dateien werden proaktiv gemeldet.
 
-`
-Indexiere den Ordner Projekte
+`Indexiere den Ordner Projekte
 Welche Ordner kennst du?
-Suche in meinen Dokumenten nach Datenschutz
-`
+Suche in meinen Dokumenten nach Datenschutz`
 
 ---
 
-_E.L.L.A. v1.4.0 - Embedded Local Logic Agent_
+---
+
+## Neu in v1.5.0
+
+### Knowledge-Graph-Triples
+
+ELLA speichert Wissen als Subjekt/Praedikat/Objekt-Triples mit Hybrid-Recall. Der Dashboard-Graph zeigt echte Relationen als lila beschriftete Kanten — nicht nur Aehnlichkeit, sondern Bedeutung.
+
+### Self-Learning Loop
+
+Positives Feedback (Daumen hoch) erzeugt goldene Q&A-Paare die als Few-Shot-Beispiele in zukuenftige Gespraeche injiziert werden. ELLA lernt aus deinen Vorlieben — lokal, ohne Cloud.
+
+### Proaktives Approval-Memory
+
+14 Kategorien fuer proaktive Nachrichten. Nach 5x Wegwischen wird eine Kategorie automatisch stummgeschaltet. Jede proaktive Nachricht hat einen Mute-Button.
+
+### Gestensteuerung (Stufe 1)
+
+Handerkennung via MediaPipe Hands. ELLA steuern ohne die Tastatur zu beruehren.
+
+### Zeitbewusstsein
+
+ELLA erfasst Session-Dauer, erkennt Pausen und weiss wann du zuletzt interagiert hast.
+
+### Token-Optimierung
+
+- Regelbasierte Pre-Compression (kein LLM-Verbrauch)
+- Tool-Output auf 3000 Zeichen begrenzt, JSON-Strings auf 500 Zeichen
+- Memory-Duplikat-Praevention + periodische Deduplizierung
+
+### Neuer Modell-Tier
+
+`qwen2.5:7b` als Balanced-Tier verfuegbar — gute Leistung bei geringerem VRAM-Bedarf.
+
+---
+
+_E.L.L.A. v1.5.0 - Embedded Local Logic Agent_
 _Entwickelt fuer Windows 10/11 (x64)_

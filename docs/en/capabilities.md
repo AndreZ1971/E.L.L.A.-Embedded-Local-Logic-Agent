@@ -1,6 +1,6 @@
-# E.L.L.A. — Capabilities (v1.4.0)
+# E.L.L.A. — Capabilities (v1.5.0)
 
-85 active tools. Everything through natural language.
+90 active tools. Everything through natural language.
 
 ---
 
@@ -59,6 +59,7 @@
 | `delete_file`          | Move file/folder to recycle bin _(no permanent deletion)_ |
 | `find_duplicates`      | Find duplicate files by hash                              |
 | `index_documents`      | Index a folder for semantic search                        |
+| `search_documents`     | Semantic search across indexed documents (RAG)            |
 | `list_indexed_folders` | Show all indexed folders with statistics                  |
 
 ---
@@ -185,14 +186,25 @@
 
 ## Windows & Apps
 
-| Tool                | What it does                                       |
-| ------------------- | -------------------------------------------------- |
-| `open_app`          | Open app by name                                   |
-| `launch_app`        | Launch app by name or path _(system paths locked)_ |
-| `control_window`    | Window: focus / minimize / maximize / close        |
-| `homework_mode`     | Enable/disable secured child mode (PIN-protected)  |
-| `pause_ella`        | Pause E.L.L.A. (1–120 minutes)                     |
-| `open_chess_window` | Open chess window                                  |
+| Tool                  | What it does                                       |
+| --------------------- | -------------------------------------------------- |
+| `open_app`            | Open app by name                                   |
+| `launch_app`          | Launch app by name or path _(system paths locked)_ |
+| `control_window`      | Window: focus / minimize / maximize / close        |
+| `homework_mode`       | Enable/disable secured child mode (PIN-protected)  |
+| `pause_ella`          | Pause E.L.L.A. (1–120 minutes)                     |
+| `open_chess_window`   | Open chess window                                  |
+| `list_monitors`       | List all connected monitors with resolution        |
+| `open_app_on_monitor` | Open an app on a specific monitor                  |
+
+---
+
+## Peripherals
+
+| Tool              | What it does                                 |
+| ----------------- | -------------------------------------------- |
+| `control_webcam`  | Capture image or video from connected webcam |
+| `control_printer` | List printers, print documents               |
 
 ---
 
@@ -206,29 +218,33 @@
 
 ## Always Active — No Tool Call Required
 
-| Feature                           | What it does                                                 |
-| --------------------------------- | ------------------------------------------------------------ |
-| **Wakeword "ella"**               | Voice activation via openWakeWord + ONNX (local, offline)    |
-| **Kokoro TTS**                    | Neural voice synthesis (offline, no Python)                  |
-| **Proactive messages**            | E.L.L.A. writes to chat on its own initiative                |
-| **Clipboard pattern recognition** | IBAN, tracking numbers, phone, URL, email — polling every 3s |
-| **Background worker**             | Disk/RAM/alerts, USB, network — every 60s                    |
-| **Conversation compression**      | After 15 messages: oldest 10 → local summary                 |
-| **Window context**                | Active window as context (opt-in, sensitive titles filtered) |
-| **User profiles**                 | Multiple profiles, PIN-protected                             |
-| **Knowledge Graph**               | D3 visualization of semantic memory connections              |
-| **Multi-agent pipeline**          | Parallel agents with live streaming                          |
-| **Comeback briefing**             | What changed while you were away                             |
-| **Meeting prep / end-of-day**     | Automatically due tasks + calendar                           |
+| Feature                           | What it does                                                   |
+| --------------------------------- | -------------------------------------------------------------- |
+| **Wakeword "ella"**               | Voice activation via openWakeWord + ONNX (local, offline)      |
+| **Kokoro TTS**                    | Neural voice synthesis (offline, no Python)                    |
+| **Proactive messages**            | E.L.L.A. writes to chat on its own initiative (14 categories)  |
+| **Proactive approval-memory**     | Auto-mute after 5 dismissals; mute button on every message     |
+| **Clipboard pattern recognition** | IBAN, tracking numbers, phone, URL, email — polling every 3s   |
+| **Background worker**             | Disk/RAM/alerts, USB, network — every 60s                      |
+| **Conversation compression**      | Rule-based pre-compression (no LLM needed) + local summary     |
+| **Window context**                | Active window as context (opt-in, sensitive titles filtered)   |
+| **User profiles**                 | Multiple profiles, PIN-protected                               |
+| **Knowledge Graph**               | D3 visualization with subject/predicate/object triples         |
+| **Multi-agent pipeline**          | Parallel agents with live streaming                            |
+| **Self-Learning Loop**            | Positive feedback → few-shot injection in future conversations |
+| **Gesture Control**               | Hand gesture recognition via MediaPipe Hands (Stage 1)         |
+| **Time Awareness**                | Session duration, pause detection, last interaction tracking   |
+| **Comeback briefing**             | What changed while you were away                               |
+| **Meeting prep / end-of-day**     | Automatically due tasks + calendar                             |
 
 ---
 
 ## By the Numbers
 
-| Metric           | Value                                                 |
-| ---------------- | ----------------------------------------------------- |
-| Tools (active)   | **85**                                                |
-| Tests            | **224 passing**                                       |
-| LLM backends     | Ollama llama3.1:8b (local) + OpenAI GPT-4o (optional) |
-| Database         | MariaDB, local, no cloud access                       |
-| Network outbound | Only on explicit user command                         |
+| Metric           | Value                                                              |
+| ---------------- | ------------------------------------------------------------------ |
+| Tools (active)   | **90**                                                             |
+| Tests            | **261 passing**                                                    |
+| LLM backends     | Ollama llama3.1:8b · qwen2.5:7b (local) + OpenAI GPT-4o (optional) |
+| Database         | MariaDB, local, no cloud access                                    |
+| Network outbound | Only on explicit user command                                      |

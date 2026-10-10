@@ -4,6 +4,34 @@ All notable changes to E.L.L.A. are documented here.
 
 ---
 
+## [1.5.0] — October 2026
+
+### New Features
+
+- **Knowledge Graph Triples** — subject/predicate/object triples with hybrid recall; dashboard graph shows real relations as purple labeled edges
+- **Self-Learning Loop** — positive feedback (thumbs up) creates golden Q&A pairs; few-shot injection into future conversations
+- **Proactive Approval-Memory** — 14 categories for proactive messages; auto-mute after 5 dismissals; mute buttons on every proactive message
+- **Gesture Control** — hand gesture recognition via MediaPipe Hands (Stage 1)
+- **Time Awareness** — session duration, pause detection, last interaction tracking
+- **Rule-Based Pre-Compression** — conversation compression without LLM (no tokens consumed)
+- **Token Output Limits** — 3000 chars/tool, 500 chars/JSON string — reduced context bloat
+- **Memory Deduplication** — duplicate prevention on write + periodic deduplication
+- **Webcam Control** — camera capture and management
+- **Printer Control** — list printers, print documents
+- **Multi-Monitor Support** — `list_monitors` + `open_app_on_monitor`
+- **Levenshtein Fuzzy Matching** — app names matched even with typos
+- **Document Knowledge Graph** — auto re-index + document-to-memory graph edges
+- **qwen2.5:7b** — added as balanced model tier
+
+### Technical
+
+- New DB tables: `knowledge_triples`, `proactive_preferences`, `learning_examples`
+- New settings: `selfLearningEnabled`, `stressDetectionEnabled`, `indexedFolders`, `spokenLanguage`
+- Tool count: 90 active (+ 1 Directive-blocked: `delete_files`)
+- Tests: 261 green
+
+---
+
 ## [1.4.0] — September 2026
 
 ### New Features

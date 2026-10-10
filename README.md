@@ -8,7 +8,7 @@
 
 **A personal AI assistant for Windows — fully offline, fully yours.**
 
-[![Version](https://img.shields.io/badge/version-1.4.0-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A./releases)
+[![Version](https://img.shields.io/badge/version-1.5.0-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A./releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows)](https://ella-agent.de)
 [![License](https://img.shields.io/badge/license-Proprietary-ff6500?style=flat-square)](LICENSE)
 [![Directive](https://img.shields.io/badge/Directive-v1.0.0%20%E2%80%94%20sealed-3ecf8e?style=flat-square)](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
@@ -23,7 +23,7 @@
 
 E.L.L.A. is a personal AI assistant that runs entirely on your Windows PC. No cloud. No subscription. No data leaving your machine.
 
-It understands natural language and can operate your computer — launch apps, search files, read emails, manage your calendar, control media, monitor your system, and much more. With 85 tools, a persistent vector memory, proactive monitoring, and a built-in ethics layer, E.L.L.A. is not a chatbot. It is an agent.
+It understands natural language and can operate your computer — launch apps, search files, read emails, manage your calendar, control media, monitor your system, and much more. With 90 tools, a persistent vector memory, a knowledge graph, proactive monitoring, self-learning, and a built-in ethics layer, E.L.L.A. is not a chatbot. It is an agent.
 
 > _"I just wanted an assistant that works under this Directive."_
 > — Andre Zabel, May 2026
@@ -34,7 +34,7 @@ It understands natural language and can operate your computer — launch apps, s
 
 ### 🧠 Local AI — No Cloud Required
 
-The LLM runs on your machine via [Ollama](https://ollama.com) (`llama3.1:8b`). Every conversation, every memory, every tool call stays local. OpenAI GPT-4o is an optional fallback — explicitly opt-in only.
+The LLM runs on your machine via [Ollama](https://ollama.com) (`llama3.1:8b`, `qwen2.5:7b` and more). Every conversation, every memory, every tool call stays local. OpenAI GPT-4o is an optional fallback — explicitly opt-in only.
 
 ### 🔒 The E.L.L.A. Directive
 
@@ -49,19 +49,20 @@ Four hardcoded prohibitions that no prompt, rule, or setting can override:
 
 These are not rules. They are architectural impossibilities — no code path leads to them. [→ Full Directive](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
 
-### 🛠️ 85 Tools
+### 🛠️ 90 Tools
 
 Full system control through natural language:
 
 - **Files & Folders** — search, open, copy, rename, find duplicates
-- **Documents** — create Word files, dictate, summarize, translate, correct
+- **Documents** — create Word files, dictate, summarize, translate, correct, semantic search (RAG)
 - **Communication** — read Outlook + Gmail, manage calendar (Outlook + Google)
-- **System** — processes, services, disk usage, temperatures, event log
-- **Memory** — persistent vector memory with ML embeddings (Cosine similarity)
+- **System** — processes, services, disk usage, temperatures, event log, GPU, RAM details
+- **Memory** — persistent vector memory with ML embeddings, knowledge graph triples
 - **Screen & Vision** — screenshot + GPT-4o analysis, local OCR, screen watching
 - **Mouse & Keyboard** — click, drag, send keystrokes (with confirmation)
 - **Media** — music library, media controls, now-playing detection
 - **Network** — ARP scan, TCP connections, WiFi info, port monitoring
+- **Peripherals** — webcam control, printer control, multi-monitor support
 - **Productivity** — tasks, reminders, clipboard history, setups
 
 [→ Full capabilities list](docs/en/capabilities.md)
@@ -72,7 +73,7 @@ Parallel and sequential agent pipelines with live SSE streaming. Built-in pipeli
 
 ### 🕸️ Knowledge Graph
 
-D3 force-directed graph of semantic connections between memories. Visual map of what E.L.L.A. knows and how it relates — including indexed documents.
+Subject/predicate/object triples with hybrid recall. D3 force-directed graph of semantic connections between memories — real relations as labeled edges, including indexed documents. Visual map of what E.L.L.A. knows and how it relates.
 
 ### 🎙️ Voice — Fully Local
 
@@ -84,6 +85,14 @@ D3 force-directed graph of semantic connections between memories. Visual map of 
 
 A full chess window with 4 board themes, a chess AI, move commentary via TTS, and game state persistence. Not a demo — a real feature that demonstrates E.L.L.A.'s ability to manage independent windows, a sub-AI, and persistent state simultaneously.
 
+### 🧬 Self-Learning Loop
+
+Positive feedback (thumbs up) creates golden Q&A pairs. These are injected as few-shot examples in future conversations — E.L.L.A. learns from experience, locally.
+
+### 🖐️ Gesture Control
+
+Hand gesture recognition via MediaPipe Hands (Stage 1). Control E.L.L.A. without touching the keyboard.
+
 ### 👁️ Proactive Intelligence
 
 E.L.L.A. monitors and writes to the chat unprompted when something matters:
@@ -94,6 +103,8 @@ E.L.L.A. monitors and writes to the chat unprompted when something matters:
 - Clipboard pattern recognition (IBAN, tracking numbers, URLs)
 - Comeback briefing after absence
 - Meeting prep, end-of-day summary, break reminders
+- 14 approval categories with auto-mute after 5 dismissals
+- Mute buttons on every proactive message
 
 ---
 
@@ -122,7 +133,7 @@ The installer bundles everything: Node.js, MariaDB, and Ollama as portable binar
 
 | File                      | Description                |
 | ------------------------- | -------------------------- |
-| `E.L.L.A.Setup.1.4.0.exe` | Windows installer (NSIS)   |
+| `E.L.L.A.Setup.1.5.0.exe` | Windows installer (NSIS)   |
 | `SHA256SUMS.txt`          | Checksums for verification |
 
 ---
@@ -158,13 +169,13 @@ The installer bundles everything: Node.js, MariaDB, and Ollama as portable binar
 │         └────────────┬────────────┘                 │
 │                      │                              │
 │         ┌────────────▼────────────┐                 │
-│         │      Tool Selector      │  ← 12 of 85     │
+│         │      Tool Selector      │  ← 12 of 90     │
 │         │   (token-optimized)     │    per request   │
 │         └────────────┬────────────┘                 │
 │                      │                              │
 │    ┌─────────────────┼─────────────────┐            │
 │    ▼                 ▼                 ▼            │
-│ Ollama           OpenAI            85 Tools         │
+│ Ollama           OpenAI            90 Tools         │
 │ (local, offline) (opt-in only)    (system control)  │
 │                                                     │
 │    ┌────────────────────────────────────────────┐   │
