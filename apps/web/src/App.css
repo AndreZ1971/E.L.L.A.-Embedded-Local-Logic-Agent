@@ -6,12 +6,9 @@
 
 html,
 body {
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
-  background: #0f1117;
-  color: #e2e8f0;
+  font-family: var(--ella-font-ui);
+  background: var(--ella-bg);
+  color: var(--ella-text);
   overflow: hidden;
   height: 100%;
 }
@@ -34,12 +31,12 @@ body {
 
 .ella-sidebar {
   width: 200px;
-  background: #1a1d27;
+  background: var(--ella-surface);
   padding: 24px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  border-right: 1px solid #2d3148;
+  border-right: 1px solid var(--ella-border);
   flex-shrink: 0;
   overflow-y: auto;
 }
@@ -47,14 +44,14 @@ body {
 .ella-logo {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #7c6af7;
+  color: var(--ella-accent);
   letter-spacing: 0.08em;
   margin-bottom: 20px;
   padding: 0 10px;
 }
 
 .ella-sidebar a {
-  color: #94a3b8;
+  color: var(--ella-text-muted);
   text-decoration: none;
   padding: 9px 10px;
   border-radius: 6px;
@@ -65,12 +62,12 @@ body {
 }
 
 .ella-sidebar a:hover {
-  background: #252837;
-  color: #cbd5e1;
+  background: var(--ella-sidebar-hover);
+  color: var(--ella-sidebar-hover-text);
 }
 .ella-sidebar a.active {
-  background: #2d3148;
-  color: #e2e8f0;
+  background: var(--ella-surface-2);
+  color: var(--ella-text);
 }
 
 .ella-main {
@@ -84,12 +81,12 @@ body {
 h2 {
   font-size: 1.4rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--ella-heading);
   margin-bottom: 8px;
 }
 
 .muted {
-  color: #64748b;
+  color: var(--ella-text-dim);
   font-size: 0.875rem;
 }
 
@@ -109,25 +106,25 @@ h2 {
   margin: 0.15em 0;
 }
 .ella-md strong {
-  color: #c4b5fd;
+  color: var(--ella-accent-muted);
   font-weight: 600;
 }
 .ella-md em {
-  color: #94a3b8;
+  color: var(--ella-text-muted);
   font-style: italic;
 }
 .ella-md code {
-  background: #0f1117;
-  border: 1px solid #2d3148;
+  background: var(--ella-bg);
+  border: 1px solid var(--ella-border);
   border-radius: 3px;
   padding: 0 4px;
-  font-family: "Consolas", monospace;
+  font-family: var(--ella-font-data);
   font-size: 0.82em;
-  color: #a5f3fc;
+  color: var(--ella-info);
 }
 .ella-md pre {
-  background: #0f1117;
-  border: 1px solid #2d3148;
+  background: var(--ella-bg);
+  border: 1px solid var(--ella-border);
   border-radius: 6px;
   padding: 10px 12px;
   margin: 0.4em 0;
@@ -141,7 +138,7 @@ h2 {
 .ella-md h1,
 .ella-md h2,
 .ella-md h3 {
-  color: #e2e8f0;
+  color: var(--ella-text);
   font-size: 0.95em;
   font-weight: 600;
   margin: 0.5em 0 0.25em;

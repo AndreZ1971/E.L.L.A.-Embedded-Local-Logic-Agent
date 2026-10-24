@@ -13,13 +13,13 @@ const s: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#0f1117",
-    color: "#e2e8f0",
+    background: "var(--ella-bg)",
+    color: "var(--ella-text)",
     fontFamily: "'Inter', system-ui, sans-serif",
     padding: "24px",
   },
   card: {
-    background: "#1a1d27",
+    background: "var(--ella-surface)",
     borderRadius: "16px",
     padding: "48px 40px",
     maxWidth: "480px",
@@ -30,14 +30,14 @@ const s: Record<string, React.CSSProperties> = {
   name: {
     fontSize: "3.5rem",
     fontWeight: 700,
-    color: "#7c6af7",
+    color: "var(--ella-accent)",
     letterSpacing: "0.15em",
     textAlign: "center",
     marginBottom: "8px",
   },
   subtitle: {
     fontSize: "0.85rem",
-    color: "#64748b",
+    color: "var(--ella-text-dim)",
     textAlign: "center",
     letterSpacing: "0.25em",
     marginBottom: "32px",
@@ -45,17 +45,17 @@ const s: Record<string, React.CSSProperties> = {
   },
   body: {
     fontSize: "0.95rem",
-    color: "#94a3b8",
+    color: "var(--ella-text-muted)",
     lineHeight: 1.6,
     marginBottom: "24px",
   },
   input: {
     width: "100%",
     padding: "12px 16px",
-    background: "#0f1117",
+    background: "var(--ella-bg)",
     border: "1px solid #2a2d3e",
     borderRadius: "8px",
-    color: "#e2e8f0",
+    color: "var(--ella-text)",
     fontSize: "1rem",
     outline: "none",
     boxSizing: "border-box",
@@ -64,7 +64,7 @@ const s: Record<string, React.CSSProperties> = {
   btn: {
     width: "100%",
     padding: "14px",
-    background: "#7c6af7",
+    background: "var(--ella-accent)",
     color: "#fff",
     border: "none",
     borderRadius: "8px",
@@ -78,7 +78,7 @@ const s: Record<string, React.CSSProperties> = {
     width: "100%",
     padding: "14px",
     background: "transparent",
-    color: "#64748b",
+    color: "var(--ella-text-dim)",
     border: "1px solid #2a2d3e",
     borderRadius: "8px",
     fontSize: "1rem",
@@ -95,15 +95,19 @@ const s: Record<string, React.CSSProperties> = {
   prohibitionCode: {
     fontSize: "0.75rem",
     fontWeight: 700,
-    color: "#7c6af7",
+    color: "var(--ella-accent)",
     letterSpacing: "0.1em",
     minWidth: "24px",
     paddingTop: "2px",
   },
-  prohibitionText: { fontSize: "0.9rem", color: "#cbd5e1", lineHeight: 1.5 },
+  prohibitionText: {
+    fontSize: "0.9rem",
+    color: "var(--ella-sidebar-hover-text)",
+    lineHeight: 1.5,
+  },
   scanLine: {
     fontSize: "0.85rem",
-    color: "#7c6af7",
+    color: "var(--ella-accent)",
     marginBottom: "8px",
     display: "flex",
     alignItems: "center",
@@ -113,7 +117,7 @@ const s: Record<string, React.CSSProperties> = {
     width: "6px",
     height: "6px",
     borderRadius: "50%",
-    background: "#7c6af7",
+    background: "var(--ella-accent)",
     flexShrink: 0,
     animation: "pulse 1.5s infinite",
   },
@@ -121,7 +125,7 @@ const s: Record<string, React.CSSProperties> = {
     width: "6px",
     height: "6px",
     borderRadius: "50%",
-    background: "#22c55e",
+    background: "var(--ella-success-strong)",
     flexShrink: 0,
   },
 };
@@ -327,12 +331,12 @@ const Onboarding: React.FC = () => {
                 type="checkbox"
                 checked={directiveAccepted}
                 onChange={(e) => setDirectiveAccepted(e.target.checked)}
-                style={{ marginTop: "3px", accentColor: "#7c6af7" }}
+                style={{ marginTop: "3px", accentColor: "var(--ella-accent)" }}
               />
               <span
                 style={{
                   fontSize: "0.9rem",
-                  color: "#94a3b8",
+                  color: "var(--ella-text-muted)",
                   lineHeight: 1.5,
                 }}
               >
@@ -422,11 +426,14 @@ const Onboarding: React.FC = () => {
                       borderRadius: "8px",
                       border:
                         selectedVoice === v.name
-                          ? "1px solid #7c6af7"
+                          ? "1px solid var(--ella-accent)"
                           : "1px solid #2a2d3e",
                       background:
-                        selectedVoice === v.name ? "#1e1b4b" : "#0f1117",
-                      color: selectedVoice === v.name ? "#a5b4fc" : "#94a3b8",
+                        selectedVoice === v.name ? "#1e1b4b" : "var(--ella-bg)",
+                      color:
+                        selectedVoice === v.name
+                          ? "#a5b4fc"
+                          : "var(--ella-text-muted)",
                       cursor: "pointer",
                       textAlign: "left",
                       fontSize: "0.9rem",
@@ -437,7 +444,7 @@ const Onboarding: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <p style={{ ...s.body, color: "#475569" }}>
+              <p style={{ ...s.body, color: "var(--ella-border-strong)" }}>
                 {t("onboarding.voice_none")}
               </p>
             )}

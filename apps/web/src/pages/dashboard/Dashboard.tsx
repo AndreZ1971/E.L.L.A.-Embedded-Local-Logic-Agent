@@ -51,7 +51,7 @@ const StatusDot: React.FC<{ ok: boolean }> = ({ ok }) => (
       width: 8,
       height: 8,
       borderRadius: "50%",
-      background: ok ? "#4ade80" : "#f87171",
+      background: ok ? "var(--ella-success)" : "var(--ella-danger)",
       marginRight: 6,
       flexShrink: 0,
     }}
@@ -64,8 +64,8 @@ const Card: React.FC<{ title: string; children: React.ReactNode }> = ({
 }) => (
   <div
     style={{
-      background: "#1a1d27",
-      border: "1px solid #2d3148",
+      background: "var(--ella-surface)",
+      border: "1px solid var(--ella-border)",
       borderRadius: 8,
       padding: "14px 18px",
     }}
@@ -73,7 +73,7 @@ const Card: React.FC<{ title: string; children: React.ReactNode }> = ({
     <div
       style={{
         fontSize: "0.75rem",
-        color: "#64748b",
+        color: "var(--ella-text-dim)",
         marginBottom: 10,
         textTransform: "uppercase",
         letterSpacing: "0.06em",
@@ -93,7 +93,13 @@ const DiskBar: React.FC<{ label: string; info: DiskInfo }> = ({
   if (!info.success || !info.output) {
     return (
       <div style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: 4 }}>
+        <div
+          style={{
+            fontSize: "0.85rem",
+            color: "var(--ella-text-dim)",
+            marginBottom: 4,
+          }}
+        >
           {label} — {t("dashboard.disk_unavailable")}
         </div>
       </div>
@@ -101,7 +107,12 @@ const DiskBar: React.FC<{ label: string; info: DiskInfo }> = ({
   }
   const { usedBytes, totalBytes, freeBytes } = info.output;
   const pct = Math.round((usedBytes / totalBytes) * 100);
-  const barColor = pct > 90 ? "#f87171" : pct > 70 ? "#fbbf24" : "#7c6af7";
+  const barColor =
+    pct > 90
+      ? "var(--ella-danger)"
+      : pct > 70
+        ? "#fbbf24"
+        : "var(--ella-accent)";
 
   return (
     <div style={{ marginBottom: 14 }}>
@@ -113,17 +124,17 @@ const DiskBar: React.FC<{ label: string; info: DiskInfo }> = ({
           marginBottom: 5,
         }}
       >
-        <span style={{ color: "#e2e8f0" }}>{label}</span>
-        <span style={{ color: "#94a3b8" }}>
+        <span style={{ color: "var(--ella-text)" }}>{label}</span>
+        <span style={{ color: "var(--ella-text-muted)" }}>
           {fmt(usedBytes)} / {fmt(totalBytes)} &nbsp;
-          <span style={{ color: "#64748b" }}>
+          <span style={{ color: "var(--ella-text-dim)" }}>
             ({fmt(freeBytes)} {t("dashboard.disk_free")})
           </span>
         </span>
       </div>
       <div
         style={{
-          background: "#0f1117",
+          background: "var(--ella-bg)",
           borderRadius: 4,
           height: 6,
           overflow: "hidden",
@@ -235,7 +246,9 @@ const Dashboard: React.FC = () => {
         <h2 style={{ margin: 0 }}>{t("dashboard.heading")}</h2>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {lastUpdate && (
-            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+            <span
+              style={{ fontSize: "0.75rem", color: "var(--ella-text-dim)" }}
+            >
               {lastUpdate.toLocaleTimeString(i18n.language || "de-DE")}
             </span>
           )}
@@ -246,8 +259,8 @@ const Dashboard: React.FC = () => {
               borderRadius: 4,
               fontSize: "0.8rem",
               background: "transparent",
-              border: "1px solid #2d3148",
-              color: "#64748b",
+              border: "1px solid var(--ella-border)",
+              color: "var(--ella-text-dim)",
               cursor: "pointer",
             }}
           >
@@ -257,7 +270,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {loading ? (
-        <div style={{ color: "#64748b", fontSize: "0.9rem" }}>
+        <div style={{ color: "var(--ella-text-dim)", fontSize: "0.9rem" }}>
           {t("dashboard.loading")}
         </div>
       ) : (
@@ -277,7 +290,7 @@ const Dashboard: React.FC = () => {
                   alignItems: "center",
                   fontSize: "0.95rem",
                   fontWeight: 600,
-                  color: "#e2e8f0",
+                  color: "var(--ella-text)",
                 }}
               >
                 <StatusDot ok={true} />
@@ -296,7 +309,7 @@ const Dashboard: React.FC = () => {
                   alignItems: "center",
                   fontSize: "0.95rem",
                   fontWeight: 600,
-                  color: "#e2e8f0",
+                  color: "var(--ella-text)",
                 }}
               >
                 <StatusDot ok={status?.ollama.ok ?? false} />
@@ -305,7 +318,11 @@ const Dashboard: React.FC = () => {
                   : t("dashboard.unreachable")}
               </div>
               <div
-                style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 4 }}
+                style={{
+                  fontSize: "0.8rem",
+                  color: "var(--ella-text-dim)",
+                  marginTop: 4,
+                }}
               >
                 {status?.ollama.url ?? "—"}
               </div>
@@ -318,7 +335,7 @@ const Dashboard: React.FC = () => {
                   alignItems: "center",
                   fontSize: "0.95rem",
                   fontWeight: 600,
-                  color: "#e2e8f0",
+                  color: "var(--ella-text)",
                 }}
               >
                 <StatusDot ok={status?.db.ok ?? false} />
@@ -327,7 +344,11 @@ const Dashboard: React.FC = () => {
                   : t("dashboard.unreachable")}
               </div>
               <div
-                style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 4 }}
+                style={{
+                  fontSize: "0.8rem",
+                  color: "var(--ella-text-dim)",
+                  marginTop: 4,
+                }}
               >
                 Port 3306
               </div>
@@ -338,13 +359,20 @@ const Dashboard: React.FC = () => {
                 style={{
                   fontSize: "1.4rem",
                   fontWeight: 700,
-                  color: cloudToday > 0 ? "#7c6af7" : "#64748b",
+                  color:
+                    cloudToday > 0
+                      ? "var(--ella-accent)"
+                      : "var(--ella-text-dim)",
                 }}
               >
                 {cloudToday}
               </div>
               <div
-                style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 4 }}
+                style={{
+                  fontSize: "0.8rem",
+                  color: "var(--ella-text-dim)",
+                  marginTop: 4,
+                }}
               >
                 {t("dashboard.cloud_today")}
               </div>
@@ -360,7 +388,9 @@ const Dashboard: React.FC = () => {
                 <DiskBar label="Z: (Repo)" info={disk.Z} />
               </>
             ) : (
-              <div style={{ color: "#64748b", fontSize: "0.85rem" }}>
+              <div
+                style={{ color: "var(--ella-text-dim)", fontSize: "0.85rem" }}
+              >
                 {t("dashboard.no_data")}
               </div>
             )}
@@ -369,7 +399,12 @@ const Dashboard: React.FC = () => {
           {/* System-Event-Feed */}
           <Card title={t("dashboard.card_events")}>
             {events.length === 0 ? (
-              <div style={{ color: "#475569", fontSize: "0.82rem" }}>
+              <div
+                style={{
+                  color: "var(--ella-border-strong)",
+                  fontSize: "0.82rem",
+                }}
+              >
                 {t("dashboard.events_waiting")}
               </div>
             ) : (
@@ -391,12 +426,12 @@ const Dashboard: React.FC = () => {
                   const color = isPortOpened
                     ? portSuspicious
                       ? "#f97316"
-                      : "#64748b"
+                      : "var(--ella-text-dim)"
                     : isAlert
                       ? severity === "error"
-                        ? "#f87171"
+                        ? "var(--ella-danger)"
                         : "#fbbf24"
-                      : "#64748b";
+                      : "var(--ella-text-dim)";
                   const time = new Date(ev.created_at).toLocaleTimeString(
                     i18n.language || "de-DE",
                   );
@@ -430,7 +465,12 @@ const Dashboard: React.FC = () => {
                         alignItems: "baseline",
                       }}
                     >
-                      <span style={{ color: "#475569", flexShrink: 0 }}>
+                      <span
+                        style={{
+                          color: "var(--ella-border-strong)",
+                          flexShrink: 0,
+                        }}
+                      >
                         {time}
                       </span>
                       <span style={{ color }}>{summary}</span>

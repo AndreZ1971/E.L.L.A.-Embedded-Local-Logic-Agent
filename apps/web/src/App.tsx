@@ -32,10 +32,10 @@ class ErrorBoundary extends React.Component<
         <div
           style={{
             padding: 24,
-            color: "#f87171",
+            color: "var(--ella-danger)",
             fontFamily: "monospace",
             fontSize: "0.85rem",
-            background: "#1a1d27",
+            background: "var(--ella-surface)",
             borderRadius: 8,
             margin: 16,
           }}
@@ -59,7 +59,7 @@ class ErrorBoundary extends React.Component<
             style={{
               padding: "6px 16px",
               borderRadius: 6,
-              background: "#7c6af7",
+              background: "var(--ella-accent)",
               color: "#fff",
               border: "none",
               cursor: "pointer",
@@ -223,7 +223,7 @@ function EllaSplash({ setupMsg }: { setupMsg: string }) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "#0f1117",
+        background: "var(--ella-bg)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -237,7 +237,7 @@ function EllaSplash({ setupMsg }: { setupMsg: string }) {
           fontSize: "2.2rem",
           fontWeight: 800,
           letterSpacing: "0.12em",
-          color: "#7c6af7",
+          color: "var(--ella-accent)",
           fontFamily: "monospace",
         }}
       >
@@ -255,7 +255,8 @@ function EllaSplash({ setupMsg }: { setupMsg: string }) {
         <div
           style={{
             height: "100%",
-            background: "linear-gradient(90deg,#7c6af7,#a78bfa)",
+            background:
+              "linear-gradient(90deg,var(--ella-accent),var(--ella-accent-soft))",
             borderRadius: 99,
             animation: "ella-bar 1.6s ease-in-out infinite",
           }}
@@ -275,7 +276,10 @@ function EllaSplash({ setupMsg }: { setupMsg: string }) {
             <p
               key={i}
               style={{
-                color: i === 0 ? "#a78bfa" : "#94a3b8",
+                color:
+                  i === 0
+                    ? "var(--ella-accent-soft)"
+                    : "var(--ella-text-muted)",
                 fontSize: i === 0 ? "0.95rem" : "0.82rem",
                 fontWeight: i === 0 ? 600 : 400,
                 margin: 0,
@@ -289,7 +293,7 @@ function EllaSplash({ setupMsg }: { setupMsg: string }) {
       ) : (
         <p
           style={{
-            color: "#94a3b8",
+            color: "var(--ella-text-muted)",
             fontSize: "0.88rem",
             maxWidth: 320,
             textAlign: "center",
@@ -520,15 +524,15 @@ function AppShell() {
           alignItems: "center",
           gap: 12,
           fontSize: "0.8rem",
-          color: "#c4b5fd",
+          color: "var(--ella-accent-muted)",
           flexShrink: 0,
         }}
       >
         <span style={{ fontSize: "1rem" }}>⬇</span>
-        <span style={{ fontWeight: 600, color: "#a78bfa" }}>
+        <span style={{ fontWeight: 600, color: "var(--ella-accent-soft)" }}>
           {t("model_pull.banner_title")}
         </span>
-        <span style={{ color: "#94a3b8", flex: 1 }}>
+        <span style={{ color: "var(--ella-text-muted)", flex: 1 }}>
           {setupMsg.split("\n").find((l) => l.match(/\d+%/)) ??
             t("model_pull.banner_hint")}
         </span>
@@ -546,7 +550,8 @@ function AppShell() {
             style={{
               display: "block",
               height: "100%",
-              background: "linear-gradient(90deg,#7c6af7,#a78bfa)",
+              background:
+                "linear-gradient(90deg,var(--ella-accent),var(--ella-accent-soft))",
               borderRadius: 99,
               animation: "ella-bar 1.6s ease-in-out infinite",
             }}
@@ -608,11 +613,13 @@ function AppShell() {
                 borderRadius: 8,
                 border: gestures.enabled
                   ? "1px solid rgba(124, 106, 247, 0.6)"
-                  : "1px solid #2d3148",
+                  : "1px solid var(--ella-border)",
                 background: gestures.enabled
                   ? "rgba(124, 106, 247, 0.15)"
                   : "transparent",
-                color: gestures.enabled ? "#a78bfa" : "#64748b",
+                color: gestures.enabled
+                  ? "var(--ella-accent-soft)"
+                  : "var(--ella-text-dim)",
                 fontSize: "0.78rem",
                 cursor: gestures.loading ? "wait" : "pointer",
                 transition: "all 0.2s",
@@ -631,7 +638,7 @@ function AppShell() {
               <div
                 style={{
                   fontSize: "0.7rem",
-                  color: "#f87171",
+                  color: "var(--ella-danger)",
                   padding: "4px 8px",
                   marginTop: 4,
                 }}

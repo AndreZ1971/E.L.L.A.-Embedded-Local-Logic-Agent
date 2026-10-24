@@ -1,0 +1,39 @@
+/* ── E.L.L.A. Theme Tokens ─────────────────────────────────────────── */
+
+:root,
+:root[data-theme="calm"] {
+  --ella-bg: #0f1117;
+  --ella-surface: #1a1d27;
+  --ella-surface-2: #2d3148;
+  --ella-border: #2d3148;
+  --ella-border-strong: #475569;
+  --ella-text: #e2e8f0;
+  --ella-text-muted: #94a3b8;
+  --ella-text-dim: #64748b;
+  --ella-accent: #7c6af7;
+  --ella-accent-soft: #a78bfa;
+  --ella-accent-muted: #c4b5fd;
+  --ella-danger: #f87171;
+  --ella-danger-strong: #ef4444;
+  --ella-danger-bg: #7f1d1d;
+  --ella-warning: #f59e0b;
+  --ella-success: #4ade80;
+  --ella-success-strong: #22c55e;
+  --ella-info: #a5f3fc;
+
+  --ella-sidebar-hover: #252837;
+  --ella-sidebar-hover-text: #cbd5e1;
+  --ella-heading: #f1f5f9;
+
+  --ella-font-ui: system-ui, -apple-system, sans-serif;
+  --ella-font-display: var(--ella-font-ui);
+  --ella-font-data: ui-monospace, Consolas, monospace;
+  --ella-radius: 8px;
+  --ella-anim-speed: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ella-anim-speed: 0;
+  }
+}

@@ -263,7 +263,7 @@ export default function Memories() {
             borderRadius: 8,
             padding: "8px 14px",
             fontSize: "0.85rem",
-            color: "#4ade80",
+            color: "var(--ella-success)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -275,7 +275,7 @@ export default function Memories() {
             style={{
               background: "none",
               border: "none",
-              color: "#4ade80",
+              color: "var(--ella-success)",
               cursor: "pointer",
               fontSize: "1rem",
             }}

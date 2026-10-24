@@ -123,13 +123,13 @@ const S = {
     display: "flex",
     flexDirection: "column" as const,
     background: "#13151f",
-    color: "#e2e8f0",
+    color: "var(--ella-text)",
     fontFamily: "system-ui, sans-serif",
     overflow: "hidden",
   },
   header: {
     padding: "18px 24px 14px",
-    borderBottom: "1px solid #2d3148",
+    borderBottom: "1px solid var(--ella-border)",
     flexShrink: 0,
     display: "flex",
     alignItems: "center",
@@ -138,10 +138,14 @@ const S = {
   headerTitle: {
     fontSize: "1.1rem",
     fontWeight: 700,
-    color: "#e2e8f0",
+    color: "var(--ella-text)",
     letterSpacing: "0.04em",
   },
-  headerSub: { fontSize: "0.78rem", color: "#64748b", marginTop: 2 },
+  headerSub: {
+    fontSize: "0.78rem",
+    color: "var(--ella-text-dim)",
+    marginTop: 2,
+  },
   body: {
     flex: 1,
     overflow: "auto",
@@ -152,7 +156,7 @@ const S = {
   },
   label: {
     fontSize: "0.75rem",
-    color: "#64748b",
+    color: "var(--ella-text-dim)",
     textTransform: "uppercase" as const,
     letterSpacing: "0.08em",
     marginBottom: 6,
@@ -163,7 +167,7 @@ const S = {
     gap: 14,
     padding: "14px 16px",
     background: active ? "rgba(124,106,247,0.12)" : "rgba(255,255,255,0.03)",
-    border: `1px solid ${active ? "#7c6af7" : "#2d3148"}`,
+    border: `1px solid ${active ? "var(--ella-accent)" : "var(--ella-border)"}`,
     borderRadius: 10,
     cursor: disabled ? "not-allowed" : "pointer",
     textAlign: "left" as const,
@@ -182,9 +186,9 @@ const S = {
   }),
   input: {
     background: "#1e2130",
-    border: "1px solid #2d3148",
+    border: "1px solid var(--ella-border)",
     borderRadius: 7,
-    color: "#e2e8f0",
+    color: "var(--ella-text)",
     padding: "9px 12px",
     fontSize: "0.875rem",
     outline: "none",
@@ -193,9 +197,9 @@ const S = {
   },
   textarea: {
     background: "#1e2130",
-    border: "1px solid #2d3148",
+    border: "1px solid var(--ella-border)",
     borderRadius: 7,
-    color: "#e2e8f0",
+    color: "var(--ella-text)",
     padding: "9px 12px",
     fontSize: "0.875rem",
     outline: "none",
@@ -209,13 +213,13 @@ const S = {
     padding: "8px 16px",
     background:
       variant === "primary"
-        ? "#7c6af7"
+        ? "var(--ella-accent)"
         : variant === "danger"
           ? "rgba(248,113,113,0.1)"
           : "rgba(255,255,255,0.05)",
-    border: `1px solid ${variant === "primary" ? "#7c6af7" : variant === "danger" ? "rgba(248,113,113,0.3)" : "#2d3148"}`,
+    border: `1px solid ${variant === "primary" ? "var(--ella-accent)" : variant === "danger" ? "rgba(248,113,113,0.3)" : "var(--ella-border)"}`,
     borderRadius: 7,
-    color: variant === "danger" ? "#f87171" : "#e2e8f0",
+    color: variant === "danger" ? "var(--ella-danger)" : "var(--ella-text)",
     cursor: "pointer",
     fontSize: "0.85rem",
     fontWeight: variant === "primary" ? 600 : 400,
@@ -599,7 +603,7 @@ export default function Pipeline() {
                         <div
                           style={{
                             fontWeight: 600,
-                            color: "#e2e8f0",
+                            color: "var(--ella-text)",
                             fontSize: "0.9rem",
                           }}
                         >
@@ -608,7 +612,7 @@ export default function Pipeline() {
                         <div
                           style={{
                             fontSize: "0.78rem",
-                            color: "#64748b",
+                            color: "var(--ella-text-dim)",
                             marginTop: 2,
                           }}
                         >
@@ -630,9 +634,9 @@ export default function Pipeline() {
                               fontSize: "0.68rem",
                               padding: "2px 7px",
                               background: "rgba(255,255,255,0.04)",
-                              border: "1px solid #2d3148",
+                              border: "1px solid var(--ella-border)",
                               borderRadius: 20,
-                              color: "#64748b",
+                              color: "var(--ella-text-dim)",
                             }}
                           >
                             {p.executionMode === "parallel"
@@ -663,9 +667,9 @@ export default function Pipeline() {
                           }}
                           style={{
                             background: "rgba(255,255,255,0.06)",
-                            border: "1px solid #2d3148",
+                            border: "1px solid var(--ella-border)",
                             borderRadius: 5,
-                            color: "#94a3b8",
+                            color: "var(--ella-text-muted)",
                             cursor: "pointer",
                             fontSize: "0.7rem",
                             padding: "2px 7px",
@@ -682,7 +686,7 @@ export default function Pipeline() {
                             background: "rgba(248,113,113,0.08)",
                             border: "1px solid rgba(248,113,113,0.2)",
                             borderRadius: 5,
-                            color: "#f87171",
+                            color: "var(--ella-danger)",
                             cursor: "pointer",
                             fontSize: "0.7rem",
                             padding: "2px 7px",
@@ -758,7 +762,7 @@ export default function Pipeline() {
                           bIcon === ic
                             ? "rgba(124,106,247,0.2)"
                             : "rgba(255,255,255,0.04)",
-                        border: `1px solid ${bIcon === ic ? "#7c6af7" : "#2d3148"}`,
+                        border: `1px solid ${bIcon === ic ? "var(--ella-accent)" : "var(--ella-border)"}`,
                         borderRadius: 6,
                         cursor: "pointer",
                       }}
@@ -802,9 +806,12 @@ export default function Pipeline() {
                         bMode === m
                           ? "rgba(124,106,247,0.15)"
                           : "rgba(255,255,255,0.04)",
-                      border: `1px solid ${bMode === m ? "#7c6af7" : "#2d3148"}`,
+                      border: `1px solid ${bMode === m ? "var(--ella-accent)" : "var(--ella-border)"}`,
                       borderRadius: 7,
-                      color: bMode === m ? "#a78bfa" : "#94a3b8",
+                      color:
+                        bMode === m
+                          ? "var(--ella-accent-soft)"
+                          : "var(--ella-text-muted)",
                       cursor: "pointer",
                       fontSize: "0.85rem",
                     }}
@@ -845,7 +852,7 @@ export default function Pipeline() {
                     key={agent.id}
                     style={{
                       background: "rgba(255,255,255,0.03)",
-                      border: "1px solid #2d3148",
+                      border: "1px solid var(--ella-border)",
                       borderRadius: 10,
                       padding: 14,
                     }}
@@ -861,7 +868,7 @@ export default function Pipeline() {
                       <span
                         style={{
                           fontSize: "0.7rem",
-                          color: "#64748b",
+                          color: "var(--ella-text-dim)",
                           width: 20,
                           textAlign: "center",
                         }}
@@ -918,7 +925,7 @@ export default function Pipeline() {
                             <div
                               style={{
                                 fontSize: "0.7rem",
-                                color: "#475569",
+                                color: "var(--ella-border-strong)",
                                 marginBottom: 4,
                               }}
                             >
@@ -943,9 +950,11 @@ export default function Pipeline() {
                                       background: active
                                         ? "rgba(124,106,247,0.18)"
                                         : "rgba(255,255,255,0.04)",
-                                      border: `1px solid ${active ? "rgba(124,106,247,0.5)" : "#2d3148"}`,
+                                      border: `1px solid ${active ? "rgba(124,106,247,0.5)" : "var(--ella-border)"}`,
                                       borderRadius: 20,
-                                      color: active ? "#a78bfa" : "#64748b",
+                                      color: active
+                                        ? "var(--ella-accent-soft)"
+                                        : "var(--ella-text-dim)",
                                       cursor: "pointer",
                                     }}
                                   >
@@ -1007,10 +1016,10 @@ export default function Pipeline() {
                   fontWeight: 600,
                   color:
                     runStatus === "done"
-                      ? "#22c55e"
+                      ? "var(--ella-success-strong)"
                       : runStatus === "error"
-                        ? "#f87171"
-                        : "#a78bfa",
+                        ? "var(--ella-danger)"
+                        : "var(--ella-accent-soft)",
                 }}
               >
                 {runStatus === "running" && (
@@ -1019,7 +1028,7 @@ export default function Pipeline() {
                       width: 8,
                       height: 8,
                       borderRadius: "50%",
-                      background: "#a78bfa",
+                      background: "var(--ella-accent-soft)",
                       display: "inline-block",
                       animation: "ellaPulse 1s ease-in-out infinite",
                     }}
@@ -1053,7 +1062,7 @@ export default function Pipeline() {
                   borderRadius: 8,
                   padding: "10px 14px",
                   fontSize: "0.82rem",
-                  color: "#f87171",
+                  color: "var(--ella-danger)",
                 }}
               >
                 {runError}
@@ -1078,7 +1087,7 @@ export default function Pipeline() {
                       alignItems: "center",
                       gap: 8,
                       borderBottom: agent.content
-                        ? "1px solid #2d3148"
+                        ? "1px solid var(--ella-border)"
                         : "none",
                       background: "rgba(255,255,255,0.02)",
                     }}
@@ -1090,10 +1099,10 @@ export default function Pipeline() {
                         borderRadius: "50%",
                         background:
                           agent.status === "done"
-                            ? "#22c55e"
+                            ? "var(--ella-success-strong)"
                             : agent.status === "error"
-                              ? "#f87171"
-                              : "#a78bfa",
+                              ? "var(--ella-danger)"
+                              : "var(--ella-accent-soft)",
                         flexShrink: 0,
                         animation:
                           agent.status === "running"
@@ -1105,13 +1114,18 @@ export default function Pipeline() {
                       style={{
                         fontWeight: 600,
                         fontSize: "0.82rem",
-                        color: "#cbd5e1",
+                        color: "var(--ella-sidebar-hover-text)",
                       }}
                     >
                       {agent.name}
                     </span>
                     {agent.status === "running" && (
-                      <span style={{ fontSize: "0.72rem", color: "#64748b" }}>
+                      <span
+                        style={{
+                          fontSize: "0.72rem",
+                          color: "var(--ella-text-dim)",
+                        }}
+                      >
                         analysiert …
                       </span>
                     )}
@@ -1133,7 +1147,7 @@ export default function Pipeline() {
                               background: "rgba(124,106,247,0.12)",
                               border: "1px solid rgba(124,106,247,0.2)",
                               borderRadius: 20,
-                              color: "#a78bfa",
+                              color: "var(--ella-accent-soft)",
                             }}
                           >
                             {t}
@@ -1147,7 +1161,7 @@ export default function Pipeline() {
                       style={{
                         padding: "10px 14px",
                         fontSize: "0.82rem",
-                        color: "#cbd5e1",
+                        color: "var(--ella-sidebar-hover-text)",
                         lineHeight: 1.6,
                         whiteSpace: "pre-wrap",
                         maxHeight: 200,
@@ -1183,7 +1197,9 @@ export default function Pipeline() {
                     style={{
                       fontSize: "0.8rem",
                       fontWeight: 600,
-                      color: setupResult.success ? "#22c55e" : "#f87171",
+                      color: setupResult.success
+                        ? "var(--ella-success-strong)"
+                        : "var(--ella-danger)",
                     }}
                   >
                     Setup: {setupResult.name}
@@ -1191,7 +1207,7 @@ export default function Pipeline() {
                   <div
                     style={{
                       fontSize: "0.78rem",
-                      color: "#94a3b8",
+                      color: "var(--ella-text-muted)",
                       marginTop: 2,
                     }}
                   >
@@ -1213,7 +1229,7 @@ export default function Pipeline() {
                 <div
                   style={{
                     fontSize: "0.72rem",
-                    color: "#7c6af7",
+                    color: "var(--ella-accent)",
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",
@@ -1225,7 +1241,7 @@ export default function Pipeline() {
                 <div
                   style={{
                     fontSize: "0.85rem",
-                    color: "#e2e8f0",
+                    color: "var(--ella-text)",
                     lineHeight: 1.65,
                     whiteSpace: "pre-wrap",
                   }}

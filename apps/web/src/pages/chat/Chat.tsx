@@ -1400,8 +1400,10 @@ const Chat: React.FC = () => {
                 borderRadius: 4,
                 fontSize: "0.85rem",
                 background: ttsEnabled ? "#1e1b4b" : "transparent",
-                border: ttsEnabled ? "1px solid #7c6af7" : "1px solid #2d3148",
-                color: ttsEnabled ? "#a5b4fc" : "#64748b",
+                border: ttsEnabled
+                  ? "1px solid var(--ella-accent)"
+                  : "1px solid var(--ella-border)",
+                color: ttsEnabled ? "#a5b4fc" : "var(--ella-text-dim)",
                 cursor: "pointer",
               }}
             >
@@ -1429,8 +1431,8 @@ const Chat: React.FC = () => {
                   background: homeworkActive ? "#431407" : "transparent",
                   border: homeworkActive
                     ? "1px solid #c2410c"
-                    : "1px solid #2d3148",
-                  color: homeworkActive ? "#fdba74" : "#64748b",
+                    : "1px solid var(--ella-border)",
+                  color: homeworkActive ? "#fdba74" : "var(--ella-text-dim)",
                   cursor: "pointer",
                 }}
               >
@@ -1446,8 +1448,8 @@ const Chat: React.FC = () => {
                   borderRadius: 4,
                   fontSize: "0.8rem",
                   background: "transparent",
-                  border: "1px solid #2d3148",
-                  color: "#64748b",
+                  border: "1px solid var(--ella-border)",
+                  color: "var(--ella-text-dim)",
                   cursor: "pointer",
                 }}
               >
@@ -1489,7 +1491,7 @@ const Chat: React.FC = () => {
               borderRadius: 6,
               padding: "8px 14px",
               fontSize: "0.82rem",
-              color: "#94a3b8",
+              color: "var(--ella-text-muted)",
               display: "flex",
               alignItems: "center",
               gap: 6,
@@ -1522,8 +1524,8 @@ const Chat: React.FC = () => {
           >
             <div
               style={{
-                background: "#1a1d27",
-                border: "1px solid #2d3148",
+                background: "var(--ella-surface)",
+                border: "1px solid var(--ella-border)",
                 borderRadius: 10,
                 padding: 24,
                 width: 300,
@@ -1545,15 +1547,17 @@ const Chat: React.FC = () => {
                 style={{
                   padding: "8px 12px",
                   borderRadius: 6,
-                  border: "1px solid #2d3148",
-                  background: "#0f1117",
-                  color: "#e2e8f0",
+                  border: "1px solid var(--ella-border)",
+                  background: "var(--ella-bg)",
+                  color: "var(--ella-text)",
                   fontSize: "0.9rem",
                   outline: "none",
                 }}
               />
               {pinError && (
-                <div style={{ fontSize: "0.82rem", color: "#f87171" }}>
+                <div
+                  style={{ fontSize: "0.82rem", color: "var(--ella-danger)" }}
+                >
                   {pinError}
                 </div>
               )}
@@ -1584,9 +1588,9 @@ const Chat: React.FC = () => {
                   style={{
                     padding: "8px 14px",
                     borderRadius: 6,
-                    border: "1px solid #2d3148",
+                    border: "1px solid var(--ella-border)",
                     background: "transparent",
-                    color: "#64748b",
+                    color: "var(--ella-text-dim)",
                     cursor: "pointer",
                     fontSize: "0.88rem",
                   }}
@@ -1615,7 +1619,7 @@ const Chat: React.FC = () => {
           {messages.length === 0 && !loading && (
             <div
               style={{
-                color: "#64748b",
+                color: "var(--ella-text-dim)",
                 fontSize: "0.9rem",
                 marginTop: 32,
                 textAlign: "center",
@@ -1636,8 +1640,8 @@ const Chat: React.FC = () => {
                     gap: 4,
                     padding: "10px 14px",
                     borderRadius: 8,
-                    border: "1px solid #7f1d1d",
-                    borderLeft: "3px solid #ef4444",
+                    border: "1px solid var(--ella-danger-bg)",
+                    borderLeft: "3px solid var(--ella-danger-strong)",
                     background: "#1a0a0a",
                     maxWidth: "75%",
                   }}
@@ -1648,7 +1652,7 @@ const Chat: React.FC = () => {
                     <span
                       style={{
                         fontSize: "0.75rem",
-                        color: "#ef4444",
+                        color: "var(--ella-danger-strong)",
                         fontWeight: 700,
                         letterSpacing: "0.08em",
                       }}
@@ -1660,7 +1664,7 @@ const Chat: React.FC = () => {
                         style={{
                           fontSize: "0.7rem",
                           background: "#450a0a",
-                          border: "1px solid #7f1d1d",
+                          border: "1px solid var(--ella-danger-bg)",
                           color: "#fca5a5",
                           borderRadius: 4,
                           padding: "1px 6px",
@@ -1674,7 +1678,7 @@ const Chat: React.FC = () => {
                   <div
                     style={{
                       fontSize: "0.83rem",
-                      color: "#94a3b8",
+                      color: "var(--ella-text-muted)",
                       lineHeight: 1.5,
                     }}
                   >
@@ -1688,8 +1692,14 @@ const Chat: React.FC = () => {
                 key={i}
                 style={{
                   alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                  background: m.role === "user" ? "#7c6af7" : "#1a1d27",
-                  border: m.role === "assistant" ? "1px solid #2d3148" : "none",
+                  background:
+                    m.role === "user"
+                      ? "var(--ella-accent)"
+                      : "var(--ella-surface)",
+                  border:
+                    m.role === "assistant"
+                      ? "1px solid var(--ella-border)"
+                      : "none",
                   padding: "10px 14px",
                   borderRadius: 8,
                   maxWidth: "75%",
@@ -1725,11 +1735,11 @@ const Chat: React.FC = () => {
                           title={tool}
                           style={{
                             fontSize: "0.68rem",
-                            background: "#0f1117",
-                            border: "1px solid #2d3148",
+                            background: "var(--ella-bg)",
+                            border: "1px solid var(--ella-border)",
                             borderRadius: 4,
                             padding: "1px 6px",
-                            color: "#64748b",
+                            color: "var(--ella-text-dim)",
                           }}
                         >
                           {toolLabel(tool)}
@@ -1774,9 +1784,9 @@ const Chat: React.FC = () => {
                           color:
                             feedback[i] === r
                               ? r === "positive"
-                                ? "#4ade80"
-                                : "#f87171"
-                              : "#64748b",
+                                ? "var(--ella-success)"
+                                : "var(--ella-danger)"
+                              : "var(--ella-text-dim)",
                         }}
                       >
                         {r === "positive" ? "👍" : "👎"}
@@ -1813,7 +1823,7 @@ const Chat: React.FC = () => {
                         fontSize: "0.75rem",
                         padding: "2px 4px",
                         borderRadius: 4,
-                        color: "#64748b",
+                        color: "var(--ella-text-dim)",
                       }}
                     >
                       👋
@@ -1834,8 +1844,8 @@ const Chat: React.FC = () => {
                         padding: "2px 4px",
                         borderRadius: 4,
                         color: mutedCategories[m.proactiveCategory]
-                          ? "#f87171"
-                          : "#64748b",
+                          ? "var(--ella-danger)"
+                          : "var(--ella-text-dim)",
                       }}
                     >
                       🔇
@@ -1849,18 +1859,18 @@ const Chat: React.FC = () => {
             <div
               style={{
                 alignSelf: "flex-start",
-                background: "#1a1d27",
-                border: "1px solid #2d3148",
+                background: "var(--ella-surface)",
+                border: "1px solid var(--ella-border)",
                 padding: "8px 14px",
                 borderRadius: 8,
                 fontSize: "0.8rem",
-                color: "#94a3b8",
+                color: "var(--ella-text-muted)",
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
               }}
             >
-              <span style={{ color: "#7c6af7" }}>⚙</span>
+              <span style={{ color: "var(--ella-accent)" }}>⚙</span>
               {toolStatus}…
             </div>
           )}
@@ -1869,8 +1879,8 @@ const Chat: React.FC = () => {
             <div
               style={{
                 alignSelf: "flex-start",
-                background: "#1a1d27",
-                border: "1px solid #2d3148",
+                background: "var(--ella-surface)",
+                border: "1px solid var(--ella-border)",
                 padding: "10px 14px",
                 borderRadius: 8,
                 maxWidth: "75%",
@@ -1885,7 +1895,7 @@ const Chat: React.FC = () => {
                   display: "inline-block",
                   width: 2,
                   height: "1em",
-                  background: "#7c6af7",
+                  background: "var(--ella-accent)",
                   marginLeft: 2,
                   animation: "blink 1s step-end infinite",
                   verticalAlign: "text-bottom",
@@ -1897,12 +1907,12 @@ const Chat: React.FC = () => {
             <div
               style={{
                 alignSelf: "flex-start",
-                background: "#1a1d27",
-                border: "1px solid #2d3148",
+                background: "var(--ella-surface)",
+                border: "1px solid var(--ella-border)",
                 padding: "10px 14px",
                 borderRadius: 8,
                 fontSize: "0.85rem",
-                color: "#7c6af7",
+                color: "var(--ella-accent)",
               }}
             >
               {t("chat.thinking")}
@@ -1913,7 +1923,7 @@ const Chat: React.FC = () => {
               style={{
                 alignSelf: "flex-start",
                 background: "#2d1a1a",
-                border: "1px solid #7f1d1d",
+                border: "1px solid var(--ella-danger-bg)",
                 padding: "10px 14px",
                 borderRadius: 8,
                 fontSize: "0.85rem",
@@ -1941,21 +1951,21 @@ const Chat: React.FC = () => {
               gap: 10,
               padding: "8px 12px",
               borderRadius: 6,
-              borderLeft: "3px solid #ef4444",
+              borderLeft: "3px solid var(--ella-danger-strong)",
               background: "#1a0a0a",
               fontSize: "0.82rem",
             }}
           >
             <span
               style={{
-                color: "#ef4444",
+                color: "var(--ella-danger-strong)",
                 fontWeight: 600,
                 letterSpacing: "0.05em",
               }}
             >
               E.L.L.A. DIRECTIVE
             </span>
-            <span style={{ color: "#94a3b8" }}>
+            <span style={{ color: "var(--ella-text-muted)" }}>
               {t("chat.directive_not_allowed")}
             </span>
           </div>
@@ -1966,7 +1976,7 @@ const Chat: React.FC = () => {
           <div
             style={{
               background: "#1e1b4b",
-              border: "1px solid #7c6af7",
+              border: "1px solid var(--ella-accent)",
               borderRadius: 8,
               padding: "10px 16px",
               display: "flex",
@@ -1982,7 +1992,7 @@ const Chat: React.FC = () => {
               onClick={resumeFromPause}
               style={{
                 background: "transparent",
-                border: "1px solid #7c6af7",
+                border: "1px solid var(--ella-accent)",
                 borderRadius: 4,
                 color: "#a5b4fc",
                 padding: "3px 10px",
@@ -2017,7 +2027,7 @@ const Chat: React.FC = () => {
                       gap: 8,
                       fontSize: "0.85rem",
                       fontWeight: 600,
-                      color: "#22c55e",
+                      color: "var(--ella-success-strong)",
                     }}
                   >
                     <span
@@ -2026,7 +2036,7 @@ const Chat: React.FC = () => {
                         height: 8,
                         borderRadius: "50%",
                         display: "inline-block",
-                        background: "#22c55e",
+                        background: "var(--ella-success-strong)",
                         animation: "pulse 0.8s ease-in-out infinite",
                       }}
                     />
@@ -2043,7 +2053,7 @@ const Chat: React.FC = () => {
                     <div
                       style={{
                         height: "100%",
-                        background: "#22c55e",
+                        background: "var(--ella-success-strong)",
                         borderRadius: 1,
                         animation: "countdown 15s linear forwards",
                       }}
@@ -2058,7 +2068,7 @@ const Chat: React.FC = () => {
                     alignItems: "center",
                     gap: 6,
                     fontSize: "0.78rem",
-                    color: "#7c6af7",
+                    color: "var(--ella-accent)",
                   }}
                 >
                   <span
@@ -2067,7 +2077,7 @@ const Chat: React.FC = () => {
                       height: 6,
                       borderRadius: "50%",
                       display: "inline-block",
-                      background: "#7c6af7",
+                      background: "var(--ella-accent)",
                       animation: "pulse 1.2s ease-in-out infinite",
                     }}
                   />
@@ -2081,7 +2091,10 @@ const Chat: React.FC = () => {
                     alignItems: "center",
                     gap: 6,
                     fontSize: "0.78rem",
-                    color: voiceMode === "dictation" ? "#f59e0b" : "#475569",
+                    color:
+                      voiceMode === "dictation"
+                        ? "var(--ella-warning)"
+                        : "var(--ella-border-strong)",
                   }}
                 >
                   <span
@@ -2091,7 +2104,9 @@ const Chat: React.FC = () => {
                       borderRadius: "50%",
                       display: "inline-block",
                       background:
-                        voiceMode === "dictation" ? "#f59e0b" : "#475569",
+                        voiceMode === "dictation"
+                          ? "var(--ella-warning)"
+                          : "var(--ella-border-strong)",
                       animation: "pulse 2.5s ease-in-out infinite",
                     }}
                   />
@@ -2108,7 +2123,7 @@ const Chat: React.FC = () => {
           <div
             style={{
               background: "#1a1f2e",
-              border: "1px solid #f59e0b",
+              border: "1px solid var(--ella-warning)",
               borderRadius: 10,
               padding: "14px 16px",
               display: "flex",
@@ -2122,7 +2137,7 @@ const Chat: React.FC = () => {
                 alignItems: "center",
                 gap: 8,
                 fontWeight: 600,
-                color: "#f59e0b",
+                color: "var(--ella-warning)",
                 fontSize: "0.85rem",
               }}
             >
@@ -2130,7 +2145,11 @@ const Chat: React.FC = () => {
               {t("chat.confirm_title")}
             </div>
             <div
-              style={{ color: "#e2e8f0", fontSize: "0.82rem", lineHeight: 1.5 }}
+              style={{
+                color: "var(--ella-text)",
+                fontSize: "0.82rem",
+                lineHeight: 1.5,
+              }}
             >
               {confirmationCard.message}
             </div>
@@ -2170,7 +2189,7 @@ const Chat: React.FC = () => {
                   }
                 }}
                 style={{
-                  background: "#ef4444",
+                  background: "var(--ella-danger-strong)",
                   color: "#fff",
                   border: "none",
                   borderRadius: 6,
@@ -2188,7 +2207,7 @@ const Chat: React.FC = () => {
                 onClick={() => setConfirmationCard(null)}
                 style={{
                   background: "transparent",
-                  color: "#94a3b8",
+                  color: "var(--ella-text-muted)",
                   border: "1px solid #334155",
                   borderRadius: 6,
                   padding: "6px 16px",
@@ -2217,9 +2236,11 @@ const Chat: React.FC = () => {
               flex: 1,
               padding: "10px 14px",
               borderRadius: 6,
-              border: micActive ? "1px solid #7c6af7" : "1px solid #2d3148",
-              background: "#1a1d27",
-              color: "#e2e8f0",
+              border: micActive
+                ? "1px solid var(--ella-accent)"
+                : "1px solid var(--ella-border)",
+              background: "var(--ella-surface)",
+              color: "var(--ella-text)",
               fontSize: "0.9rem",
               outline: "none",
               opacity: loading ? 0.6 : 1,
@@ -2237,9 +2258,11 @@ const Chat: React.FC = () => {
                 padding: "10px 14px",
                 borderRadius: 6,
                 minWidth: 42,
-                background: micActive ? "#7c6af7" : "#1a1d27",
-                border: micActive ? "none" : "1px solid #2d3148",
-                color: micActive ? "#fff" : "#64748b",
+                background: micActive
+                  ? "var(--ella-accent)"
+                  : "var(--ella-surface)",
+                border: micActive ? "none" : "1px solid var(--ella-border)",
+                color: micActive ? "#fff" : "var(--ella-text-dim)",
                 cursor: "pointer",
                 fontSize: "1rem",
                 lineHeight: 1,
@@ -2256,7 +2279,8 @@ const Chat: React.FC = () => {
             style={{
               padding: "10px 20px",
               borderRadius: 6,
-              background: loading || !input.trim() ? "#4a4670" : "#7c6af7",
+              background:
+                loading || !input.trim() ? "#4a4670" : "var(--ella-accent)",
               color: "#fff",
               border: "none",
               cursor: loading || !input.trim() ? "not-allowed" : "pointer",

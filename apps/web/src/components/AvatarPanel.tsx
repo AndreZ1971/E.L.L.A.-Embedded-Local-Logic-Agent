@@ -57,9 +57,9 @@ const INFO_LINES: Record<OrbMode, string[]> = {
 };
 
 const DOT_COLOR: Record<OrbMode, string> = {
-  idle: "#7c6af7",
+  idle: "var(--ella-accent)",
   thinking: "#9333ea",
-  speaking: "#a78bfa",
+  speaking: "var(--ella-accent-soft)",
 };
 
 const DOT_DURATION: Record<OrbMode, string> = {
@@ -280,17 +280,17 @@ const AvatarPanel: React.FC<Props> = ({
   const chipBase: React.CSSProperties = {
     padding: "2px 7px",
     background: "rgba(255,255,255,0.04)",
-    border: "1px solid #2d3148",
+    border: "1px solid var(--ella-border)",
     borderRadius: 20,
     fontSize: "0.68rem",
-    color: "#64748b",
+    color: "var(--ella-text-dim)",
     whiteSpace: "nowrap",
   };
 
   const chipGreen: React.CSSProperties = {
     ...chipBase,
     borderColor: "rgba(34,197,94,0.3)",
-    color: "#22c55e",
+    color: "var(--ella-success-strong)",
     background: "rgba(34,197,94,0.08)",
   };
 
@@ -299,8 +299,8 @@ const AvatarPanel: React.FC<Props> = ({
       style={{
         width: 210,
         flexShrink: 0,
-        background: "#1a1d27",
-        border: "1px solid #2d3148",
+        background: "var(--ella-surface)",
+        border: "1px solid var(--ella-border)",
         borderRadius: 10,
         display: "flex",
         flexDirection: "column",
@@ -321,7 +321,7 @@ const AvatarPanel: React.FC<Props> = ({
           fontFamily: "monospace",
           fontSize: "0.875rem",
           fontWeight: 600,
-          color: "#e2e8f0",
+          color: "var(--ella-text)",
           letterSpacing: "0.1em",
           marginTop: 4,
           flexShrink: 0,
@@ -335,7 +335,7 @@ const AvatarPanel: React.FC<Props> = ({
         style={{
           width: "80%",
           height: 1,
-          background: "#2d3148",
+          background: "var(--ella-border)",
           margin: "12px 0 0",
           flexShrink: 0,
         }}
@@ -365,7 +365,11 @@ const AvatarPanel: React.FC<Props> = ({
             }}
           />
           <span
-            style={{ fontSize: "0.78rem", fontWeight: 500, color: "#e2e8f0" }}
+            style={{
+              fontSize: "0.78rem",
+              fontWeight: 500,
+              color: "var(--ella-text)",
+            }}
           >
             {STATE_LABEL[mode]}
           </span>
@@ -375,7 +379,7 @@ const AvatarPanel: React.FC<Props> = ({
         <div
           style={{
             fontSize: "0.75rem",
-            color: "#64748b",
+            color: "var(--ella-text-dim)",
             lineHeight: 1.4,
             minHeight: 14,
           }}

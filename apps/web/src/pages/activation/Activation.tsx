@@ -176,7 +176,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   error: {
     margin: 0,
-    color: "#f87171",
+    color: "var(--ella-danger)",
     fontSize: "0.85rem",
   },
   btn: {

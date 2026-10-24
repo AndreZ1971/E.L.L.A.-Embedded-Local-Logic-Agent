@@ -141,7 +141,9 @@ export default function Setup() {
               <div
                 style={{
                   ...styles.logLine,
-                  color: pullSuccess ? "#4ade80" : "#f87171",
+                  color: pullSuccess
+                    ? "var(--ella-success)"
+                    : "var(--ella-danger)",
                   fontWeight: 600,
                 }}
               >
@@ -169,11 +171,16 @@ function StatusRow({ label, ok }: { label: string; ok: boolean }) {
       <span
         style={{
           ...rowStyles.dot,
-          background: ok ? "#4ade80" : "#f87171",
+          background: ok ? "var(--ella-success)" : "var(--ella-danger)",
         }}
       />
       <span style={rowStyles.label}>{label}</span>
-      <span style={{ ...rowStyles.badge, color: ok ? "#4ade80" : "#f87171" }}>
+      <span
+        style={{
+          ...rowStyles.badge,
+          color: ok ? "var(--ella-success)" : "var(--ella-danger)",
+        }}
+      >
         {ok ? "OK" : "Nicht gefunden"}
       </span>
     </div>
@@ -186,7 +193,7 @@ const rowStyles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     gap: "0.75rem",
     padding: "0.6rem 0",
-    borderBottom: "1px solid var(--border, #2a2a35)",
+    borderBottom: "1px solid var(--ella-border)",
   },
   dot: {
     width: 10,
@@ -196,7 +203,7 @@ const rowStyles: Record<string, React.CSSProperties> = {
   },
   label: {
     flex: 1,
-    color: "var(--text, #e2e2e8)",
+    color: "var(--ella-text)",
     fontSize: "0.9rem",
   },
   badge: {
@@ -211,13 +218,13 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "var(--bg, #0f0f13)",
+    background: "var(--ella-bg)",
     padding: "2rem",
   },
   card: {
     maxWidth: 540,
     width: "100%",
-    background: "var(--surface, #1a1a22)",
+    background: "var(--ella-surface)",
     borderRadius: 16,
     padding: "2.5rem",
     boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
@@ -225,16 +232,16 @@ const styles: Record<string, React.CSSProperties> = {
   title: {
     margin: "0 0 0.5rem",
     fontSize: "1.6rem",
-    color: "var(--accent, #7c3aed)",
+    color: "var(--ella-accent)",
     fontWeight: 700,
   },
   subtitle: {
     margin: "0 0 1.5rem",
-    color: "var(--text-muted, #888)",
+    color: "var(--ella-text-muted)",
     fontSize: "0.9rem",
   },
   checking: {
-    color: "var(--text-muted, #888)",
+    color: "var(--ella-text-muted)",
     fontStyle: "italic",
     margin: "1rem 0",
   },
@@ -242,11 +249,11 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: "1.5rem",
   },
   hint: {
-    background: "var(--surface2, #22222e)",
+    background: "var(--ella-surface-2)",
     borderRadius: 8,
     padding: "1rem",
     marginBottom: "1rem",
-    color: "var(--text, #e2e2e8)",
+    color: "var(--ella-text)",
     fontSize: "0.875rem",
     lineHeight: 1.6,
   },

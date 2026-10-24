@@ -307,9 +307,9 @@ const ALL_TOOLS: { name: string; label: string }[] = [
 const input: React.CSSProperties = {
   padding: "8px 10px",
   borderRadius: 6,
-  border: "1px solid #2d3148",
-  background: "#0f1117",
-  color: "#e2e8f0",
+  border: "1px solid var(--ella-border)",
+  background: "var(--ella-bg)",
+  color: "var(--ella-text)",
   fontSize: "0.9rem",
 };
 
@@ -321,8 +321,8 @@ const Section: React.FC<{
   <div
     className={className}
     style={{
-      background: "#1a1d27",
-      border: "1px solid #2d3148",
+      background: "var(--ella-surface)",
+      border: "1px solid var(--ella-border)",
       borderRadius: 8,
       padding: "14px 18px",
     }}
@@ -330,7 +330,7 @@ const Section: React.FC<{
     <div
       style={{
         fontSize: "0.72rem",
-        color: "#64748b",
+        color: "var(--ella-text-dim)",
         textTransform: "uppercase",
         letterSpacing: "0.06em",
         marginBottom: 12,
@@ -826,7 +826,7 @@ const Settings: React.FC = () => {
 
   if (!settings) {
     return (
-      <div style={{ color: "#64748b", fontSize: "0.9rem" }}>
+      <div style={{ color: "var(--ella-text-dim)", fontSize: "0.9rem" }}>
         {t("settings.loading")}
       </div>
     );
@@ -882,8 +882,8 @@ const Settings: React.FC = () => {
             padding: "6px 14px",
             borderRadius: 6,
             background: "transparent",
-            border: "1px solid #7f1d1d",
-            color: resetDone ? "#4ade80" : "#f87171",
+            border: "1px solid var(--ella-danger-bg)",
+            color: resetDone ? "var(--ella-success)" : "var(--ella-danger)",
             cursor: resetting ? "not-allowed" : "pointer",
             fontSize: "0.8rem",
             fontWeight: 600,
@@ -902,7 +902,7 @@ const Settings: React.FC = () => {
         <div
           style={{
             background: "#2d1a1a",
-            border: "1px solid #7f1d1d",
+            border: "1px solid var(--ella-danger-bg)",
             borderRadius: 8,
             padding: "8px 14px",
             fontSize: "0.82rem",
@@ -923,7 +923,7 @@ const Settings: React.FC = () => {
         style={{
           display: "flex",
           gap: 4,
-          borderBottom: "1px solid #2d3148",
+          borderBottom: "1px solid var(--ella-border)",
           flexShrink: 0,
         }}
       >
@@ -947,8 +947,10 @@ const Settings: React.FC = () => {
               background: "transparent",
               border: "none",
               borderBottom:
-                tab === t ? "2px solid #7c6af7" : "2px solid transparent",
-              color: tab === t ? "#e2e8f0" : "#64748b",
+                tab === t
+                  ? "2px solid var(--ella-accent)"
+                  : "2px solid transparent",
+              color: tab === t ? "var(--ella-text)" : "var(--ella-text-dim)",
               cursor: "pointer",
               fontSize: "0.85rem",
               fontWeight: tab === t ? 600 : 400,
@@ -970,7 +972,7 @@ const Settings: React.FC = () => {
               <p
                 style={{
                   fontSize: "0.8rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   marginBottom: 12,
                 }}
               >
@@ -993,8 +995,8 @@ const Settings: React.FC = () => {
                         gap: 12,
                         padding: "10px 14px",
                         borderRadius: 8,
-                        border: `1px solid ${active ? "#7c6af7" : "#2d3148"}`,
-                        background: active ? "#1a1440" : "#0f1117",
+                        border: `1px solid ${active ? "var(--ella-accent)" : "var(--ella-border)"}`,
+                        background: active ? "#1a1440" : "var(--ella-bg)",
                         cursor: "pointer",
                       }}
                     >
@@ -1002,7 +1004,10 @@ const Settings: React.FC = () => {
                         type="radio"
                         readOnly
                         checked={active}
-                        style={{ accentColor: "#7c6af7", flexShrink: 0 }}
+                        style={{
+                          accentColor: "var(--ella-accent)",
+                          flexShrink: 0,
+                        }}
                       />
                       <div style={{ flex: 1 }}>
                         <div
@@ -1016,7 +1021,9 @@ const Settings: React.FC = () => {
                           <span
                             style={{
                               fontWeight: 600,
-                              color: active ? "#a78bfa" : "#e2e8f0",
+                              color: active
+                                ? "var(--ella-accent-soft)"
+                                : "var(--ella-text)",
                               fontSize: "0.9rem",
                             }}
                           >
@@ -1025,7 +1032,7 @@ const Settings: React.FC = () => {
                           <code
                             style={{
                               fontSize: "0.78rem",
-                              color: "#94a3b8",
+                              color: "var(--ella-text-muted)",
                               background: "#1e2130",
                               padding: "1px 6px",
                               borderRadius: 4,
@@ -1034,19 +1041,30 @@ const Settings: React.FC = () => {
                             {tier.model}
                           </code>
                           <span
-                            style={{ fontSize: "0.75rem", color: "#64748b" }}
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "var(--ella-text-dim)",
+                            }}
                           >
                             {tier.size}
                           </span>
                           {installed && (
                             <span
-                              style={{ fontSize: "0.72rem", color: "#4ade80" }}
+                              style={{
+                                fontSize: "0.72rem",
+                                color: "var(--ella-success)",
+                              }}
                             >
                               {t("settings.tier_installed")}
                             </span>
                           )}
                         </div>
-                        <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                        <div
+                          style={{
+                            fontSize: "0.78rem",
+                            color: "var(--ella-text-dim)",
+                          }}
+                        >
                           {tier.desc} &nbsp;·&nbsp; min. {tier.vram} VRAM
                         </div>
                         {tier.key === "small" && (
@@ -1054,7 +1072,7 @@ const Settings: React.FC = () => {
                             style={{
                               marginTop: 5,
                               fontSize: "0.72rem",
-                              color: "#7c6af7",
+                              color: "var(--ella-accent)",
                               lineHeight: 1.5,
                             }}
                           >
@@ -1081,8 +1099,8 @@ const Settings: React.FC = () => {
                     {pulling && pullProgress ? (
                       <div
                         style={{
-                          background: "#0f1117",
-                          border: "1px solid #2d3148",
+                          background: "var(--ella-bg)",
+                          border: "1px solid var(--ella-border)",
                           borderRadius: 8,
                           padding: "10px 14px",
                         }}
@@ -1090,7 +1108,7 @@ const Settings: React.FC = () => {
                         <div
                           style={{
                             fontSize: "0.82rem",
-                            color: "#a78bfa",
+                            color: "var(--ella-accent-soft)",
                             marginBottom: 6,
                           }}
                         >
@@ -1109,7 +1127,7 @@ const Settings: React.FC = () => {
                               height: "100%",
                               width: `${pullProgress.pct}%`,
                               background:
-                                "linear-gradient(90deg,#7c6af7,#a78bfa)",
+                                "linear-gradient(90deg, var(--ella-accent), var(--ella-accent-soft))",
                               borderRadius: 99,
                               transition: "width 0.4s ease",
                             }}
@@ -1146,7 +1164,7 @@ const Settings: React.FC = () => {
                   <div
                     style={{
                       fontSize: "0.78rem",
-                      color: "#64748b",
+                      color: "var(--ella-text-dim)",
                       marginBottom: 8,
                     }}
                   >
@@ -1164,9 +1182,11 @@ const Settings: React.FC = () => {
                           style={{
                             padding: "5px 12px",
                             borderRadius: 6,
-                            border: `1px solid ${active ? "#7c6af7" : "#2d3148"}`,
-                            background: active ? "#1a1440" : "#0f1117",
-                            color: active ? "#a78bfa" : "#94a3b8",
+                            border: `1px solid ${active ? "var(--ella-accent)" : "var(--ella-border)"}`,
+                            background: active ? "#1a1440" : "var(--ella-bg)",
+                            color: active
+                              ? "var(--ella-accent-soft)"
+                              : "var(--ella-text-muted)",
                             fontSize: "0.82rem",
                             cursor: "pointer",
                             fontFamily: "monospace",
@@ -1184,7 +1204,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.78rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   marginBottom: 6,
                 }}
               >
@@ -1217,7 +1237,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.72rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   marginTop: 6,
                   lineHeight: 1.5,
                 }}
@@ -1232,7 +1252,10 @@ const Settings: React.FC = () => {
                   key={p}
                   style={{
                     ...rowLabel,
-                    color: settings.provider === p ? "#e2e8f0" : "#94a3b8",
+                    color:
+                      settings.provider === p
+                        ? "var(--ella-text)"
+                        : "var(--ella-text-muted)",
                   }}
                 >
                   <input
@@ -1241,7 +1264,7 @@ const Settings: React.FC = () => {
                     value={p}
                     checked={settings.provider === p}
                     onChange={() => patch({ provider: p })}
-                    style={{ accentColor: "#7c6af7" }}
+                    style={{ accentColor: "var(--ella-accent)" }}
                   />
                   {p === "auto" && t("settings.provider_auto")}
                   {p === "openai" && t("settings.provider_openai")}
@@ -1273,7 +1296,7 @@ const Settings: React.FC = () => {
               <p
                 style={{
                   fontSize: "0.78rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   marginBottom: 8,
                 }}
               >
@@ -1310,7 +1333,11 @@ const Settings: React.FC = () => {
                 style={{ ...input, width: "100%" }}
               />
               <div
-                style={{ fontSize: "0.78rem", color: "#64748b", marginTop: 6 }}
+                style={{
+                  fontSize: "0.78rem",
+                  color: "var(--ella-text-dim)",
+                  marginTop: 6,
+                }}
               >
                 {t("settings.openai_key_hint")}
               </div>
@@ -1323,8 +1350,8 @@ const Settings: React.FC = () => {
                     fontSize: "0.78rem",
                     borderRadius: 4,
                     background: "transparent",
-                    border: "1px solid #7f1d1d",
-                    color: "#f87171",
+                    border: "1px solid var(--ella-danger-bg)",
+                    color: "var(--ella-danger)",
                     cursor: "pointer",
                   }}
                 >
@@ -1339,10 +1366,18 @@ const Settings: React.FC = () => {
                   type="checkbox"
                   checked={settings.ttsEnabled ?? false}
                   onChange={(e) => patch({ ttsEnabled: e.target.checked })}
-                  style={{ accentColor: "#7c6af7", width: 15, height: 15 }}
+                  style={{
+                    accentColor: "var(--ella-accent)",
+                    width: 15,
+                    height: 15,
+                  }}
                 />
                 <span
-                  style={{ color: settings.ttsEnabled ? "#e2e8f0" : "#94a3b8" }}
+                  style={{
+                    color: settings.ttsEnabled
+                      ? "var(--ella-text)"
+                      : "var(--ella-text-muted)",
+                  }}
                 >
                   {settings.ttsEnabled
                     ? t("settings.tts_enabled")
@@ -1353,7 +1388,7 @@ const Settings: React.FC = () => {
                 <div
                   style={{
                     fontSize: "0.8rem",
-                    color: "#64748b",
+                    color: "var(--ella-text-dim)",
                     marginBottom: 6,
                   }}
                 >
@@ -1398,8 +1433,8 @@ const Settings: React.FC = () => {
                     style={{
                       ...rowLabel,
                       color: (settings.enabledTools ?? []).includes(tool.name)
-                        ? "#e2e8f0"
-                        : "#94a3b8",
+                        ? "var(--ella-text)"
+                        : "var(--ella-text-muted)",
                     }}
                   >
                     <input
@@ -1408,10 +1443,19 @@ const Settings: React.FC = () => {
                         tool.name,
                       )}
                       onChange={() => toggleTool(tool.name)}
-                      style={{ accentColor: "#7c6af7", width: 15, height: 15 }}
+                      style={{
+                        accentColor: "var(--ella-accent)",
+                        width: 15,
+                        height: 15,
+                      }}
                     />
                     {toolLabel(tool.name, tool.label)}
-                    <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                    <span
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--ella-text-dim)",
+                      }}
+                    >
                       ({tool.name})
                     </span>
                   </label>
@@ -1431,7 +1475,9 @@ const Settings: React.FC = () => {
                   }
                   style={{ ...input, width: 80 }}
                 />
-                <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                <span
+                  style={{ fontSize: "0.85rem", color: "var(--ella-text-dim)" }}
+                >
                   {t("settings.session_limit_hint")}
                 </span>
               </div>
@@ -1445,7 +1491,10 @@ const Settings: React.FC = () => {
                   key={m}
                   style={{
                     ...rowLabel,
-                    color: settings.voiceMode === m ? "#e2e8f0" : "#94a3b8",
+                    color:
+                      settings.voiceMode === m
+                        ? "var(--ella-text)"
+                        : "var(--ella-text-muted)",
                   }}
                 >
                   <input
@@ -1455,7 +1504,10 @@ const Settings: React.FC = () => {
                     checked={settings.voiceMode === m}
                     onChange={() => patch({ voiceMode: m })}
                     style={{
-                      accentColor: m === "dictation" ? "#f59e0b" : "#7c6af7",
+                      accentColor:
+                        m === "dictation"
+                          ? "var(--ella-warning)"
+                          : "var(--ella-accent)",
                     }}
                   />
                   {m === "off" && t("settings.voice_off")}
@@ -1469,7 +1521,7 @@ const Settings: React.FC = () => {
                 <div
                   style={{
                     fontSize: "0.78rem",
-                    color: "#64748b",
+                    color: "var(--ella-text-dim)",
                     marginTop: 2,
                   }}
                 >
@@ -1491,8 +1543,8 @@ const Settings: React.FC = () => {
                     <span
                       style={{
                         color: settings.dictationCorrection
-                          ? "#f59e0b"
-                          : "#94a3b8",
+                          ? "var(--ella-warning)"
+                          : "var(--ella-text-muted)",
                         fontSize: "0.85rem",
                       }}
                     >
@@ -1502,7 +1554,7 @@ const Settings: React.FC = () => {
                   <div
                     style={{
                       fontSize: "0.78rem",
-                      color: "#64748b",
+                      color: "var(--ella-text-dim)",
                       marginTop: 2,
                     }}
                   >
@@ -1517,7 +1569,12 @@ const Settings: React.FC = () => {
                       marginTop: 8,
                     }}
                   >
-                    <span style={{ fontSize: "0.85rem", color: "#94a3b8" }}>
+                    <span
+                      style={{
+                        fontSize: "0.85rem",
+                        color: "var(--ella-text-muted)",
+                      }}
+                    >
                       Hotkey:
                     </span>
                     <input
@@ -1539,7 +1596,7 @@ const Settings: React.FC = () => {
                         background: "#1e293b",
                         border: "1px solid #334155",
                         borderRadius: 4,
-                        color: "#e2e8f0",
+                        color: "var(--ella-text)",
                         padding: "2px 8px",
                         fontSize: "0.82rem",
                         width: 240,
@@ -1549,7 +1606,7 @@ const Settings: React.FC = () => {
                   <div
                     style={{
                       fontSize: "0.72rem",
-                      color: "#475569",
+                      color: "var(--ella-border-strong)",
                       marginTop: 2,
                     }}
                   >
@@ -1571,8 +1628,8 @@ const Settings: React.FC = () => {
                 <span
                   style={{
                     color: settings.stressDetectionEnabled
-                      ? "#e2e8f0"
-                      : "#94a3b8",
+                      ? "var(--ella-text)"
+                      : "var(--ella-text-muted)",
                   }}
                 >
                   {t("settings.stress_enable")}
@@ -1581,7 +1638,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.78rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   marginTop: 4,
                 }}
               >
@@ -1600,7 +1657,9 @@ const Settings: React.FC = () => {
                 />
                 <span
                   style={{
-                    color: settings.selfLearningEnabled ? "#e2e8f0" : "#94a3b8",
+                    color: settings.selfLearningEnabled
+                      ? "var(--ella-text)"
+                      : "var(--ella-text-muted)",
                   }}
                 >
                   Aus Feedback lernen
@@ -1609,7 +1668,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.78rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   marginTop: 4,
                 }}
               >
@@ -1628,7 +1687,9 @@ const Settings: React.FC = () => {
                 />
                 <span
                   style={{
-                    color: settings.offlineMode ? "#f59e0b" : "#94a3b8",
+                    color: settings.offlineMode
+                      ? "var(--ella-warning)"
+                      : "var(--ella-text-muted)",
                   }}
                 >
                   Offline-Modus aktivieren
@@ -1637,7 +1698,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.78rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   marginTop: 4,
                 }}
               >
@@ -1650,7 +1711,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.82rem",
-                  color: "#94a3b8",
+                  color: "var(--ella-text-muted)",
                   marginBottom: 10,
                 }}
               >
@@ -1677,7 +1738,7 @@ const Settings: React.FC = () => {
                       flex: 1,
                       fontFamily: "monospace",
                       fontSize: "0.82rem",
-                      color: "#c4b5fd",
+                      color: "var(--ella-accent-muted)",
                       wordBreak: "break-all",
                     }}
                   >
@@ -1688,7 +1749,7 @@ const Settings: React.FC = () => {
                       padding: "3px 8px",
                       background: "transparent",
                       border: "1px solid rgba(239,68,68,0.4)",
-                      color: "#f87171",
+                      color: "var(--ella-danger)",
                       borderRadius: 4,
                       cursor: "pointer",
                       fontSize: "0.75rem",
@@ -1750,7 +1811,7 @@ const Settings: React.FC = () => {
                       padding: "5px 12px",
                       background: "#4c1d95",
                       border: "1px solid #7c3aed",
-                      color: "#c4b5fd",
+                      color: "var(--ella-accent-muted)",
                       borderRadius: 5,
                       cursor: "pointer",
                       fontSize: "0.82rem",
@@ -1776,7 +1837,7 @@ const Settings: React.FC = () => {
                       padding: "5px 10px",
                       background: "transparent",
                       border: "1px solid #334155",
-                      color: "#64748b",
+                      color: "var(--ella-text-dim)",
                       borderRadius: 5,
                       cursor: "pointer",
                       fontSize: "0.82rem",
@@ -1795,7 +1856,7 @@ const Settings: React.FC = () => {
                   padding: "8px 16px",
                   background: "linear-gradient(135deg,#4c1d95,#2d1e2f)",
                   border: "1px solid #7c3aed",
-                  color: "#c4b5fd",
+                  color: "var(--ella-accent-muted)",
                   borderRadius: 6,
                   cursor: "pointer",
                   fontSize: "0.85rem",
@@ -1832,7 +1893,11 @@ const Settings: React.FC = () => {
                 📂 Ordner auswählen
               </button>
               <div
-                style={{ fontSize: "0.76rem", color: "#475569", marginTop: 8 }}
+                style={{
+                  fontSize: "0.76rem",
+                  color: "var(--ella-border-strong)",
+                  marginTop: 8,
+                }}
               >
                 Nach dem Hinzufügen ELLA bitten: „Bitte indiziere meinen
                 Dokumente-Ordner" — danach kennt sie alle Dateien darin.
@@ -1870,7 +1935,7 @@ const Settings: React.FC = () => {
                   <div
                     style={{
                       fontSize: "0.8rem",
-                      color: "#475569",
+                      color: "var(--ella-border-strong)",
                       padding: "8px 4px",
                     }}
                   >
@@ -1886,12 +1951,17 @@ const Settings: React.FC = () => {
                       padding: "8px 12px",
                       borderRadius: 6,
                       background:
-                        selectedSetupId === s.id ? "#2d3148" : "transparent",
+                        selectedSetupId === s.id
+                          ? "var(--ella-surface-2)"
+                          : "transparent",
                       border:
                         selectedSetupId === s.id
-                          ? "1px solid #7c6af7"
-                          : "1px solid #2d3148",
-                      color: selectedSetupId === s.id ? "#e2e8f0" : "#94a3b8",
+                          ? "1px solid var(--ella-accent)"
+                          : "1px solid var(--ella-border)",
+                      color:
+                        selectedSetupId === s.id
+                          ? "var(--ella-text)"
+                          : "var(--ella-text-muted)",
                       cursor: "pointer",
                       fontSize: "0.875rem",
                       whiteSpace: "nowrap",
@@ -1903,7 +1973,7 @@ const Settings: React.FC = () => {
                     <span
                       style={{
                         fontSize: "0.72rem",
-                        color: "#475569",
+                        color: "var(--ella-border-strong)",
                         marginLeft: 6,
                       }}
                     >
@@ -1917,9 +1987,9 @@ const Settings: React.FC = () => {
                 style={{
                   padding: "7px 12px",
                   borderRadius: 6,
-                  border: "1px dashed #2d3148",
+                  border: "1px dashed var(--ella-border)",
                   background: "transparent",
-                  color: "#7c6af7",
+                  color: "var(--ella-accent)",
                   cursor: "pointer",
                   fontSize: "0.85rem",
                 }}
@@ -1938,7 +2008,7 @@ const Settings: React.FC = () => {
                   return (
                     <div
                       style={{
-                        color: "#475569",
+                        color: "var(--ella-border-strong)",
                         fontSize: "0.85rem",
                         paddingTop: 8,
                       }}
@@ -1972,9 +2042,11 @@ const Settings: React.FC = () => {
                           padding: "8px 12px",
                           borderRadius: 6,
                           background: "transparent",
-                          border: "1px solid #22c55e",
+                          border: "1px solid var(--ella-success-strong)",
                           color:
-                            runningSetupId === setup.id ? "#475569" : "#22c55e",
+                            runningSetupId === setup.id
+                              ? "var(--ella-border-strong)"
+                              : "var(--ella-success-strong)",
                           cursor:
                             runningSetupId === setup.id
                               ? "not-allowed"
@@ -1991,8 +2063,8 @@ const Settings: React.FC = () => {
                           padding: "8px 12px",
                           borderRadius: 6,
                           background: "transparent",
-                          border: "1px solid #7f1d1d",
-                          color: "#f87171",
+                          border: "1px solid var(--ella-danger-bg)",
+                          color: "var(--ella-danger)",
                           cursor: "pointer",
                           fontSize: "0.8rem",
                         }}
@@ -2019,14 +2091,14 @@ const Settings: React.FC = () => {
                               (a) => a.allowed,
                             ),
                             emptyHint: t("settings.programmes_allow_first"),
-                            color: "#7c6af7",
+                            color: "var(--ella-accent)",
                           },
                           {
                             key: "close" as const,
                             label: t("common.close"),
                             apps: settings.apps ?? [],
                             emptyHint: t("settings.programmes_no_apps"),
-                            color: "#f87171",
+                            color: "var(--ella-danger)",
                           },
                         ] as const
                       ).map(({ key, label, apps, emptyHint, color }) => (
@@ -2054,8 +2126,8 @@ const Settings: React.FC = () => {
                             style={{
                               flex: 1,
                               overflowY: "auto",
-                              background: "#1a1d27",
-                              border: "1px solid #2d3148",
+                              background: "var(--ella-surface)",
+                              border: "1px solid var(--ella-border)",
                               borderRadius: 8,
                             }}
                           >
@@ -2063,7 +2135,7 @@ const Settings: React.FC = () => {
                               <div
                                 style={{
                                   padding: 12,
-                                  color: "#475569",
+                                  color: "var(--ella-border-strong)",
                                   fontSize: "0.82rem",
                                 }}
                               >
@@ -2103,7 +2175,9 @@ const Settings: React.FC = () => {
                                   <span
                                     style={{
                                       fontSize: "0.85rem",
-                                      color: checked ? "#e2e8f0" : "#94a3b8",
+                                      color: checked
+                                        ? "var(--ella-text)"
+                                        : "var(--ella-text-muted)",
                                       overflow: "hidden",
                                       textOverflow: "ellipsis",
                                       whiteSpace: "nowrap",
@@ -2124,7 +2198,7 @@ const Settings: React.FC = () => {
                       <div
                         style={{
                           fontSize: "0.72rem",
-                          color: "#f59e0b",
+                          color: "var(--ella-warning)",
                           textTransform: "uppercase",
                           letterSpacing: "0.06em",
                           marginBottom: 6,
@@ -2137,8 +2211,8 @@ const Settings: React.FC = () => {
                       {(setup.actions ?? []).length > 0 && (
                         <div
                           style={{
-                            background: "#1a1d27",
-                            border: "1px solid #2d3148",
+                            background: "var(--ella-surface)",
+                            border: "1px solid var(--ella-border)",
                             borderRadius: 8,
                             marginBottom: 8,
                           }}
@@ -2160,7 +2234,7 @@ const Settings: React.FC = () => {
                               <span
                                 style={{
                                   fontSize: "0.72rem",
-                                  color: "#64748b",
+                                  color: "var(--ella-text-dim)",
                                   flexShrink: 0,
                                 }}
                               >
@@ -2169,7 +2243,7 @@ const Settings: React.FC = () => {
                               <span
                                 style={{
                                   fontSize: "0.85rem",
-                                  color: "#e2e8f0",
+                                  color: "var(--ella-text)",
                                   flex: 1,
                                 }}
                               >
@@ -2178,7 +2252,7 @@ const Settings: React.FC = () => {
                               <span
                                 style={{
                                   fontSize: "0.75rem",
-                                  color: "#475569",
+                                  color: "var(--ella-border-strong)",
                                   fontFamily: "monospace",
                                 }}
                               >
@@ -2192,7 +2266,7 @@ const Settings: React.FC = () => {
                                 style={{
                                   background: "transparent",
                                   border: "none",
-                                  color: "#f87171",
+                                  color: "var(--ella-danger)",
                                   cursor: "pointer",
                                   fontSize: "0.8rem",
                                   padding: "2px 6px",
@@ -2208,8 +2282,8 @@ const Settings: React.FC = () => {
                       {/* neue Aktion hinzufügen */}
                       <div
                         style={{
-                          background: "#1a1d27",
-                          border: "1px solid #2d3148",
+                          background: "var(--ella-surface)",
+                          border: "1px solid var(--ella-border)",
                           borderRadius: 8,
                           padding: "10px 12px",
                           display: "flex",
@@ -2233,10 +2307,10 @@ const Settings: React.FC = () => {
                               setNewActionLabel(tpl?.label ?? "");
                             }}
                             style={{
-                              background: "#0f1117",
-                              border: "1px solid #2d3148",
+                              background: "var(--ella-bg)",
+                              border: "1px solid var(--ella-border)",
                               borderRadius: 6,
-                              color: "#e2e8f0",
+                              color: "var(--ella-text)",
                               padding: "6px 8px",
                               fontSize: "0.82rem",
                               flex: 1,
@@ -2254,10 +2328,10 @@ const Settings: React.FC = () => {
                             onChange={(e) => setNewActionLabel(e.target.value)}
                             placeholder="Bezeichnung (optional)"
                             style={{
-                              background: "#0f1117",
-                              border: "1px solid #2d3148",
+                              background: "var(--ella-bg)",
+                              border: "1px solid var(--ella-border)",
                               borderRadius: 6,
-                              color: "#e2e8f0",
+                              color: "var(--ella-text)",
                               padding: "6px 8px",
                               fontSize: "0.82rem",
                               flex: 1,
@@ -2294,7 +2368,7 @@ const Settings: React.FC = () => {
                                   <label
                                     style={{
                                       fontSize: "0.72rem",
-                                      color: "#64748b",
+                                      color: "var(--ella-text-dim)",
                                     }}
                                   >
                                     {field.label}
@@ -2318,10 +2392,10 @@ const Settings: React.FC = () => {
                                       }))
                                     }
                                     style={{
-                                      background: "#0f1117",
-                                      border: "1px solid #2d3148",
+                                      background: "var(--ella-bg)",
+                                      border: "1px solid var(--ella-border)",
                                       borderRadius: 6,
-                                      color: "#e2e8f0",
+                                      color: "var(--ella-text)",
                                       padding: "5px 8px",
                                       fontSize: "0.82rem",
                                     }}
@@ -2341,7 +2415,10 @@ const Settings: React.FC = () => {
                           }}
                         >
                           <label
-                            style={{ fontSize: "0.72rem", color: "#64748b" }}
+                            style={{
+                              fontSize: "0.72rem",
+                              color: "var(--ella-text-dim)",
+                            }}
                           >
                             Verzögerung (ms)
                           </label>
@@ -2355,10 +2432,10 @@ const Settings: React.FC = () => {
                               setNewActionDelay(Number(e.target.value))
                             }
                             style={{
-                              background: "#0f1117",
-                              border: "1px solid #2d3148",
+                              background: "var(--ella-bg)",
+                              border: "1px solid var(--ella-border)",
                               borderRadius: 6,
-                              color: "#e2e8f0",
+                              color: "var(--ella-text)",
                               padding: "5px 8px",
                               fontSize: "0.82rem",
                               width: 90,
@@ -2392,8 +2469,8 @@ const Settings: React.FC = () => {
                             padding: "6px 14px",
                             borderRadius: 6,
                             background: "transparent",
-                            border: "1px solid #f59e0b",
-                            color: "#f59e0b",
+                            border: "1px solid var(--ella-warning)",
+                            color: "var(--ella-warning)",
                             cursor: "pointer",
                             fontSize: "0.82rem",
                             alignSelf: "flex-start",
@@ -2419,8 +2496,8 @@ const Settings: React.FC = () => {
                       </div>
                       <div
                         style={{
-                          background: "#1a1d27",
-                          border: "1px solid #2d3148",
+                          background: "var(--ella-surface)",
+                          border: "1px solid var(--ella-border)",
                           borderRadius: 8,
                           padding: "10px 14px",
                           display: "flex",
@@ -2456,7 +2533,10 @@ const Settings: React.FC = () => {
                             style={{ accentColor: "#38bdf8" }}
                           />
                           <span
-                            style={{ fontSize: "0.85rem", color: "#e2e8f0" }}
+                            style={{
+                              fontSize: "0.85rem",
+                              color: "var(--ella-text)",
+                            }}
                           >
                             {t("settings.setup_schedule_enable")}
                           </span>
@@ -2469,7 +2549,7 @@ const Settings: React.FC = () => {
                               <div
                                 style={{
                                   fontSize: "0.72rem",
-                                  color: "#64748b",
+                                  color: "var(--ella-text-dim)",
                                   marginBottom: 6,
                                 }}
                               >
@@ -2504,11 +2584,13 @@ const Settings: React.FC = () => {
                                       style={{
                                         padding: "4px 10px",
                                         borderRadius: 6,
-                                        border: `1px solid ${active ? "#38bdf8" : "#2d3148"}`,
+                                        border: `1px solid ${active ? "#38bdf8" : "var(--ella-border)"}`,
                                         background: active
                                           ? "#0c3346"
                                           : "transparent",
-                                        color: active ? "#38bdf8" : "#64748b",
+                                        color: active
+                                          ? "#38bdf8"
+                                          : "var(--ella-text-dim)",
                                         cursor: "pointer",
                                         fontSize: "0.78rem",
                                         fontWeight: active ? 600 : 400,
@@ -2525,7 +2607,7 @@ const Settings: React.FC = () => {
                               <div
                                 style={{
                                   fontSize: "0.72rem",
-                                  color: "#64748b",
+                                  color: "var(--ella-text-dim)",
                                   marginBottom: 6,
                                 }}
                               >
@@ -2590,7 +2672,9 @@ const Settings: React.FC = () => {
                 style={{
                   padding: "8px 16px",
                   borderRadius: 6,
-                  background: scanning ? "#2d3148" : "#7c6af7",
+                  background: scanning
+                    ? "var(--ella-surface-2)"
+                    : "var(--ella-accent)",
                   color: "#fff",
                   border: "none",
                   cursor: scanning ? "not-allowed" : "pointer",
@@ -2605,7 +2689,11 @@ const Settings: React.FC = () => {
             </div>
 
             <div
-              style={{ fontSize: "0.78rem", color: "#64748b", flexShrink: 0 }}
+              style={{
+                fontSize: "0.78rem",
+                color: "var(--ella-text-dim)",
+                flexShrink: 0,
+              }}
             >
               {t("settings.programmes_stats", {
                 known: (settings.apps ?? []).length,
@@ -2618,8 +2706,8 @@ const Settings: React.FC = () => {
               style={{
                 flex: 1,
                 overflowY: "auto",
-                background: "#1a1d27",
-                border: "1px solid #2d3148",
+                background: "var(--ella-surface)",
+                border: "1px solid var(--ella-border)",
                 borderRadius: 8,
               }}
             >
@@ -2627,7 +2715,7 @@ const Settings: React.FC = () => {
                 <div
                   style={{
                     padding: 20,
-                    color: "#64748b",
+                    color: "var(--ella-text-dim)",
                     fontSize: "0.85rem",
                     textAlign: "center",
                   }}
@@ -2659,7 +2747,7 @@ const Settings: React.FC = () => {
                       checked={a.allowed}
                       onChange={() => toggleApp(a.name)}
                       style={{
-                        accentColor: "#7c6af7",
+                        accentColor: "var(--ella-accent)",
                         width: 15,
                         height: 15,
                         flexShrink: 0,
@@ -2669,7 +2757,9 @@ const Settings: React.FC = () => {
                       style={{
                         flex: 1,
                         fontSize: "0.875rem",
-                        color: a.allowed ? "#e2e8f0" : "#64748b",
+                        color: a.allowed
+                          ? "var(--ella-text)"
+                          : "var(--ella-text-dim)",
                       }}
                     >
                       {a.name}
@@ -2686,7 +2776,7 @@ const Settings: React.FC = () => {
                     <span
                       style={{
                         fontSize: "0.72rem",
-                        color: "#475569",
+                        color: "var(--ella-border-strong)",
                         flexShrink: 0,
                       }}
                     >
@@ -2698,7 +2788,7 @@ const Settings: React.FC = () => {
                         flex: 1,
                         fontSize: "0.78rem",
                         padding: "3px 8px",
-                        color: "#94a3b8",
+                        color: "var(--ella-text-muted)",
                         background: "#0d0f18",
                       }}
                       placeholder="browser, mein-browser, ..."
@@ -2725,7 +2815,7 @@ const Settings: React.FC = () => {
             <div
               style={{
                 marginTop: 16,
-                borderTop: "1px solid #2d3148",
+                borderTop: "1px solid var(--ella-border)",
                 paddingTop: 16,
                 display: "flex",
                 flexDirection: "column",
@@ -2735,7 +2825,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.72rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                 }}
@@ -2758,7 +2848,9 @@ const Settings: React.FC = () => {
                   style={{
                     padding: "8px 14px",
                     borderRadius: 6,
-                    background: searching ? "#2d3148" : "#7c6af7",
+                    background: searching
+                      ? "var(--ella-surface-2)"
+                      : "var(--ella-accent)",
                     color: "#fff",
                     border: "none",
                     cursor: searching ? "not-allowed" : "pointer",
@@ -2776,8 +2868,8 @@ const Settings: React.FC = () => {
                     padding: "8px 14px",
                     borderRadius: 6,
                     background: "#1e2133",
-                    color: "#94a3b8",
-                    border: "1px solid #2d3148",
+                    color: "var(--ella-text-muted)",
+                    border: "1px solid var(--ella-border)",
                     cursor: "pointer",
                     fontSize: "0.85rem",
                     whiteSpace: "nowrap",
@@ -2799,8 +2891,8 @@ const Settings: React.FC = () => {
               {programSearchResults !== null && (
                 <div
                   style={{
-                    background: "#1a1d27",
-                    border: "1px solid #2d3148",
+                    background: "var(--ella-surface)",
+                    border: "1px solid var(--ella-border)",
                     borderRadius: 8,
                     overflow: "hidden",
                   }}
@@ -2809,7 +2901,7 @@ const Settings: React.FC = () => {
                     <div
                       style={{
                         padding: "12px 16px",
-                        color: "#64748b",
+                        color: "var(--ella-text-dim)",
                         fontSize: "0.85rem",
                       }}
                     >
@@ -2829,14 +2921,17 @@ const Settings: React.FC = () => {
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div
-                            style={{ fontSize: "0.875rem", color: "#e2e8f0" }}
+                            style={{
+                              fontSize: "0.875rem",
+                              color: "var(--ella-text)",
+                            }}
                           >
                             {r.name}
                           </div>
                           <div
                             style={{
                               fontSize: "0.72rem",
-                              color: "#64748b",
+                              color: "var(--ella-text-dim)",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
@@ -2852,7 +2947,7 @@ const Settings: React.FC = () => {
                             borderRadius: 5,
                             background: addedPrograms.has(r.command)
                               ? "#16a34a"
-                              : "#7c6af7",
+                              : "var(--ella-accent)",
                             color: "#fff",
                             border: "none",
                             cursor: "pointer",
@@ -2876,7 +2971,7 @@ const Settings: React.FC = () => {
             <div
               style={{
                 marginTop: 24,
-                borderTop: "1px solid #2d3148",
+                borderTop: "1px solid var(--ella-border)",
                 paddingTop: 20,
                 display: "flex",
                 flexDirection: "column",
@@ -2886,7 +2981,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.72rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                 }}
@@ -2895,7 +2990,12 @@ const Settings: React.FC = () => {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
+                <label
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "var(--ella-text-muted)",
+                  }}
+                >
                   {t("settings.search_drives_label")}
                 </label>
                 <input
@@ -2917,20 +3017,30 @@ const Settings: React.FC = () => {
                   placeholder={t("settings.search_drives_placeholder")}
                   style={{
                     background: "#1e2538",
-                    border: "1px solid #2d3148",
+                    border: "1px solid var(--ella-border)",
                     borderRadius: 6,
                     padding: "8px 12px",
-                    color: "#e2e8f0",
+                    color: "var(--ella-text)",
                     fontSize: "0.85rem",
                   }}
                 />
-                <div style={{ fontSize: "0.72rem", color: "#475569" }}>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    color: "var(--ella-border-strong)",
+                  }}
+                >
                   {t("settings.search_drives_hint")}
                 </div>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
+                <label
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "var(--ella-text-muted)",
+                  }}
+                >
                   {t("settings.music_library_label")}
                 </label>
                 <input
@@ -2939,17 +3049,22 @@ const Settings: React.FC = () => {
                   placeholder="H:\Music"
                   style={{
                     background: "#1e2538",
-                    border: "1px solid #2d3148",
+                    border: "1px solid var(--ella-border)",
                     borderRadius: 6,
                     padding: "8px 12px",
-                    color: "#e2e8f0",
+                    color: "var(--ella-text)",
                     fontSize: "0.85rem",
                   }}
                 />
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
+                <label
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "var(--ella-text-muted)",
+                  }}
+                >
                   {t("settings.music_paths_label")}
                 </label>
                 <textarea
@@ -2967,10 +3082,10 @@ const Settings: React.FC = () => {
                   rows={3}
                   style={{
                     background: "#1e2538",
-                    border: "1px solid #2d3148",
+                    border: "1px solid var(--ella-border)",
                     borderRadius: 6,
                     padding: "8px 12px",
-                    color: "#e2e8f0",
+                    color: "var(--ella-text)",
                     fontSize: "0.85rem",
                     resize: "vertical",
                     fontFamily: "inherit",
@@ -2979,7 +3094,12 @@ const Settings: React.FC = () => {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
+                <label
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "var(--ella-text-muted)",
+                  }}
+                >
                   {t("settings.section_media_player")}
                 </label>
                 <select
@@ -2989,10 +3109,10 @@ const Settings: React.FC = () => {
                   }
                   style={{
                     background: "#1e2538",
-                    border: "1px solid #2d3148",
+                    border: "1px solid var(--ella-border)",
                     borderRadius: 6,
                     padding: "8px 12px",
-                    color: "#e2e8f0",
+                    color: "var(--ella-text)",
                     fontSize: "0.85rem",
                   }}
                 >
@@ -3038,7 +3158,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.82rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   marginBottom: 10,
                 }}
               >
@@ -3077,7 +3197,9 @@ const Settings: React.FC = () => {
                     style={{
                       padding: "8px 18px",
                       borderRadius: 6,
-                      background: pinSaving ? "#2d3148" : "#7c6af7",
+                      background: pinSaving
+                        ? "var(--ella-surface-2)"
+                        : "var(--ella-accent)",
                       color: "#fff",
                       border: "none",
                       cursor: pinSaving ? "not-allowed" : "pointer",
@@ -3090,7 +3212,9 @@ const Settings: React.FC = () => {
                     <span
                       style={{
                         fontSize: "0.82rem",
-                        color: pinMsg.ok ? "#4ade80" : "#f87171",
+                        color: pinMsg.ok
+                          ? "var(--ella-success)"
+                          : "var(--ella-danger)",
                       }}
                     >
                       {pinMsg.ok ? "✓" : "✗"} {pinMsg.text}
@@ -3108,7 +3232,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.82rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                   marginBottom: 10,
                 }}
               >
@@ -3118,7 +3242,7 @@ const Settings: React.FC = () => {
                 {(settings.apps ?? []).length === 0 && (
                   <div
                     style={{
-                      color: "#475569",
+                      color: "var(--ella-border-strong)",
                       fontSize: "0.85rem",
                       padding: 8,
                     }}
@@ -3170,7 +3294,9 @@ const Settings: React.FC = () => {
                       <span
                         style={{
                           fontSize: "0.875rem",
-                          color: checked ? "#e2e8f0" : "#94a3b8",
+                          color: checked
+                            ? "var(--ella-text)"
+                            : "var(--ella-text-muted)",
                           flex: 1,
                         }}
                       >
@@ -3178,7 +3304,10 @@ const Settings: React.FC = () => {
                       </span>
                       {!a.allowed && (
                         <span
-                          style={{ fontSize: "0.72rem", color: "#475569" }}
+                          style={{
+                            fontSize: "0.72rem",
+                            color: "var(--ella-border-strong)",
+                          }}
                           title={t("settings.app_not_allowed_title")}
                         >
                           {t("settings.app_not_allowed")}
@@ -3224,13 +3353,20 @@ const Settings: React.FC = () => {
                     type="checkbox"
                     checked={(settings[key] as boolean) ?? false}
                     onChange={(e) => patch({ [key]: e.target.checked })}
-                    style={{ marginTop: 3, accentColor: "#7c6af7" }}
+                    style={{ marginTop: 3, accentColor: "var(--ella-accent)" }}
                   />
                   <div>
-                    <div style={{ fontSize: "0.85rem", color: "#e2e8f0" }}>
+                    <div
+                      style={{ fontSize: "0.85rem", color: "var(--ella-text)" }}
+                    >
                       {label}
                     </div>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--ella-text-dim)",
+                      }}
+                    >
                       {desc}
                     </div>
                   </div>
@@ -3241,7 +3377,7 @@ const Settings: React.FC = () => {
                 <label
                   style={{
                     fontSize: "0.82rem",
-                    color: "#94a3b8",
+                    color: "var(--ella-text-muted)",
                     display: "block",
                     marginBottom: 6,
                   }}
@@ -3271,7 +3407,7 @@ const Settings: React.FC = () => {
                 <label
                   style={{
                     fontSize: "0.82rem",
-                    color: "#94a3b8",
+                    color: "var(--ella-text-muted)",
                     display: "block",
                     marginBottom: 6,
                   }}
@@ -3301,7 +3437,7 @@ const Settings: React.FC = () => {
                 style={{
                   marginBottom: 6,
                   fontSize: "0.75rem",
-                  color: "#64748b",
+                  color: "var(--ella-text-dim)",
                 }}
               >
                 {t("settings.accessibility_desc")}
@@ -3341,13 +3477,20 @@ const Settings: React.FC = () => {
                     value={value}
                     checked={(settings.accessibilityMode ?? "none") === value}
                     onChange={() => patch({ accessibilityMode: value })}
-                    style={{ marginTop: 3, accentColor: "#7c6af7" }}
+                    style={{ marginTop: 3, accentColor: "var(--ella-accent)" }}
                   />
                   <div>
-                    <div style={{ fontSize: "0.85rem", color: "#e2e8f0" }}>
+                    <div
+                      style={{ fontSize: "0.85rem", color: "var(--ella-text)" }}
+                    >
                       {label}
                     </div>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--ella-text-dim)",
+                      }}
+                    >
                       {desc}
                     </div>
                   </div>
@@ -3408,7 +3551,10 @@ const Settings: React.FC = () => {
                     style={{
                       ...input,
                       width: 100,
-                      color: newRule.action === "allow" ? "#4ade80" : "#f87171",
+                      color:
+                        newRule.action === "allow"
+                          ? "var(--ella-success)"
+                          : "var(--ella-danger)",
                     }}
                   >
                     <option value="allow">allow</option>
@@ -3432,8 +3578,8 @@ const Settings: React.FC = () => {
                       borderRadius: 6,
                       background:
                         ruleSaving || !newRule.name.trim()
-                          ? "#2d3148"
-                          : "#7c6af7",
+                          ? "var(--ella-surface-2)"
+                          : "var(--ella-accent)",
                       color: "#fff",
                       border: "none",
                       cursor:
@@ -3455,8 +3601,8 @@ const Settings: React.FC = () => {
               style={{
                 flex: 1,
                 overflowY: "auto",
-                background: "#1a1d27",
-                border: "1px solid #2d3148",
+                background: "var(--ella-surface)",
+                border: "1px solid var(--ella-border)",
                 borderRadius: 8,
               }}
             >
@@ -3464,7 +3610,7 @@ const Settings: React.FC = () => {
                 <div
                   style={{
                     padding: 20,
-                    color: "#64748b",
+                    color: "var(--ella-text-dim)",
                     fontSize: "0.85rem",
                     textAlign: "center",
                   }}
@@ -3490,7 +3636,7 @@ const Settings: React.FC = () => {
                     checked={rule.enabled}
                     onChange={() => toggleRuleEnabled(rule.id)}
                     style={{
-                      accentColor: "#7c6af7",
+                      accentColor: "var(--ella-accent)",
                       width: 15,
                       height: 15,
                       flexShrink: 0,
@@ -3505,8 +3651,13 @@ const Settings: React.FC = () => {
                       padding: "2px 7px",
                       borderRadius: 4,
                       background:
-                        rule.action === "allow" ? "#14532d" : "#7f1d1d",
-                      color: rule.action === "allow" ? "#4ade80" : "#f87171",
+                        rule.action === "allow"
+                          ? "#14532d"
+                          : "var(--ella-danger-bg)",
+                      color:
+                        rule.action === "allow"
+                          ? "var(--ella-success)"
+                          : "var(--ella-danger)",
                       flexShrink: 0,
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
@@ -3519,7 +3670,7 @@ const Settings: React.FC = () => {
                     style={{
                       flex: 1,
                       fontSize: "0.875rem",
-                      color: "#e2e8f0",
+                      color: "var(--ella-text)",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -3533,7 +3684,7 @@ const Settings: React.FC = () => {
                   <span
                     style={{
                       fontSize: "0.75rem",
-                      color: "#64748b",
+                      color: "var(--ella-text-dim)",
                       fontFamily: "monospace",
                       flexShrink: 0,
                     }}
@@ -3547,8 +3698,8 @@ const Settings: React.FC = () => {
                       padding: "3px 8px",
                       borderRadius: 4,
                       background: "transparent",
-                      border: "1px solid #7f1d1d",
-                      color: "#f87171",
+                      border: "1px solid var(--ella-danger-bg)",
+                      color: "var(--ella-danger)",
                       cursor: "pointer",
                       fontSize: "0.75rem",
                       flexShrink: 0,
@@ -3567,12 +3718,16 @@ const Settings: React.FC = () => {
             className="settings-section--full"
             style={{ display: "flex", flexDirection: "column", gap: 20 }}
           >
-            <div style={{ color: "#94a3b8", fontSize: "0.8rem" }}>
+            <div
+              style={{ color: "var(--ella-text-muted)", fontSize: "0.8rem" }}
+            >
               {t("settings.google_hint")}
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+              <label
+                style={{ fontSize: "0.8rem", color: "var(--ella-text-muted)" }}
+              >
                 Client ID
               </label>
               <input
@@ -3582,17 +3737,19 @@ const Settings: React.FC = () => {
                 placeholder="xxx.apps.googleusercontent.com"
                 style={{
                   background: "#1e2538",
-                  border: "1px solid #2d3148",
+                  border: "1px solid var(--ella-border)",
                   borderRadius: 6,
                   padding: "8px 12px",
-                  color: "#e2e8f0",
+                  color: "var(--ella-text)",
                   fontSize: "0.85rem",
                 }}
               />
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+              <label
+                style={{ fontSize: "0.8rem", color: "var(--ella-text-muted)" }}
+              >
                 Client Secret
               </label>
               <input
@@ -3602,10 +3759,10 @@ const Settings: React.FC = () => {
                 placeholder="GOCSPX-…"
                 style={{
                   background: "#1e2538",
-                  border: "1px solid #2d3148",
+                  border: "1px solid var(--ella-border)",
                   borderRadius: 6,
                   padding: "8px 12px",
-                  color: "#e2e8f0",
+                  color: "var(--ella-text)",
                   fontSize: "0.85rem",
                 }}
               />
@@ -3615,7 +3772,7 @@ const Settings: React.FC = () => {
               <div
                 style={{
                   background: "#0f2a1a",
-                  border: "1px solid #22c55e",
+                  border: "1px solid var(--ella-success-strong)",
                   borderRadius: 8,
                   padding: "12px 16px",
                   display: "flex",
@@ -3624,7 +3781,12 @@ const Settings: React.FC = () => {
                   gap: 12,
                 }}
               >
-                <span style={{ color: "#22c55e", fontSize: "0.85rem" }}>
+                <span
+                  style={{
+                    color: "var(--ella-success-strong)",
+                    fontSize: "0.85rem",
+                  }}
+                >
                   {t("settings.google_connected", {
                     email: settings.googleUserEmail,
                   })}
@@ -3638,9 +3800,9 @@ const Settings: React.FC = () => {
                   }}
                   style={{
                     background: "transparent",
-                    border: "1px solid #ef4444",
+                    border: "1px solid var(--ella-danger-strong)",
                     borderRadius: 4,
-                    color: "#ef4444",
+                    color: "var(--ella-danger-strong)",
                     padding: "4px 12px",
                     cursor: "pointer",
                     fontSize: "0.8rem",
@@ -3664,8 +3826,8 @@ const Settings: React.FC = () => {
                 style={{
                   background:
                     settings.googleClientId && settings.googleClientSecret
-                      ? "#7c6af7"
-                      : "#2d3148",
+                      ? "var(--ella-accent)"
+                      : "var(--ella-surface-2)",
                   color: "#fff",
                   border: "none",
                   borderRadius: 6,
@@ -3705,8 +3867,8 @@ const Settings: React.FC = () => {
                       borderRadius: 8,
                       background: p.isActive ? "#1e1b3a" : "#12141e",
                       border: p.isActive
-                        ? "1px solid #7c6af7"
-                        : "1px solid #2d3148",
+                        ? "1px solid var(--ella-accent)"
+                        : "1px solid var(--ella-border)",
                     }}
                   >
                     <div
@@ -3722,7 +3884,7 @@ const Settings: React.FC = () => {
                       style={{
                         flex: 1,
                         fontSize: "0.9rem",
-                        color: "#e2e8f0",
+                        color: "var(--ella-text)",
                         fontWeight: p.isActive ? 600 : 400,
                       }}
                     >
@@ -3732,7 +3894,7 @@ const Settings: React.FC = () => {
                           style={{
                             marginLeft: 8,
                             fontSize: "0.75rem",
-                            color: "#7c6af7",
+                            color: "var(--ella-accent)",
                           }}
                         >
                           {t("settings.profile_active")}
@@ -3743,7 +3905,7 @@ const Settings: React.FC = () => {
                           style={{
                             marginLeft: 6,
                             fontSize: "0.75rem",
-                            color: "#64748b",
+                            color: "var(--ella-text-dim)",
                           }}
                         >
                           🔒
@@ -3810,7 +3972,7 @@ const Settings: React.FC = () => {
                           style={{
                             padding: "4px 12px",
                             borderRadius: 6,
-                            background: "#7c6af7",
+                            background: "var(--ella-accent)",
                             color: "#fff",
                             border: "none",
                             cursor: "pointer",
@@ -3861,8 +4023,8 @@ const Settings: React.FC = () => {
                               padding: "4px 10px",
                               borderRadius: 6,
                               background: "transparent",
-                              color: "#f87171",
-                              border: "1px solid #7f1d1d",
+                              color: "var(--ella-danger)",
+                              border: "1px solid var(--ella-danger-bg)",
                               cursor: "pointer",
                               fontSize: "0.82rem",
                             }}
@@ -3875,7 +4037,12 @@ const Settings: React.FC = () => {
                   </div>
                 ))}
                 {profiles.length === 0 && (
-                  <div style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                  <div
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "var(--ella-text-dim)",
+                    }}
+                  >
                     {t("settings.profile_none")}
                   </div>
                 )}
@@ -3902,7 +4069,7 @@ const Settings: React.FC = () => {
                     style={{
                       width: 40,
                       height: 36,
-                      border: "1px solid #2d3148",
+                      border: "1px solid var(--ella-border)",
                       borderRadius: 6,
                       background: "transparent",
                       cursor: "pointer",
@@ -3958,8 +4125,8 @@ const Settings: React.FC = () => {
                     borderRadius: 6,
                     background:
                       !newProfileName.trim() || profileLoading
-                        ? "#2d3148"
-                        : "#7c6af7",
+                        ? "var(--ella-surface-2)"
+                        : "var(--ella-accent)",
                     color: "#fff",
                     border: "none",
                     cursor:
@@ -3977,7 +4144,9 @@ const Settings: React.FC = () => {
                   <div
                     style={{
                       fontSize: "0.82rem",
-                      color: profileMsg.ok ? "#4ade80" : "#f87171",
+                      color: profileMsg.ok
+                        ? "var(--ella-success)"
+                        : "var(--ella-danger)",
                     }}
                   >
                     {profileMsg.text}
@@ -3995,7 +4164,7 @@ const Settings: React.FC = () => {
               <p
                 style={{
                   fontSize: "0.85rem",
-                  color: "#94a3b8",
+                  color: "var(--ella-text-muted)",
                   margin: "0 0 14px 0",
                   lineHeight: 1.5,
                 }}
@@ -4027,7 +4196,9 @@ const Settings: React.FC = () => {
                 style={{
                   padding: "9px 22px",
                   borderRadius: 6,
-                  background: backupExporting ? "#2d3148" : "#7c6af7",
+                  background: backupExporting
+                    ? "var(--ella-surface-2)"
+                    : "var(--ella-accent)",
                   color: "#fff",
                   border: "none",
                   cursor: backupExporting ? "not-allowed" : "pointer",
@@ -4043,7 +4214,7 @@ const Settings: React.FC = () => {
               <p
                 style={{
                   fontSize: "0.85rem",
-                  color: "#94a3b8",
+                  color: "var(--ella-text-muted)",
                   margin: "0 0 14px 0",
                   lineHeight: 1.5,
                 }}
@@ -4065,7 +4236,11 @@ const Settings: React.FC = () => {
                     type="file"
                     accept=".json"
                     onChange={(e) => setBackupFile(e.target.files?.[0] ?? null)}
-                    style={{ flex: 1, fontSize: "0.85rem", color: "#e2e8f0" }}
+                    style={{
+                      flex: 1,
+                      fontSize: "0.85rem",
+                      color: "var(--ella-text)",
+                    }}
                   />
                 </label>
 
@@ -4081,9 +4256,10 @@ const Settings: React.FC = () => {
                           backupMode === m ? "#1e1b3a" : "transparent",
                         border:
                           backupMode === m
-                            ? "1px solid #7c6af7"
-                            : "1px solid #2d3148",
-                        color: backupMode === m ? "#a5b4fc" : "#64748b",
+                            ? "1px solid var(--ella-accent)"
+                            : "1px solid var(--ella-border)",
+                        color:
+                          backupMode === m ? "#a5b4fc" : "var(--ella-text-dim)",
                         cursor: "pointer",
                         fontSize: "0.82rem",
                       }}
@@ -4100,7 +4276,7 @@ const Settings: React.FC = () => {
                 <p
                   style={{
                     fontSize: "0.78rem",
-                    color: "#475569",
+                    color: "var(--ella-border-strong)",
                     margin: 0,
                   }}
                 >
@@ -4164,7 +4340,9 @@ const Settings: React.FC = () => {
                     padding: "9px 22px",
                     borderRadius: 6,
                     background:
-                      !backupFile || backupImporting ? "#2d3148" : "#0f766e",
+                      !backupFile || backupImporting
+                        ? "var(--ella-surface-2)"
+                        : "#0f766e",
                     color: "#fff",
                     border: "none",
                     cursor:
@@ -4183,13 +4361,15 @@ const Settings: React.FC = () => {
                   <div
                     style={{
                       fontSize: "0.82rem",
-                      color: backupMsg.ok ? "#4ade80" : "#f87171",
+                      color: backupMsg.ok
+                        ? "var(--ella-success)"
+                        : "var(--ella-danger)",
                       padding: "8px 12px",
                       borderRadius: 6,
                       background: backupMsg.ok
                         ? "rgba(74,222,128,0.08)"
                         : "rgba(248,113,113,0.08)",
-                      border: `1px solid ${backupMsg.ok ? "#166534" : "#7f1d1d"}`,
+                      border: `1px solid ${backupMsg.ok ? "#166534" : "var(--ella-danger-bg)"}`,
                     }}
                   >
                     {backupMsg.text}
@@ -4207,7 +4387,7 @@ const Settings: React.FC = () => {
         style={{
           flexShrink: 0,
           paddingTop: 10,
-          borderTop: "1px solid #2d3148",
+          borderTop: "1px solid var(--ella-border)",
         }}
       >
         <button
@@ -4216,8 +4396,8 @@ const Settings: React.FC = () => {
           style={{
             padding: "10px 24px",
             borderRadius: 6,
-            background: saved ? "#4ade80" : "#7c6af7",
-            color: saved ? "#0f1117" : "#fff",
+            background: saved ? "var(--ella-success)" : "var(--ella-accent)",
+            color: saved ? "var(--ella-bg)" : "#fff",
             border: "none",
             cursor: saving ? "not-allowed" : "pointer",
             fontSize: "0.9rem",

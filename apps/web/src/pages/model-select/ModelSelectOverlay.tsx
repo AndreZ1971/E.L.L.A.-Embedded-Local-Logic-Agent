@@ -39,7 +39,7 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "#0f1117",
+        background: "var(--ella-bg)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -59,7 +59,7 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
         style={{
           maxWidth: 520,
           width: "100%",
-          background: "#1a1d27",
+          background: "var(--ella-surface)",
           borderRadius: 16,
           padding: "40px 36px",
           border: "1px solid #2a2d3e",
@@ -77,7 +77,7 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
               fontSize: "1rem",
               fontWeight: 800,
               letterSpacing: "0.15em",
-              color: "#7c6af7",
+              color: "var(--ella-accent)",
               fontFamily: "monospace",
               marginBottom: 12,
             }}
@@ -89,7 +89,7 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
               margin: 0,
               fontSize: "1.35rem",
               fontWeight: 700,
-              color: "#e2e8f0",
+              color: "var(--ella-text)",
               lineHeight: 1.3,
             }}
           >
@@ -99,7 +99,7 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
             style={{
               margin: "8px 0 0",
               fontSize: "0.875rem",
-              color: "#64748b",
+              color: "var(--ella-text-dim)",
               lineHeight: 1.6,
             }}
           >
@@ -121,8 +121,8 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
                   gap: 12,
                   padding: "12px 16px",
                   borderRadius: 10,
-                  border: `1px solid ${active ? "#7c6af7" : "#2d3148"}`,
-                  background: active ? "#1a1440" : "#0f1117",
+                  border: `1px solid ${active ? "var(--ella-accent)" : "var(--ella-border)"}`,
+                  background: active ? "#1a1440" : "var(--ella-bg)",
                   cursor: "pointer",
                   transition: "border-color 0.15s, background 0.15s",
                 }}
@@ -132,7 +132,7 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
                   readOnly
                   checked={active}
                   style={{
-                    accentColor: "#7c6af7",
+                    accentColor: "var(--ella-accent)",
                     flexShrink: 0,
                     marginTop: 3,
                   }}
@@ -151,7 +151,9 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
                     <span
                       style={{
                         fontWeight: 600,
-                        color: active ? "#a78bfa" : "#e2e8f0",
+                        color: active
+                          ? "var(--ella-accent-soft)"
+                          : "var(--ella-text)",
                         fontSize: "0.92rem",
                       }}
                     >
@@ -160,7 +162,7 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
                     <code
                       style={{
                         fontSize: "0.78rem",
-                        color: "#94a3b8",
+                        color: "var(--ella-text-muted)",
                         background: "#1e2130",
                         padding: "1px 7px",
                         borderRadius: 4,
@@ -168,13 +170,23 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
                     >
                       {tier.model}
                     </code>
-                    <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--ella-text-dim)",
+                      }}
+                    >
                       {tier.size}
                     </span>
                   </div>
 
                   {/* Description + VRAM */}
-                  <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "var(--ella-text-dim)",
+                    }}
+                  >
                     {tier.desc} &nbsp;·&nbsp; min. {tier.vram} VRAM
                   </div>
 
@@ -184,7 +196,7 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
                       style={{
                         marginTop: 6,
                         fontSize: "0.73rem",
-                        color: "#7c6af7",
+                        color: "var(--ella-accent)",
                         lineHeight: 1.5,
                       }}
                     >
@@ -204,7 +216,7 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
             width: "100%",
             padding: "13px",
             borderRadius: 8,
-            background: "#7c6af7",
+            background: "var(--ella-accent)",
             color: "#fff",
             border: "none",
             fontSize: "1rem",
@@ -228,7 +240,7 @@ export default function ModelSelectOverlay({ onChosen }: Props) {
             style={{
               margin: 0,
               fontSize: "0.75rem",
-              color: "#475569",
+              color: "var(--ella-border-strong)",
               textAlign: "center",
             }}
           >
