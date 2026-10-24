@@ -333,6 +333,14 @@ export function getSettings(): Settings {
   return current;
 }
 
-export function getActiveApiKey(envKey: string): string {
-  return current.openaiApiKey || envKey;
+export function getActiveApiKey(): string {
+  return current.openaiApiKey;
+}
+
+export function cloudAllowed(): boolean {
+  return current.provider !== "ollama" && Boolean(current.openaiApiKey);
+}
+
+export function cloudFirst(): boolean {
+  return current.provider === "openai" && cloudAllowed();
 }

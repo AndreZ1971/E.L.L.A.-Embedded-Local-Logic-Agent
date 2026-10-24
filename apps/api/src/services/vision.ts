@@ -5,6 +5,7 @@ import * as os from "os";
 import * as path from "path";
 import { getSettings } from "./settings.js";
 import { env } from "../config/env.js";
+import { openaiRequest, CloudBlockedError } from "./openai.js";
 
 const ACCESSIBILITY_SYSTEM = `Du bist ELLAs Sehvermögen – du hilfst Menschen mit Sehbehinderung.
 Beschreibe was du siehst klar und präzise in natürlicher gesprochener Sprache.
@@ -53,40 +54,35 @@ async function analyzeWithOpenAI(
   prompt: string,
   mimeType = "image/png",
 ): Promise<string> {
-  const apiKey = getSettings().openaiApiKey || env.openaiApiKey;
-  if (!apiKey) throw new Error("NO_KEY");
-
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: ACCESSIBILITY_SYSTEM,
-        },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: prompt },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:${mimeType};base64,${base64}`,
-                detail: "high",
+  const response = await openaiRequest(
+    "/v1/chat/completions",
+    {
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: ACCESSIBILITY_SYSTEM,
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:${mimeType};base64,${base64}`,
+                  detail: "high",
+                },
               },
-            },
-          ],
-        },
-      ],
-      max_tokens: 1200,
-    }),
-    signal: AbortSignal.timeout(30_000),
-  });
+            ],
+          },
+        ],
+        max_tokens: 1200,
+      }),
+    },
+    "vision",
+  );
 
   if (!response.ok)
     throw new Error(
@@ -151,21 +147,47 @@ async function analyzeWithLLaVA(
   return data.message?.content?.trim() ?? "Kein Ergebnis.";
 }
 
-// Core: routes to OpenAI Vision first, LLaVA as offline fallback
+// Core: routes based on provider setting — ollama | auto | openai
 export async function analyzeImage(
   base64: string,
   prompt: string,
   mimeType = "image/png",
 ): Promise<string> {
+  const { provider } = getSettings();
+
+  if (provider === "ollama") {
+    return analyzeWithLLaVA(base64, prompt);
+  }
+
+  if (provider === "openai") {
+    try {
+      return await analyzeWithOpenAI(base64, prompt, mimeType);
+    } catch (err) {
+      if (err instanceof CloudBlockedError) {
+        throw new Error(
+          "Bildanalyse lokal nicht verfügbar — bitte LLaVA-Modell installieren",
+        );
+      }
+      throw err;
+    }
+  }
+
+  // auto: LLaVA zuerst, OpenAI nur wenn LLaVA fehlt/fehlschlägt
+  try {
+    return await analyzeWithLLaVA(base64, prompt);
+  } catch {
+    // LLaVA nicht verfügbar — OpenAI versuchen
+  }
+
   try {
     return await analyzeWithOpenAI(base64, prompt, mimeType);
   } catch (err) {
-    if (err instanceof Error && err.message === "NO_KEY") {
-      // no API key — go straight to LLaVA
-    } else {
-      // OpenAI failed for other reason — try LLaVA anyway
+    if (err instanceof CloudBlockedError) {
+      throw new Error(
+        "Bildanalyse lokal nicht verfügbar — bitte LLaVA-Modell installieren",
+      );
     }
-    return analyzeWithLLaVA(base64, prompt);
+    throw err;
   }
 }
 

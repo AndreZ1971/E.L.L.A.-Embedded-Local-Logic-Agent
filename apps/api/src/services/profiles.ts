@@ -1,5 +1,6 @@
 import { pool } from "../config/database.js";
 import { randomBytes, pbkdf2Sync, timingSafeEqual } from "crypto";
+import { saveSettings } from "./settings.js";
 
 export interface Profile {
   id: number;
@@ -87,6 +88,7 @@ export async function switchProfile(
     await conn.execute(`UPDATE profiles SET is_active = 0`);
     await conn.execute(`UPDATE profiles SET is_active = 1 WHERE id = ?`, [id]);
     await conn.commit();
+    await saveSettings({ activeProfileId: id });
     return { success: true };
   } catch (err) {
     await conn.rollback();
@@ -101,9 +103,10 @@ export async function switchProfile(
 
 export async function deleteProfile(
   id: number,
+  pin?: string,
 ): Promise<{ success: boolean; error?: string }> {
   const [rows] = await pool.execute<any[]>(
-    `SELECT id, is_active FROM profiles WHERE id = ?`,
+    `SELECT id, is_active, pin_hash FROM profiles WHERE id = ?`,
     [id],
   );
 
@@ -118,6 +121,13 @@ export async function deleteProfile(
       success: false,
       error: "Standard-Profil kann nicht gelöscht werden.",
     };
+
+  const { pin_hash } = rows[0];
+  if (pin_hash) {
+    if (!pin) return { success: false, error: "PIN erforderlich." };
+    if (!verifyPin(pin, pin_hash as string))
+      return { success: false, error: "Falscher PIN." };
+  }
 
   await pool.execute(`DELETE FROM profiles WHERE id = ?`, [id]);
   return { success: true };

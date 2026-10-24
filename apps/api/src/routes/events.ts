@@ -24,6 +24,17 @@ eventsRouter.get("/stream", (req, res) => {
   });
 });
 
+eventsRouter.get("/cloud-today", async (_req, res, next) => {
+  try {
+    const [rows] = await pool.execute<any[]>(
+      "SELECT COUNT(*) AS cnt FROM system_events WHERE type = 'cloud_request' AND DATE(created_at) = CURDATE()",
+    );
+    res.json({ count: rows[0]?.cnt ?? 0 });
+  } catch (err) {
+    next(err);
+  }
+});
+
 eventsRouter.get("/recent", async (_req, res, next) => {
   try {
     const [rows] = await pool.execute<any[]>(

@@ -1,6 +1,10 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electronAPI", {
+  apiToken:
+    process.argv
+      .find((a) => a.startsWith("--ella-api-token="))
+      ?.split("=")[1] ?? "",
   minimize: () => ipcRenderer.send("window:minimize"),
   maximize: () => ipcRenderer.send("window:maximize"),
   close: () => ipcRenderer.send("window:close"),

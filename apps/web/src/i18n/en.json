@@ -485,6 +485,8 @@
     "card_provider": "LLM Provider",
     "card_ollama": "Ollama",
     "card_db": "MariaDB",
+    "card_cloud": "Cloud Requests",
+    "cloud_today": "Requests today",
     "card_disk": "Storage",
     "card_events": "System Events (Live)",
     "reachable": "Reachable",

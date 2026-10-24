@@ -56,7 +56,8 @@ profilesRouter.put("/:id/activate", async (req, res, next) => {
 profilesRouter.delete("/:id", async (req, res, next) => {
   try {
     const id = Number(req.params.id);
-    const result = await deleteProfile(id);
+    const { pin } = req.body as { pin?: string };
+    const result = await deleteProfile(id, pin);
     if (!result.success) {
       res.status(400).json({ error: result.error });
       return;

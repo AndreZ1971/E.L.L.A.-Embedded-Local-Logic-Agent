@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const API = import.meta.env.VITE_API_BASE ?? "";
+import { apiFetch } from "../../lib/api";
 
 interface SetupStatus {
   ollama: boolean;
@@ -20,7 +19,7 @@ export default function Setup() {
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(`${API}/api/setup/status`)
+    apiFetch("/api/setup/status")
       .then((r) => r.json())
       .then((d: SetupStatus) => setStatus(d))
       .catch(() =>
@@ -34,7 +33,7 @@ export default function Setup() {
     setPullDone(false);
     setPullSuccess(false);
 
-    const res = await fetch(`${API}/api/setup/pull-nomic`, { method: "POST" });
+    const res = await apiFetch("/api/setup/pull-nomic", { method: "POST" });
     const reader = res.body!.getReader();
     const decoder = new TextDecoder();
     let buf = "";
@@ -72,7 +71,7 @@ export default function Setup() {
   }
 
   function proceed() {
-    fetch(`${API}/api/onboarding/status`)
+    apiFetch("/api/onboarding/status")
       .then((r) => r.json())
       .then((d: { complete: boolean }) => {
         navigate(d.complete ? "/chat" : "/onboarding");

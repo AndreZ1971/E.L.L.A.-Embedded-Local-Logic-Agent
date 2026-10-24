@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useBootContext } from "../../App";
-
-const API = import.meta.env.VITE_API_BASE ?? "";
+import { apiFetch } from "../../lib/api";
 
 export default function Activation() {
   const { t } = useTranslation();
@@ -37,7 +36,7 @@ export default function Activation() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${API}/api/license/activate`, {
+      const r = await apiFetch("/api/license/activate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ licenseKey: trimmed }),

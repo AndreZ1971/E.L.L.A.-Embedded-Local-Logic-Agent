@@ -1,8 +1,8 @@
-import { getActiveApiKey } from "./settings.js";
-import { env } from "../config/env.js";
+import { cloudAllowed } from "./settings.js";
 import { buildToolDefinitions } from "../tools/definitions.js";
 import { toolExecutor } from "../tools/executor.js";
 import { optimizeToolResult } from "./tokenOptimizer.js";
+import { openaiRequest } from "./openai.js";
 import type { PipelineConfig, PipelineEvent, AgentResult } from "@ella/shared";
 import type { ToolName } from "@ella/shared";
 
@@ -119,8 +119,8 @@ async function runAgentWithOpenAI(
   agentId: string,
   agentName: string,
 ): Promise<AgentResult> {
-  const apiKey = getActiveApiKey(env.openaiApiKey);
-  if (!apiKey) throw new Error("Kein OpenAI-Key konfiguriert.");
+  if (!cloudAllowed())
+    throw new Error("Multi-Agenten benötigen den Cloud-Modus");
 
   const allDefs = buildToolDefinitions([]);
   const agentTools = allDefs.filter((t) => toolNames.includes(t.function.name));
@@ -139,24 +139,23 @@ async function runAgentWithOpenAI(
   const MAX_ROUNDS = 4;
 
   for (let round = 0; round < MAX_ROUNDS; round++) {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages,
-        stream: true,
-        ...(agentTools.length > 0 && {
-          tools: agentTools.map((t) => ({
-            type: "function",
-            function: t.function,
-          })),
+    const response = await openaiRequest(
+      "/v1/chat/completions",
+      {
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages,
+          stream: true,
+          ...(agentTools.length > 0 && {
+            tools: agentTools.map((t) => ({
+              type: "function",
+              function: t.function,
+            })),
+          }),
         }),
-      }),
-    });
+      },
+      "pipeline",
+    );
 
     if (!response.ok) {
       const text = await response.text();
@@ -379,10 +378,9 @@ export async function runPipeline(
   }
 
   // Zusammenfassung durch separaten Synthese-Aufruf
-  const apiKey = getActiveApiKey(env.openaiApiKey);
   let summary = "";
 
-  if (apiKey && results.some((r) => r.content)) {
+  if (cloudAllowed() && results.some((r) => r.content)) {
     const synthMessages: OAIMessage[] = [
       {
         role: "system",
@@ -401,14 +399,13 @@ export async function runPipeline(
     ];
 
     try {
-      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+      const resp = await openaiRequest(
+        "/v1/chat/completions",
+        {
+          body: JSON.stringify({ model: "gpt-4o", messages: synthMessages }),
         },
-        body: JSON.stringify({ model: "gpt-4o", messages: synthMessages }),
-      });
+        "pipeline",
+      );
       if (resp.ok) {
         const data = (await resp.json()) as {
           choices: Array<{ message: { content: string } }>;

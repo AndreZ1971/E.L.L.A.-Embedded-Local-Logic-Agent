@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess as ChessEngine } from "chess.js";
-
-const API = import.meta.env.VITE_API_BASE ?? "";
+import { apiFetch } from "../../lib/api";
 
 const C = {
   bg: "#07090f",
@@ -488,7 +487,7 @@ export default function Chess() {
     setResult(null);
     setStatus("active");
     try {
-      const r = await fetch(`${API}/api/chess/new`, { method: "POST" });
+      const r = await apiFetch("/api/chess/new", { method: "POST" });
       const d = (await r.json()) as { gameId: number };
       setGameId(d.gameId);
     } catch {
@@ -515,7 +514,7 @@ export default function Chess() {
     setResult("Aufgegeben");
     if (gameId) {
       try {
-        await fetch(`${API}/api/chess/resign`, {
+        await apiFetch("/api/chess/resign", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ gameId }),
@@ -544,7 +543,7 @@ export default function Chess() {
         setResult(chess.isCheckmate() ? "Du gewinnst!" : "Remis");
         // ELLA reflektiert auch über Partien, die durch Spielerzug enden
         if (gameId) {
-          void fetch(`${API}/api/chess/reflect`, {
+          void apiFetch("/api/chess/reflect", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ gameId }),
@@ -556,7 +555,7 @@ export default function Chess() {
       }
       setThinking(true);
       if (gameId) {
-        fetch(`${API}/api/chess/move`, {
+        apiFetch("/api/chess/move", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ gameId, move: move.lan }),
@@ -588,7 +587,7 @@ export default function Chess() {
                       : "Remis",
                 );
                 // ELLA reflektiert nach Spielende (Schachmatt durch ELLA / Remis)
-                void fetch(`${API}/api/chess/reflect`, {
+                void apiFetch("/api/chess/reflect", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ gameId }),

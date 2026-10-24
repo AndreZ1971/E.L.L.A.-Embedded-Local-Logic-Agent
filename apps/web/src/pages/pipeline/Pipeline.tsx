@@ -4,8 +4,7 @@ import type {
   PipelineAgentDef,
   PipelineEvent,
 } from "@ella/shared";
-
-const API = (import.meta.env.VITE_API_BASE ?? "") as string;
+import { apiFetch } from "../../lib/api";
 
 // ── Typen ────────────────────────────────────────────────────────────────────
 
@@ -254,7 +253,7 @@ export default function Pipeline() {
   const [saving, setSaving] = useState(false);
 
   const loadPipelines = useCallback(() => {
-    fetch(`${API}/api/pipeline`)
+    apiFetch("/api/pipeline")
       .then((r) => r.json())
       .then(
         (d: {
@@ -281,7 +280,7 @@ export default function Pipeline() {
   function openBuilder(pipeline?: PipelineMeta) {
     if (pipeline) {
       // Lade volle Agenten-Daten
-      fetch(`${API}/api/pipeline/custom`)
+      apiFetch("/api/pipeline/custom")
         .then((r) => r.json())
         .then((all: PipelineConfig[]) => {
           const found = all.find((p) => p.id === pipeline.id);
@@ -357,10 +356,10 @@ export default function Pipeline() {
     };
     try {
       const url = editId
-        ? `${API}/api/pipeline/custom/${editId}`
-        : `${API}/api/pipeline/custom`;
+        ? `/api/pipeline/custom/${editId}`
+        : `/api/pipeline/custom`;
       const method = editId ? "PUT" : "POST";
-      await fetch(url, {
+      await apiFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -373,7 +372,7 @@ export default function Pipeline() {
   }
 
   async function deletePipeline(id: string) {
-    await fetch(`${API}/api/pipeline/custom/${id}`, { method: "DELETE" });
+    await apiFetch(`/api/pipeline/custom/${id}`, { method: "DELETE" });
     if (selected === id)
       setSelected(pipelines.find((p) => !p.isCustom)?.id ?? null);
     loadPipelines();
@@ -390,7 +389,7 @@ export default function Pipeline() {
     setRunStatus("running");
     setView("run");
 
-    fetch(`${API}/api/pipeline/${selected}/run`, {
+    apiFetch(`/api/pipeline/${selected}/run`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(selectedSetup ? { setupName: selectedSetup } : {}),

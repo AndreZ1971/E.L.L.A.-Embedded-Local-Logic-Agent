@@ -3,6 +3,7 @@ import { marked } from "marked";
 import { useTranslation } from "react-i18next";
 import { AudioVAD, encodeWav } from "../../utils/audioVAD.js";
 import AvatarPanel from "../../components/AvatarPanel";
+import { apiFetch, eventStreamUrl } from "../../lib/api";
 
 type VoiceMode = "off" | "manual" | "wakeword" | "always";
 
@@ -70,7 +71,6 @@ type StreamEvent =
   | { type: "error"; message: string };
 
 const SESSION_ID = "default";
-const API = import.meta.env.VITE_API_BASE ?? "";
 
 /* ── Component ───────────────────────────────────────────────────────── */
 const Chat: React.FC = () => {
@@ -150,7 +150,7 @@ const Chat: React.FC = () => {
       const abort = new AbortController();
       currentAbortRef.current = abort;
       try {
-        const res = await fetch(`${API}/api/speech/synthesize`, {
+        const res = await apiFetch("/api/speech/synthesize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: clean }),
@@ -237,7 +237,7 @@ const Chat: React.FC = () => {
       const clean = cleanTextForTTS(sentence);
       if (!clean) continue;
       try {
-        const res = await fetch(`${API}/api/speech/synthesize`, {
+        const res = await apiFetch("/api/speech/synthesize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: clean }),
@@ -323,7 +323,7 @@ const Chat: React.FC = () => {
 
     function connect() {
       if (dead) return;
-      es = new EventSource(`${API}/api/events/stream`);
+      es = new EventSource(eventStreamUrl());
       es.onerror = () => {
         es.close();
         if (!dead) reconnectTimer = setTimeout(connect, 5000);
@@ -547,7 +547,7 @@ const Chat: React.FC = () => {
 
   /* ── History ── */
   useEffect(() => {
-    fetch(`${API}/api/chat/history/${SESSION_ID}`)
+    apiFetch(`/api/chat/history/${SESSION_ID}`)
       .then((r) => r.json())
       .then((d: { messages: Message[] }) => {
         if (d.messages?.length > 0) setMessages(d.messages);
@@ -578,7 +578,7 @@ const Chat: React.FC = () => {
       const streamTimeout = setTimeout(() => streamAbort.abort(), 90_000);
       let sentenceBuffer = "";
       try {
-        const res = await fetch(`${API}/api/chat/stream`, {
+        const res = await apiFetch("/api/chat/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -715,7 +715,7 @@ const Chat: React.FC = () => {
         loadingRef.current = false;
         setLoading(false);
         // Banner und Schloss-Icon sofort aktualisieren falls Tool Homework-Status geändert hat
-        fetch(`${API}/api/homework/status`)
+        apiFetch("/api/homework/status")
           .then(
             (r) =>
               r.json() as Promise<{ active: boolean; configured: boolean }>,
@@ -739,7 +739,7 @@ const Chat: React.FC = () => {
       const prevMsg = messages[idx - 1];
       const userMessage =
         prevMsg && prevMsg.role === "user" ? prevMsg.content.slice(0, 500) : "";
-      fetch(`${API}/api/feedback`, {
+      apiFetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -762,7 +762,7 @@ const Chat: React.FC = () => {
       const endpoint = mute ? "mute" : "dismiss";
       const body = mute ? { category, muted: true } : { category };
       try {
-        const res = await fetch(`${API}/api/proactive/${endpoint}`, {
+        const res = await apiFetch(`/api/proactive/${endpoint}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
@@ -798,7 +798,7 @@ const Chat: React.FC = () => {
         const form = new FormData();
         form.append("audio", blob, "recording.webm");
         try {
-          const r = await fetch(`${API}/api/speech/transcribe`, {
+          const r = await apiFetch("/api/speech/transcribe", {
             method: "POST",
             body: form,
             signal: AbortSignal.timeout(35_000),
@@ -882,11 +882,11 @@ const Chat: React.FC = () => {
               const stressForm = new FormData();
               stressForm.append("audio", blob, "segment.wav");
               const [r] = await Promise.all([
-                fetch(`${API}/api/speech/transcribe?raw=true`, {
+                apiFetch("/api/speech/transcribe?raw=true", {
                   method: "POST",
                   body: form,
                 }),
-                fetch(`${API}/api/speech/stress`, {
+                apiFetch("/api/speech/stress", {
                   method: "POST",
                   body: stressForm,
                 })
@@ -951,7 +951,7 @@ const Chat: React.FC = () => {
           // Stress analysis on every spoken segment (fire-and-forget)
           const stressForm = new FormData();
           stressForm.append("audio", blob, "segment.wav");
-          fetch(`${API}/api/speech/stress`, {
+          apiFetch("/api/speech/stress", {
             method: "POST",
             body: stressForm,
           })
@@ -973,7 +973,7 @@ const Chat: React.FC = () => {
               setMicStatus(t("chat.mic_transcribing_vad"));
               let clean = "";
               try {
-                const r = await fetch(`${API}/api/speech/transcribe`, {
+                const r = await apiFetch("/api/speech/transcribe", {
                   method: "POST",
                   body: form,
                 });
@@ -1006,7 +1006,7 @@ const Chat: React.FC = () => {
             }
 
             // Phase 1: fast wakeword check via ONNX model
-            const wakeR = await fetch(`${API}/api/wakeword/detect`, {
+            const wakeR = await apiFetch("/api/wakeword/detect", {
               method: "POST",
               body: form,
             });
@@ -1031,7 +1031,7 @@ const Chat: React.FC = () => {
             // Wakeword confirmed — transcribe same audio for inline command
             const form2 = new FormData();
             form2.append("audio", blob, "segment.wav");
-            const trR = await fetch(`${API}/api/speech/transcribe`, {
+            const trR = await apiFetch("/api/speech/transcribe", {
               method: "POST",
               body: form2,
             });
@@ -1091,13 +1091,13 @@ const Chat: React.FC = () => {
   /* Load voiceMode + homework status on mount */
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/api/settings`).then((r) => r.json()) as Promise<{
+      apiFetch("/api/settings").then((r) => r.json()) as Promise<{
         voiceMode?: VoiceMode;
         ttsEnabled?: boolean;
         ttsVoice?: string;
         accessibilityMode?: "none" | "blind" | "deaf";
       }>,
-      fetch(`${API}/api/homework/status`).then((r) => r.json()) as Promise<{
+      apiFetch("/api/homework/status").then((r) => r.json()) as Promise<{
         active: boolean;
         configured: boolean;
       }>,
@@ -1126,7 +1126,7 @@ const Chat: React.FC = () => {
   }, [accessibilityMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activateHomework = useCallback(async () => {
-    const r = await fetch(`${API}/api/homework/activate`, { method: "POST" });
+    const r = await apiFetch("/api/homework/activate", { method: "POST" });
     const d = (await r.json()) as { success?: boolean; error?: string };
     if (d.success) setHomeworkActive(true);
   }, []);
@@ -1139,7 +1139,7 @@ const Chat: React.FC = () => {
     setPinBusy(true);
     setPinError("");
     try {
-      const r = await fetch(`${API}/api/homework/deactivate`, {
+      const r = await apiFetch("/api/homework/deactivate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin: pinInput }),
@@ -1158,7 +1158,7 @@ const Chat: React.FC = () => {
   }, [pinInput]);
 
   const clearHistory = async () => {
-    await fetch(`${API}/api/chat/history/${SESSION_ID}`, { method: "DELETE" });
+    await apiFetch(`/api/chat/history/${SESSION_ID}`, { method: "DELETE" });
     setMessages([]);
     setStreaming("");
     setToolStatus("");
@@ -1196,7 +1196,7 @@ const Chat: React.FC = () => {
                 setTtsEnabled(next);
                 ttsEnabledRef.current = next;
                 if (!next) stopCurrentAudio();
-                fetch(`${API}/api/settings`, {
+                apiFetch("/api/settings", {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ ttsEnabled: next }),
@@ -1946,7 +1946,7 @@ const Chat: React.FC = () => {
                 onClick={async () => {
                   setConfirmBusy(true);
                   try {
-                    const res = await fetch(`${API}/api/tools/confirm`, {
+                    const res = await apiFetch("/api/tools/confirm", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(confirmationCard.pendingAction),

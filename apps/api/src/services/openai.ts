@@ -1,7 +1,55 @@
-import { env } from "../config/env.js";
-import { getActiveApiKey } from "./settings.js";
+import { cloudAllowed, getActiveApiKey } from "./settings.js";
+import { pool } from "../config/database.js";
+import { eventBus, EVENT_SYSTEM } from "./eventBus.js";
 import { buildSystemPrompt, type LearningExample } from "./ollama.js";
 import type { OllamaMessage, OllamaTool } from "./ollama.js";
+
+export type CloudPurpose =
+  | "chat"
+  | "vision"
+  | "transcription"
+  | "text"
+  | "style"
+  | "web_search"
+  | "pipeline"
+  | "chess";
+
+export class CloudBlockedError extends Error {
+  constructor(public purpose: CloudPurpose) {
+    super(`Cloud blockiert (Modus: lokal) — ${purpose}`);
+  }
+}
+
+export async function openaiRequest(
+  endpoint: string,
+  init: { body: BodyInit; json?: boolean },
+  purpose: CloudPurpose,
+): Promise<Response> {
+  if (!cloudAllowed()) throw new CloudBlockedError(purpose);
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${getActiveApiKey()}`,
+  };
+  if (init.json !== false) headers["Content-Type"] = "application/json";
+
+  pool
+    .execute(
+      `INSERT INTO system_events (type, payload) VALUES ('cloud_request', ?)`,
+      [JSON.stringify({ purpose, endpoint })],
+    )
+    .catch(() => {});
+  eventBus.emit(EVENT_SYSTEM, {
+    type: "cloud_request",
+    payload: { purpose },
+    created_at: new Date().toISOString(),
+  });
+
+  return fetch(`https://api.openai.com${endpoint}`, {
+    method: "POST",
+    headers,
+    body: init.body,
+  });
+}
 
 interface OpenAIMessage {
   role: "system" | "user" | "assistant" | "tool";
@@ -70,21 +118,20 @@ interface ResponsesOutput {
 }
 
 export const openaiClient = {
-  isAvailable: (): boolean => Boolean(getActiveApiKey(env.openaiApiKey)),
+  isAvailable: (): boolean => cloudAllowed(),
 
   searchWeb: async (query: string): Promise<string> => {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getActiveApiKey(env.openaiApiKey)}`,
+    const response = await openaiRequest(
+      "/v1/responses",
+      {
+        body: JSON.stringify({
+          model: "gpt-4o",
+          tools: [{ type: "web_search_preview" }],
+          input: query,
+        }),
       },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        tools: [{ type: "web_search_preview" }],
-        input: query,
-      }),
-    });
+      "web_search",
+    );
 
     if (!response.ok) {
       const text = await response.text();
@@ -110,26 +157,28 @@ export const openaiClient = {
     temporalContext = "",
     learningExamples: LearningExample[] = [],
   ): Promise<{ message: OllamaMessage; done: boolean }> => {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getActiveApiKey(env.openaiApiKey)}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: buildOpenAIMessages(
-          messages,
-          memories,
-          userName,
-          temporalContext,
-          learningExamples,
-        ),
-        ...(tools.length > 0 && {
-          tools: tools.map((t) => ({ type: "function", function: t.function })),
+    const response = await openaiRequest(
+      "/v1/chat/completions",
+      {
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: buildOpenAIMessages(
+            messages,
+            memories,
+            userName,
+            temporalContext,
+            learningExamples,
+          ),
+          ...(tools.length > 0 && {
+            tools: tools.map((t) => ({
+              type: "function",
+              function: t.function,
+            })),
+          }),
         }),
-      }),
-    });
+      },
+      "chat",
+    );
 
     if (!response.ok) {
       const text = await response.text();
@@ -168,27 +217,29 @@ export const openaiClient = {
     | { type: "chunk"; text: string }
     | { type: "done"; toolCalls?: OllamaMessage["tool_calls"] }
   > {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getActiveApiKey(env.openaiApiKey)}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        stream: true,
-        messages: buildOpenAIMessages(
-          messages,
-          memories,
-          userName,
-          temporalContext,
-          learningExamples,
-        ),
-        ...(tools.length > 0 && {
-          tools: tools.map((t) => ({ type: "function", function: t.function })),
+    const response = await openaiRequest(
+      "/v1/chat/completions",
+      {
+        body: JSON.stringify({
+          model: "gpt-4o",
+          stream: true,
+          messages: buildOpenAIMessages(
+            messages,
+            memories,
+            userName,
+            temporalContext,
+            learningExamples,
+          ),
+          ...(tools.length > 0 && {
+            tools: tools.map((t) => ({
+              type: "function",
+              function: t.function,
+            })),
+          }),
         }),
-      }),
-    });
+      },
+      "chat",
+    );
 
     if (!response.ok) {
       const text = await response.text();
@@ -199,7 +250,6 @@ export const openaiClient = {
     const decoder = new TextDecoder();
     let buffer = "";
 
-    // Accumulate tool_calls across chunks (OpenAI splits them by index)
     const acc = new Map<number, { id: string; name: string; args: string }>();
 
     try {

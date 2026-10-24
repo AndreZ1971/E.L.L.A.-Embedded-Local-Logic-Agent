@@ -4,8 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useBootContext } from "../../App";
 import { SUPPORTED_LANGS, type SupportedLang } from "../../i18n";
 import i18n from "../../i18n";
-
-const API = import.meta.env.VITE_API_BASE ?? "";
+import { apiFetch } from "../../lib/api";
 
 export default function LanguageSelect() {
   const { t } = useTranslation();
@@ -19,7 +18,7 @@ export default function LanguageSelect() {
     setSaving(true);
     await i18n.changeLanguage(selected);
     try {
-      await fetch(`${API}/api/settings`, {
+      await apiFetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ language: selected }),

@@ -14,7 +14,7 @@ function publicSettings() {
   const s = getSettings();
   return {
     ...s,
-    openaiApiKey: s.openaiApiKey || env.openaiApiKey ? MASKED : "",
+    openaiApiKey: s.openaiApiKey ? MASKED : "",
   };
 }
 
@@ -42,7 +42,6 @@ settingsRouter.put("/", async (req, res, next) => {
       windowContextEnabled,
       ttsEngine,
       sessionCompressionEnabled,
-      activeProfileId,
       clipboardPatternEnabled,
       accessibilityMode,
       searchDrives,
@@ -72,7 +71,6 @@ settingsRouter.put("/", async (req, res, next) => {
       windowContextEnabled?: boolean;
       ttsEngine?: "system" | "kokoro";
       sessionCompressionEnabled?: boolean;
-      activeProfileId?: number;
       clipboardPatternEnabled?: boolean;
       accessibilityMode?: "none" | "blind" | "deaf";
       searchDrives?: string[];
@@ -102,7 +100,6 @@ settingsRouter.put("/", async (req, res, next) => {
       windowContextEnabled,
       ttsEngine,
       sessionCompressionEnabled,
-      activeProfileId,
       clipboardPatternEnabled,
       accessibilityMode,
       searchDrives,

@@ -16,6 +16,9 @@ import * as net from "net";
 import * as fs from "fs";
 import { deflateSync } from "zlib";
 import * as path from "path";
+import { randomBytes } from "crypto";
+
+const API_TOKEN = randomBytes(32).toString("hex");
 
 // Sauberen userData-Pfad setzen bevor app.getPath() genutzt wird
 // Standard "@ella/desktop" enthält einen Schrägstrich → Probleme auf Windows
@@ -401,6 +404,7 @@ function startApi(): void {
         ? process.resourcesPath
         : path.join(app.getAppPath(), "..", ".."),
       ELLA_USERDATA: app.getPath("userData"),
+      ELLA_API_TOKEN: API_TOKEN,
     },
   });
 
@@ -542,6 +546,7 @@ function createWindow(): void {
       contextIsolation: true,
       nodeIntegration: false,
       preload: path.join(__dirname, "preload.js"),
+      additionalArguments: [`--ella-api-token=${API_TOKEN}`],
     },
     show: false,
   });
@@ -792,6 +797,7 @@ function openChessWindow(): void {
       contextIsolation: true,
       nodeIntegration: false,
       preload: path.join(__dirname, "preload.js"),
+      additionalArguments: [`--ella-api-token=${API_TOKEN}`],
     },
   });
   if (isDev) {

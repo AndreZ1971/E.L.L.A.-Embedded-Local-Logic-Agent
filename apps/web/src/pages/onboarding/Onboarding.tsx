@@ -2,8 +2,7 @@ import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useBootContext } from "../../App";
-
-const API = import.meta.env.VITE_API_BASE ?? "";
+import { apiFetch } from "../../lib/api";
 
 type Step =
   "welcome" | "name" | "directive" | "scan" | "voice" | "location" | "done";
@@ -172,9 +171,7 @@ const Onboarding: React.FC = () => {
     };
 
     add(t("onboarding.scan_cpu"));
-    await fetch(`${API}/api/onboarding/scan`, { method: "POST" }).catch(
-      () => {},
-    );
+    await apiFetch("/api/onboarding/scan", { method: "POST" }).catch(() => {});
     add(t("onboarding.scan_ram"));
     add(t("onboarding.scan_drives"));
     await new Promise((r) => setTimeout(r, 800));
@@ -183,7 +180,7 @@ const Onboarding: React.FC = () => {
     add(t("onboarding.scan_profile"));
     setScanDone(true);
     setTimeout(() => {
-      fetch(`${API}/api/speech/voices`)
+      apiFetch("/api/speech/voices")
         .then((r) => r.json())
         .then(
           (data: {
@@ -243,7 +240,7 @@ const Onboarding: React.FC = () => {
 
   const complete = async (location?: string) => {
     setStep("done");
-    await fetch(`${API}/api/onboarding/complete`, {
+    await apiFetch("/api/onboarding/complete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userName: name.trim() || undefined, location }),
@@ -403,7 +400,7 @@ const Onboarding: React.FC = () => {
                       setSelectedLang(v.lang ?? "de");
                       const previewText =
                         PREVIEW_TEXT[v.lang ?? "de"] ?? PREVIEW_TEXT["de"];
-                      fetch(`${API}/api/speech/synthesize`, {
+                      apiFetch("/api/speech/synthesize", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -448,7 +445,7 @@ const Onboarding: React.FC = () => {
               style={{ ...s.btn, marginBottom: "12px" }}
               onClick={() => {
                 if (selectedVoice) {
-                  fetch(`${API}/api/settings`, {
+                  apiFetch("/api/settings", {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

@@ -1,7 +1,7 @@
 # ELLA Smoke Tests
 # Aufruf: .\scripts\smoke-test.ps1
 
-$API = "http://localhost:3002"
+$API = "http://127.0.0.1:3002"
 $script:pass = 0
 $script:fail = 0
 $script:warn = 0

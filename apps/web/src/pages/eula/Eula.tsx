@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useBootContext } from "../../App";
-
-const API = import.meta.env.VITE_API_BASE ?? "";
+import { apiFetch } from "../../lib/api";
 
 export default function Eula() {
   const { t } = useTranslation();
@@ -32,7 +31,7 @@ export default function Eula() {
     setSaving(true);
     setError("");
     try {
-      const r = await fetch(`${API}/api/settings`, {
+      const r = await apiFetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ eulaAccepted: true }),

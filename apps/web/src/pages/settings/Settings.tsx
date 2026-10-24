@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import "./Settings.css";
-
-const API = import.meta.env.VITE_API_BASE ?? "";
+import { apiFetch } from "../../lib/api";
 const MASKED = "***";
 
 interface AppEntry {
@@ -416,14 +415,14 @@ const Settings: React.FC = () => {
   } | null>(null);
 
   const loadProfiles = async () => {
-    const data = (await fetch(`${API}/api/profiles`).then((r) =>
+    const data = (await apiFetch("/api/profiles").then((r) =>
       r.json(),
     )) as Profile[];
     setProfiles(Array.isArray(data) ? data : []);
   };
 
   useEffect(() => {
-    fetch(`${API}/api/speech/voices`)
+    apiFetch("/api/speech/voices")
       .then((r) => r.json())
       .then(
         (data: {
@@ -445,24 +444,22 @@ const Settings: React.FC = () => {
   );
 
   const loadRules = async () => {
-    const data = (await fetch(`${API}/api/rules`).then((r) =>
-      r.json(),
-    )) as Rule[];
+    const data = (await apiFetch("/api/rules").then((r) => r.json())) as Rule[];
     setRules(data);
   };
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/api/settings`)
+      apiFetch("/api/settings")
         .then((r) => r.json())
         .catch(() => null) as Promise<Settings | null>,
-      fetch(`${API}/api/settings/models`)
+      apiFetch("/api/settings/models")
         .then((r) => r.json())
         .catch(() => ({ models: [] })) as Promise<{ models: string[] }>,
-      fetch(`${API}/api/rules`)
+      apiFetch("/api/rules")
         .then((r) => r.json())
         .catch(() => []) as Promise<Rule[]>,
-      fetch(`${API}/api/profiles`)
+      apiFetch("/api/profiles")
         .then((r) => r.json())
         .catch(() => []) as Promise<Profile[]>,
     ]).then(([s, m, r, p]) => {
@@ -503,12 +500,12 @@ const Settings: React.FC = () => {
     if (!settings) return;
     setScanning(true);
     try {
-      const data = (await fetch(`${API}/api/system/scan-programs`, {
+      const data = (await apiFetch("/api/system/scan-programs", {
         method: "POST",
       }).then((r) => r.json())) as { ok: boolean; total: number };
       if (data.ok) {
         // Neue App-Liste vom Server laden
-        const fresh = (await fetch(`${API}/api/settings`).then((r) =>
+        const fresh = (await apiFetch("/api/settings").then((r) =>
           r.json(),
         )) as { apps: AppEntry[] };
         patch({ apps: fresh.apps ?? [] });
@@ -523,7 +520,7 @@ const Settings: React.FC = () => {
     setSearching(true);
     setProgramSearchResults(null);
     try {
-      const data = (await fetch(`${API}/api/system/find-program`, {
+      const data = (await apiFetch("/api/system/find-program", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: programSearch.trim() }),
@@ -537,15 +534,15 @@ const Settings: React.FC = () => {
   };
 
   const addProgram = async (name: string, command: string) => {
-    await fetch(`${API}/api/system/add-program`, {
+    await apiFetch("/api/system/add-program", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, command }),
     });
     setAddedPrograms((prev) => new Set(prev).add(command));
-    const fresh = (await fetch(`${API}/api/settings`).then((r) =>
-      r.json(),
-    )) as { apps: AppEntry[] };
+    const fresh = (await apiFetch("/api/settings").then((r) => r.json())) as {
+      apps: AppEntry[];
+    };
     patch({ apps: fresh.apps ?? [] });
   };
 
@@ -653,7 +650,7 @@ const Settings: React.FC = () => {
   const runSetupNow = async (setupName: string, setupId: string) => {
     setRunningSetupId(setupId);
     try {
-      await fetch("/api/setup/run", {
+      await apiFetch("/api/setup/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: setupName }),
@@ -682,7 +679,7 @@ const Settings: React.FC = () => {
     try {
       const body: Record<string, string> = { newPin: pinNew };
       if (pinCurrent) body.currentPin = pinCurrent;
-      const r = await fetch(`${API}/api/homework/config`, {
+      const r = await apiFetch("/api/homework/config", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -694,7 +691,7 @@ const Settings: React.FC = () => {
         setPinNew("");
         setPinConfirm("");
         // Refresh settings to update pinHash indicator
-        const s = (await fetch(`${API}/api/settings`).then((r) =>
+        const s = (await apiFetch("/api/settings").then((r) =>
           r.json(),
         )) as Settings;
         setSettings(s);
@@ -710,14 +707,14 @@ const Settings: React.FC = () => {
   };
 
   const toggleRuleEnabled = async (id: number) => {
-    await fetch(`${API}/api/rules/${id}/toggle`, { method: "PATCH" });
+    await apiFetch(`/api/rules/${id}/toggle`, { method: "PATCH" });
     setRules((prev) =>
       prev.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)),
     );
   };
 
   const deleteRule = async (id: number) => {
-    await fetch(`${API}/api/rules/${id}`, { method: "DELETE" });
+    await apiFetch(`/api/rules/${id}`, { method: "DELETE" });
     setRules((prev) => prev.filter((r) => r.id !== id));
   };
 
@@ -725,7 +722,7 @@ const Settings: React.FC = () => {
     if (!newRule.name.trim()) return;
     setRuleSaving(true);
     try {
-      await fetch(`${API}/api/rules`, {
+      await apiFetch("/api/rules", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newRule),
@@ -754,7 +751,7 @@ const Settings: React.FC = () => {
     if (!window.confirm(t("settings.emergency_reset_confirm"))) return;
     setResetting(true);
     try {
-      const data = (await fetch(`${API}/api/settings/emergency-reset`, {
+      const data = (await apiFetch("/api/settings/emergency-reset", {
         method: "POST",
       }).then((r) => r.json())) as Settings;
       setSettings(data);
@@ -776,18 +773,18 @@ const Settings: React.FC = () => {
 
   const startModelDownload = async () => {
     if (pulling) return;
-    await fetch(`${API}/api/settings`, {
+    await apiFetch("/api/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(settings),
     });
     setPulling(true);
     setPullProgress({ pct: 0, status: "Starte Download…" });
-    await fetch(`${API}/api/settings/pull-model`, { method: "POST" });
+    await apiFetch("/api/settings/pull-model", { method: "POST" });
 
     const poll = setInterval(async () => {
       try {
-        const r = await fetch(`${API}/api/health`);
+        const r = await apiFetch("/api/health");
         const d = (await r.json()) as {
           model_pull?: { pct: number; status: string } | null;
           model_ready?: boolean;
@@ -798,7 +795,7 @@ const Settings: React.FC = () => {
           clearInterval(poll);
           setPulling(false);
           setPullProgress(null);
-          const fresh = (await fetch(`${API}/api/settings/models`).then((r) =>
+          const fresh = (await apiFetch("/api/settings/models").then((r) =>
             r.json(),
           )) as { models: string[] };
           setModels(fresh.models ?? []);
@@ -814,7 +811,7 @@ const Settings: React.FC = () => {
   const save = async () => {
     if (!settings) return;
     setSaving(true);
-    await fetch(`${API}/api/settings`, {
+    await apiFetch("/api/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(settings),
@@ -3518,7 +3515,7 @@ const Settings: React.FC = () => {
                 </span>
                 <button
                   onClick={async () => {
-                    await fetch(`${API}/api/google/disconnect`, {
+                    await apiFetch("/api/google/disconnect", {
                       method: "POST",
                     });
                     patch({ googleConnected: false, googleUserEmail: "" });
@@ -3543,7 +3540,7 @@ const Settings: React.FC = () => {
                 }
                 onClick={async () => {
                   await save();
-                  const res = await fetch(`${API}/api/google/auth-url`);
+                  const res = await apiFetch("/api/google/auth-url");
                   if (!res.ok) return;
                   const { url } = (await res.json()) as { url: string };
                   window.open(url, "_blank", "width=600,height=700");
@@ -3660,8 +3657,8 @@ const Settings: React.FC = () => {
                             setProfileLoading(true);
                             setProfileMsg(null);
                             try {
-                              const res = await fetch(
-                                `${API}/api/profiles/${p.id}/activate`,
+                              const res = await apiFetch(
+                                `/api/profiles/${p.id}/activate`,
                                 {
                                   method: "PUT",
                                   headers: {
@@ -3721,8 +3718,8 @@ const Settings: React.FC = () => {
                               setProfileLoading(true);
                               setProfileMsg(null);
                               try {
-                                const res = await fetch(
-                                  `${API}/api/profiles/${p.id}`,
+                                const res = await apiFetch(
+                                  `/api/profiles/${p.id}`,
                                   { method: "DELETE" },
                                 );
                                 if (res.ok) {
@@ -3811,7 +3808,7 @@ const Settings: React.FC = () => {
                     setProfileLoading(true);
                     setProfileMsg(null);
                     try {
-                      const res = await fetch(`${API}/api/profiles`, {
+                      const res = await apiFetch("/api/profiles", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -3894,7 +3891,7 @@ const Settings: React.FC = () => {
                 onClick={async () => {
                   setBackupExporting(true);
                   try {
-                    const res = await fetch(`${API}/api/backup/export`);
+                    const res = await apiFetch("/api/backup/export");
                     const blob = await res.blob();
                     const cd = res.headers.get("Content-Disposition") ?? "";
                     const nameMatch = cd.match(/filename="([^"]+)"/);
@@ -4012,7 +4009,7 @@ const Settings: React.FC = () => {
                     try {
                       const text = await backupFile.text();
                       const data = JSON.parse(text) as unknown;
-                      const res = await fetch(`${API}/api/backup/import`, {
+                      const res = await apiFetch("/api/backup/import", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ data, mode: backupMode }),

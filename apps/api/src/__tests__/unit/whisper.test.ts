@@ -2,10 +2,20 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("../../services/settings.js", () => ({
   getSettings: () => ({ ollamaModel: "llama3.1:8b" }),
+  cloudAllowed: () => false,
 }));
 
 vi.mock("../../config/env.js", () => ({
   env: { ollamaBaseUrl: "http://localhost:11434" },
+}));
+
+vi.mock("../../services/openai.js", () => ({
+  openaiRequest: vi.fn().mockRejectedValue(new Error("mocked")),
+  CloudBlockedError: class CloudBlockedError extends Error {
+    constructor(public purpose: string) {
+      super(`Cloud blockiert — ${purpose}`);
+    }
+  },
 }));
 
 // contextAlign importieren — whisper pipeline selbst nicht laden

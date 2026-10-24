@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import { apiFetch } from "../lib/api";
 
 type OrbMode = "idle" | "thinking" | "speaking";
 
@@ -52,8 +53,6 @@ const STATE_LABEL: Record<OrbMode, string> = {
   speaking: "Spricht",
 };
 
-const API = (import.meta.env.VITE_API_BASE ?? "") as string;
-
 const AvatarPanel: React.FC<Props> = ({ isThinking, isSpeaking }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const modeRef = useRef<OrbMode>("idle");
@@ -85,7 +84,7 @@ const AvatarPanel: React.FC<Props> = ({ isThinking, isSpeaking }) => {
   useEffect(() => {
     const poll = async () => {
       try {
-        const r = await fetch(`${API}/api/health`);
+        const r = await apiFetch("/api/health");
         if (!r.ok) return;
         const d = (await r.json()) as {
           ollama_ok?: boolean;

@@ -89,8 +89,7 @@ import Pipeline from "./pages/pipeline/Pipeline";
 import Chess from "./pages/chess/Chess";
 import Memories from "./pages/memories/Memories";
 import i18n from "./i18n";
-
-const API = import.meta.env.VITE_API_BASE ?? "";
+import { apiFetch, eventStreamUrl } from "./lib/api";
 
 export interface BootStatus {
   eulaAccepted: boolean;
@@ -120,7 +119,7 @@ function OllamaBanner() {
 
   const check = useCallback(async () => {
     try {
-      const r = await fetch(`${API}/api/health`);
+      const r = await apiFetch("/api/health");
       if (!r.ok) return;
       const d = (await r.json()) as { ollama: boolean; provider: string };
       setOffline(d.provider !== "openai" && !d.ollama);
@@ -348,7 +347,7 @@ function AppShell() {
       });
     };
     const fetchSettings = (retry: boolean) =>
-      fetch(`${API}/api/settings`)
+      apiFetch("/api/settings")
         .then((r) => {
           if (!r.ok) throw new Error(String(r.status));
           return r.json();
@@ -379,7 +378,7 @@ function AppShell() {
 
     const check = async () => {
       try {
-        const r = await fetch(`${API}/api/health`);
+        const r = await apiFetch("/api/health");
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const d = (await r.json()) as {
           ollama: boolean;
@@ -429,7 +428,7 @@ function AppShell() {
 
   // chess_open SSE-Event → Electron-Fenster öffnen
   useEffect(() => {
-    const es = new EventSource(`${API}/api/events/stream`);
+    const es = new EventSource(eventStreamUrl());
     es.onmessage = (ev) => {
       try {
         const d = JSON.parse(ev.data) as { type: string };

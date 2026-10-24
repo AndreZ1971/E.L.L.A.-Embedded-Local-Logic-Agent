@@ -34,6 +34,7 @@ import { backupRouter } from "./routes/backup.js";
 import { proactiveRouter } from "./routes/proactive.js";
 import { loadWakewordModels } from "./services/wakewordDetector.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { apiAuth } from "./middleware/apiAuth.js";
 import { env } from "./config/env.js";
 import { loadSettings, getSettings } from "./services/settings.js";
 import { runMigrations } from "./config/migrate.js";
@@ -45,20 +46,7 @@ import {
 
 const app = express();
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (req.method === "OPTIONS") {
-    res.sendStatus(204);
-    return;
-  }
-  next();
-});
-
+app.use(apiAuth);
 app.use(express.json());
 
 app.use("/api/chat", chatRouter);
@@ -123,8 +111,8 @@ loadSettings()
     console.error(`[ELLA] DB nicht verfügbar (${msg}) — starte ohne DB`);
   })
   .then(() => {
-    app.listen(env.port, () => {
-      console.log(`E.L.L.A. API  →  http://localhost:${env.port}`);
+    app.listen(env.port, "127.0.0.1", () => {
+      console.log(`E.L.L.A. API  →  http://127.0.0.1:${env.port}`);
       worker.start();
       preloadWhisper();
       preloadKokoro();

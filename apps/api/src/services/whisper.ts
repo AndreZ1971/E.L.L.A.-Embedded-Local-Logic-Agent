@@ -3,8 +3,9 @@ import { promisify } from "util";
 import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
-import { getSettings } from "./settings.js";
+import { getSettings, cloudAllowed, cloudFirst } from "./settings.js";
 import { env } from "../config/env.js";
+import { openaiRequest, CloudBlockedError } from "./openai.js";
 
 const execAsync = promisify(exec);
 
@@ -57,7 +58,6 @@ export async function getWhisperPipeline(): Promise<ASRPipeline> {
 
 // OpenAI Whisper API — wenn API-Key konfiguriert (whisper-1 ≈ large-v2, beste Genauigkeit)
 async function transcribeOpenAI(audioBuffer: Buffer): Promise<string> {
-  const apiKey = getSettings().openaiApiKey || env.openaiApiKey;
   const form = new FormData();
   form.append(
     "file",
@@ -67,12 +67,11 @@ async function transcribeOpenAI(audioBuffer: Buffer): Promise<string> {
   form.append("model", "whisper-1");
   form.append("language", "de");
 
-  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
-    body: form,
-    signal: AbortSignal.timeout(20_000),
-  });
+  const res = await openaiRequest(
+    "/v1/audio/transcriptions",
+    { body: form, json: false },
+    "transcription",
+  );
 
   if (!res.ok) throw new Error(`OpenAI Whisper HTTP ${res.status}`);
   const data = (await res.json()) as { text: string };
@@ -113,17 +112,27 @@ async function transcribeLocal(audioBuffer: Buffer): Promise<string> {
 }
 
 export async function transcribe(audioBuffer: Buffer): Promise<string> {
-  const apiKey = getSettings().openaiApiKey || env.openaiApiKey;
-  if (apiKey) {
+  if (cloudFirst()) {
     try {
       return await transcribeOpenAI(audioBuffer);
-    } catch {
-      // Fallback auf lokales Modell wenn OpenAI nicht erreichbar
+    } catch (err) {
+      if (err instanceof CloudBlockedError) {
+        // Cloud blockiert — direkt zum lokalen Modell
+      } else {
+        // OpenAI-Fehler — Fallback auf lokales Modell
+      }
     }
   }
   try {
     return await transcribeLocal(audioBuffer);
   } catch (err) {
+    if (cloudAllowed()) {
+      try {
+        return await transcribeOpenAI(audioBuffer);
+      } catch {
+        // OpenAI-Fallback auch fehlgeschlagen
+      }
+    }
     const msg = err instanceof Error ? err.message : String(err);
     if (
       msg.includes("ERR_MODULE_NOT_FOUND") ||
@@ -189,23 +198,20 @@ export async function contextAlign(rawText: string): Promise<string> {
   }
 
   // Versuch 2: OpenAI-Fallback (gpt-4o-mini — günstig + schnell)
-  const apiKey = getSettings().openaiApiKey || env.openaiApiKey;
-  if (apiKey) {
+  if (cloudAllowed()) {
     try {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+      const res = await openaiRequest(
+        "/v1/chat/completions",
+        {
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: ALIGN_PROMPT + trimmed }],
+            temperature: 0,
+            max_tokens: 120,
+          }),
         },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: ALIGN_PROMPT + trimmed }],
-          temperature: 0,
-          max_tokens: 120,
-        }),
-        signal: AbortSignal.timeout(8_000),
-      });
+        "text",
+      );
 
       if (res.ok) {
         const data = (await res.json()) as {

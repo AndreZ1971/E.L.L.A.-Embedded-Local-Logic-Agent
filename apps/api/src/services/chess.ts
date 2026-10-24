@@ -1,9 +1,10 @@
 import { Chess } from "chess.js";
 import { pool } from "../config/database.js";
-import { getSettings, getActiveApiKey } from "./settings.js";
+import { getSettings, cloudAllowed, cloudFirst } from "./settings.js";
 import { env } from "../config/env.js";
 import { listMemories } from "./memory.js";
 import { sendProactiveMessage } from "./proactive.js";
+import { openaiRequest, CloudBlockedError } from "./openai.js";
 import type { ResultSetHeader } from "mysql2";
 
 export interface ChessGame {
@@ -185,38 +186,62 @@ Kein Ergebnis-Kommentar — nur eine strategische Beobachtung.`;
 
   let reflection = "";
   try {
-    const apiKey = getActiveApiKey(env.openaiApiKey ?? "");
-    if (settings.provider === "openai" && apiKey) {
-      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+    if (cloudFirst()) {
+      // OpenAI zuerst (nur Modus "openai")
+      const resp = await openaiRequest(
+        "/v1/chat/completions",
+        {
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 120,
+            temperature: 0.8,
+          }),
         },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 120,
-          temperature: 0.8,
-        }),
-      });
+        "chess",
+      );
       const data = (await resp.json()) as {
         choices: { message: { content: string } }[];
       };
       reflection = data.choices[0]?.message.content ?? "";
     } else {
-      const resp = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: settings.ollamaModel ?? "llama3.1:8b",
-          messages: [{ role: "user", content: prompt }],
-          stream: false,
-          options: { temperature: 0.8, num_predict: 120 },
-        }),
-      });
-      const data = (await resp.json()) as { message?: { content?: string } };
-      reflection = data.message?.content ?? "";
+      // Lokal (Ollama) zuerst
+      try {
+        const resp = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: settings.ollamaModel ?? "llama3.1:8b",
+            messages: [{ role: "user", content: prompt }],
+            stream: false,
+            options: { temperature: 0.8, num_predict: 120 },
+          }),
+        });
+        const data = (await resp.json()) as { message?: { content?: string } };
+        reflection = data.message?.content ?? "";
+      } catch (err) {
+        if (cloudAllowed()) {
+          // Fallback auf OpenAI (nur Modus "auto" mit Key)
+          const resp = await openaiRequest(
+            "/v1/chat/completions",
+            {
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 120,
+                temperature: 0.8,
+              }),
+            },
+            "chess",
+          );
+          const data = (await resp.json()) as {
+            choices: { message: { content: string } }[];
+          };
+          reflection = data.choices[0]?.message.content ?? "";
+        } else {
+          throw err; // "ollama"-Modus: kein Cloud-Fallback
+        }
+      }
     }
 
     if (reflection.trim()) {
@@ -275,44 +300,69 @@ Antworte mit GENAU EINEM Zug aus der Liste. Nur der Zug, nichts anderes.`;
   const settings = getSettings();
   let response = "";
 
-  const apiKey = getActiveApiKey(env.openaiApiKey ?? "");
-
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      if (settings.provider === "openai" && apiKey) {
-        const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
+      if (cloudFirst()) {
+        // OpenAI zuerst (nur Modus "openai")
+        const resp = await openaiRequest(
+          "/v1/chat/completions",
+          {
+            body: JSON.stringify({
+              model: "gpt-4o-mini",
+              messages: [{ role: "user", content: systemPrompt }],
+              max_tokens: 10,
+              temperature: attempt === 0 ? 0.7 : 0.9,
+            }),
           },
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: systemPrompt }],
-            max_tokens: 10,
-            temperature: attempt === 0 ? 0.7 : 0.9,
-          }),
-        });
+          "chess",
+        );
         const data = (await resp.json()) as {
           choices: { message: { content: string } }[];
         };
         response = data.choices[0]?.message.content?.trim() ?? "";
       } else {
-        const resp = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: settings.ollamaModel ?? "llama3.1:8b",
-            messages: [{ role: "user", content: systemPrompt }],
-            stream: false,
-            options: {
-              temperature: attempt === 0 ? 0.7 : 0.9,
-              num_predict: 10,
-            },
-          }),
-        });
-        const data = (await resp.json()) as { message?: { content?: string } };
-        response = data.message?.content?.trim() ?? "";
+        // Lokal (Ollama) zuerst
+        try {
+          const resp = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: settings.ollamaModel ?? "llama3.1:8b",
+              messages: [{ role: "user", content: systemPrompt }],
+              stream: false,
+              options: {
+                temperature: attempt === 0 ? 0.7 : 0.9,
+                num_predict: 10,
+              },
+            }),
+          });
+          const data = (await resp.json()) as {
+            message?: { content?: string };
+          };
+          response = data.message?.content?.trim() ?? "";
+        } catch (err) {
+          if (cloudAllowed()) {
+            // Fallback auf OpenAI (nur Modus "auto" mit Key)
+            const resp = await openaiRequest(
+              "/v1/chat/completions",
+              {
+                body: JSON.stringify({
+                  model: "gpt-4o-mini",
+                  messages: [{ role: "user", content: systemPrompt }],
+                  max_tokens: 10,
+                  temperature: attempt === 0 ? 0.7 : 0.9,
+                }),
+              },
+              "chess",
+            );
+            const data = (await resp.json()) as {
+              choices: { message: { content: string } }[];
+            };
+            response = data.choices[0]?.message.content?.trim() ?? "";
+          } else {
+            throw err; // "ollama"-Modus: kein Cloud-Fallback
+          }
+        }
       }
 
       // Zug aus Antwort extrahieren: erstes Wort/Token
@@ -407,28 +457,29 @@ Schreib eine kurze, direkte Reaktion — 1 bis 2 Sätze. Du kannst:
 Kein Rat an den Gegner, kein Hinweis auf deine nächsten Züge. Frisch, lebendig, persönlich. Auf Deutsch.`;
 
   const settings = getSettings();
-  const apiKey = getActiveApiKey(env.openaiApiKey ?? "");
 
   try {
-    if (settings.provider === "openai" && apiKey) {
-      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+    if (cloudFirst()) {
+      // OpenAI zuerst (nur Modus "openai")
+      const resp = await openaiRequest(
+        "/v1/chat/completions",
+        {
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 80,
+            temperature: 0.9,
+          }),
         },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 80,
-          temperature: 0.9,
-        }),
-      });
+        "chess",
+      );
       const data = (await resp.json()) as {
         choices: { message: { content: string } }[];
       };
       return data.choices[0]?.message.content?.trim() || fallback;
-    } else {
+    }
+    // Lokal (Ollama) zuerst
+    try {
       const resp = await fetch(`${env.ollamaBaseUrl}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -441,6 +492,27 @@ Kein Rat an den Gegner, kein Hinweis auf deine nächsten Züge. Frisch, lebendig
       });
       const data = (await resp.json()) as { message?: { content?: string } };
       return data.message?.content?.trim() || fallback;
+    } catch (err) {
+      if (cloudAllowed()) {
+        // Fallback auf OpenAI (nur Modus "auto" mit Key)
+        const resp = await openaiRequest(
+          "/v1/chat/completions",
+          {
+            body: JSON.stringify({
+              model: "gpt-4o-mini",
+              messages: [{ role: "user", content: prompt }],
+              max_tokens: 80,
+              temperature: 0.9,
+            }),
+          },
+          "chess",
+        );
+        const data = (await resp.json()) as {
+          choices: { message: { content: string } }[];
+        };
+        return data.choices[0]?.message.content?.trim() || fallback;
+      }
+      throw err; // "ollama"-Modus: kein Cloud-Fallback
     }
   } catch {
     return fallback;

@@ -12,6 +12,7 @@ import * as path from "path";
 import {
   getSettings,
   saveSettings,
+  cloudFirst,
   type SetupAction,
   type AppEntry,
 } from "../services/settings.js";
@@ -983,11 +984,27 @@ const HANDLERS: Partial<Record<ToolName, Handler>> = {
   search_web: async (args) => {
     const query = (args.query as string) ?? "";
     if (!query.trim()) return { success: false, error: "query fehlt" };
-    if (!openaiClient.isAvailable())
-      return { success: false, error: "OpenAI nicht verfügbar" };
     trackToolUsage("search_web", query.slice(0, 80));
-    const result = await openaiClient.searchWeb(query);
-    return { success: true, output: result };
+    if (cloudFirst() && openaiClient.isAvailable()) {
+      const result = await openaiClient.searchWeb(query);
+      return { success: true, output: result };
+    }
+    try {
+      const results = await searchWebDDG(query, 5);
+      return {
+        success: true,
+        output: { query, count: results.length, results },
+      };
+    } catch (err) {
+      if (openaiClient.isAvailable()) {
+        const result = await openaiClient.searchWeb(query);
+        return { success: true, output: result };
+      }
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Websuche fehlgeschlagen",
+      };
+    }
   },
 
   web_search: async (args) => {

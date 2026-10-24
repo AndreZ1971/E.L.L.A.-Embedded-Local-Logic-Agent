@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { ollamaClient, type OllamaMessage } from "../services/ollama.js";
-import { openaiClient } from "../services/openai.js";
+import { openaiClient, CloudBlockedError } from "../services/openai.js";
 import { toolExecutor } from "../tools/executor.js";
 import { buildToolDefinitions } from "../tools/definitions.js";
 import { sessionStore } from "../services/sessions.js";
 import { env } from "../config/env.js";
-import { getSettings } from "../services/settings.js";
+import { getSettings, cloudAllowed } from "../services/settings.js";
 import {
   recall,
   extractAndRemember,
@@ -46,11 +46,31 @@ function withSessionLock<T>(
   return next;
 }
 
+let lastActualProvider: "openai" | "ollama" = "ollama";
+
 function resolveProvider(): "openai" | "ollama" {
   const { provider } = getSettings();
-  if (provider === "openai") return "openai";
-  if (provider === "ollama") return "ollama";
-  return openaiClient.isAvailable() ? "openai" : "ollama";
+  if (provider === "openai") {
+    lastActualProvider = "openai";
+    return "openai";
+  }
+  if (provider === "ollama") {
+    lastActualProvider = "ollama";
+    return "ollama";
+  }
+  lastActualProvider = "ollama";
+  return "ollama";
+}
+
+async function ollamaReachable(): Promise<boolean> {
+  try {
+    const r = await fetch(`${env.ollamaBaseUrl}/api/tags`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    return r.ok;
+  } catch {
+    return false;
+  }
 }
 
 function activeToolDefs() {
@@ -92,7 +112,7 @@ chatRouter.post("/", async (req, res, next) => {
   }
 
   withSessionLock(sessionId, async () => {
-    const useOpenAI = resolveProvider() === "openai";
+    let useOpenAI = resolveProvider() === "openai";
     const settings = getSettings();
     const activeModel =
       model ??
@@ -103,6 +123,15 @@ chatRouter.post("/", async (req, res, next) => {
       env.ollamaModel;
     const tools = activeToolDefs();
     const history = await sessionStore.get(sessionId);
+
+    // auto-Modus: Ollama prüfen, bei Ausfall auf OpenAI wechseln
+    if (!useOpenAI && settings.provider === "auto" && cloudAllowed()) {
+      const reachable = await ollamaReachable();
+      if (!reachable) {
+        useOpenAI = true;
+        lastActualProvider = "openai";
+      }
+    }
 
     // Kompression (Ollama-only, nie OpenAI — exfiltrate-Direktive)
     if (
@@ -268,11 +297,26 @@ chatRouter.post("/stream", async (req, res) => {
 
   await withSessionLock(sessionId, async () => {
     try {
-      const useOpenAI = resolveProvider() === "openai";
+      let useOpenAI = resolveProvider() === "openai";
       const settings = getSettings();
       const activeModel = model ?? settings.ollamaModel ?? env.ollamaModel;
       const tools = activeToolDefs();
       const history = await sessionStore.get(sessionId);
+
+      // auto-Modus: Ollama prüfen, bei Ausfall auf OpenAI wechseln
+      if (!useOpenAI && settings.provider === "auto" && cloudAllowed()) {
+        const reachable = await ollamaReachable();
+        if (!reachable) {
+          useOpenAI = true;
+          lastActualProvider = "openai";
+          emit({
+            type: "provider_fallback",
+            from: "ollama",
+            to: "openai",
+            reason: "Ollama nicht erreichbar",
+          });
+        }
+      }
 
       // Kompression (Ollama-only, nie OpenAI — exfiltrate-Direktive)
       if (
@@ -482,8 +526,8 @@ chatRouter.post("/stream", async (req, res) => {
 });
 
 chatRouter.get("/provider", (_req, res) => {
-  const p = resolveProvider();
   const s = getSettings();
+  const p = s.provider === "auto" ? lastActualProvider : resolveProvider();
   res.json({
     provider: p,
     model: p === "openai" ? "gpt-4o" : (s.ollamaModel ?? env.ollamaModel),

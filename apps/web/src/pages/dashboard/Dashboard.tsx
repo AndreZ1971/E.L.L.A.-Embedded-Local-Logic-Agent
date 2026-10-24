@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-
-const API = import.meta.env.VITE_API_BASE ?? "";
+import { apiFetch, eventStreamUrl } from "../../lib/api";
 const REFRESH_MS = 30_000;
 
 interface WorkerEvent {
@@ -152,23 +151,26 @@ const Dashboard: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<WorkerEvent[]>([]);
+  const [cloudToday, setCloudToday] = useState<number>(0);
 
   const load = useCallback(async () => {
     try {
-      const [s, d, p] = await Promise.all([
-        fetch(`${API}/api/system/status`).then((r) =>
+      const [s, d, p, ct] = await Promise.all([
+        apiFetch("/api/system/status").then((r) =>
           r.json(),
         ) as Promise<SystemStatus>,
-        fetch(`${API}/api/system/disk`).then((r) =>
-          r.json(),
-        ) as Promise<DiskData>,
-        fetch(`${API}/api/chat/provider`).then((r) =>
+        apiFetch("/api/system/disk").then((r) => r.json()) as Promise<DiskData>,
+        apiFetch("/api/chat/provider").then((r) =>
           r.json(),
         ) as Promise<ProviderData>,
+        apiFetch("/api/events/cloud-today").then((r) => r.json()) as Promise<{
+          count: number;
+        }>,
       ]);
       setStatus(s);
       setDisk(d);
       setProvider(p);
+      setCloudToday(ct.count);
       setLastUpdate(new Date());
     } catch {
       // API not yet reachable — silently retry on next interval
@@ -185,12 +187,12 @@ const Dashboard: React.FC = () => {
 
   /* SSE: empfängt Worker-Events live + lädt initiale Historie */
   useEffect(() => {
-    fetch(`${API}/api/events/recent`)
+    apiFetch("/api/events/recent")
       .then((r) => r.json())
       .then((rows: WorkerEvent[]) => setEvents(rows.slice(0, 20)))
       .catch(() => {});
 
-    const es = new EventSource(`${API}/api/events/stream`);
+    const es = new EventSource(eventStreamUrl());
     es.onmessage = (e: MessageEvent<string>) => {
       let ev: WorkerEvent;
       try {
@@ -264,7 +266,7 @@ const Dashboard: React.FC = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(4, 1fr)",
               gap: 12,
             }}
           >
@@ -328,6 +330,23 @@ const Dashboard: React.FC = () => {
                 style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 4 }}
               >
                 Port 3306
+              </div>
+            </Card>
+
+            <Card title={t("dashboard.card_cloud")}>
+              <div
+                style={{
+                  fontSize: "1.4rem",
+                  fontWeight: 700,
+                  color: cloudToday > 0 ? "#7c6af7" : "#64748b",
+                }}
+              >
+                {cloudToday}
+              </div>
+              <div
+                style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 4 }}
+              >
+                {t("dashboard.cloud_today")}
               </div>
             </Card>
           </div>

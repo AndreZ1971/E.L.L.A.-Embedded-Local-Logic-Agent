@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v1.5.0**
+**Aktueller Stand: v1.5.1**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -50,7 +50,7 @@ database/
 ### Kern
 
 - Dual-LLM (Ollama/OpenAI), SSE-Streaming, Tool-Loop max. 5 Runden
-- 85 Tools mit Handlern + Audit-Log (`tool_executions`)
+- 111 Tools mit Handlern + Audit-Log (`tool_executions`)
 - Rule Engine: Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → allow
 - **Directive-Denial UI:** roter Badge im Chat bei Regel-Ablehnung
 - ML Memory: nomic-embed-text, cosine similarity, 3 Typen (user/system/note), Duplikat-Prävention (≥85% Cosine)
@@ -66,7 +66,7 @@ database/
 - **Proaktive Nachrichten:** ELLA schreibt von sich aus in den Chat (SSE `proactive_message`)
 - **Feedback-Buttons:** Daumen hoch/runter → Ollama extrahiert Nutzerpräferenzen → `user`-Memory
 - **Markdown-Rendering:** Chat-Antworten via `marked.js`, TTS-bewusstes System-Prompt
-- **Tool-Log:** verwendete Tools als Chips unter jeder Assistenten-Antwort (63 Labels)
+- **Tool-Log:** verwendete Tools als Chips unter jeder Assistenten-Antwort
 - **Ollama-Offline-Banner:** `GET /api/health` + `OllamaBanner`-Komponente, 30s Polling
 - **Favicon:** SVG "E." Design + Electron-Icon (RGBA, transparente Ecken)
 - **Externe Links:** `shell.openExternal` — Browser statt Electron
@@ -96,6 +96,17 @@ database/
 - **Schreibstil:** `write_for_me`, `write_in_style` → Stilprofil aus E-Mail-Historie + Text im Nutzerstil
 - **Textverarbeitung:** `translate_text`, `summarize_text`, `correct_text` — Ollama/OpenAI
 - **Duplikate:** `find_duplicates`, **Autostart:** `list_autostart`
+- **Drucker:** `list_printers`, `print_document`, `get_print_jobs`, `cancel_print_job`
+- **Kameras:** `list_cameras`, `capture_photo` (mit optionaler GPT-4o-Beschreibung)
+- **Hardware-Info:** `get_gpu_info`, `get_ram_info`, `get_storage_devices`, `get_audio_devices`, `get_usb_devices`
+- **Monitore:** `list_monitors`, `open_app_on_monitor` — Multi-Monitor-Unterstützung
+- **Dateiverwaltung:** `list_folder`, `rename_file`, `copy_file`, `create_folder`, `delete_file`/`delete_files`
+- **Desktop-Automation:** `launch_app`, `control_window`, `send_keys`, `click_at`, `move_mouse`, `drag_drop`, `click_element`, `read_screen` (OCR), `watch_screen`
+- **Dokumenten-Index:** `index_documents`, `search_documents`, `list_indexed_folders` — lokale Volltextsuche mit Embeddings
+- **Eigene Pipelines:** `custom_pipelines`-Tabelle — benutzerdefinierte Multi-Agenten-Pipelines (parallel/sequenziell)
+- **Websuche:** `search_web` (DuckDuckGo primär, OpenAI-Fallback), `web_search`, `fetch_url`
+- **System:** `run_command`, `shutdown_system`, `get_datetime`, `get_location`, `get_weather`, `scan_network`, `list_connections`, `list_devices`
+- **Sonstiges:** `rename_drive`, `format_drive`, `toggle_dark_mode`, `control_media`, `get_now_playing`, `pause_ella`, `free_ram`, `homework_mode`, `reflect_on_experiences`
 
 ### Kommunikation
 
@@ -115,7 +126,7 @@ database/
 ### Infrastruktur
 
 - **Onboarding:** 6-Schritt-Flow — Name, Directive-Acceptance, Hardware-Scan, Stimme, Standort
-- Auto-Migration: schema.sql idempotent, **85 Default-Rules** (IDs 1–85)
+- Auto-Migration: schema.sql idempotent, **107 Default-Rules** (IDs 1–107)
 - **DB v3.5.0:** `alarms`-Tabelle + Regeln 83–85
 - **Nutzerprofile:** `routes/profiles.ts`, `services/profiles.ts` — PBKDF2+Salt (100k Iterations)
 - **Feedback-Route:** `routes/feedback.ts` — POST /api/feedback + Ollama-Memory-Extraktion
@@ -124,14 +135,14 @@ database/
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
 - **DB v1.5.0:** `knowledge_triples`-Tabelle, `proactive_preferences`-Tabelle, `learning_examples`-Tabelle
-- **261 Tests — alle grün** (Vitest Unit + Integration)
+- **312 Tests — alle grün** (Vitest Unit + Integration)
 - **Smoke Tests:** `scripts/smoke-test.ps1` — 13 End-to-End-Tests (Health, Homework Mode, Ollama, Chat+Tools, Lizenz)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 - **LLM als Non-Gatekeeper:** System-Prompt Regel "KRITISCH — DU BIST NICHT DER GATEKEEPER" — LLM ruft Tools immer auf, Directive + Rule Engine entscheiden; verhindert Text-Ablehnung anstelle des Directive-Banners
 
 ### v1.1.0 — Token-Optimierung
 
-- **Tool-Selector** (`services/toolSelector.ts`): 8 CORE-Tools immer aktiv + 20 Lazy Groups mit DE/EN-Regex-Matching; sendet pro Anfrage nur relevante Tools (~12 statt 85) → bis zu 90 % weniger Input-Tokens
+- **Tool-Selector** (`services/toolSelector.ts`): 8 CORE-Tools immer aktiv + 20 Lazy Groups mit DE/EN-Regex-Matching; sendet pro Anfrage nur relevante Tools (~12 statt 111) → bis zu 90 % weniger Input-Tokens
 - **Token-Optimizer** (`services/tokenOptimizer.ts`): Tool-Ergebnisse vor dem Speichern in der History komprimiert — JSON minify, Base64-Stripping, Array-Truncation (max 50 Einträge)
 - **Smarter Tool-Loop:** Ab Runde 1 nur noch kontextrelevante Tools via `selectToolsForContext()`; Ollama-Bug gefixt (`toolCallsBuffer` außerhalb des `while(true)`-Loops deklariert)
 
@@ -178,7 +189,24 @@ database/
 - **Memory-Deduplizierung:** `deduplicateMemories()` für rückwirkende Bereinigung; `POST /api/memories/deduplicate`; 🧹-Button im Memories-Dashboard
 - **Alle proaktiven Nachrichten kategorisiert:** worker.ts, chess.ts, dayBriefing.ts, meetingPrep.ts, rhythmLearner.ts
 - **Self-Learning** (`learning_examples`-Tabelle): positives Feedback (👍) speichert Q&A-Paare als goldene Beispiele; `recallExamples()` findet per Cosine-Similarity ähnliche Paare und injiziert sie als Few-Shot in den System-Prompt; `selfLearningEnabled`-Setting (default: an); Duplikat-Prävention (≥85% Cosine); `use_count`-Tracking pro Beispiel
-- **261 Tests — alle grün** (Vitest Unit + Integration)
+- **312 Tests — alle grün** (Vitest Unit + Integration)
+
+### v1.5.1 — Sicherheitspatch & Cloud-Governance
+
+- **Loopback-Binding:** Express bindet auf `127.0.0.1` statt `0.0.0.0` — API nur lokal erreichbar
+- **Per-Start API-Token:** `randomBytes(32)` in Electron `main.ts`, übergeben via `--ella-api-token=`; `timingSafeEqual`-Prüfung in `apiAuth`-Middleware; SSE-Requests über Query-Parameter authentifiziert
+- **apiAuth-Middleware** (`middleware/apiAuth.ts`): Host-Whitelist (localhost/127.0.0.1), strikte CORS (`http://localhost:5173`), Token-Validierung, Health-Endpoint ausgenommen
+- **Frontend `apiFetch()` / `eventStreamUrl()`** (`lib/api.ts`): zentralisierter API-Client mit automatischer Token-Injection; ersetzt alle direkten `fetch()`-Aufrufe
+- **PIN-geschützte Profile:** `POST /api/profiles/:id/verify-pin` → zeitlich begrenzte `x-profile-token`-Session-Tokens
+- **Cloud-Governance — `openaiRequest()`** (`services/openai.ts`): alle OpenAI-Calls durch eine zentrale Funktion; prüft `cloudAllowed()`, wirft `CloudBlockedError` bei unerlaubtem Cloud-Zugriff; loggt jeden Call in `system_events`-Tabelle
+- **`cloudFirst()` / `cloudAllowed()`** (`services/settings.ts`): `cloudFirst()` = Provider explizit "openai" + Key vorhanden; `cloudAllowed()` = Provider nicht "ollama" + Key vorhanden
+- **"Lokal zuerst"-Muster:** alle Services (whisper, textProcessing, textCorrection, styleProfile, chess, vision, pipeline) nutzen: `cloudFirst()` → OpenAI | try Ollama → catch + `cloudAllowed()` → OpenAI-Fallback
+- **DuckDuckGo-Websuche:** `search_web` nutzt DuckDuckGo als primäre Suchmaschine (kein API-Key nötig); OpenAI Web Search nur bei `cloudFirst()` oder als Fallback
+- **Cloud-Dashboard-Kachel:** `GET /api/events/cloud-today` → Anzahl Cloud-Requests heute; neue Kachel im Dashboard
+- **`system_events`-Tabelle:** loggt `cloud_request`-Events mit `purpose`, `endpoint`, `profile_id`
+- **Architecture-Tests:** verifizieren dass `api.openai.com` nur in `services/openai.ts` vorkommt und `env.openaiApiKey` nirgendwo direkt referenziert wird
+- **DB v1.5.1:** `system_events`-Tabelle, Regel-IDs bis 107, nächste freie ID: 108
+- **312 Tests — alle grün** (Vitest Unit + Integration, inkl. 10 apiAuth + 7 cloudGate + 2 Architecture + 32 Lokal-Zuerst-Tests)
 
 ---
 
@@ -189,7 +217,7 @@ Jedes neue Tool braucht alle folgenden Schritte:
 1. **`packages/shared/src/types/tool.ts`** — ToolName-Union ergänzen
 2. **`apps/api/src/tools/definitions.ts`** — Tool-Definition (type, function, parameters)
 3. **`apps/api/src/tools/executor.ts`** — Handler implementieren (Import + HANDLERS-Eintrag)
-4. **`apps/api/src/config/migrate.ts`** — Default-Regel (nächste freie ID ab 86, `always`, `allow`) + ggf. CREATE TABLE
+4. **`apps/api/src/config/migrate.ts`** — Default-Regel (nächste freie ID ab 108, `always`, `allow`) + ggf. CREATE TABLE
 5. **`apps/api/src/routes/settings.ts`** — Falls neue Settings-Felder: in PUT-Route Destructuring UND `raw`-Objekt eintragen (sonst beim Speichern ignoriert!)
 6. **`apps/api/src/services/settings.ts`** — Falls neue Settings-Felder: Interface, DEFAULT_SETTINGS, loadSettings-Migration
 7. **`apps/api/src/index.ts`** — Falls neue Route: Router importieren + `app.use(...)` eintragen
@@ -283,7 +311,7 @@ cd apps/desktop && node build-main.mjs && cd ../..
 $env:ELLA_DEV = "1"; cd apps\desktop; .\node_modules\electron\dist\electron.exe .
 
 # Tests
-npm test                       # 254 Unit + Integration Tests (Vitest)
+npm test                       # 312 Unit + Integration Tests (Vitest)
 npm run lint
 
 # Ollama prüfen
@@ -324,12 +352,11 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
 
-
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
-### MCP & Skills awareness (Cloude Code ToolBox)
+### MCP & Skills awareness (Claude Code ToolBox)
 
-_Last synced: 2026-10-10T07:53:04.699Z._
+_Last synced: 2026-10-24T15:17:58.176Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).
