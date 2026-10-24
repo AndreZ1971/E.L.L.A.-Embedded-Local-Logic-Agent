@@ -7,6 +7,12 @@ import { apiFetch, eventStreamUrl } from "../../lib/api";
 
 type VoiceMode = "off" | "manual" | "wakeword" | "always";
 
+// Stop-Wörter zum Unterbrechen der TTS-Sprachausgabe
+const STOP_INTERRUPT_RE =
+  /^(stopp?|halt|sei still|ruhig|leise|quiet|stop it|shut up|still)[\s!.]*$/i;
+
+const FOLLOW_UP_MS = 8_000;
+
 // Whisper-tiny hallucinations — skip these segments entirely
 const HALLUCINATION_RE =
   /^\[.*\]$|^\(.*\)$|wir sehen uns wieder|bis zum nächsten|vielen dank für|untertitel|copyright|^https?:\/\/\S+$|^\S+\.(com|de|org|net|io)\b/i;
@@ -140,7 +146,13 @@ const Chat: React.FC = () => {
     ttsQueueRef.current = [];
     ttsQueueBusyRef.current = false;
     window.speechSynthesis.cancel();
+    ttsSpeakingRef.current = false;
+    setTtsActive(false);
   }, []);
+
+  useEffect(() => {
+    stopCurrentAudioRef.current = stopCurrentAudio;
+  }, [stopCurrentAudio]);
 
   const speakEdge = useCallback(
     async (text: string) => {
@@ -169,6 +181,7 @@ const Chat: React.FC = () => {
             currentAudioRef.current = null;
             ttsSpeakingRef.current = false;
             setTtsActive(false);
+            followUpUntilRef.current = Date.now() + FOLLOW_UP_MS;
           }
         };
         audio.onerror = () => {
@@ -274,6 +287,7 @@ const Chat: React.FC = () => {
         // skip sentence on error
       }
     }
+    followUpUntilRef.current = Date.now() + FOLLOW_UP_MS;
     ttsQueueBusyRef.current = false;
     ttsQueueAbortRef.current = null;
   }, []);
@@ -314,6 +328,8 @@ const Chat: React.FC = () => {
   const loadingRef = useRef(false);
   const lastWakewordTimeRef = useRef<number>(0);
   const stressLevelRef = useRef<"low" | "medium" | "high">("low");
+  const followUpUntilRef = useRef<number>(0);
+  const stopCurrentAudioRef = useRef<() => void>(() => {});
 
   /* ── Worker-Events (Alerts) ── */
   useEffect(() => {
@@ -869,11 +885,34 @@ const Chat: React.FC = () => {
         .start({
           onSpeechStart: () => setMicStatus(t("chat.mic_detecting")),
           onSegment: async (audio, sampleRate) => {
-            if (loadingRef.current || ttsSpeakingRef.current) {
+            if (loadingRef.current) {
               setMicStatus("");
               return;
             }
             const blob = encodeWav(audio, sampleRate);
+
+            // Stop-Interrupt: während TTS nur Stop-Wörter erkennen
+            if (ttsSpeakingRef.current) {
+              try {
+                const sf = new FormData();
+                sf.append("audio", blob, "segment.wav");
+                const r = await apiFetch("/api/speech/transcribe?raw=true", {
+                  method: "POST",
+                  body: sf,
+                  signal: AbortSignal.timeout(8_000),
+                });
+                const d = (await r.json()) as { text?: string };
+                const w = (d.text ?? "").trim();
+                if (w && STOP_INTERRUPT_RE.test(w)) {
+                  stopCurrentAudioRef.current();
+                }
+              } catch {
+                /* ignore */
+              }
+              setMicStatus("");
+              return;
+            }
+
             const form = new FormData();
             form.append("audio", blob, "segment.wav");
             setMicStatus(t("chat.mic_transcribing_vad"));
@@ -944,8 +983,66 @@ const Chat: React.FC = () => {
             setMicStatus("");
             return;
           }
-          // Skip if previous segment is still being processed
           const blob = encodeWav(audio, sampleRate);
+
+          // Stop-Interrupt: während TTS nur Stop-Wörter erkennen
+          if (ttsSpeakingRef.current) {
+            try {
+              const sf = new FormData();
+              sf.append("audio", blob, "segment.wav");
+              const r = await apiFetch("/api/speech/transcribe?raw=true", {
+                method: "POST",
+                body: sf,
+                signal: AbortSignal.timeout(8_000),
+              });
+              const d = (await r.json()) as { text?: string };
+              const w = (d.text ?? "").trim();
+              if (w && STOP_INTERRUPT_RE.test(w)) {
+                stopCurrentAudioRef.current();
+              }
+            } catch {
+              /* ignore */
+            }
+            setMicStatus("");
+            return;
+          }
+
+          // Follow-Up-Fenster: nach TTS direkt transkribieren ohne Wakeword
+          if (followUpUntilRef.current > Date.now()) {
+            followUpUntilRef.current = 0;
+            const fuForm = new FormData();
+            fuForm.append("audio", blob, "segment.wav");
+            setMicStatus(t("chat.mic_transcribing_vad"));
+            try {
+              const r = await apiFetch("/api/speech/transcribe", {
+                method: "POST",
+                body: fuForm,
+              });
+              const data = (await r.json()) as {
+                text?: string;
+                error?: string;
+              };
+              if (!r.ok) {
+                setMicStatus(data.error ?? t("chat.mic_stt_unavailable"));
+                setTimeout(() => setMicStatus(""), 6000);
+                return;
+              }
+              const clean = (data.text ?? "").trim();
+              if (clean && !HALLUCINATION_RE.test(clean)) {
+                sendTextRef.current(clean);
+              } else {
+                setMicStatus(t("chat.mic_not_understood"));
+                setTimeout(() => setMicStatus(""), 3000);
+              }
+            } catch {
+              setMicStatus(t("chat.mic_failed"));
+              setTimeout(() => setMicStatus(""), 3000);
+            } finally {
+              setMicStatus("");
+            }
+            return;
+          }
+
           const form = new FormData();
           form.append("audio", blob, "segment.wav");
           // Stress analysis on every spoken segment (fire-and-forget)

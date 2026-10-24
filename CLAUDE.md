@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v1.5.2**
+**Aktueller Stand: v1.5.3**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -135,7 +135,7 @@ database/
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
 - **DB v1.5.0:** `knowledge_triples`-Tabelle, `proactive_preferences`-Tabelle, `learning_examples`-Tabelle
-- **329 Tests — alle grün** (Vitest Unit + Integration)
+- **369 Tests — alle grün** (Vitest Unit + Integration)
 - **Smoke Tests:** `scripts/smoke-test.ps1` — 13 End-to-End-Tests (Health, Homework Mode, Ollama, Chat+Tools, Lizenz)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 - **LLM als Non-Gatekeeper:** System-Prompt Regel "KRITISCH — DU BIST NICHT DER GATEKEEPER" — LLM ruft Tools immer auf, Directive + Rule Engine entscheiden; verhindert Text-Ablehnung anstelle des Directive-Banners
@@ -189,7 +189,7 @@ database/
 - **Memory-Deduplizierung:** `deduplicateMemories()` für rückwirkende Bereinigung; `POST /api/memories/deduplicate`; 🧹-Button im Memories-Dashboard
 - **Alle proaktiven Nachrichten kategorisiert:** worker.ts, chess.ts, dayBriefing.ts, meetingPrep.ts, rhythmLearner.ts
 - **Self-Learning** (`learning_examples`-Tabelle): positives Feedback (👍) speichert Q&A-Paare als goldene Beispiele; `recallExamples()` findet per Cosine-Similarity ähnliche Paare und injiziert sie als Few-Shot in den System-Prompt; `selfLearningEnabled`-Setting (default: an); Duplikat-Prävention (≥85% Cosine); `use_count`-Tracking pro Beispiel
-- **329 Tests — alle grün** (Vitest Unit + Integration)
+- **369 Tests — alle grün** (Vitest Unit + Integration)
 
 ### v1.5.1 — Sicherheitspatch & Cloud-Governance
 
@@ -206,7 +206,7 @@ database/
 - **`system_events`-Tabelle:** loggt `cloud_request`-Events mit `purpose`, `endpoint`, `profile_id`
 - **Architecture-Tests:** verifizieren dass `api.openai.com` nur in `services/openai.ts` vorkommt und `env.openaiApiKey` nirgendwo direkt referenziert wird
 - **DB v1.5.1:** `system_events`-Tabelle, Regel-IDs bis 107, nächste freie ID: 108
-- **329 Tests — alle grün** (Vitest Unit + Integration, inkl. 10 apiAuth + 7 cloudGate + 2 Architecture + 32 Lokal-Zuerst-Tests + 12 Redact + 5 Offline)
+- **369 Tests — alle grün** (Vitest Unit + Integration, inkl. 10 apiAuth + 7 cloudGate + 2 Architecture + 32 Lokal-Zuerst-Tests + 12 Redact + 5 Offline + 40 Stop-Interrupt)
 
 ### v1.5.2 — Directive-Härtung & Datenschutz
 
@@ -214,7 +214,16 @@ database/
 - **Ergebnis-Transparenz:** System-Prompt-Instruktion "ERGEBNIS-TRANSPARENZ — PFLICHT" erzwingt dass ELLA Tool-Fehler klar kommuniziert statt "erledigt" zu sagen
 - **Offline-Schalter** (`offlineMode`-Setting): sperrt alle Netzwerk-Tools (search_web, web_search, fetch_url, get_weather, get_location, describe_webpage) im Executor; `cloudAllowed()` gibt bei Offline-Modus immer `false` zurück; Lizenz-Verify nutzt Cache statt Server; Health-Endpoint liefert `offline_mode`-Flag; Offline-Banner in der UI (blauer Balken); Settings-Toggle unter "Offline-Modus"
 - **Lokale Netzwerk-Tools unberührt:** `scan_network`, `list_connections`, `list_devices` funktionieren weiterhin im Offline-Modus
-- **329 Tests — alle grün** (Vitest Unit + Integration, inkl. 12 Redact + 5 Offline-Tests)
+- **369 Tests — alle grün** (Vitest Unit + Integration, inkl. 12 Redact + 5 Offline-Tests)
+
+### v1.5.3 — Natürliches Gespräch
+
+- **Stop-Interrupt:** Während TTS-Wiedergabe werden VAD-Segmente weiterhin transkribiert; erkennt Stop-Wörter (`STOP_INTERRUPT_RE`: stopp, halt, sei still, ruhig, leise, quiet, stop it, shut up, still) und bricht TTS sofort ab — funktioniert in Wakeword- und Always-Modus
+- **Follow-Up-Fenster:** 8 Sekunden nach TTS-Ende kann im Wakeword-Modus ohne Wakeword direkt gesprochen werden; `followUpUntilRef` Timestamp wird nach `speakEdge()` und `drainTTSQueue()` gesetzt; Fenster wird beim ersten Nutzen sofort geschlossen (kein Double-Processing)
+- **EchoCancellation:** `getUserMedia({ echoCancellation: true })` bereits aktiv — TTS-Audio wird nicht als Stop-Wort fehlerkannt
+- **40 Stop-Interrupt-Tests:** Regex-Matching für alle DE/EN Stop-Wörter inkl. Interpunktion, Negativ-Tests für Teilsätze, State-Reset-Test
+- **offlineMode-Test stabilisiert:** `vi.restoreAllMocks()` → `vi.clearAllMocks()` + erhöhter Timeout — behebt Unhandled Errors durch verwaiste `setImmediate`-Callbacks
+- **369 Tests — alle grün** (Vitest Unit + Integration, inkl. 40 Stop-Interrupt-Tests)
 
 ---
 

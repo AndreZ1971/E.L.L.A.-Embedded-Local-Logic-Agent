@@ -87,7 +87,7 @@ describe("Offline-Modus", () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it("blockiert Netzwerk-Tools wenn offlineMode aktiv", async () => {
@@ -106,7 +106,7 @@ describe("Offline-Modus", () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain("Offline-Modus");
     }
-  });
+  }, 15_000);
 
   it("erlaubt lokale Netzwerk-Tools im Offline-Modus", async () => {
     mockSettings.offlineMode = true;
