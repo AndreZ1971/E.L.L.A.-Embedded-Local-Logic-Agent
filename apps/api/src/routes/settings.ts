@@ -53,6 +53,7 @@ settingsRouter.put("/", async (req, res, next) => {
       stressDetectionEnabled,
       selfLearningEnabled,
       indexedFolders,
+      offlineMode,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -82,6 +83,7 @@ settingsRouter.put("/", async (req, res, next) => {
       stressDetectionEnabled?: boolean;
       selfLearningEnabled?: boolean;
       indexedFolders?: string[];
+      offlineMode?: boolean;
     };
 
     const raw = {
@@ -111,6 +113,7 @@ settingsRouter.put("/", async (req, res, next) => {
       stressDetectionEnabled,
       selfLearningEnabled,
       indexedFolders,
+      offlineMode,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(

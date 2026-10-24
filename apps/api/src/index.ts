@@ -99,6 +99,7 @@ app.get("/api/health", async (_req, res) => {
     model_ready: modelReady,
     model_pull: modelPullProgress,
     kokoro_ready: isKokoroReady(),
+    offline_mode: getSettings().offlineMode,
   });
 });
 

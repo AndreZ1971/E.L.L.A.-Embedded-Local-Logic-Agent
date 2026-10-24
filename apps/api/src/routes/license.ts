@@ -87,9 +87,14 @@ licenseRouter.post("/activate", async (req, res, next) => {
 
 // POST /api/license/verify  — called on startup to recheck token
 licenseRouter.post("/verify", async (_req, res) => {
-  const { licenseToken, licenseKey } = getSettings();
+  const { licenseToken, licenseKey, offlineMode } = getSettings();
   if (!licenseToken) {
     res.json({ valid: false });
+    return;
+  }
+
+  if (offlineMode) {
+    res.json({ valid: true, offline: true, licenseKey });
     return;
   }
 

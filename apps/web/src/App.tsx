@@ -115,14 +115,20 @@ export function useBootContext() {
 function OllamaBanner() {
   const { t } = useTranslation();
   const [offline, setOffline] = useState(false);
+  const [offlineMode, setOfflineMode] = useState(false);
   const [checking, setChecking] = useState(false);
 
   const check = useCallback(async () => {
     try {
       const r = await apiFetch("/api/health");
       if (!r.ok) return;
-      const d = (await r.json()) as { ollama: boolean; provider: string };
+      const d = (await r.json()) as {
+        ollama: boolean;
+        provider: string;
+        offline_mode?: boolean;
+      };
       setOffline(d.provider !== "openai" && !d.ollama);
+      setOfflineMode(d.offline_mode ?? false);
     } catch {
       // API itself offline — don't spam banner
     }
@@ -134,41 +140,62 @@ function OllamaBanner() {
     return () => clearInterval(id);
   }, [check]);
 
-  if (!offline) return null;
+  if (!offline && !offlineMode) return null;
   return (
-    <div
-      style={{
-        background: "#78350f",
-        color: "#fef3c7",
-        fontSize: "0.78rem",
-        padding: "6px 16px",
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        borderBottom: "1px solid #92400e",
-      }}
-    >
-      <span>{t("app.ollama_offline")}</span>
-      <button
-        disabled={checking}
-        onClick={async () => {
-          setChecking(true);
-          await check();
-          setChecking(false);
-        }}
-        style={{
-          background: "transparent",
-          border: "1px solid #fef3c7",
-          borderRadius: 4,
-          color: "#fef3c7",
-          cursor: "pointer",
-          fontSize: "0.75rem",
-          padding: "2px 10px",
-        }}
-      >
-        {checking ? t("app.ollama_checking") : t("app.ollama_retry")}
-      </button>
-    </div>
+    <>
+      {offlineMode && (
+        <div
+          style={{
+            background: "#1e3a5f",
+            color: "#93c5fd",
+            fontSize: "0.78rem",
+            padding: "6px 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            borderBottom: "1px solid #2563eb",
+          }}
+        >
+          <span style={{ fontSize: "1rem" }}>✈</span>
+          <span>Offline-Modus aktiv — kein Netzwerkzugriff</span>
+        </div>
+      )}
+      {offline && !offlineMode && (
+        <div
+          style={{
+            background: "#78350f",
+            color: "#fef3c7",
+            fontSize: "0.78rem",
+            padding: "6px 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            borderBottom: "1px solid #92400e",
+          }}
+        >
+          <span>{t("app.ollama_offline")}</span>
+          <button
+            disabled={checking}
+            onClick={async () => {
+              setChecking(true);
+              await check();
+              setChecking(false);
+            }}
+            style={{
+              background: "transparent",
+              border: "1px solid #fef3c7",
+              borderRadius: 4,
+              color: "#fef3c7",
+              cursor: "pointer",
+              fontSize: "0.75rem",
+              padding: "2px 10px",
+            }}
+          >
+            {checking ? t("app.ollama_checking") : t("app.ollama_retry")}
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 

@@ -3794,16 +3794,37 @@ try {
   },
 };
 
+const NETWORK_TOOLS = new Set([
+  "search_web",
+  "web_search",
+  "fetch_url",
+  "get_weather",
+  "get_location",
+  "describe_webpage",
+]);
+
+function isNetworkTool(name: string): boolean {
+  return NETWORK_TOOLS.has(name);
+}
+
 export const toolExecutor = {
   execute: async (call: ToolCall): Promise<ToolResult> => {
     const name = call.tool;
 
-    const { enabledTools } = getSettings();
+    const settings = getSettings();
+    const { enabledTools } = settings;
     // _confirmed-Tools sind interne Callbacks nach Nutzer-Bestätigung — kein enabledTools-Check
     if (!name.endsWith("_confirmed") && !enabledTools.includes(name)) {
       return {
         success: false,
         error: `Das kann ich gerade nicht — diese Funktion ist deaktiviert.`,
+      };
+    }
+
+    if (settings.offlineMode && isNetworkTool(name)) {
+      return {
+        success: false,
+        error: "Offline-Modus aktiv — Netzwerkzugriff gesperrt.",
       };
     }
 

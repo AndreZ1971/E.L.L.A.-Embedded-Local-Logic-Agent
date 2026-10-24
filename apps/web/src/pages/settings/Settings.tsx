@@ -198,6 +198,7 @@ interface Settings {
   stressDetectionEnabled: boolean;
   selfLearningEnabled: boolean;
   indexedFolders: string[];
+  offlineMode: boolean;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -1527,6 +1528,33 @@ const Settings: React.FC = () => {
                 Positives Feedback (👍) wird als Lernbeispiel gespeichert. ELLA
                 nutzt ähnliche erfolgreiche Antworten als Orientierung für
                 zukünftige Gespräche.
+              </div>
+            </Section>
+
+            <Section title="Offline-Modus">
+              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={settings.offlineMode ?? false}
+                  onChange={(e) => patch({ offlineMode: e.target.checked })}
+                />
+                <span
+                  style={{
+                    color: settings.offlineMode ? "#f59e0b" : "#94a3b8",
+                  }}
+                >
+                  Offline-Modus aktivieren
+                </span>
+              </label>
+              <div
+                style={{
+                  fontSize: "0.78rem",
+                  color: "#64748b",
+                  marginTop: 4,
+                }}
+              >
+                Sperrt alle Netzwerkzugriffe — Websuche, Wetter, Cloud und
+                Lizenzprüfung. ELLA arbeitet vollständig offline.
               </div>
             </Section>
 

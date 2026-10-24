@@ -1,10 +1,13 @@
+import { redact } from "./redact.js";
+
 const MAX_HISTORY = 20;
 const history: Array<{ content: string; timestamp: string }> = [];
 
 export function recordClipboard(content: string): void {
   if (history[0]?.content === content) return;
+  const sanitized = redact(content);
   history.unshift({
-    content: content.slice(0, 5000),
+    content: sanitized.slice(0, 5000),
     timestamp: new Date().toISOString(),
   });
   if (history.length > MAX_HISTORY) history.pop();

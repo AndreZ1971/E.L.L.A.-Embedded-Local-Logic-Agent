@@ -1,6 +1,7 @@
 import { pool } from "../config/database.js";
 import { env } from "../config/env.js";
 import { getSettings } from "./settings.js";
+import { redact } from "./redact.js";
 import type { ToolResult } from "@ella/shared";
 
 const EMBED_MODEL = "nomic-embed-text";
@@ -43,6 +44,7 @@ export async function remember(
   content: string,
   source?: string,
 ): Promise<ToolResult> {
+  content = redact(content);
   const vec = await embed(content);
   if (!vec) {
     return {
@@ -256,7 +258,8 @@ Assistent: ${assistantMsg}`;
       const factLine = response
         .split("\n")
         .find((l) => l.toUpperCase().startsWith("FAKT:"));
-      const fact = factLine?.replace(/^FAKT:\s*/i, "").trim();
+      const rawFact = factLine?.replace(/^FAKT:\s*/i, "").trim();
+      const fact = rawFact ? redact(rawFact) : rawFact;
 
       let memoryId: number | null = null;
       if (fact && !fact.toUpperCase().startsWith("NICHTS")) {

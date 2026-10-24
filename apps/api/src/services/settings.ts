@@ -80,6 +80,7 @@ export interface Settings {
   stressDetectionEnabled: boolean;
   selfLearningEnabled: boolean;
   indexedFolders: string[];
+  offlineMode: boolean;
 }
 
 // Im Installer: ELLA_USERDATA = %APPDATA%\ELLA (gesetzt von Electron main.ts)
@@ -220,6 +221,7 @@ export const DEFAULT_SETTINGS: Settings = {
   stressDetectionEnabled: false,
   selfLearningEnabled: true,
   indexedFolders: [],
+  offlineMode: false,
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -318,6 +320,8 @@ export async function loadSettings(): Promise<void> {
       parsed.modelTier = "standard";
     if (!Array.isArray(parsed.indexedFolders))
       parsed.indexedFolders = DEFAULT_SETTINGS.indexedFolders;
+    if (typeof parsed.offlineMode !== "boolean")
+      parsed.offlineMode = DEFAULT_SETTINGS.offlineMode;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults
@@ -338,6 +342,7 @@ export function getActiveApiKey(): string {
 }
 
 export function cloudAllowed(): boolean {
+  if (current.offlineMode) return false;
   return current.provider !== "ollama" && Boolean(current.openaiApiKey);
 }
 

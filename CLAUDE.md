@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v1.5.1**
+**Aktueller Stand: v1.5.2**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -135,7 +135,7 @@ database/
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
 - **DB v1.5.0:** `knowledge_triples`-Tabelle, `proactive_preferences`-Tabelle, `learning_examples`-Tabelle
-- **312 Tests — alle grün** (Vitest Unit + Integration)
+- **329 Tests — alle grün** (Vitest Unit + Integration)
 - **Smoke Tests:** `scripts/smoke-test.ps1` — 13 End-to-End-Tests (Health, Homework Mode, Ollama, Chat+Tools, Lizenz)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 - **LLM als Non-Gatekeeper:** System-Prompt Regel "KRITISCH — DU BIST NICHT DER GATEKEEPER" — LLM ruft Tools immer auf, Directive + Rule Engine entscheiden; verhindert Text-Ablehnung anstelle des Directive-Banners
@@ -189,7 +189,7 @@ database/
 - **Memory-Deduplizierung:** `deduplicateMemories()` für rückwirkende Bereinigung; `POST /api/memories/deduplicate`; 🧹-Button im Memories-Dashboard
 - **Alle proaktiven Nachrichten kategorisiert:** worker.ts, chess.ts, dayBriefing.ts, meetingPrep.ts, rhythmLearner.ts
 - **Self-Learning** (`learning_examples`-Tabelle): positives Feedback (👍) speichert Q&A-Paare als goldene Beispiele; `recallExamples()` findet per Cosine-Similarity ähnliche Paare und injiziert sie als Few-Shot in den System-Prompt; `selfLearningEnabled`-Setting (default: an); Duplikat-Prävention (≥85% Cosine); `use_count`-Tracking pro Beispiel
-- **312 Tests — alle grün** (Vitest Unit + Integration)
+- **329 Tests — alle grün** (Vitest Unit + Integration)
 
 ### v1.5.1 — Sicherheitspatch & Cloud-Governance
 
@@ -206,7 +206,15 @@ database/
 - **`system_events`-Tabelle:** loggt `cloud_request`-Events mit `purpose`, `endpoint`, `profile_id`
 - **Architecture-Tests:** verifizieren dass `api.openai.com` nur in `services/openai.ts` vorkommt und `env.openaiApiKey` nirgendwo direkt referenziert wird
 - **DB v1.5.1:** `system_events`-Tabelle, Regel-IDs bis 107, nächste freie ID: 108
-- **312 Tests — alle grün** (Vitest Unit + Integration, inkl. 10 apiAuth + 7 cloudGate + 2 Architecture + 32 Lokal-Zuerst-Tests)
+- **329 Tests — alle grün** (Vitest Unit + Integration, inkl. 10 apiAuth + 7 cloudGate + 2 Architecture + 32 Lokal-Zuerst-Tests + 12 Redact + 5 Offline)
+
+### v1.5.2 — Directive-Härtung & Datenschutz
+
+- **Schwärzen vor dem Speichern** (`services/redact.ts`): Regex-basiertes Scrubbing sensibler Daten (API-Keys, Bearer-Tokens, GitHub-PATs, Passwörter, IBANs, Kreditkartennummern) bevor sie in Memories oder Clipboard-History gespeichert werden; integriert in `remember()`, `extractAndRemember()` und `recordClipboard()`
+- **Ergebnis-Transparenz:** System-Prompt-Instruktion "ERGEBNIS-TRANSPARENZ — PFLICHT" erzwingt dass ELLA Tool-Fehler klar kommuniziert statt "erledigt" zu sagen
+- **Offline-Schalter** (`offlineMode`-Setting): sperrt alle Netzwerk-Tools (search_web, web_search, fetch_url, get_weather, get_location, describe_webpage) im Executor; `cloudAllowed()` gibt bei Offline-Modus immer `false` zurück; Lizenz-Verify nutzt Cache statt Server; Health-Endpoint liefert `offline_mode`-Flag; Offline-Banner in der UI (blauer Balken); Settings-Toggle unter "Offline-Modus"
+- **Lokale Netzwerk-Tools unberührt:** `scan_network`, `list_connections`, `list_devices` funktionieren weiterhin im Offline-Modus
+- **329 Tests — alle grün** (Vitest Unit + Integration, inkl. 12 Redact + 5 Offline-Tests)
 
 ---
 
@@ -311,7 +319,7 @@ cd apps/desktop && node build-main.mjs && cd ../..
 $env:ELLA_DEV = "1"; cd apps\desktop; .\node_modules\electron\dist\electron.exe .
 
 # Tests
-npm test                       # 312 Unit + Integration Tests (Vitest)
+npm test                       # 329 Unit + Integration Tests (Vitest)
 npm run lint
 
 # Ollama prüfen
