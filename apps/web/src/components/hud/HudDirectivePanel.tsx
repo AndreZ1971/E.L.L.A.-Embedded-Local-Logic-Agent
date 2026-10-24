@@ -17,33 +17,32 @@ const HudDirectivePanel: React.FC<{ cloudToday: number | null }> = ({
   return (
     <div className="hud-panel">
       <div className="hud-label">DIRECTIVE</div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 5,
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {DIRECTIVES.map((d) => (
           <div
             key={d.key}
             style={{
-              border: "1px solid rgba(79,209,255,0.4)",
-              borderRadius: 0,
-              padding: 6,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              borderLeft: "2px solid rgba(79,209,255,0.4)",
+              paddingLeft: 8,
               fontSize: "0.72rem",
               fontFamily: "var(--ella-font-data)",
               letterSpacing: "1px",
               color: "var(--ella-text-dim)",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
             }}
           >
-            <span style={{ color: "var(--ella-accent-soft)", fontWeight: 600 }}>
+            <span
+              style={{
+                color: "var(--ella-accent-soft)",
+                fontWeight: 600,
+                minWidth: 16,
+              }}
+            >
               {d.num}
-            </span>{" "}
-            · {d.key}
+            </span>
+            {d.key}
           </div>
         ))}
       </div>

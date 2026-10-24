@@ -59,6 +59,10 @@ async function synthesizeMsEdge(
 // Kokoro only for languages with proper voice quality — German uses MsEdgeTTS/Katja
 const KOKORO_LANGS = new Set(["en", "fr", "es"]);
 
+export function activeTtsEngine(lang: string): "Kokoro" | "Edge TTS" {
+  return isKokoroReady() && KOKORO_LANGS.has(lang) ? "Kokoro" : "Edge TTS";
+}
+
 export async function synthesize(
   text: string,
   options: TTSOptions = {},

@@ -8,7 +8,7 @@ import { env } from "../config/env.js";
 import { getDiskUsage } from "@ella/agent-tools";
 import { getSettings, saveSettings } from "../services/settings.js";
 import type { AppEntry } from "../services/settings.js";
-import { isKokoroReady } from "../services/kokoro.js";
+import { activeTtsEngine } from "../services/tts.js";
 
 export const systemRouter = Router();
 
@@ -412,7 +412,7 @@ systemRouter.get("/telemetry", (_req, res) => {
     // no nvidia
   }
 
-  const ttsEngine = isKokoroReady() ? "Kokoro" : "Edge TTS";
+  const ttsEngine = activeTtsEngine(s.spokenLanguage ?? "de");
 
   res.json({
     cpu: { pct: cpuPct, cores: cpus.length },
