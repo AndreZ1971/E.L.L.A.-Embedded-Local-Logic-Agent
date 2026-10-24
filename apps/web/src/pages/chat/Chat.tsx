@@ -4,6 +4,12 @@ import { useTranslation } from "react-i18next";
 import { AudioVAD, encodeWav } from "../../utils/audioVAD.js";
 import AvatarPanel from "../../components/AvatarPanel";
 import { apiFetch, eventStreamUrl } from "../../lib/api";
+import { useAppearance } from "../../hooks/useAppearance";
+import { useHudData } from "../../hooks/useHudData";
+import HudSystemPanel from "../../components/hud/HudSystemPanel";
+import HudMonitorPanel from "../../components/hud/HudMonitorPanel";
+import HudRoutinesPanel from "../../components/hud/HudRoutinesPanel";
+import HudDirectivePanel from "../../components/hud/HudDirectivePanel";
 
 type VoiceMode = "off" | "manual" | "wakeword" | "always" | "dictation";
 
@@ -81,6 +87,12 @@ const SESSION_ID = "default";
 /* ── Component ───────────────────────────────────────────────────────── */
 const Chat: React.FC = () => {
   const { t } = useTranslation();
+  const appearance = useAppearance();
+  const isHud =
+    appearance.effective === "hud" || appearance.effective === "show";
+  const isShow = appearance.effective === "show";
+  const [hudTelemetryEnabled, setHudTelemetryEnabled] = useState(true);
+  const hudData = useHudData(isHud, hudTelemetryEnabled);
   const toolLabel = (name: string) =>
     t(`tools.${name}`, { defaultValue: name });
   const [input, setInput] = useState("");
@@ -181,7 +193,9 @@ const Chat: React.FC = () => {
             currentAudioRef.current = null;
             ttsSpeakingRef.current = false;
             setTtsActive(false);
-            followUpUntilRef.current = Date.now() + FOLLOW_UP_MS;
+            const fu = Date.now() + FOLLOW_UP_MS;
+            followUpUntilRef.current = fu;
+            setFollowUpUntil(fu);
           }
         };
         audio.onerror = () => {
@@ -287,7 +301,9 @@ const Chat: React.FC = () => {
         // skip sentence on error
       }
     }
-    followUpUntilRef.current = Date.now() + FOLLOW_UP_MS;
+    const fu2 = Date.now() + FOLLOW_UP_MS;
+    followUpUntilRef.current = fu2;
+    setFollowUpUntil(fu2);
     ttsQueueBusyRef.current = false;
     ttsQueueAbortRef.current = null;
   }, []);
@@ -332,6 +348,7 @@ const Chat: React.FC = () => {
     "low",
   );
   const followUpUntilRef = useRef<number>(0);
+  const [followUpUntil, setFollowUpUntil] = useState(0);
   const stopCurrentAudioRef = useRef<() => void>(() => {});
 
   /* ── Worker-Events (Alerts) ── */
@@ -1097,6 +1114,7 @@ const Chat: React.FC = () => {
           // Follow-Up-Fenster: nach TTS direkt transkribieren ohne Wakeword
           if (followUpUntilRef.current > Date.now()) {
             followUpUntilRef.current = 0;
+            setFollowUpUntil(0);
             const fuForm = new FormData();
             fuForm.append("audio", blob, "segment.wav");
             setMicStatus(t("chat.mic_transcribing_vad"));
@@ -1281,6 +1299,8 @@ const Chat: React.FC = () => {
         ttsEnabled?: boolean;
         ttsVoice?: string;
         accessibilityMode?: "none" | "blind" | "deaf";
+        hudTelemetry?: boolean;
+        hudThrottle?: boolean;
       }>,
       apiFetch("/api/homework/status").then((r) => r.json()) as Promise<{
         active: boolean;
@@ -1295,6 +1315,8 @@ const Chat: React.FC = () => {
         const mode = s.accessibilityMode ?? "none";
         accessibilityModeRef.current = mode;
         setAccessibilityMode(mode);
+        setHudTelemetryEnabled(s.hudTelemetry !== false);
+        setHudThrottle(s.hudThrottle !== false);
         setHomeworkActive(h.active);
         setHomeworkConfigured(h.configured);
       })
@@ -1309,6 +1331,30 @@ const Chat: React.FC = () => {
     }, 800);
     return () => clearTimeout(timer);
   }, [accessibilityMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Presentation mode — fullscreen toggle
+  useEffect(() => {
+    const api = (
+      window as { electronAPI?: { setFullscreen?: (on: boolean) => void } }
+    ).electronAPI;
+    if (!api?.setFullscreen) return;
+    api.setFullscreen(isShow);
+    return () => {
+      if (isShow) api.setFullscreen!(false);
+    };
+  }, [isShow]);
+
+  // Phase G — hudThrottle: slow animations while thinking
+  const [hudThrottle, setHudThrottle] = useState(false);
+  useEffect(() => {
+    if (!isHud) return;
+    const root = document.documentElement;
+    if (hudThrottle && loading) {
+      root.style.setProperty("--ella-anim-speed", "0.35");
+    } else {
+      root.style.removeProperty("--ella-anim-speed");
+    }
+  }, [isHud, hudThrottle, loading]);
 
   const activateHomework = useCallback(async () => {
     const r = await apiFetch("/api/homework/activate", { method: "POST" });
@@ -1352,12 +1398,452 @@ const Chat: React.FC = () => {
 
   const showMic = voiceMode !== "off" && accessibilityMode !== "deaf";
 
+  const PRIVATE_TOOLS = new Set([
+    "read_emails",
+    "read_gmail",
+    "read_calendar",
+    "read_google_calendar",
+  ]);
+  const redactForShow = (text: string, tools?: string[]): string => {
+    if (tools?.some((t) => PRIVATE_TOOLS.has(t)))
+      return "[privat ausgeblendet]";
+    return text
+      .replace(/[A-Z]:\\[^\s,)]+/gi, "[Pfad]")
+      .replace(/\/(?:home|Users|mnt)\/[^\s,)]+/g, "[Pfad]");
+  };
+
+  const now = Date.now();
+  const isListeningNow = followUpUntil > now || awaitingCommand;
+  const listenRemainingMs =
+    followUpUntil > now ? followUpUntil - now : undefined;
+
+  const hudStateText = loading
+    ? "PROCESSING"
+    : ttsActive
+      ? "SPEAKING"
+      : isListeningNow
+        ? "LISTENING"
+        : stressLevel === "high"
+          ? "STRESS DETECTED"
+          : "IDLE";
+
+  const exitShow = useCallback(() => {
+    if (!isShow) return;
+    apiFetch("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ appearance: "hud" }),
+    }).catch(() => {});
+  }, [isShow]);
+
+  if (isHud) {
+    const lastAssistant = isShow
+      ? [...messages].reverse().find((m) => m.role === "assistant")
+      : null;
+    const tail = isShow ? [] : messages.slice(-12);
+
+    return (
+      <div
+        className={
+          isShow ? "hud-chat-layout hud-show-layout" : "hud-chat-layout"
+        }
+        onKeyDown={(e) => {
+          if (isShow && e.key === "Escape") exitShow();
+        }}
+        tabIndex={isShow ? 0 : undefined}
+      >
+        {/* Show-Modus: Hinweis oben rechts */}
+        {isShow && (
+          <div className="hud-show-hint">Präsentation · Esc beendet</div>
+        )}
+
+        {/* Seitenpanels nur im normalen HUD, nicht im Show-Modus */}
+        {!isShow && (
+          <div className="hud-chat-left">
+            {hudTelemetryEnabled && <HudSystemPanel data={hudData.telemetry} />}
+            <HudMonitorPanel monitors={hudData.monitors} />
+          </div>
+        )}
+
+        <div
+          className={
+            isShow ? "hud-chat-center hud-show-center" : "hud-chat-center"
+          }
+        >
+          <AvatarPanel
+            isThinking={loading}
+            isSpeaking={ttsActive}
+            stressLevel={stressLevel}
+            isListening={isListeningNow}
+            listenRemainingMs={listenRemainingMs}
+          />
+          <div className="hud-state-text">{hudStateText}</div>
+        </div>
+
+        {!isShow && (
+          <div className="hud-chat-right">
+            <HudRoutinesPanel setups={hudData.setups} />
+            <HudDirectivePanel cloudToday={hudData.cloudToday} />
+          </div>
+        )}
+
+        <div className="hud-chat-bottom">
+          {/* Show-Modus: nur letzte ELLA-Antwort */}
+          {isShow && lastAssistant && (
+            <div className="hud-subtitle">
+              <span className="hud-subtitle-prefix">E.L.L.A. ›</span>
+              {redactForShow(
+                lastAssistant.content
+                  .replace(/\*\*([^*]+)\*\*/g, "$1")
+                  .replace(/`([^`]+)`/g, "$1"),
+                lastAssistant.usedTools,
+              ).substring(0, 300)}
+              {lastAssistant.usedTools?.map((tool) => (
+                <span
+                  key={tool}
+                  className="hud-subtitle-tool hud-subtitle-tool--ok"
+                >
+                  [{toolLabel(tool)} ✓]
+                </span>
+              ))}
+            </div>
+          )}
+          {/* Normaler HUD: letzte 12 Nachrichten */}
+          {!isShow &&
+            tail.map((m, i) => (
+              <div
+                key={i}
+                className={`hud-subtitle${m.role === "user" ? " hud-subtitle--user" : ""}`}
+              >
+                <span className="hud-subtitle-prefix">
+                  {m.role === "user" ? "DU ›" : "E.L.L.A. ›"}
+                </span>
+                {m.content
+                  .replace(/\*\*([^*]+)\*\*/g, "$1")
+                  .replace(/`([^`]+)`/g, "$1")
+                  .substring(0, 200)}
+                {m.usedTools?.map((tool) => (
+                  <span
+                    key={tool}
+                    className="hud-subtitle-tool hud-subtitle-tool--ok"
+                  >
+                    [{toolLabel(tool)} ✓]
+                  </span>
+                ))}
+              </div>
+            ))}
+          {streaming && (
+            <div className="hud-subtitle">
+              <span className="hud-subtitle-prefix">E.L.L.A. ›</span>
+              {(isShow ? redactForShow(streaming) : streaming).substring(
+                0,
+                200,
+              )}
+            </div>
+          )}
+          {loading && !streaming && !toolStatus && (
+            <div className="hud-subtitle">
+              <span className="hud-subtitle-prefix">E.L.L.A. ›</span>
+              {t("chat.thinking")}
+            </div>
+          )}
+          {toolStatus && (
+            <div className="hud-subtitle">
+              <span className="hud-subtitle-prefix">TOOL ›</span>
+              {toolStatus}
+            </div>
+          )}
+          <div className="hud-input-row">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
+              aria-label={t("chat.aria_input")}
+              placeholder={
+                micActive ? t("chat.placeholder_mic") : t("chat.placeholder")
+              }
+              disabled={loading}
+            />
+            {showMic && (
+              <button
+                onClick={toggleMic}
+                aria-label={t(
+                  micActive ? "chat.aria_mic_on" : "chat.aria_mic_off",
+                )}
+                style={{
+                  background: micActive
+                    ? "var(--ella-accent)"
+                    : "var(--ella-surface)",
+                  border: micActive ? "none" : "1px solid var(--ella-border)",
+                  color: micActive ? "var(--ella-bg)" : "var(--ella-text-dim)",
+                }}
+              >
+                {micActive ? "◉" : "○"}
+              </button>
+            )}
+            <button
+              onClick={send}
+              aria-label={t("chat.aria_send")}
+              disabled={loading || !input.trim()}
+            >
+              {t("chat.send")}
+            </button>
+          </div>
+          <div ref={bottomRef} />
+        </div>
+
+        {/* PIN-Dialog (shared) */}
+        {showPinDialog && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.6)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 100,
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowPinDialog(false);
+                setPinInput("");
+                setPinError("");
+              }
+            }}
+          >
+            <div
+              style={{
+                background: "var(--ella-surface)",
+                border: "1px solid var(--ella-border)",
+                borderRadius: 10,
+                padding: 24,
+                width: 300,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              <div style={{ fontWeight: 600 }}>
+                {t("chat.homework_deactivate_title")}
+              </div>
+              <input
+                type="password"
+                value={pinInput}
+                onChange={(e) => setPinInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && deactivateHomework()}
+                placeholder={t("chat.pin_placeholder")}
+                autoFocus
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 6,
+                  border: "1px solid var(--ella-border)",
+                  background: "var(--ella-bg)",
+                  color: "var(--ella-text)",
+                  fontSize: "0.9rem",
+                  outline: "none",
+                }}
+              />
+              {pinError && (
+                <div
+                  style={{ fontSize: "0.82rem", color: "var(--ella-danger)" }}
+                >
+                  {pinError}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={deactivateHomework}
+                  disabled={pinBusy}
+                  style={{
+                    flex: 1,
+                    padding: "8px",
+                    borderRadius: 6,
+                    border: "none",
+                    background: "#c2410c",
+                    color: "#fff",
+                    cursor: pinBusy ? "not-allowed" : "pointer",
+                    fontWeight: 600,
+                  }}
+                >
+                  {pinBusy ? "…" : t("chat.btn_deactivate")}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPinDialog(false);
+                    setPinInput("");
+                    setPinError("");
+                  }}
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: 6,
+                    border: "1px solid var(--ella-border)",
+                    background: "transparent",
+                    color: "var(--ella-text-dim)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {t("chat.btn_cancel")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Card (shared) */}
+        {confirmationCard && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: 80,
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "#1a1f2e",
+              border: "1px solid var(--ella-warning)",
+              borderRadius: 10,
+              padding: "14px 16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              zIndex: 50,
+              minWidth: 300,
+              maxWidth: 500,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                fontWeight: 600,
+                color: "var(--ella-warning)",
+                fontSize: "0.85rem",
+              }}
+            >
+              <span>⚠</span>
+              {t("chat.confirm_title")}
+            </div>
+            <div
+              style={{
+                color: "var(--ella-text)",
+                fontSize: "0.82rem",
+                lineHeight: 1.5,
+              }}
+            >
+              {confirmationCard.message}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                disabled={confirmBusy}
+                onClick={async () => {
+                  setConfirmBusy(true);
+                  try {
+                    const res = await apiFetch("/api/tools/confirm", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(confirmationCard.pendingAction),
+                    });
+                    const result = (await res.json()) as {
+                      success: boolean;
+                      output?: unknown;
+                      error?: string;
+                    };
+                    const msg = result.success
+                      ? typeof result.output === "string"
+                        ? result.output
+                        : t("chat.action_success")
+                      : `${t("chat.error_prefix")}: ${result.error ?? t("common.error")}`;
+                    setMessages((p) => [
+                      ...p,
+                      { role: "assistant", content: msg },
+                    ]);
+                  } catch {
+                    setMessages((p) => [
+                      ...p,
+                      { role: "assistant", content: t("chat.action_failed") },
+                    ]);
+                  } finally {
+                    setConfirmationCard(null);
+                    setConfirmBusy(false);
+                  }
+                }}
+                style={{
+                  background: "var(--ella-danger-strong)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "6px 16px",
+                  fontWeight: 600,
+                  cursor: confirmBusy ? "not-allowed" : "pointer",
+                }}
+              >
+                {confirmBusy ? t("chat.btn_confirming") : t("chat.btn_confirm")}
+              </button>
+              <button
+                disabled={confirmBusy}
+                onClick={() => setConfirmationCard(null)}
+                style={{
+                  background: "transparent",
+                  color: "var(--ella-text-muted)",
+                  border: "1px solid #334155",
+                  borderRadius: 6,
+                  padding: "6px 16px",
+                  cursor: "pointer",
+                }}
+              >
+                {t("chat.btn_cancel")}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Toast overlay (shared) */}
+        {toasts.length > 0 && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: 24,
+              right: 24,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              zIndex: 1000,
+              pointerEvents: "none",
+            }}
+          >
+            {toasts.map((t) => (
+              <div
+                key={t.id}
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: 8,
+                  fontSize: "0.85rem",
+                  background: t.severity === "error" ? "#431407" : "#422006",
+                  border: `1px solid ${t.severity === "error" ? "#c2410c" : "#d97706"}`,
+                  color: t.severity === "error" ? "#fdba74" : "#fde68a",
+                  maxWidth: 320,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                  pointerEvents: "auto",
+                }}
+              >
+                {t.severity === "error" ? "⚠ " : "● "}
+                {t.message}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", height: "100%", gap: 16 }}>
       <AvatarPanel
         isThinking={loading}
         isSpeaking={ttsActive}
         stressLevel={stressLevel}
+        isListening={isListeningNow}
+        listenRemainingMs={listenRemainingMs}
       />
       <div
         style={{

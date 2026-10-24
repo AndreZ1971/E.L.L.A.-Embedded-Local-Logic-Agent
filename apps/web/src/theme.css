@@ -97,6 +97,295 @@
   --ella-hud-accent: #f5b14c;
 }
 
+/* ── HUD Background ───────────────────────────────────────────────── */
+
+:root[data-theme="hud"] body,
+:root[data-theme="show"] body {
+  background-color: var(--ella-bg);
+  background-image:
+    radial-gradient(
+      ellipse at 50% 38%,
+      rgba(56, 120, 255, 0.18) 0%,
+      transparent 55%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(79, 209, 255, 0.05) 0 1px,
+      transparent 1px 40px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(79, 209, 255, 0.05) 0 1px,
+      transparent 1px 40px
+    );
+}
+
+/* ── HUD Utility Classes ──────────────────────────────────────────── */
+
+.hud-panel {
+  background: var(--ella-surface);
+  border: 1px solid var(--ella-border);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% 100%,
+    14px 100%,
+    0 calc(100% - 14px)
+  );
+  padding: 14px 16px;
+}
+
+.hud-label {
+  font-family: var(--ella-font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ella-accent-soft);
+  margin: 0 0 10px 0;
+}
+
+/* ── HUD Top Bar ──────────────────────────────────────────────────── */
+
+.hud-topbar {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 20px;
+  background: var(--ella-surface);
+  border-bottom: 1px solid var(--ella-border);
+  gap: 24px;
+}
+
+.hud-topbar-logo {
+  font-family: var(--ella-font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--ella-accent);
+  white-space: nowrap;
+}
+
+.hud-topbar-nav {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.hud-topbar-nav a {
+  font-family: var(--ella-font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ella-text-dim);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 0;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.hud-topbar-nav a:hover {
+  color: var(--ella-text);
+  background: var(--ella-sidebar-hover);
+}
+
+.hud-topbar-nav a.active {
+  color: var(--ella-bg);
+  background: var(--ella-accent);
+}
+
+.hud-topbar-chips {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-family: var(--ella-font-data);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--ella-text-dim);
+  white-space: nowrap;
+}
+
+.hud-topbar-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hud-topbar-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ella-success);
+}
+
+.hud-topbar-chip-dot--warn {
+  background: var(--ella-warning);
+}
+
+.hud-topbar-chip-dot--off {
+  background: var(--ella-danger);
+}
+
+/* HUD Chat — three-column layout */
+.hud-chat-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr 200px;
+  grid-template-rows: 1fr auto;
+  gap: 12px;
+  height: 100%;
+  padding: 12px;
+}
+.hud-chat-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  grid-row: 1;
+}
+.hud-chat-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  grid-row: 1;
+  min-height: 0;
+}
+.hud-chat-right {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  grid-row: 1;
+}
+.hud-chat-bottom {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.hud-subtitle {
+  font-family: var(--ella-font-data);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  padding: 2px 0;
+  color: var(--ella-text-muted);
+}
+.hud-subtitle-prefix {
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-right: 6px;
+  color: var(--ella-accent-soft);
+}
+.hud-subtitle--user .hud-subtitle-prefix {
+  color: var(--ella-text);
+}
+.hud-subtitle-tool {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 0 4px;
+  margin: 0 2px;
+  border-radius: 3px;
+  border: 1px solid var(--ella-border);
+  color: var(--ella-text-dim);
+  font-family: var(--ella-font-data);
+  letter-spacing: 0.5px;
+}
+.hud-subtitle-tool--ok {
+  color: var(--ella-success);
+  border-color: var(--ella-success);
+}
+.hud-subtitle-tool--fail {
+  color: var(--ella-danger);
+  border-color: var(--ella-danger);
+}
+.hud-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.hud-input-row input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--ella-border);
+  background: var(--ella-surface);
+  color: var(--ella-text);
+  font-family: var(--ella-font-data);
+  font-size: 0.82rem;
+  outline: none;
+}
+.hud-input-row button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  background: var(--ella-accent);
+  color: var(--ella-bg);
+  border: none;
+  font-family: var(--ella-font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.hud-input-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.hud-state-text {
+  font-family: var(--ella-font-data);
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ella-accent-soft);
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Show / Presentation mode */
+.hud-show-layout {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto;
+}
+.hud-show-center {
+  grid-column: 1;
+}
+.hud-show-hint {
+  position: fixed;
+  top: 52px;
+  right: 16px;
+  font-family: var(--ella-font-data);
+  font-size: 0.68rem;
+  letter-spacing: 1.5px;
+  color: var(--ella-text-dim);
+  opacity: 0.5;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .hud-chat-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+  }
+  .hud-chat-left,
+  .hud-chat-center,
+  .hud-chat-right {
+    grid-row: auto;
+  }
+  .hud-chat-bottom {
+    grid-column: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --ella-anim-speed: 0;

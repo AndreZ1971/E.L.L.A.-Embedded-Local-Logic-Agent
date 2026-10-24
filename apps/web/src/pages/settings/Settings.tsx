@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import "./Settings.css";
 import { apiFetch } from "../../lib/api";
+import { resolveAppearance } from "../../hooks/useAppearance";
 const MASKED = "***";
 
 interface AppEntry {
@@ -421,6 +422,25 @@ const Settings: React.FC = () => {
     ok: boolean;
     text: string;
   } | null>(null);
+
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(mq.matches);
+    const h = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
+  }, []);
+
+  const forcedReason = settings
+    ? resolveAppearance({
+        wanted: settings.appearance ?? "calm",
+        accessibilityMode: (settings.accessibilityMode ?? "none") as
+          "none" | "blind" | "deaf",
+        homeworkActive: settings.homeworkMode?.active ?? false,
+        reducedMotion,
+      }).forcedReason
+    : null;
 
   const loadProfiles = async () => {
     const data = (await apiFetch("/api/profiles").then((r) =>
@@ -4177,6 +4197,22 @@ const Settings: React.FC = () => {
         {tab === "appearance" && (
           <React.Fragment>
             <Section title={t("settings.appearance_title")}>
+              {forcedReason && settings?.appearance !== "calm" && (
+                <div
+                  style={{
+                    background: "rgba(245, 177, 76, 0.12)",
+                    border: "1px solid rgba(245, 177, 76, 0.4)",
+                    borderRadius: 8,
+                    padding: "10px 14px",
+                    fontSize: "0.82rem",
+                    color: "#f5b14c",
+                    marginBottom: 14,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {t(`settings.appearance_forced_${forcedReason}`)}
+                </div>
+              )}
               {/* Stil-Karten */}
               <div
                 style={{

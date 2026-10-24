@@ -372,7 +372,10 @@
     "appearance_auto_calm": "Schaltet automatisch auf „Ruhig“:",
     "appearance_auto_blind": "Blindmodus aktiv",
     "appearance_auto_homework": "Hausaufgaben-Modus aktiv",
-    "appearance_auto_reduced": "Windows „Animationen reduzieren“ aktiv"
+    "appearance_auto_reduced": "Windows „Animationen reduzieren“ aktiv",
+    "appearance_forced_blind": "Blind-Modus aktiv — Erscheinungsbild wird automatisch auf „Ruhig“ gesetzt.",
+    "appearance_forced_homework": "Hausaufgaben-Modus aktiv — Erscheinungsbild wird automatisch auf „Ruhig“ gesetzt.",
+    "appearance_forced_reduced_motion": "Windows „Animationen reduzieren“ aktiv — Erscheinungsbild wird automatisch auf „Ruhig“ gesetzt."
   },
   "common": {
     "loading": "Lädt…",

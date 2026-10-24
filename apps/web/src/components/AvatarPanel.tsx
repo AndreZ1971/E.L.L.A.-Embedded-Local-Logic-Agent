@@ -1,13 +1,18 @@
 import React, { useRef, useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
 
-type OrbMode = "idle" | "thinking" | "speaking";
+type OrbMode =
+  "idle" | "listening" | "thinking" | "speaking" | "cloud" | "offline";
 type StressLevel = "low" | "medium" | "high";
 
 interface Props {
   isThinking: boolean;
   isSpeaking: boolean;
   stressLevel?: StressLevel;
+  isListening?: boolean;
+  listenRemainingMs?: number;
+  cloudActive?: boolean;
+  offline?: boolean;
 }
 
 const PHI = Math.PI * (3 - Math.sqrt(5));
@@ -37,6 +42,21 @@ function orbColor(
     r = 80 + d * 110 * p;
     g = 60 + d * 130 * p;
     b = 180 + d * 67 * p;
+  } else if (mode === "listening") {
+    const p = 0.6 + 0.4 * Math.sin(t * 1.8);
+    r = 60 + d * 140 * p;
+    g = 80 + d * 160 * p;
+    b = 200 + d * 55 * p;
+  } else if (mode === "cloud") {
+    const p = 0.5 + 0.5 * Math.sin(t * 2.0);
+    r = 180 + d * 65 * p;
+    g = 120 + d * 60 * p;
+    b = 20 + d * 50 * p;
+  } else if (mode === "offline") {
+    const p = 0.3 + 0.2 * Math.sin(t * 0.5);
+    r = 40 + d * 50 * p;
+    g = 40 + d * 50 * p;
+    b = 50 + d * 60 * p;
   } else {
     const p = 0.5 + 0.5 * Math.sin(t * 3.2);
     r = 50 + d * 110 * p;
@@ -52,32 +72,199 @@ function orbColor(
 
 const INFO_LINES: Record<OrbMode, string[]> = {
   idle: ["Clipboard überwacht", "Monitoring aktiv", "Modell geladen"],
+  listening: ["Wakeword erkannt", "Hört zu …"],
   thinking: ["Tool wird aufgerufen …", "Analysiere …", "Verarbeite …"],
   speaking: ["TTS aktiv", "Audio läuft …"],
+  cloud: ["via OpenAI", "Cloud-Anfrage …"],
+  offline: ["Kein Netzwerk", "Nur lokale Modelle"],
 };
 
 const DOT_COLOR: Record<OrbMode, string> = {
   idle: "var(--ella-accent)",
+  listening: "var(--ella-success-strong)",
   thinking: "#9333ea",
   speaking: "var(--ella-accent-soft)",
+  cloud: "var(--ella-warning)",
+  offline: "var(--ella-text-dim)",
 };
 
 const DOT_DURATION: Record<OrbMode, string> = {
   idle: "2.2s",
+  listening: "0.8s",
   thinking: "1.1s",
   speaking: "0.5s",
+  cloud: "1.4s",
+  offline: "3s",
 };
 
 const STATE_LABEL: Record<OrbMode, string> = {
   idle: "Bereit",
+  listening: "Hört zu",
   thinking: "Verarbeitet …",
   speaking: "Spricht",
+  cloud: "Cloud aktiv",
+  offline: "Offline",
+};
+
+const RING_ANIM_SPEED = "var(--ella-anim-speed, 1)";
+
+const OrbRings: React.FC<{ mode: OrbMode; listenRemainingMs?: number }> = ({
+  mode,
+  listenRemainingMs,
+}) => {
+  const isHud =
+    document.documentElement.dataset.theme === "hud" ||
+    document.documentElement.dataset.theme === "show";
+  if (!isHud) return null;
+
+  const sz = 164;
+  const cx = sz / 2;
+  const cy = sz / 2;
+  const outerR = 76;
+  const dashR = 72;
+  const ellipseRx = 70;
+  const ellipseRy = 30;
+
+  const countdownFraction =
+    mode === "listening" && listenRemainingMs != null
+      ? Math.max(0, Math.min(1, listenRemainingMs / 8000))
+      : 0;
+  const countdownCirc = 2 * Math.PI * outerR;
+  const countdownDash = `${countdownCirc * countdownFraction} ${countdownCirc}`;
+
+  return (
+    <svg
+      aria-hidden="true"
+      width={sz}
+      height={sz}
+      style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
+    >
+      <style>{`
+        @keyframes orbSpin { to { transform: rotate(360deg); } }
+        @keyframes orbSpinR { to { transform: rotate(-360deg); } }
+      `}</style>
+      {/* Dotted outer ring */}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={outerR}
+        fill="none"
+        stroke="var(--ella-accent-soft)"
+        strokeWidth="0.5"
+        strokeDasharray="2 6"
+        opacity="0.4"
+        style={{
+          transformOrigin: `${cx}px ${cy}px`,
+          animation: `orbSpin calc(36s / max(${RING_ANIM_SPEED}, 0.01)) linear infinite`,
+        }}
+      />
+      {/* Dashed inner ring */}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={dashR}
+        fill="none"
+        stroke="var(--ella-accent-soft)"
+        strokeWidth="0.5"
+        strokeDasharray="8 12"
+        opacity="0.25"
+        style={{
+          transformOrigin: `${cx}px ${cy}px`,
+          animation: `orbSpinR calc(36s / max(${RING_ANIM_SPEED}, 0.01)) linear infinite`,
+        }}
+      />
+      {/* Tilted ellipse 1 */}
+      <ellipse
+        cx={cx}
+        cy={cy}
+        rx={ellipseRx}
+        ry={ellipseRy}
+        fill="none"
+        stroke="var(--ella-accent-soft)"
+        strokeWidth="0.4"
+        opacity="0.2"
+        transform={`rotate(25 ${cx} ${cy})`}
+        style={{
+          transformOrigin: `${cx}px ${cy}px`,
+          animation: `orbSpin calc(22s / max(${RING_ANIM_SPEED}, 0.01)) linear infinite`,
+        }}
+      />
+      {/* Tilted ellipse 2 — counter-rotating */}
+      <ellipse
+        cx={cx}
+        cy={cy}
+        rx={ellipseRx}
+        ry={ellipseRy}
+        fill="none"
+        stroke="var(--ella-accent-soft)"
+        strokeWidth="0.4"
+        opacity="0.2"
+        transform={`rotate(-25 ${cx} ${cy})`}
+        style={{
+          transformOrigin: `${cx}px ${cy}px`,
+          animation: `orbSpinR calc(22s / max(${RING_ANIM_SPEED}, 0.01)) linear infinite`,
+        }}
+      />
+      {/* Countdown ring — only when listening */}
+      {mode === "listening" && countdownFraction > 0 && (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={outerR}
+          fill="none"
+          stroke="var(--ella-success-strong, #22c55e)"
+          strokeWidth="2"
+          strokeDasharray={countdownDash}
+          strokeDashoffset={countdownCirc * 0.25}
+          strokeLinecap="round"
+          opacity="0.7"
+          style={{ transition: "stroke-dasharray 0.3s linear" }}
+        />
+      )}
+      {/* Cloud ring — amber */}
+      {mode === "cloud" && (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={outerR}
+          fill="none"
+          stroke="var(--ella-warning, #f5b14c)"
+          strokeWidth="1.5"
+          strokeDasharray="4 8"
+          opacity="0.6"
+          style={{
+            transformOrigin: `${cx}px ${cy}px`,
+            animation: `orbSpin calc(8s / max(${RING_ANIM_SPEED}, 0.01)) linear infinite`,
+          }}
+        />
+      )}
+      {/* Offline — square frame instead of ring */}
+      {mode === "offline" && (
+        <rect
+          x={cx - outerR + 6}
+          y={cy - outerR + 6}
+          width={(outerR - 6) * 2}
+          height={(outerR - 6) * 2}
+          rx="4"
+          fill="none"
+          stroke="var(--ella-text-dim)"
+          strokeWidth="1"
+          strokeDasharray="6 4"
+          opacity="0.4"
+        />
+      )}
+    </svg>
+  );
 };
 
 const AvatarPanel: React.FC<Props> = ({
   isThinking,
   isSpeaking,
   stressLevel = "low",
+  isListening = false,
+  listenRemainingMs,
+  cloudActive = false,
+  offline = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const modeRef = useRef<OrbMode>("idle");
@@ -85,19 +272,31 @@ const AvatarPanel: React.FC<Props> = ({
   const rafRef = useRef<number>(0);
   const infoIdxRef = useRef(0);
   const infoTimerRef = useRef(0);
+  const lastFrameRef = useRef(0);
+  const visibleRef = useRef(!document.hidden);
 
   const [ollamaOk, setOllamaOk] = useState<boolean | null>(null);
   const [kokoroReady, setKokoroReady] = useState(false);
   const [activeProvider, setActiveProvider] = useState<
     "ollama" | "openai" | null
   >(null);
+  const [healthOffline, setHealthOffline] = useState(false);
   const [infoText, setInfoText] = useState(INFO_LINES.idle[0]);
 
-  const mode: OrbMode = isSpeaking
-    ? "speaking"
-    : isThinking
-      ? "thinking"
-      : "idle";
+  const isOffline = offline || healthOffline;
+  const isCloud = cloudActive || (activeProvider === "openai" && isThinking);
+
+  const mode: OrbMode = isOffline
+    ? "offline"
+    : isSpeaking
+      ? "speaking"
+      : isCloud
+        ? "cloud"
+        : isThinking
+          ? "thinking"
+          : isListening
+            ? "listening"
+            : "idle";
 
   useEffect(() => {
     modeRef.current = mode;
@@ -121,9 +320,11 @@ const AvatarPanel: React.FC<Props> = ({
           ollama?: boolean;
           kokoro_ready?: boolean;
           provider?: "ollama" | "openai";
+          offline_mode?: boolean;
         };
         setOllamaOk(d.ollama_ok ?? d.ollama ?? false);
         setKokoroReady(d.kokoro_ready ?? false);
+        setHealthOffline(!!d.offline_mode);
         if (d.provider) setActiveProvider(d.provider);
       } catch {
         // offline
@@ -146,12 +347,32 @@ const AvatarPanel: React.FC<Props> = ({
     }
   }, []);
 
-  // Canvas render loop
+  // Canvas render loop with visibility pause + FPS throttle
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     function frame(ts: number) {
+      if (!visibleRef.current) {
+        rafRef.current = 0;
+        return;
+      }
+
+      // FPS limit: check --ella-anim-speed; if throttled (<1), cap at 20fps
+      const animSpeed = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--ella-anim-speed",
+        ) || "1",
+      );
+      if (animSpeed < 1) {
+        const delta = ts - lastFrameRef.current;
+        if (delta < 50) {
+          rafRef.current = requestAnimationFrame(frame);
+          return;
+        }
+      }
+      lastFrameRef.current = ts;
+
       const t = ts * 0.001;
       const m = modeRef.current;
       const sl = stressRef.current;
@@ -181,11 +402,17 @@ const AvatarPanel: React.FC<Props> = ({
       const breathe =
         m === "idle"
           ? 0.02 * Math.sin(t * 0.6) + 0.01 * Math.sin(t * 1.1)
-          : m === "speaking"
-            ? 0.04 * Math.sin(t * 4.3) +
-              0.025 * Math.sin(t * 7.1) +
-              0.015 * Math.sin(t * 11.3)
-            : 0.015 * Math.sin(t * 1.8);
+          : m === "listening"
+            ? 0.03 * Math.sin(t * 1.2) + 0.02 * Math.sin(t * 2.5)
+            : m === "speaking"
+              ? 0.04 * Math.sin(t * 4.3) +
+                0.025 * Math.sin(t * 7.1) +
+                0.015 * Math.sin(t * 11.3)
+              : m === "cloud"
+                ? 0.02 * Math.sin(t * 1.5) + 0.015 * Math.sin(t * 2.8)
+                : m === "offline"
+                  ? 0.005 * Math.sin(t * 0.3)
+                  : 0.015 * Math.sin(t * 1.8);
       const R = baseR * (1 + breathe);
 
       ctx.fillStyle = "#0f1117";
@@ -194,8 +421,11 @@ const AvatarPanel: React.FC<Props> = ({
       // Glow behind orb — stress shifts hue
       const glowBase: Record<OrbMode, [number, number, number]> = {
         idle: [124, 106, 247],
+        listening: [34, 197, 94],
         speaking: [167, 139, 250],
         thinking: [147, 51, 234],
+        cloud: [245, 177, 76],
+        offline: [80, 80, 100],
       };
       const [gbr, gbg, gbb] = glowBase[m];
       const [str, stg, stb] = STRESS_TINT[sl];
@@ -211,8 +441,30 @@ const AvatarPanel: React.FC<Props> = ({
       ctx.arc(cx, cy, R * 1.4, 0, Math.PI * 2);
       ctx.fill();
 
-      const speed = m === "idle" ? 0.18 : m === "speaking" ? 0.65 : 0.38;
-      const distort = m === "idle" ? 0.015 : m === "speaking" ? 0.07 : 0.04;
+      const speed =
+        m === "idle"
+          ? 0.18
+          : m === "listening"
+            ? 0.25
+            : m === "speaking"
+              ? 0.65
+              : m === "cloud"
+                ? 0.3
+                : m === "offline"
+                  ? 0.08
+                  : 0.38;
+      const distort =
+        m === "idle"
+          ? 0.015
+          : m === "listening"
+            ? 0.025
+            : m === "speaking"
+              ? 0.07
+              : m === "cloud"
+                ? 0.035
+                : m === "offline"
+                  ? 0.06
+                  : 0.04;
 
       const rY = t * speed;
       const rX = t * speed * 0.38 + Math.sin(t * 0.22) * 0.28;
@@ -247,10 +499,15 @@ const AvatarPanel: React.FC<Props> = ({
 
       for (const p of pts) {
         const [r, g, b] = orbColor(p.depth, t, m, sl);
-        ctx.beginPath();
-        ctx.arc(p.sx, p.sy, 0.8 * (0.5 + p.depth * 0.8), 0, Math.PI * 2);
+        const sz = 0.8 * (0.5 + p.depth * 0.8);
         ctx.fillStyle = `rgba(${r},${g},${b},${0.2 + p.depth * 0.72})`;
-        ctx.fill();
+        if (m === "offline") {
+          ctx.fillRect(p.sx - sz, p.sy - sz, sz * 2, sz * 2);
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.sx, p.sy, sz, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       // Orbital ring — stress shifts color
@@ -274,8 +531,20 @@ const AvatarPanel: React.FC<Props> = ({
     }
 
     rafRef.current = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []); // modeRef is read dynamically — no dep needed
+
+    const onVis = () => {
+      visibleRef.current = !document.hidden;
+      if (!document.hidden && !rafRef.current) {
+        rafRef.current = requestAnimationFrame(frame);
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
 
   const chipBase: React.CSSProperties = {
     padding: "2px 7px",
@@ -309,12 +578,17 @@ const AvatarPanel: React.FC<Props> = ({
         overflow: "hidden",
       }}
     >
-      <canvas
-        ref={canvasRef}
-        width={164}
-        height={164}
-        style={{ display: "block", width: 164, height: 164, flexShrink: 0 }}
-      />
+      <div
+        style={{ position: "relative", width: 164, height: 164, flexShrink: 0 }}
+      >
+        <canvas
+          ref={canvasRef}
+          width={164}
+          height={164}
+          style={{ display: "block", width: 164, height: 164 }}
+        />
+        <OrbRings mode={mode} listenRemainingMs={listenRemainingMs} />
+      </div>
 
       <div
         style={{

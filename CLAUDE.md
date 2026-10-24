@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v1.5.5**
+**Aktueller Stand: v1.5.6**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -247,6 +247,26 @@ database/
 - **Hotkey-Registrierung abgesichert:** `globalShortcut.register()` Rückgabewert wird geprüft; fehlgeschlagene Registrierung wird geloggt statt still zu scheitern
 - **API-Hotkey-Sync:** nach API-Start lädt Electron den Hotkey per `GET /api/settings`; Hotkey-Änderungen im Settings-UI aktualisieren sofort per IPC
 - **380 Tests — alle grün** (Vitest Unit + Integration, inkl. 11 Dictation-Tests)
+
+### v1.5.6 — HUD-Modus & Erscheinungsbild
+
+- **Drei Erscheinungsbilder:** `appearance`-Setting mit Werten `calm` (Standard-Dunkel), `hud` (technisch/Cyan) und `show` (Präsentation/Vollbild); Stil-Token als CSS Custom Properties (`var(--ella-...)`) in `theme.css`, umgeschaltet via `data-theme`-Attribut
+- **Akzentfarben:** `hudAccent`-Setting mit 3 Optionen: Cyan, Violett, Bernstein — live per `data-hud-accent`-Attribut
+- **Lokale Schriften:** Chakra Petch (Display, 600/700) + JetBrains Mono (Daten, 400/600) als woff2 in `apps/web/public/fonts/` — kein CDN nötig, offline-kompatibel
+- **Stil-Auflösung:** `resolveAppearance()` in `hooks/useAppearance.ts` — automatischer Rückfall auf `calm` bei Blindmodus, Hausaufgabenmodus oder `prefers-reduced-motion`; Polling alle 10s
+- **HUD Top Bar:** `components/hud/HudTopBar.tsx` — Logo + Navigations-Links + Status-Chips (LOKAL/OFFLINE/CLOUD) statt Sidebar im HUD-Modus
+- **HUD Chat-Layout:** Drei-Spalten-Grid (200px / 1fr / 200px) mit 4 Panels: System (Telemetrie), Monitore, Setups, Direktive; letzte 12 Nachrichten als Untertitel unter dem Orb
+- **HUD Panels:** `HudSystemPanel` (CPU/RAM/VRAM/Disk/Temp), `HudMonitorsPanel` (Multi-Monitor-Liste), `HudSetupsPanel` (App-Makros mit Uhrzeit-Badge), `HudDirectivePanel` (4 Direktive-Regeln)
+- **HUD Daten-Hook:** `hooks/useHudData.ts` — pollt Telemetrie, Monitore, Cloud-Today, Setups alle 5s; pausiert wenn Tab nicht sichtbar
+- **API-Routen:** `GET /api/system/telemetry` (CPU/RAM/VRAM/Disk/Temp via PowerShell/nvidia-smi), `GET /api/system/monitors` (Multi-Monitor via PowerShell)
+- **Orb 6 Zustände:** `idle`, `listening`, `thinking`, `speaking`, `cloud`, `offline` — jeder mit eigener Farbe, Atemrhythmus, Geschwindigkeit und Formunterscheidung (Offline: Quadrat-Partikel)
+- **OrbRings:** SVG-Overlay mit rotierenden Ringen (gepunktet + gestrichelt), geneigten Ellipsen, Countdown-Ring (grün, beim Zuhören), Cloud-Ring (bernstein, schnell), Offline-Rahmen (eckig, gestrichelt)
+- **Countdown-Ring:** Visualisiert die 8s Follow-Up-Fenster-Dauer als abnehmender grüner Ring
+- **Präsentationsmodus (show):** Vollbild via Electron IPC `ella:fullscreen`; zeigt nur Orb + letzte Assistenten-Antwort; Privat-Filter (`redactForShow()`) blendet sensible Tool-Ergebnisse (E-Mail, Dateien, Netzwerk, Prozesse) als „[privat]" aus; Esc beendet
+- **Performance-Drosselung:** `hudThrottle`-Setting (default: an) — setzt `--ella-anim-speed: 0.35` während LLM rechnet; Canvas-FPS auf 20fps limitiert bei Throttle; alle CSS-Animationen respektieren `--ella-anim-speed` via `calc()`
+- **Visibility-Pause:** `visibilitychange`-Listener stoppt Canvas-RAF wenn Tab nicht sichtbar, startet bei Rückkehr
+- **Responsive:** `@media (max-width: 720px)` → Einspaltiges Layout; `prefers-reduced-motion` → `--ella-anim-speed: 0`
+- **380 Tests — alle grün** (Vitest Unit + Integration)
 
 ---
 

@@ -372,3 +372,110 @@ systemRouter.post("/add-program", async (req, res, next) => {
     next(err);
   }
 });
+
+// ── HUD Telemetry ──────────────────────────────────────────────────────────
+
+systemRouter.get("/telemetry", (_req, res) => {
+  const total = os.totalmem();
+  const free = os.freemem();
+  const cpus = os.cpus();
+  const cpuIdle = cpus.reduce((s, c) => s + c.times.idle, 0);
+  const cpuTotal = cpus.reduce(
+    (s, c) =>
+      s +
+      c.times.user +
+      c.times.nice +
+      c.times.sys +
+      c.times.idle +
+      c.times.irq,
+    0,
+  );
+  const cpuPct = Math.round(((cpuTotal - cpuIdle) / cpuTotal) * 100);
+  const ramPct = Math.round(((total - free) / total) * 100);
+
+  const s = getSettings();
+  const model = s.ollamaModel ?? "llama3.1:8b";
+
+  let vram: { usedMB: number; totalMB: number } | null = null;
+  try {
+    const raw = execSync(
+      "nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits",
+      { timeout: 4000, encoding: "utf-8" },
+    ).trim();
+    const parts = raw.split(",").map((v) => parseInt(v.trim(), 10));
+    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1]))
+      vram = { usedMB: parts[0], totalMB: parts[1] };
+  } catch {
+    // no nvidia
+  }
+
+  res.json({
+    cpu: { pct: cpuPct, cores: cpus.length },
+    ram: {
+      pct: ramPct,
+      freeMB: Math.round(free / 1048576),
+      totalMB: Math.round(total / 1048576),
+    },
+    vram,
+    model,
+    tokensPerSec: null,
+  });
+});
+
+// ── HUD Monitors ───────────────────────────────────────────────────────────
+
+systemRouter.get("/monitors", (_req, res) => {
+  const script = `
+Add-Type -AssemblyName System.Windows.Forms
+$i = 0
+$result = [System.Windows.Forms.Screen]::AllScreens |
+  Sort-Object { $_.Bounds.X } |
+  ForEach-Object {
+    $i++
+    [PSCustomObject]@{
+      index    = $i
+      name     = $_.DeviceName
+      primary  = $_.Primary
+      width    = $_.Bounds.Width
+      height   = $_.Bounds.Height
+      x        = $_.Bounds.X
+      y        = $_.Bounds.Y
+    }
+  }
+$result | ConvertTo-Json -Compress
+`.trim();
+  const tmpFile = path.join(os.tmpdir(), `ella-mon-${Date.now()}.ps1`);
+  try {
+    fs.writeFileSync(tmpFile, script, "utf-8");
+    const raw = execSync(
+      `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+      { timeout: 8000, encoding: "utf-8" },
+    ).trim();
+    const parsed = JSON.parse(raw) as unknown;
+    const monitors = (Array.isArray(parsed) ? parsed : [parsed]) as Array<{
+      index: number;
+      name: string;
+      primary: boolean;
+      width: number;
+      height: number;
+      x: number;
+      y: number;
+    }>;
+    const list = monitors.map((m) => ({
+      index: m.index,
+      name: m.name,
+      primary: m.primary,
+      resolution: `${m.width}x${m.height}`,
+      position: { x: m.x, y: m.y },
+    }));
+    res.json({ monitors: list });
+  } catch {
+    res.json({ monitors: [] });
+  } finally {
+    try {
+      fs.unlinkSync(tmpFile);
+    } catch {
+      /* best effort */
+    }
+  }
+});

@@ -380,7 +380,10 @@
     "appearance_auto_calm": "Automatically switches to \"Calm\":",
     "appearance_auto_blind": "Blind mode active",
     "appearance_auto_homework": "Homework mode active",
-    "appearance_auto_reduced": "Windows \"Reduce animations\" active"
+    "appearance_auto_reduced": "Windows \"Reduce animations\" active",
+    "appearance_forced_blind": "Blind mode active — appearance automatically set to \"Calm\".",
+    "appearance_forced_homework": "Homework mode active — appearance automatically set to \"Calm\".",
+    "appearance_forced_reduced_motion": "Windows \"Reduce animations\" active — appearance automatically set to \"Calm\"."
   },
   "common": {
     "loading": "Loading…",

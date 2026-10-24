@@ -76,6 +76,9 @@ class ErrorBoundary extends React.Component<
 import TitleBar from "./components/TitleBar";
 import GestureOverlay from "./components/GestureOverlay";
 import { useGestures } from "./hooks/useGestures";
+import { useAppearance } from "./hooks/useAppearance";
+import { useHudData } from "./hooks/useHudData";
+import HudTopBar from "./components/hud/HudTopBar";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Chat from "./pages/chat/Chat";
 import Settings from "./pages/settings/Settings";
@@ -321,6 +324,9 @@ function AppShell() {
   const { t } = useTranslation();
   const location = useLocation();
   const gestures = useGestures();
+  const appearance = useAppearance();
+  const isHud =
+    appearance.effective === "hud" || appearance.effective === "show";
   const [boot, setBoot] = useState<BootStatus | null>(null);
   const [ollamaReady, setOllamaReady] = useState(false);
   const [setupMsg, setSetupMsg] = useState("");
@@ -581,6 +587,28 @@ function AppShell() {
     return <Navigate to="/onboarding" replace />;
   }
 
+  const navItems = [
+    { to: "/dashboard", label: t("nav.dashboard") },
+    { to: "/chat", label: t("nav.chat") },
+    { to: "/pipeline", label: t("nav.pipeline") },
+    { to: "/memories", label: t("nav.memories") },
+    { to: "/settings", label: t("nav.settings") },
+  ];
+
+  const mainRoutes = (
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/" element={<Navigate to="/chat" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/pipeline" element={<Pipeline />} />
+        <Route path="/memories" element={<Memories />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/onboarding" element={<Navigate to="/chat" replace />} />
+      </Routes>
+    </ErrorBoundary>
+  );
+
   return (
     <BootContext.Provider value={{ boot, setBoot }}>
       <div className="ella-root">
@@ -588,82 +616,77 @@ function AppShell() {
         {modelPullBanner}
         <OllamaBanner />
         {gestures.enabled && <GestureOverlay showSkeleton />}
-        <div className="ella-layout">
-          <nav className="ella-sidebar">
-            <h1 className="ella-logo">E.L.L.A.</h1>
-            <NavLink to="/dashboard">{t("nav.dashboard")}</NavLink>
-            <NavLink to="/chat">{t("nav.chat")}</NavLink>
-            <NavLink to="/pipeline">{t("nav.pipeline")}</NavLink>
-            <NavLink to="/memories">{t("nav.memories")}</NavLink>
-            <NavLink to="/settings">{t("nav.settings")}</NavLink>
-            <div style={{ flex: 1 }} />
-            <button
-              onClick={gestures.toggle}
-              disabled={gestures.loading}
-              title={
-                gestures.enabled ? t("nav.gesture_off") : t("nav.gesture_on")
-              }
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                padding: "8px 12px",
-                marginTop: 8,
-                borderRadius: 8,
-                border: gestures.enabled
-                  ? "1px solid rgba(124, 106, 247, 0.6)"
-                  : "1px solid var(--ella-border)",
-                background: gestures.enabled
-                  ? "rgba(124, 106, 247, 0.15)"
-                  : "transparent",
-                color: gestures.enabled
-                  ? "var(--ella-accent-soft)"
-                  : "var(--ella-text-dim)",
-                fontSize: "0.78rem",
-                cursor: gestures.loading ? "wait" : "pointer",
-                transition: "all 0.2s",
-              }}
-            >
-              {gestures.loading ? "⏳" : "🖐"}
-              <span>
-                {gestures.loading
-                  ? t("nav.gesture_loading")
-                  : gestures.enabled
-                    ? t("nav.gesture_active")
-                    : t("nav.gesture_label")}
-              </span>
-            </button>
-            {gestures.error && (
-              <div
+
+        {isHud ? (
+          <>
+            <HudTopBar navItems={navItems} />
+            <main className="ella-main" style={{ flex: 1, overflow: "auto" }}>
+              {mainRoutes}
+            </main>
+          </>
+        ) : (
+          <div className="ella-layout">
+            <nav className="ella-sidebar">
+              <h1 className="ella-logo">E.L.L.A.</h1>
+              {navItems.map((n) => (
+                <NavLink key={n.to} to={n.to}>
+                  {n.label}
+                </NavLink>
+              ))}
+              <div style={{ flex: 1 }} />
+              <button
+                onClick={gestures.toggle}
+                disabled={gestures.loading}
+                title={
+                  gestures.enabled ? t("nav.gesture_off") : t("nav.gesture_on")
+                }
                 style={{
-                  fontSize: "0.7rem",
-                  color: "var(--ella-danger)",
-                  padding: "4px 8px",
-                  marginTop: 4,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  padding: "8px 12px",
+                  marginTop: 8,
+                  borderRadius: 8,
+                  border: gestures.enabled
+                    ? "1px solid rgba(124, 106, 247, 0.6)"
+                    : "1px solid var(--ella-border)",
+                  background: gestures.enabled
+                    ? "rgba(124, 106, 247, 0.15)"
+                    : "transparent",
+                  color: gestures.enabled
+                    ? "var(--ella-accent-soft)"
+                    : "var(--ella-text-dim)",
+                  fontSize: "0.78rem",
+                  cursor: gestures.loading ? "wait" : "pointer",
+                  transition: "all 0.2s",
                 }}
               >
-                {gestures.error}
-              </div>
-            )}
-          </nav>
-          <main className="ella-main">
-            <ErrorBoundary>
-              <Routes>
-                <Route path="/" element={<Navigate to="/chat" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/chat" element={<Chat />} />
-                <Route path="/pipeline" element={<Pipeline />} />
-                <Route path="/memories" element={<Memories />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route
-                  path="/onboarding"
-                  element={<Navigate to="/chat" replace />}
-                />
-              </Routes>
-            </ErrorBoundary>
-          </main>
-        </div>
+                {gestures.loading ? "⏳" : "🖐"}
+                <span>
+                  {gestures.loading
+                    ? t("nav.gesture_loading")
+                    : gestures.enabled
+                      ? t("nav.gesture_active")
+                      : t("nav.gesture_label")}
+                </span>
+              </button>
+              {gestures.error && (
+                <div
+                  style={{
+                    fontSize: "0.7rem",
+                    color: "var(--ella-danger)",
+                    padding: "4px 8px",
+                    marginTop: 4,
+                  }}
+                >
+                  {gestures.error}
+                </div>
+              )}
+            </nav>
+            <main className="ella-main">{mainRoutes}</main>
+          </div>
+        )}
       </div>
     </BootContext.Provider>
   );

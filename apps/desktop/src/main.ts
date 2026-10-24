@@ -824,6 +824,10 @@ function registerIpc(): void {
     "window:isMaximized",
     () => mainWindow?.isMaximized() ?? false,
   );
+  ipcMain.on("ella:fullscreen", (_e, on: boolean) => {
+    if (on) mainWindow?.setFullScreen(true);
+    else mainWindow?.setFullScreen(false);
+  });
   ipcMain.on("ella:open-chess", () => openChessWindow());
   ipcMain.on("chess:minimize", () => chessWindow?.minimize());
   ipcMain.on("chess:close", () => chessWindow?.close());
