@@ -13,6 +13,7 @@ interface Props {
   listenRemainingMs?: number;
   cloudActive?: boolean;
   offline?: boolean;
+  hudMode?: boolean;
 }
 
 const PHI = Math.PI * (3 - Math.sqrt(5));
@@ -108,22 +109,24 @@ const STATE_LABEL: Record<OrbMode, string> = {
 
 const RING_ANIM_SPEED = "var(--ella-anim-speed, 1)";
 
-const OrbRings: React.FC<{ mode: OrbMode; listenRemainingMs?: number }> = ({
-  mode,
-  listenRemainingMs,
-}) => {
+const OrbRings: React.FC<{
+  mode: OrbMode;
+  listenRemainingMs?: number;
+  size?: number;
+}> = ({ mode, listenRemainingMs, size }) => {
   const isHud =
     document.documentElement.dataset.theme === "hud" ||
     document.documentElement.dataset.theme === "show";
   if (!isHud) return null;
 
-  const sz = 164;
+  const sz = size ?? 164;
   const cx = sz / 2;
   const cy = sz / 2;
-  const outerR = 76;
-  const dashR = 72;
-  const ellipseRx = 70;
-  const ellipseRy = 30;
+  const scale = sz / 164;
+  const outerR = 76 * scale;
+  const dashR = 72 * scale;
+  const ellipseRx = 70 * scale;
+  const ellipseRy = 30 * scale;
 
   const countdownFraction =
     mode === "listening" && listenRemainingMs != null
@@ -265,6 +268,7 @@ const AvatarPanel: React.FC<Props> = ({
   listenRemainingMs,
   cloudActive = false,
   offline = false,
+  hudMode = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const modeRef = useRef<OrbMode>("idle");
@@ -391,8 +395,8 @@ const AvatarPanel: React.FC<Props> = ({
         setInfoText(lines[infoIdxRef.current]);
       }
 
-      const W = 164,
-        H = 164;
+      const W = canvas!.width,
+        H = canvas!.height;
       const cx = W / 2,
         cy = H / 2;
       const N = 800;
@@ -415,8 +419,15 @@ const AvatarPanel: React.FC<Props> = ({
                   : 0.015 * Math.sin(t * 1.8);
       const R = baseR * (1 + breathe);
 
-      ctx.fillStyle = "#0f1117";
-      ctx.fillRect(0, 0, W, H);
+      const isHudTheme =
+        document.documentElement.dataset.theme === "hud" ||
+        document.documentElement.dataset.theme === "show";
+      if (isHudTheme) {
+        ctx.clearRect(0, 0, W, H);
+      } else {
+        ctx.fillStyle = "#0f1117";
+        ctx.fillRect(0, 0, W, H);
+      }
 
       // Glow behind orb — stress shifts hue
       const glowBase: Record<OrbMode, [number, number, number]> = {
@@ -545,6 +556,33 @@ const AvatarPanel: React.FC<Props> = ({
       document.removeEventListener("visibilitychange", onVis);
     };
   }, []);
+
+  const orbSize = hudMode ? 320 : 164;
+
+  if (hudMode) {
+    return (
+      <div
+        style={{
+          position: "relative",
+          width: orbSize,
+          height: orbSize,
+          flexShrink: 0,
+        }}
+      >
+        <canvas
+          ref={canvasRef}
+          width={orbSize}
+          height={orbSize}
+          style={{ display: "block", width: orbSize, height: orbSize }}
+        />
+        <OrbRings
+          mode={mode}
+          listenRemainingMs={listenRemainingMs}
+          size={orbSize}
+        />
+      </div>
+    );
+  }
 
   const chipBase: React.CSSProperties = {
     padding: "2px 7px",

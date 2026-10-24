@@ -151,33 +151,46 @@
 .hud-topbar {
   display: flex;
   align-items: center;
-  height: 48px;
-  padding: 0 20px;
+  height: 60px;
+  padding: 0 22px;
   background: var(--ella-surface);
-  border-bottom: 1px solid var(--ella-border);
+  border-bottom: 1px solid rgba(79, 209, 255, 0.25);
   gap: 24px;
 }
 
 .hud-topbar-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.hud-topbar-logo-name {
   font-family: var(--ella-font-display);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 20px;
+  letter-spacing: 4px;
+  color: var(--ella-text);
+}
+
+.hud-topbar-logo-suffix {
+  font-family: var(--ella-font-display);
+  font-weight: 600;
+  font-size: 13px;
   letter-spacing: 3px;
-  text-transform: uppercase;
   color: var(--ella-accent);
-  white-space: nowrap;
 }
 
 .hud-topbar-nav {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex: 1;
   justify-content: center;
 }
 
 .hud-topbar-nav a {
   font-family: var(--ella-font-display);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -202,10 +215,10 @@
 
 .hud-topbar-chips {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   font-family: var(--ella-font-data);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 1px;
   color: var(--ella-text-dim);
   white-space: nowrap;
@@ -215,6 +228,24 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  padding: 4px 8px;
+  border: 1px solid rgba(143, 179, 201, 0.5);
+  border-radius: 0;
+}
+
+.hud-topbar-chip--local {
+  border-color: var(--ella-accent);
+  color: var(--ella-accent);
+}
+
+.hud-topbar-chip--offline {
+  border-color: var(--ella-danger);
+  color: var(--ella-danger);
+}
+
+.hud-topbar-chip--warn {
+  border-color: var(--ella-warning);
+  color: var(--ella-warning);
 }
 
 .hud-topbar-chip-dot {
@@ -235,11 +266,11 @@
 /* HUD Chat — three-column layout */
 .hud-chat-layout {
   display: grid;
-  grid-template-columns: 200px 1fr 200px;
+  grid-template-columns: 280px 1fr 280px;
   grid-template-rows: 1fr auto;
-  gap: 12px;
+  gap: 16px;
   height: 100%;
-  padding: 12px;
+  padding: 18px;
 }
 .hud-chat-left {
   display: flex;
@@ -341,13 +372,35 @@
   cursor: not-allowed;
 }
 .hud-state-text {
-  font-family: var(--ella-font-data);
-  font-size: 0.72rem;
-  letter-spacing: 2px;
+  font-family: var(--ella-font-display);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 6px;
   text-transform: uppercase;
-  color: var(--ella-accent-soft);
-  margin-top: 10px;
+  color: var(--ella-text);
+  margin-top: 14px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.hud-state-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ella-accent);
+  animation: ellaPulse 2s ease-in-out infinite;
+}
+
+.hud-state-hint {
+  font-family: var(--ella-font-data);
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--ella-text-dim);
+  text-align: center;
+  margin-top: 6px;
 }
 
 /* Show / Presentation mode */

@@ -6,6 +6,8 @@ interface MonitorInfo {
   primary: boolean;
   resolution: string;
   position: { x: number; y: number };
+  apps?: string[];
+  lastUsed?: boolean;
 }
 
 const HudMonitorPanel: React.FC<{ monitors: MonitorInfo[] }> = ({
@@ -19,48 +21,85 @@ const HudMonitorPanel: React.FC<{ monitors: MonitorInfo[] }> = ({
           ...
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {monitors.map((m) => (
             <div
               key={m.index}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                fontSize: "0.75rem",
-                fontFamily: "var(--ella-font-data)",
-                color: "var(--ella-text-muted)",
+                flex: "1 1 100px",
+                border: `1px solid ${m.lastUsed ? "#a78bfa" : "rgba(79,209,255,0.5)"}`,
+                borderRadius: 0,
+                padding: 8,
+                boxShadow: m.lastUsed
+                  ? "0 0 18px rgba(167,139,250,0.25)"
+                  : "none",
               }}
             >
-              <span
+              <div
                 style={{
-                  width: 18,
-                  height: 18,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: `1px solid ${m.primary ? "var(--ella-accent)" : "var(--ella-border)"}`,
-                  color: m.primary
-                    ? "var(--ella-accent)"
-                    : "var(--ella-text-dim)",
-                  fontSize: "0.65rem",
-                  fontWeight: 600,
+                  fontSize: "0.68rem",
+                  fontFamily: "var(--ella-font-data)",
+                  color: "var(--ella-text-dim)",
+                  letterSpacing: "1px",
+                  marginBottom: 4,
                 }}
               >
-                {m.index}
-              </span>
-              <span style={{ color: "var(--ella-text)" }}>{m.resolution}</span>
-              {m.primary && (
-                <span
+                MONITOR {m.index}
+                {m.primary && (
+                  <span style={{ marginLeft: 6, color: "var(--ella-accent)" }}>
+                    PRI
+                  </span>
+                )}
+              </div>
+              {(!m.apps || m.apps.length === 0) && (
+                <div
                   style={{
-                    fontSize: "0.6rem",
-                    letterSpacing: "1.5px",
-                    color: "var(--ella-accent-soft)",
-                    textTransform: "uppercase",
+                    fontSize: "0.7rem",
+                    color: "var(--ella-text-dim)",
+                    fontFamily: "var(--ella-font-data)",
                   }}
                 >
-                  PRI
-                </span>
+                  {m.resolution}
+                </div>
+              )}
+              {m.apps && m.apps.length > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 3,
+                    marginTop: 2,
+                  }}
+                >
+                  {m.apps.map((app, i) => {
+                    const isNewest = m.lastUsed && i === m.apps!.length - 1;
+                    return (
+                      <div
+                        key={app}
+                        style={{
+                          fontSize: "0.72rem",
+                          fontFamily: "var(--ella-font-ui)",
+                          padding: "2px 6px",
+                          background: "rgba(79,209,255,0.14)",
+                          color: "var(--ella-text)",
+                        }}
+                      >
+                        {app}
+                        {isNewest && (
+                          <span
+                            style={{
+                              marginLeft: 6,
+                              fontSize: "0.65rem",
+                              color: "var(--ella-accent-soft)",
+                            }}
+                          >
+                            &larr; neu
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           ))}

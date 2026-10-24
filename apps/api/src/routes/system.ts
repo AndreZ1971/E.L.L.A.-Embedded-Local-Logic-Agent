@@ -8,6 +8,7 @@ import { env } from "../config/env.js";
 import { getDiskUsage } from "@ella/agent-tools";
 import { getSettings, saveSettings } from "../services/settings.js";
 import type { AppEntry } from "../services/settings.js";
+import { isKokoroReady } from "../services/kokoro.js";
 
 export const systemRouter = Router();
 
@@ -396,18 +397,22 @@ systemRouter.get("/telemetry", (_req, res) => {
   const s = getSettings();
   const model = s.ollamaModel ?? "llama3.1:8b";
 
-  let vram: { usedMB: number; totalMB: number } | null = null;
+  let vram: { usedMB: number; totalMB: number; gpu?: string } | null = null;
   try {
     const raw = execSync(
-      "nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits",
+      "nvidia-smi --query-gpu=name,memory.used,memory.total --format=csv,noheader,nounits",
       { timeout: 4000, encoding: "utf-8" },
     ).trim();
-    const parts = raw.split(",").map((v) => parseInt(v.trim(), 10));
-    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1]))
-      vram = { usedMB: parts[0], totalMB: parts[1] };
+    const parts = raw.split(",").map((v) => v.trim());
+    const usedMB = parseInt(parts[1], 10);
+    const totalMB = parseInt(parts[2], 10);
+    if (!isNaN(usedMB) && !isNaN(totalMB))
+      vram = { usedMB, totalMB, gpu: parts[0] || undefined };
   } catch {
     // no nvidia
   }
+
+  const ttsEngine = isKokoroReady() ? "Kokoro" : "Edge TTS";
 
   res.json({
     cpu: { pct: cpuPct, cores: cpus.length },
@@ -419,6 +424,7 @@ systemRouter.get("/telemetry", (_req, res) => {
     vram,
     model,
     tokensPerSec: null,
+    ttsEngine,
   });
 });
 

@@ -58,7 +58,15 @@ export function useAppearance(): AppearanceState {
   useEffect(() => {
     poll();
     intervalRef.current = setInterval(poll, 10_000);
-    return () => clearInterval(intervalRef.current);
+    const onAppearanceChanged = () => poll();
+    window.addEventListener("ella:appearance-changed", onAppearanceChanged);
+    return () => {
+      clearInterval(intervalRef.current);
+      window.removeEventListener(
+        "ella:appearance-changed",
+        onAppearanceChanged,
+      );
+    };
   }, [poll]);
 
   useEffect(() => {

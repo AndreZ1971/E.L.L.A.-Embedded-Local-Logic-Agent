@@ -1418,14 +1418,20 @@ const Chat: React.FC = () => {
     followUpUntil > now ? followUpUntil - now : undefined;
 
   const hudStateText = loading
-    ? "PROCESSING"
+    ? t("hud.state_thinking", "DENKT")
     : ttsActive
-      ? "SPEAKING"
+      ? t("hud.state_speaking", "SPRICHT")
       : isListeningNow
-        ? "LISTENING"
+        ? t("hud.state_listening", "HÖRT ZU")
         : stressLevel === "high"
-          ? "STRESS DETECTED"
-          : "IDLE";
+          ? t("hud.state_stress", "STRESS")
+          : t("hud.state_idle", "BEREIT");
+
+  const hudHintText = loading
+    ? toolStatus || null
+    : isListeningNow && listenRemainingMs != null
+      ? `${t("hud.hint_followup", "Nachfrage-Fenster")} · ${t("hud.hint_remaining", "noch")} ${Math.ceil(listenRemainingMs / 1000)} s · „${t("hud.hint_stop", "Stopp")}“ ${t("hud.hint_interrupts", "unterbricht")}`
+      : null;
 
   const exitShow = useCallback(() => {
     if (!isShow) return;
@@ -1476,8 +1482,13 @@ const Chat: React.FC = () => {
             stressLevel={stressLevel}
             isListening={isListeningNow}
             listenRemainingMs={listenRemainingMs}
+            hudMode
           />
-          <div className="hud-state-text">{hudStateText}</div>
+          <div className="hud-state-text">
+            <span className="hud-state-dot" />
+            {hudStateText}
+          </div>
+          {hudHintText && <div className="hud-state-hint">{hudHintText}</div>}
         </div>
 
         {!isShow && (
@@ -2579,7 +2590,7 @@ const Chat: React.FC = () => {
                     fontSize: "0.78rem",
                     color:
                       voiceMode === "dictation"
-                        ? "var(--ella-warning)"
+                        ? "#5eead4"
                         : "var(--ella-border-strong)",
                   }}
                 >
@@ -2591,13 +2602,16 @@ const Chat: React.FC = () => {
                       display: "inline-block",
                       background:
                         voiceMode === "dictation"
-                          ? "var(--ella-warning)"
+                          ? "#5eead4"
                           : "var(--ella-border-strong)",
                       animation: "pulse 2.5s ease-in-out infinite",
                     }}
                   />
                   {voiceMode === "dictation"
-                    ? "Diktat-Modus — Sprache → aktives Fenster"
+                    ? t(
+                        "hud.dictation_mode",
+                        "Diktat-Modus — Sprache → aktives Fenster",
+                      )
                     : t("chat.listening")}
                 </div>
               )}

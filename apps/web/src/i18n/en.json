@@ -535,6 +535,21 @@
     "empty": "No memories found.",
     "delete_aria": "Delete"
   },
+  "hud": {
+    "state_idle": "READY",
+    "state_listening": "LISTENING",
+    "state_thinking": "THINKING",
+    "state_speaking": "SPEAKING",
+    "state_cloud": "CLOUD",
+    "state_offline": "OFFLINE",
+    "sealed": "Sealed",
+    "all_four_active": "all four active",
+    "cloud_requests_today": "Cloud requests today",
+    "hint_tool": "Tool: {{name}}",
+    "hint_followup": "Follow-up {{sec}}s",
+    "no_schedules": "No schedules",
+    "dictation_mode": "Dictation mode — voice to active window"
+  },
   "model_select": {
     "heading": "Before we begin —",
     "subtitle": "Which AI model should I use? I'll download it once and then run fully offline.",

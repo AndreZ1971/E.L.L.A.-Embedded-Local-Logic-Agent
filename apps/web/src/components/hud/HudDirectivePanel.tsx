@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const DIRECTIVES = [
   { num: "I", key: "harm" },
@@ -10,74 +11,69 @@ const DIRECTIVES = [
 const HudDirectivePanel: React.FC<{ cloudToday: number | null }> = ({
   cloudToday,
 }) => {
+  const { t } = useTranslation();
+  const sealed = t("hud.sealed", "Versiegelt");
+
   return (
     <div className="hud-panel">
       <div className="hud-label">DIRECTIVE</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 5,
+        }}
+      >
         {DIRECTIVES.map((d) => (
           <div
             key={d.key}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
+              border: "1px solid rgba(79,209,255,0.4)",
+              borderRadius: 0,
+              padding: 6,
               fontSize: "0.72rem",
               fontFamily: "var(--ella-font-data)",
+              letterSpacing: "1px",
+              color: "var(--ella-text-dim)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
-            <span
-              style={{
-                color: "var(--ella-accent-soft)",
-                fontWeight: 600,
-                width: 24,
-                letterSpacing: "1px",
-              }}
-            >
+            <span style={{ color: "var(--ella-accent-soft)", fontWeight: 600 }}>
               {d.num}
-            </span>
-            <span
-              style={{ color: "var(--ella-text-dim)", letterSpacing: "1px" }}
-            >
-              {d.key}
-            </span>
-            <span
-              style={{
-                marginLeft: "auto",
-                color: "var(--ella-success)",
-                fontSize: "0.6rem",
-              }}
-            >
-              SEALED
-            </span>
+            </span>{" "}
+            · {d.key}
           </div>
         ))}
       </div>
-      {cloudToday != null && (
-        <div
-          style={{
-            marginTop: 10,
-            paddingTop: 8,
-            borderTop: "1px solid var(--ella-border)",
-            fontSize: "0.7rem",
-            fontFamily: "var(--ella-font-data)",
-            color: "var(--ella-text-dim)",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}
-        >
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background:
-                cloudToday > 0 ? "var(--ella-warning)" : "var(--ella-success)",
-            }}
-          />
-          CLOUD {cloudToday}
+      <div
+        style={{
+          marginTop: 10,
+          fontSize: "0.7rem",
+          fontFamily: "var(--ella-font-data)",
+          color: "var(--ella-text-dim)",
+          letterSpacing: "0.5px",
+          lineHeight: 1.6,
+        }}
+      >
+        <div>
+          {sealed} · {t("hud.all_four_active", "alle vier aktiv")}
         </div>
-      )}
+        {cloudToday != null && (
+          <div>
+            {t("hud.cloud_requests_today", "Cloud-Anfragen heute")}{" "}
+            <span
+              style={{
+                color:
+                  cloudToday > 0 ? "var(--ella-warning)" : "var(--ella-accent)",
+              }}
+            >
+              {cloudToday}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

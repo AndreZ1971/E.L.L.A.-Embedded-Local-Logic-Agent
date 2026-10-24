@@ -266,7 +266,15 @@ database/
 - **Performance-Drosselung:** `hudThrottle`-Setting (default: an) — setzt `--ella-anim-speed: 0.35` während LLM rechnet; Canvas-FPS auf 20fps limitiert bei Throttle; alle CSS-Animationen respektieren `--ella-anim-speed` via `calc()`
 - **Visibility-Pause:** `visibilitychange`-Listener stoppt Canvas-RAF wenn Tab nicht sichtbar, startet bei Rückkehr
 - **Responsive:** `@media (max-width: 720px)` → Einspaltiges Layout; `prefers-reduced-motion` → `--ella-anim-speed: 0`
-- **380 Tests — alle grün** (Vitest Unit + Integration)
+- **HUD Feinschliff:** TopBar überarbeitet (Logo-Split E.L.L.A. + // HUD, CLOUD-Chip immer sichtbar); Panels optisch ans Mockup angepasst (2×2 Directive-Grid, VRAM violett, Monitor-Apps, Schedule-Format); Orb 320px im HUD ohne Card/Chips; Zustandszeile mit i18n + Hint-Zeile (Tool-Name, Follow-up-Countdown); breitere Spalten (280px)
+- **Telemetrie erweitert:** `GET /api/system/telemetry` liefert GPU-Name + `ttsEngine` (Kokoro/Edge TTS); `HudSystemPanel` zeigt MODELL, TEMPO, STIMME unter Separator
+- **i18n HUD-Keys:** `hud.*`-Namespace in de.json/en.json — Zustandsnamen (BEREIT/HÖRT/DENKT/SPRICHT), Directive-Texte, Diktat-Modus
+- **Selbstbild:** System-Prompt-Block SELBSTBILD — E.L.L.A. kennt ihre eigene Natur als lokaler Agent mit Orb-Visualisierung
+- **Diktat-Indikator türkis:** `#5eead4` statt bernstein für den Diktat-Modus-Indikator
+- **Sofortiger Stilwechsel:** `ella:appearance-changed`-Event in `useAppearance.ts` — Settings-Änderungen wirken sofort statt erst nach 10s Polling
+- **Zahlenformat:** Lokale-bewusste GB-Anzeige (`Intl.NumberFormat`, deutsches Komma / englischer Punkt)
+- **resolveAppearance-Tests:** 9 Tests für Prioritätslogik (blind > homework > reduced_motion > wanted)
+- **389 Tests — alle grün** (Vitest Unit + Integration, inkl. 9 resolveAppearance-Tests)
 
 ---
 

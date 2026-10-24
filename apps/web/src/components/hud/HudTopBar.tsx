@@ -13,7 +13,7 @@ interface HudTopBarProps {
 
 const HudTopBar: React.FC<HudTopBarProps> = ({ navItems }) => {
   const [offlineMode, setOfflineMode] = useState(false);
-  const [cloudToday, setCloudToday] = useState<number | null>(null);
+  const [cloudToday, setCloudToday] = useState(0);
   const [time, setTime] = useState(() => formatTime());
 
   useEffect(() => {
@@ -48,7 +48,10 @@ const HudTopBar: React.FC<HudTopBarProps> = ({ navItems }) => {
 
   return (
     <nav className="hud-topbar">
-      <div className="hud-topbar-logo">E.L.L.A. // HUD</div>
+      <div className="hud-topbar-logo">
+        <span className="hud-topbar-logo-name">E.L.L.A.</span>
+        <span className="hud-topbar-logo-suffix">// HUD</span>
+      </div>
 
       <div className="hud-topbar-nav">
         {navItems.map((n) => (
@@ -60,22 +63,21 @@ const HudTopBar: React.FC<HudTopBarProps> = ({ navItems }) => {
 
       <div className="hud-topbar-chips">
         {offlineMode ? (
-          <span className="hud-topbar-chip">
-            <span className="hud-topbar-chip-dot hud-topbar-chip-dot--warn" />
+          <span className="hud-topbar-chip hud-topbar-chip--offline">
+            <span className="hud-topbar-chip-dot hud-topbar-chip-dot--off" />
             OFFLINE
           </span>
         ) : (
-          <span className="hud-topbar-chip">
+          <span className="hud-topbar-chip hud-topbar-chip--local">
             <span className="hud-topbar-chip-dot" />
             LOKAL
           </span>
         )}
-        {cloudToday != null && cloudToday > 0 && (
-          <span className="hud-topbar-chip">
-            <span className="hud-topbar-chip-dot hud-topbar-chip-dot--warn" />
-            CLOUD {cloudToday}
-          </span>
-        )}
+        <span
+          className={`hud-topbar-chip${cloudToday > 0 ? " hud-topbar-chip--warn" : ""}`}
+        >
+          CLOUD {cloudToday}
+        </span>
         <span className="hud-topbar-chip">{time}</span>
       </div>
     </nav>
