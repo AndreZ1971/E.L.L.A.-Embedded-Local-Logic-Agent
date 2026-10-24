@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { apiFetch } from "../../lib/api";
 import MemoryGraph from "./MemoryGraph";
 import "./Memories.css";
 
@@ -66,7 +67,7 @@ export default function Memories() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch("/api/memories/stats");
+      const res = await apiFetch("/api/memories/stats");
       if (res.ok) setStats(await res.json());
     } catch {}
   }, []);
@@ -80,7 +81,7 @@ export default function Memories() {
       });
       if (activeType !== "all") params.set("type", activeType);
       if (debouncedSearch) params.set("search", debouncedSearch);
-      const res = await fetch(`/api/memories?${params}`);
+      const res = await apiFetch(`/api/memories?${params}`);
       if (res.ok) {
         const data = await res.json();
         setMemories(data.memories);
@@ -107,7 +108,7 @@ export default function Memories() {
   const handleDelete = async (id: number) => {
     setDeleteId(id);
     try {
-      const res = await fetch(`/api/memories/${id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/memories/${id}`, { method: "DELETE" });
       if (res.ok) {
         setMemories((prev) => prev.filter((m) => m.id !== id));
         setTotal((t) => t - 1);
@@ -122,7 +123,9 @@ export default function Memories() {
     setDeduping(true);
     setDedupResult(null);
     try {
-      const res = await fetch("/api/memories/deduplicate", { method: "POST" });
+      const res = await apiFetch("/api/memories/deduplicate", {
+        method: "POST",
+      });
       if (res.ok) {
         const data = (await res.json()) as {
           removed: number;
@@ -145,7 +148,7 @@ export default function Memories() {
     if (!addContent.trim()) return;
     setAdding(true);
     try {
-      const res = await fetch("/api/memories", {
+      const res = await apiFetch("/api/memories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: addType, content: addContent.trim() }),

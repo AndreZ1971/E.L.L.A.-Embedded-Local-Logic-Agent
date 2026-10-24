@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
+import { apiFetch } from "../../lib/api";
 
 interface MemNode {
   id: number;
@@ -99,7 +100,7 @@ export default function MemoryGraph({ lang }: Props) {
         const url = showDocs
           ? "/api/memories/graph?docs=1"
           : "/api/memories/graph";
-        const res = await fetch(url);
+        const res = await apiFetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = (await res.json()) as GraphData;
         if (cancelled) return;
