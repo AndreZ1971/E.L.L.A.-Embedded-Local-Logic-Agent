@@ -174,7 +174,7 @@ interface Settings {
   sessionLimit: number;
   openaiApiKey: string;
   apps: AppEntry[];
-  voiceMode: "off" | "manual" | "wakeword" | "always";
+  voiceMode: "off" | "manual" | "wakeword" | "always" | "dictation";
   setups: Setup[];
   homeworkMode: HomeworkModeConfig;
   ttsEnabled: boolean;
@@ -199,6 +199,7 @@ interface Settings {
   selfLearningEnabled: boolean;
   indexedFolders: string[];
   offlineMode: boolean;
+  dictationCorrection: boolean;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -1436,7 +1437,9 @@ const Settings: React.FC = () => {
             </Section>
 
             <Section title={t("settings.section_voice_mode")}>
-              {(["off", "manual", "wakeword", "always"] as const).map((m) => (
+              {(
+                ["off", "manual", "wakeword", "always", "dictation"] as const
+              ).map((m) => (
                 <label
                   key={m}
                   style={{
@@ -1450,12 +1453,15 @@ const Settings: React.FC = () => {
                     value={m}
                     checked={settings.voiceMode === m}
                     onChange={() => patch({ voiceMode: m })}
-                    style={{ accentColor: "#7c6af7" }}
+                    style={{
+                      accentColor: m === "dictation" ? "#f59e0b" : "#7c6af7",
+                    }}
                   />
                   {m === "off" && t("settings.voice_off")}
                   {m === "manual" && t("settings.voice_manual")}
                   {m === "wakeword" && t("settings.voice_wakeword")}
                   {m === "always" && t("settings.voice_always")}
+                  {m === "dictation" && "Diktat (Sprache → aktives Fenster)"}
                 </label>
               ))}
               {settings.voiceMode === "wakeword" && (
@@ -1467,6 +1473,41 @@ const Settings: React.FC = () => {
                   }}
                 >
                   {t("settings.wakeword_mode_hint")}
+                </div>
+              )}
+              {settings.voiceMode === "dictation" && (
+                <div style={{ marginTop: 8 }}>
+                  <label
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={settings.dictationCorrection ?? false}
+                      onChange={(e) =>
+                        patch({ dictationCorrection: e.target.checked })
+                      }
+                    />
+                    <span
+                      style={{
+                        color: settings.dictationCorrection
+                          ? "#f59e0b"
+                          : "#94a3b8",
+                        fontSize: "0.85rem",
+                      }}
+                    >
+                      Rechtschreibkorrektur vor dem Tippen
+                    </span>
+                  </label>
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "#64748b",
+                      marginTop: 2,
+                    }}
+                  >
+                    Diktierter Text wird ins aktive Fenster getippt (via
+                    Zwischenablage + Strg+V). Hotkey: Strg+Shift+D
+                  </div>
                 </div>
               )}
             </Section>

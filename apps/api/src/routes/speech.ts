@@ -12,6 +12,8 @@ import {
   getVoiceForLanguage,
 } from "../services/tts.js";
 import { getSettings } from "../services/settings.js";
+import { correctText } from "../services/textCorrection.js";
+import { typeTextToActiveWindow } from "../services/windowManager.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -36,6 +38,40 @@ speechRouter.post(
       const raw = await transcribe(req.file.buffer);
       const text = req.query.raw === "true" ? raw : await contextAlign(raw);
       res.json({ text });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ── Diktat: Sprache → Text → aktives Fenster ────────────────────────────────
+
+speechRouter.post(
+  "/dictate",
+  upload.single("audio"),
+  async (req, res, next) => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: "Keine Audio-Datei" });
+        return;
+      }
+
+      const raw = await transcribe(req.file.buffer);
+      if (!raw || raw.trim().length < 2) {
+        res.json({ text: "", typed: false });
+        return;
+      }
+
+      const { dictationCorrection } = getSettings();
+      const text = dictationCorrection ? await correctText(raw) : raw;
+
+      const result = typeTextToActiveWindow(text);
+      if (!result.success) {
+        res.status(500).json({ error: result.error, text });
+        return;
+      }
+
+      res.json({ text, typed: true });
     } catch (err) {
       next(err);
     }

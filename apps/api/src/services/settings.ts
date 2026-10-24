@@ -81,6 +81,7 @@ export interface Settings {
   selfLearningEnabled: boolean;
   indexedFolders: string[];
   offlineMode: boolean;
+  dictationCorrection: boolean;
 }
 
 // Im Installer: ELLA_USERDATA = %APPDATA%\ELLA (gesetzt von Electron main.ts)
@@ -222,6 +223,7 @@ export const DEFAULT_SETTINGS: Settings = {
   selfLearningEnabled: true,
   indexedFolders: [],
   offlineMode: false,
+  dictationCorrection: false,
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -322,6 +324,8 @@ export async function loadSettings(): Promise<void> {
       parsed.indexedFolders = DEFAULT_SETTINGS.indexedFolders;
     if (typeof parsed.offlineMode !== "boolean")
       parsed.offlineMode = DEFAULT_SETTINGS.offlineMode;
+    if (typeof parsed.dictationCorrection !== "boolean")
+      parsed.dictationCorrection = DEFAULT_SETTINGS.dictationCorrection;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults

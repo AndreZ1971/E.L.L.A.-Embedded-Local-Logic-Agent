@@ -56,4 +56,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   closeChess: () => ipcRenderer.send("chess:close"),
   pickFolder: (): Promise<string | null> =>
     ipcRenderer.invoke("dialog:pickFolder"),
+  onToggleDictation: (cb: () => void) => {
+    const handler = () => cb();
+    ipcRenderer.on("toggle-dictation", handler);
+    return () => ipcRenderer.removeListener("toggle-dictation", handler);
+  },
 });

@@ -5,7 +5,7 @@ import { AudioVAD, encodeWav } from "../../utils/audioVAD.js";
 import AvatarPanel from "../../components/AvatarPanel";
 import { apiFetch, eventStreamUrl } from "../../lib/api";
 
-type VoiceMode = "off" | "manual" | "wakeword" | "always";
+type VoiceMode = "off" | "manual" | "wakeword" | "always" | "dictation";
 
 // Stop-Wörter zum Unterbrechen der TTS-Sprachausgabe
 const STOP_INTERRUPT_RE =
@@ -514,6 +514,26 @@ const Chat: React.FC = () => {
     };
   }, [speakEdge]);
 
+  /* ── Globaler Hotkey: Ctrl+Shift+D → Diktat-Modus togglen ── */
+  useEffect(() => {
+    const remove = (
+      window as unknown as {
+        electronAPI?: { onToggleDictation?: (cb: () => void) => () => void };
+      }
+    ).electronAPI?.onToggleDictation?.(() => {
+      setVoiceMode((prev) => {
+        const next = prev === "dictation" ? "off" : "dictation";
+        apiFetch("/api/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ voiceMode: next }),
+        }).catch(() => {});
+        return next;
+      });
+    });
+    return () => remove?.();
+  }, []);
+
   /* ── Pausenmodus ── */
   const resumeFromPause = useCallback(() => {
     setIsPaused(false);
@@ -868,12 +888,74 @@ const Chat: React.FC = () => {
 
   /* ── Wakeword-Loop (AudioVAD + Whisper) ── */
   useEffect(() => {
-    if (voiceMode !== "wakeword" && voiceMode !== "always") {
+    if (
+      voiceMode !== "wakeword" &&
+      voiceMode !== "always" &&
+      voiceMode !== "dictation"
+    ) {
       vadRef.current?.stop();
       vadRef.current = null;
       setWakeListening(false);
       setMicStatus("");
       return;
+    }
+
+    /* ── Dictation mode: VAD + Whisper → aktives Fenster ── */
+    if (voiceMode === "dictation") {
+      const vad = new AudioVAD();
+      vadRef.current = vad;
+
+      vad
+        .start({
+          onSpeechStart: () => setMicStatus(t("chat.mic_detecting")),
+          onSegment: async (audio, sampleRate) => {
+            const blob = encodeWav(audio, sampleRate);
+            setMicStatus("Diktiere…");
+            try {
+              const form = new FormData();
+              form.append("audio", blob, "segment.wav");
+              const r = await apiFetch("/api/speech/dictate", {
+                method: "POST",
+                body: form,
+                signal: AbortSignal.timeout(15_000),
+              });
+              const data = (await r.json()) as {
+                text?: string;
+                typed?: boolean;
+                error?: string;
+              };
+              if (!r.ok) {
+                setMicStatus(data.error ?? "Diktat fehlgeschlagen");
+                setTimeout(() => setMicStatus(""), 3000);
+                return;
+              }
+              if (data.typed && data.text) {
+                setMicStatus(
+                  `✓ ${data.text.slice(0, 40)}${data.text.length > 40 ? "…" : ""}`,
+                );
+                setTimeout(() => setMicStatus(""), 2000);
+              } else {
+                setMicStatus("");
+              }
+            } catch {
+              setMicStatus("Diktat fehlgeschlagen");
+              setTimeout(() => setMicStatus(""), 3000);
+            }
+          },
+        })
+        .then(() => setWakeListening(true))
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.name : "Unbekannt";
+          setMicStatus(`Mikrofon: ${msg}`);
+          setTimeout(() => setMicStatus(""), 5000);
+        });
+
+      return () => {
+        vad.stop();
+        vadRef.current = null;
+        setWakeListening(false);
+        setMicStatus("");
+      };
     }
 
     /* ── Always-on mode: VAD + Whisper (kein Wakeword nötig) ── */
@@ -1904,7 +1986,9 @@ const Chat: React.FC = () => {
         )}
 
         {/* Sprachstatus-Anzeige */}
-        {(voiceMode === "wakeword" || voiceMode === "always") &&
+        {(voiceMode === "wakeword" ||
+          voiceMode === "always" ||
+          voiceMode === "dictation") &&
           wakeListening && (
             <div style={{ minHeight: 28 }}>
               {awaitingCommand ? (
@@ -1980,14 +2064,14 @@ const Chat: React.FC = () => {
                   {micStatus}
                 </div>
               ) : (
-                /* Idle — lauscht */
+                /* Idle — lauscht / diktiert */
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
                     fontSize: "0.78rem",
-                    color: "#475569",
+                    color: voiceMode === "dictation" ? "#f59e0b" : "#475569",
                   }}
                 >
                   <span
@@ -1996,11 +2080,14 @@ const Chat: React.FC = () => {
                       height: 6,
                       borderRadius: "50%",
                       display: "inline-block",
-                      background: "#475569",
+                      background:
+                        voiceMode === "dictation" ? "#f59e0b" : "#475569",
                       animation: "pulse 2.5s ease-in-out infinite",
                     }}
                   />
-                  {t("chat.listening")}
+                  {voiceMode === "dictation"
+                    ? "Diktat-Modus — Sprache → aktives Fenster"
+                    : t("chat.listening")}
                 </div>
               )}
             </div>

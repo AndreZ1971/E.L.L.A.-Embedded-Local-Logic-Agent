@@ -8,6 +8,7 @@ import {
   session,
   shell,
   dialog,
+  globalShortcut,
 } from "electron";
 import type { Event as ElectronEvent } from "electron";
 import { spawn, exec } from "child_process";
@@ -864,6 +865,10 @@ app.whenReady().then(async () => {
   createWindow();
   createTray();
 
+  globalShortcut.register("CommandOrControl+Shift+D", () => {
+    mainWindow?.webContents.send("toggle-dictation");
+  });
+
   if (!isDev) {
     await freePort(API_PORT);
 
@@ -948,6 +953,7 @@ app.on("window-all-closed", () => {
 });
 
 app.on("before-quit", () => {
+  globalShortcut.unregisterAll();
   isQuitting = true;
   for (const proc of [
     apiProcess,

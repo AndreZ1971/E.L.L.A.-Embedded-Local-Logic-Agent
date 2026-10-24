@@ -144,3 +144,27 @@ $wsh.SendKeys('${keys.replace(/'/g, "''")}')`.trim();
     };
   }
 }
+
+export function typeTextToActiveWindow(text: string): {
+  success: boolean;
+  error?: string;
+} {
+  const b64 = Buffer.from(text, "utf-8").toString("base64");
+  const ps = `
+$bytes = [System.Convert]::FromBase64String('${b64}')
+$text = [System.Text.Encoding]::UTF8.GetString($bytes)
+Set-Clipboard -Value $text
+$wsh = New-Object -ComObject WScript.Shell
+Start-Sleep -Milliseconds 80
+$wsh.SendKeys('^v')`.trim();
+
+  try {
+    runPs(ps);
+    return { success: true };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
