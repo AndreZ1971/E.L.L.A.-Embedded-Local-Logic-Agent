@@ -56,6 +56,10 @@ settingsRouter.put("/", async (req, res, next) => {
       offlineMode,
       dictationCorrection,
       dictationHotkey,
+      appearance,
+      hudAccent,
+      hudTelemetry,
+      hudThrottle,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -88,6 +92,10 @@ settingsRouter.put("/", async (req, res, next) => {
       offlineMode?: boolean;
       dictationCorrection?: boolean;
       dictationHotkey?: string;
+      appearance?: "calm" | "hud" | "show";
+      hudAccent?: "cyan" | "violett" | "bernstein";
+      hudTelemetry?: boolean;
+      hudThrottle?: boolean;
     };
 
     const raw = {
@@ -120,6 +128,10 @@ settingsRouter.put("/", async (req, res, next) => {
       offlineMode,
       dictationCorrection,
       dictationHotkey,
+      appearance,
+      hudAccent,
+      hudTelemetry,
+      hudThrottle,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(

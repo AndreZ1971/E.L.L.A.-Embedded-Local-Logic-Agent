@@ -83,6 +83,10 @@ export interface Settings {
   offlineMode: boolean;
   dictationCorrection: boolean;
   dictationHotkey: string;
+  appearance: "calm" | "hud" | "show";
+  hudAccent: "cyan" | "violett" | "bernstein";
+  hudTelemetry: boolean;
+  hudThrottle: boolean;
 }
 
 // Im Installer: ELLA_USERDATA = %APPDATA%\ELLA (gesetzt von Electron main.ts)
@@ -226,6 +230,10 @@ export const DEFAULT_SETTINGS: Settings = {
   offlineMode: false,
   dictationCorrection: false,
   dictationHotkey: "CommandOrControl+Alt+Space",
+  appearance: "calm",
+  hudAccent: "cyan",
+  hudTelemetry: true,
+  hudThrottle: true,
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -330,6 +338,14 @@ export async function loadSettings(): Promise<void> {
       parsed.dictationCorrection = DEFAULT_SETTINGS.dictationCorrection;
     if (typeof parsed.dictationHotkey !== "string" || !parsed.dictationHotkey)
       parsed.dictationHotkey = DEFAULT_SETTINGS.dictationHotkey;
+    if (!["calm", "hud", "show"].includes(parsed.appearance))
+      parsed.appearance = DEFAULT_SETTINGS.appearance;
+    if (!["cyan", "violett", "bernstein"].includes(parsed.hudAccent))
+      parsed.hudAccent = DEFAULT_SETTINGS.hudAccent;
+    if (typeof parsed.hudTelemetry !== "boolean")
+      parsed.hudTelemetry = DEFAULT_SETTINGS.hudTelemetry;
+    if (typeof parsed.hudThrottle !== "boolean")
+      parsed.hudThrottle = DEFAULT_SETTINGS.hudThrottle;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults

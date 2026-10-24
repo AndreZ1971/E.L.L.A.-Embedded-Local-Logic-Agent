@@ -1,3 +1,34 @@
+/* ── E.L.L.A. Local Fonts ──────────────────────────────────────────── */
+
+@font-face {
+  font-family: "Chakra Petch";
+  src: url("/fonts/ChakraPetch-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Chakra Petch";
+  src: url("/fonts/ChakraPetch-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ── E.L.L.A. Theme Tokens ─────────────────────────────────────────── */
 
 :root,
@@ -30,6 +61,40 @@
   --ella-font-data: ui-monospace, Consolas, monospace;
   --ella-radius: 8px;
   --ella-anim-speed: 1;
+}
+
+/* ── HUD / Präsentation ────────────────────────────────────────────── */
+
+:root[data-theme="hud"],
+:root[data-theme="show"] {
+  --ella-bg: #04060c;
+  --ella-surface: rgba(10, 20, 34, 0.72);
+  --ella-surface-2: rgba(10, 20, 34, 0.9);
+  --ella-border: rgba(79, 209, 255, 0.28);
+  --ella-border-strong: rgba(79, 209, 255, 0.55);
+  --ella-text: #d8f3ff;
+  --ella-text-muted: #b6cddb;
+  --ella-text-dim: #8fb3c9;
+  --ella-accent: var(--ella-hud-accent, #4fd1ff);
+  --ella-accent-soft: #7ee7ff;
+  --ella-accent-muted: #a5d8ff;
+  --ella-warning: #f5b14c;
+  --ella-sidebar-hover: rgba(79, 209, 255, 0.08);
+  --ella-sidebar-hover-text: #d8f3ff;
+  --ella-heading: #e8f8ff;
+  --ella-font-display: "Chakra Petch", var(--ella-font-ui);
+  --ella-font-data: "JetBrains Mono", ui-monospace, monospace;
+  --ella-radius: 0px;
+}
+
+:root[data-hud-accent="cyan"] {
+  --ella-hud-accent: #4fd1ff;
+}
+:root[data-hud-accent="violett"] {
+  --ella-hud-accent: #a78bfa;
+}
+:root[data-hud-accent="bernstein"] {
+  --ella-hud-accent: #f5b14c;
 }
 
 @media (prefers-reduced-motion: reduce) {

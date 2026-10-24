@@ -201,6 +201,10 @@ interface Settings {
   offlineMode: boolean;
   dictationCorrection: boolean;
   dictationHotkey: string;
+  appearance: "calm" | "hud" | "show";
+  hudAccent: "cyan" | "violett" | "bernstein";
+  hudTelemetry: boolean;
+  hudThrottle: boolean;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -350,7 +354,8 @@ type Tab =
   | "modus"
   | "regeln"
   | "google"
-  | "backup";
+  | "backup"
+  | "appearance";
 
 const Settings: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -479,6 +484,15 @@ const Settings: React.FC = () => {
 
   const patch = (p: Partial<Settings>) =>
     setSettings((prev) => (prev ? { ...prev, ...p } : prev));
+
+  const patchAndSave = async (p: Partial<Settings>) => {
+    patch(p);
+    await apiFetch("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(p),
+    });
+  };
 
   const toggleTool = (name: string) => {
     if (!settings) return;
@@ -853,6 +867,7 @@ const Settings: React.FC = () => {
       ? `${t("settings.tab_google")} ✓`
       : t("settings.tab_google"),
     backup: t("settings.tab_backup"),
+    appearance: t("settings.tab_appearance"),
   };
 
   const rowLabel: React.CSSProperties = {
@@ -929,6 +944,7 @@ const Settings: React.FC = () => {
       >
         {(
           [
+            "appearance",
             "llm",
             "tools",
             "setups",
@@ -4152,6 +4168,196 @@ const Settings: React.FC = () => {
                     {profileMsg.text}
                   </div>
                 )}
+              </div>
+            </Section>
+          </React.Fragment>
+        )}
+
+        {/* ── Erscheinungsbild ──────────────────────────────────── */}
+        {tab === "appearance" && (
+          <React.Fragment>
+            <Section title={t("settings.appearance_title")}>
+              {/* Stil-Karten */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: 10,
+                  marginBottom: 20,
+                }}
+              >
+                {(
+                  ["calm", "hud", "show"] as Array<"calm" | "hud" | "show">
+                ).map((style) => (
+                  <button
+                    key={style}
+                    aria-pressed={settings.appearance === style}
+                    onClick={() => patchAndSave({ appearance: style })}
+                    style={{
+                      padding: "14px 12px",
+                      background:
+                        settings.appearance === style
+                          ? "var(--ella-accent)"
+                          : "var(--ella-surface-2)",
+                      border:
+                        settings.appearance === style
+                          ? "2px solid var(--ella-accent)"
+                          : "1px solid var(--ella-border)",
+                      borderRadius: 8,
+                      color:
+                        settings.appearance === style
+                          ? "#fff"
+                          : "var(--ella-text)",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "0.95rem",
+                        marginBottom: 4,
+                      }}
+                    >
+                      {t(`settings.appearance_${style}`)}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        opacity: 0.8,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {t(`settings.appearance_${style}_desc`)}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Akzentfarbe (nur bei HUD/Show relevant) */}
+              <div style={{ marginBottom: 18 }}>
+                <div
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    color: "var(--ella-text-muted)",
+                    marginBottom: 8,
+                  }}
+                >
+                  {t("settings.accent_title")}
+                </div>
+                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                  {(
+                    [
+                      { key: "cyan", color: "#4fd1ff" },
+                      { key: "violett", color: "#a78bfa" },
+                      { key: "bernstein", color: "#f5b14c" },
+                    ] as Array<{
+                      key: "cyan" | "violett" | "bernstein";
+                      color: string;
+                    }>
+                  ).map((a) => (
+                    <button
+                      key={a.key}
+                      aria-label={t(`settings.accent_${a.key}`)}
+                      onClick={() => patchAndSave({ hudAccent: a.key })}
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: "50%",
+                        background: a.color,
+                        border:
+                          settings.hudAccent === a.key
+                            ? "3px solid var(--ella-text)"
+                            : "2px solid transparent",
+                        cursor: "pointer",
+                        transition: "border 0.15s",
+                        boxShadow:
+                          settings.hudAccent === a.key
+                            ? `0 0 12px ${a.color}55`
+                            : "none",
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Checkboxen */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                  marginBottom: 18,
+                }}
+              >
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: "0.88rem",
+                    color: "var(--ella-text)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={settings.hudTelemetry}
+                    onChange={(e) =>
+                      patchAndSave({ hudTelemetry: e.target.checked })
+                    }
+                    style={{ accentColor: "var(--ella-accent)" }}
+                  />
+                  {t("settings.hud_telemetry")}
+                </label>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: "0.88rem",
+                    color: "var(--ella-text)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={settings.hudThrottle}
+                    onChange={(e) =>
+                      patchAndSave({ hudThrottle: e.target.checked })
+                    }
+                    style={{ accentColor: "var(--ella-accent)" }}
+                  />
+                  {t("settings.hud_throttle")}
+                </label>
+              </div>
+
+              {/* Info-Box: automatischer Rückfall */}
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid var(--ella-border)",
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                  fontSize: "0.82rem",
+                  color: "var(--ella-text-dim)",
+                  lineHeight: 1.5,
+                }}
+              >
+                <strong style={{ color: "var(--ella-text-muted)" }}>
+                  {t("settings.appearance_auto_calm")}
+                </strong>
+                <br />
+                {"• "}
+                {t("settings.appearance_auto_blind")}
+                <br />
+                {"• "}
+                {t("settings.appearance_auto_homework")}
+                <br />
+                {"• "}
+                {t("settings.appearance_auto_reduced")}
               </div>
             </Section>
           </React.Fragment>
