@@ -3,6 +3,12 @@ import * as fsSync from "fs";
 import * as os from "os";
 import * as path from "path";
 
+let dictationClipboardUntil = 0;
+
+export function isDictationClipboardActive(): boolean {
+  return Date.now() < dictationClipboardUntil;
+}
+
 const BLOCKED_TITLES = [
   "1password",
   "keepass",
@@ -149,14 +155,19 @@ export function typeTextToActiveWindow(text: string): {
   success: boolean;
   error?: string;
 } {
+  dictationClipboardUntil = Date.now() + 3000;
   const b64 = Buffer.from(text, "utf-8").toString("base64");
   const ps = `
+$prev = $null
+try { $prev = Get-Clipboard -Raw -ErrorAction SilentlyContinue } catch {}
 $bytes = [System.Convert]::FromBase64String('${b64}')
 $text = [System.Text.Encoding]::UTF8.GetString($bytes)
 Set-Clipboard -Value $text
 $wsh = New-Object -ComObject WScript.Shell
 Start-Sleep -Milliseconds 80
-$wsh.SendKeys('^v')`.trim();
+$wsh.SendKeys('^v')
+Start-Sleep -Milliseconds 300
+if ($null -ne $prev) { Set-Clipboard -Value $prev } else { Set-Clipboard -Value '' }`.trim();
 
   try {
     runPs(ps);

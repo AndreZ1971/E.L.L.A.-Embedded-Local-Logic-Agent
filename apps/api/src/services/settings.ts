@@ -82,6 +82,7 @@ export interface Settings {
   indexedFolders: string[];
   offlineMode: boolean;
   dictationCorrection: boolean;
+  dictationHotkey: string;
 }
 
 // Im Installer: ELLA_USERDATA = %APPDATA%\ELLA (gesetzt von Electron main.ts)
@@ -224,6 +225,7 @@ export const DEFAULT_SETTINGS: Settings = {
   indexedFolders: [],
   offlineMode: false,
   dictationCorrection: false,
+  dictationHotkey: "CommandOrControl+Alt+Space",
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -326,6 +328,8 @@ export async function loadSettings(): Promise<void> {
       parsed.offlineMode = DEFAULT_SETTINGS.offlineMode;
     if (typeof parsed.dictationCorrection !== "boolean")
       parsed.dictationCorrection = DEFAULT_SETTINGS.dictationCorrection;
+    if (typeof parsed.dictationHotkey !== "string" || !parsed.dictationHotkey)
+      parsed.dictationHotkey = DEFAULT_SETTINGS.dictationHotkey;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults

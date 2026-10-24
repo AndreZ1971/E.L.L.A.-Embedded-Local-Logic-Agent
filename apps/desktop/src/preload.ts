@@ -61,4 +61,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("toggle-dictation", handler);
     return () => ipcRenderer.removeListener("toggle-dictation", handler);
   },
+  updateDictationHotkey: (accelerator: string) =>
+    ipcRenderer.send("update-dictation-hotkey", accelerator),
 });

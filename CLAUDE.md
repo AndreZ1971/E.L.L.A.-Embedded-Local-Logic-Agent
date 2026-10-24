@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
 
-**Aktueller Stand: v1.5.4**
+**Aktueller Stand: v1.5.5**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -135,7 +135,7 @@ database/
 - Conversational Config: `create_setup`, `update_setting`, `create_rule`
 - **Get-CimInstance:** alle wmic-Aufrufe ersetzt — Windows 11 22H2+ kompatibel
 - **DB v1.5.0:** `knowledge_triples`-Tabelle, `proactive_preferences`-Tabelle, `learning_examples`-Tabelle
-- **378 Tests — alle grün** (Vitest Unit + Integration)
+- **380 Tests — alle grün** (Vitest Unit + Integration)
 - **Smoke Tests:** `scripts/smoke-test.ps1` — 13 End-to-End-Tests (Health, Homework Mode, Ollama, Chat+Tools, Lizenz)
 - CI: GitHub Actions, Ubuntu + MariaDB Service Container
 - **LLM als Non-Gatekeeper:** System-Prompt Regel "KRITISCH — DU BIST NICHT DER GATEKEEPER" — LLM ruft Tools immer auf, Directive + Rule Engine entscheiden; verhindert Text-Ablehnung anstelle des Directive-Banners
@@ -206,7 +206,7 @@ database/
 - **`system_events`-Tabelle:** loggt `cloud_request`-Events mit `purpose`, `endpoint`, `profile_id`
 - **Architecture-Tests:** verifizieren dass `api.openai.com` nur in `services/openai.ts` vorkommt und `env.openaiApiKey` nirgendwo direkt referenziert wird
 - **DB v1.5.1:** `system_events`-Tabelle, Regel-IDs bis 107, nächste freie ID: 108
-- **378 Tests — alle grün** (Vitest Unit + Integration, inkl. 10 apiAuth + 7 cloudGate + 2 Architecture + 32 Lokal-Zuerst-Tests + 12 Redact + 5 Offline + 40 Stop-Interrupt + 9 Dictation)
+- **380 Tests — alle grün** (Vitest Unit + Integration, inkl. 10 apiAuth + 7 cloudGate + 2 Architecture + 32 Lokal-Zuerst-Tests + 12 Redact + 5 Offline + 40 Stop-Interrupt + 11 Dictation)
 
 ### v1.5.2 — Directive-Härtung & Datenschutz
 
@@ -214,7 +214,7 @@ database/
 - **Ergebnis-Transparenz:** System-Prompt-Instruktion "ERGEBNIS-TRANSPARENZ — PFLICHT" erzwingt dass ELLA Tool-Fehler klar kommuniziert statt "erledigt" zu sagen
 - **Offline-Schalter** (`offlineMode`-Setting): sperrt alle Netzwerk-Tools (search_web, web_search, fetch_url, get_weather, get_location, describe_webpage) im Executor; `cloudAllowed()` gibt bei Offline-Modus immer `false` zurück; Lizenz-Verify nutzt Cache statt Server; Health-Endpoint liefert `offline_mode`-Flag; Offline-Banner in der UI (blauer Balken); Settings-Toggle unter "Offline-Modus"
 - **Lokale Netzwerk-Tools unberührt:** `scan_network`, `list_connections`, `list_devices` funktionieren weiterhin im Offline-Modus
-- **378 Tests — alle grün** (Vitest Unit + Integration, inkl. 12 Redact + 5 Offline-Tests)
+- **380 Tests — alle grün** (Vitest Unit + Integration, inkl. 12 Redact + 5 Offline-Tests)
 
 ### v1.5.3 — Natürliches Gespräch
 
@@ -223,7 +223,7 @@ database/
 - **EchoCancellation:** `getUserMedia({ echoCancellation: true })` bereits aktiv — TTS-Audio wird nicht als Stop-Wort fehlerkannt
 - **40 Stop-Interrupt-Tests:** Regex-Matching für alle DE/EN Stop-Wörter inkl. Interpunktion, Negativ-Tests für Teilsätze, State-Reset-Test
 - **offlineMode-Test stabilisiert:** `vi.restoreAllMocks()` → `vi.clearAllMocks()` + erhöhter Timeout — behebt Unhandled Errors durch verwaiste `setImmediate`-Callbacks
-- **378 Tests — alle grün** (Vitest Unit + Integration, inkl. 40 Stop-Interrupt-Tests)
+- **380 Tests — alle grün** (Vitest Unit + Integration, inkl. 40 Stop-Interrupt-Tests)
 
 ### v1.5.4 — Diktat überall
 
@@ -233,10 +233,20 @@ database/
 - **`dictationCorrection`-Setting:** optionale Rechtschreibkorrektur via `correctText()` vor dem Tippen; default: aus
 - **Diktat-VAD in Chat.tsx:** AudioVAD erkennt Sprache → sendet an `/api/speech/dictate` → zeigt Status "Diktiere…" + Ergebnis mit ✓
 - **Amber-Indikator:** Diktat-Modus zeigt eigene Statusanzeige (#f59e0b) mit "Diktat-Modus — Sprache → aktives Fenster"
-- **Electron Global Hotkey:** `Ctrl+Shift+D` toggled Diktat-Modus via IPC `toggle-dictation`; Setting wird automatisch persistiert
+- **Electron Global Hotkey:** konfigurierbarer Hotkey (default: `Ctrl+Alt+Space`) toggled Diktat-Modus via IPC `toggle-dictation`; Setting wird automatisch persistiert
 - **Settings-UI:** VoiceMode-Radio um "Diktat" erweitert; Checkbox für Rechtschreibkorrektur + Hotkey-Hinweis
 - **9 Diktat-Tests:** Route-Logik (Transkription, Korrektur, Fehler), typeText-Aufrufe, Setting-Default
-- **378 Tests — alle grün** (Vitest Unit + Integration, inkl. 9 Dictation-Tests)
+- **380 Tests — alle grün** (Vitest Unit + Integration, inkl. 9 Dictation-Tests)
+
+### v1.5.5 — Diktat-Qualität & Hotkey-Sicherheit
+
+- **Clipboard-Sicherung:** `typeTextToActiveWindow()` sichert die Zwischenablage vor dem Einfügen (`Get-Clipboard -Raw`) und stellt sie 300ms nach Ctrl+V wieder her — Nutzer-Clipboard bleibt erhalten
+- **Clipboard-History-Skip:** `isDictationClipboardActive()` Flag (3s Timeout) verhindert dass Diktat-Text ins Clipboard-Polling des Workers aufgenommen wird
+- **Konfigurierbarer Hotkey:** `dictationHotkey`-Setting (default: `CommandOrControl+Alt+Space` statt `Ctrl+Shift+D`); in Settings-UI editierbar; IPC `update-dictation-hotkey` aktualisiert Electron `globalShortcut` zur Laufzeit
+- **Hotkey-Konflikt behoben:** Alter Default `Ctrl+Shift+D` kollidierte mit Word (doppelt unterstreichen), Chrome/Edge (Lesezeichen), VS Code (Debug-Ansicht)
+- **Hotkey-Registrierung abgesichert:** `globalShortcut.register()` Rückgabewert wird geprüft; fehlgeschlagene Registrierung wird geloggt statt still zu scheitern
+- **API-Hotkey-Sync:** nach API-Start lädt Electron den Hotkey per `GET /api/settings`; Hotkey-Änderungen im Settings-UI aktualisieren sofort per IPC
+- **380 Tests — alle grün** (Vitest Unit + Integration, inkl. 11 Dictation-Tests)
 
 ---
 

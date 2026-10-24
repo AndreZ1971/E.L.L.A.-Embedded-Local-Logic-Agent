@@ -55,6 +55,7 @@ settingsRouter.put("/", async (req, res, next) => {
       indexedFolders,
       offlineMode,
       dictationCorrection,
+      dictationHotkey,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -86,6 +87,7 @@ settingsRouter.put("/", async (req, res, next) => {
       indexedFolders?: string[];
       offlineMode?: boolean;
       dictationCorrection?: boolean;
+      dictationHotkey?: string;
     };
 
     const raw = {
@@ -117,6 +119,7 @@ settingsRouter.put("/", async (req, res, next) => {
       indexedFolders,
       offlineMode,
       dictationCorrection,
+      dictationHotkey,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(

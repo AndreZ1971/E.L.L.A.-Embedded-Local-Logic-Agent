@@ -200,6 +200,7 @@ interface Settings {
   indexedFolders: string[];
   offlineMode: boolean;
   dictationCorrection: boolean;
+  dictationHotkey: string;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -1506,7 +1507,53 @@ const Settings: React.FC = () => {
                     }}
                   >
                     Diktierter Text wird ins aktive Fenster getippt (via
-                    Zwischenablage + Strg+V). Hotkey: Strg+Shift+D
+                    Zwischenablage + Strg+V).
+                  </div>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      marginTop: 8,
+                    }}
+                  >
+                    <span style={{ fontSize: "0.85rem", color: "#94a3b8" }}>
+                      Hotkey:
+                    </span>
+                    <input
+                      type="text"
+                      value={
+                        settings.dictationHotkey ?? "CommandOrControl+Alt+Space"
+                      }
+                      onChange={(e) => {
+                        patch({ dictationHotkey: e.target.value });
+                        (
+                          window as unknown as {
+                            electronAPI?: {
+                              updateDictationHotkey?: (a: string) => void;
+                            };
+                          }
+                        ).electronAPI?.updateDictationHotkey?.(e.target.value);
+                      }}
+                      style={{
+                        background: "#1e293b",
+                        border: "1px solid #334155",
+                        borderRadius: 4,
+                        color: "#e2e8f0",
+                        padding: "2px 8px",
+                        fontSize: "0.82rem",
+                        width: 240,
+                      }}
+                    />
+                  </label>
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "#475569",
+                      marginTop: 2,
+                    }}
+                  >
+                    Electron-Accelerator-Format, z.B. CommandOrControl+Alt+Space
                   </div>
                 </div>
               )}

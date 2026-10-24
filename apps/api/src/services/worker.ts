@@ -8,6 +8,7 @@ import { env } from "../config/env.js";
 import { eventBus, EVENT_SYSTEM, type SystemEvent } from "./eventBus.js";
 import { remember } from "./memory.js";
 import { recordClipboard, detectPattern } from "./clipboardHistory.js";
+import { isDictationClipboardActive } from "./windowManager.js";
 import { getSettings } from "./settings.js";
 import { toolExecutor } from "../tools/executor.js";
 import { sendProactiveMessage } from "./proactive.js";
@@ -793,6 +794,7 @@ export const worker = {
     let clipboardFailCount = 0;
     clipboardTimer = setInterval(() => {
       if (clipboardFailCount >= 3) return; // nach 3 Fehlern deaktivieren
+      if (isDictationClipboardActive()) return; // Diktat nutzt Clipboard — nicht aufnehmen
       try {
         // try/catch im PS-Script verhindert stderr-Output bei fehlendem Clipboard
         const ps =

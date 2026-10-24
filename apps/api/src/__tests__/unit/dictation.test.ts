@@ -19,9 +19,12 @@ vi.mock("../../services/textCorrection.js", () => ({
   correctText: (...args: unknown[]) => mockCorrectText(...args),
 }));
 
+const mockIsDictationClipboard = vi.fn().mockReturnValue(false);
+
 vi.mock("../../services/windowManager.js", () => ({
   typeTextToActiveWindow: (...args: unknown[]) => mockTypeText(...args),
   sendKeysToWindow: vi.fn(),
+  isDictationClipboardActive: () => mockIsDictationClipboard(),
 }));
 
 let mockSettings: Record<string, unknown> = {
@@ -33,6 +36,7 @@ vi.mock("../../services/settings.js", () => ({
   getSettings: () => mockSettings,
   DEFAULT_SETTINGS: {
     dictationCorrection: false,
+    dictationHotkey: "CommandOrControl+Alt+Space",
     spokenLanguage: "de",
     offlineMode: false,
   },
@@ -169,5 +173,22 @@ describe("dictationCorrection Setting", () => {
     expect(
       (DEFAULT_SETTINGS as Record<string, unknown>).dictationCorrection,
     ).toBe(false);
+  });
+});
+
+describe("dictationHotkey Setting", () => {
+  it("default ist CommandOrControl+Alt+Space", async () => {
+    const { DEFAULT_SETTINGS } = await import("../../services/settings.js");
+    expect((DEFAULT_SETTINGS as Record<string, unknown>).dictationHotkey).toBe(
+      "CommandOrControl+Alt+Space",
+    );
+  });
+});
+
+describe("isDictationClipboardActive", () => {
+  it("gibt false zurück wenn kein Diktat aktiv", async () => {
+    const { isDictationClipboardActive } =
+      await import("../../services/windowManager.js");
+    expect(isDictationClipboardActive()).toBe(false);
   });
 });

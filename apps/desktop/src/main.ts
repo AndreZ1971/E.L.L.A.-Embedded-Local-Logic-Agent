@@ -837,6 +837,53 @@ function registerIpc(): void {
   });
 }
 
+// ── Diktat-Hotkey ────────────────────────────────────────────────────────────
+
+let currentDictationAccelerator = "";
+
+function registerDictationHotkey(accelerator: string): void {
+  if (currentDictationAccelerator) {
+    try {
+      globalShortcut.unregister(currentDictationAccelerator);
+    } catch {
+      /* ok */
+    }
+  }
+  const ok = globalShortcut.register(accelerator, () => {
+    mainWindow?.webContents.send("toggle-dictation");
+  });
+  if (ok) {
+    currentDictationAccelerator = accelerator;
+  } else {
+    log(`[Hotkey] Registrierung fehlgeschlagen: ${accelerator}`);
+    currentDictationAccelerator = "";
+  }
+}
+
+async function loadDictationHotkeyFromApi(): Promise<void> {
+  try {
+    const r = await fetch(`http://127.0.0.1:${API_PORT}/api/settings`, {
+      headers: { Authorization: `Bearer ${API_TOKEN}` },
+    });
+    if (!r.ok) return;
+    const data = (await r.json()) as { dictationHotkey?: string };
+    if (
+      data.dictationHotkey &&
+      data.dictationHotkey !== currentDictationAccelerator
+    ) {
+      registerDictationHotkey(data.dictationHotkey);
+    }
+  } catch {
+    /* API evtl. noch nicht bereit */
+  }
+}
+
+ipcMain.on("update-dictation-hotkey", (_e, accelerator: string) => {
+  if (typeof accelerator === "string" && accelerator.length > 0) {
+    registerDictationHotkey(accelerator);
+  }
+});
+
 // ── App-Lifecycle ─────────────────────────────────────────────────────────────
 
 app.whenReady().then(async () => {
@@ -865,9 +912,7 @@ app.whenReady().then(async () => {
   createWindow();
   createTray();
 
-  globalShortcut.register("CommandOrControl+Shift+D", () => {
-    mainWindow?.webContents.send("toggle-dictation");
-  });
+  registerDictationHotkey("CommandOrControl+Alt+Space");
 
   if (!isDev) {
     await freePort(API_PORT);
@@ -940,6 +985,7 @@ app.whenReady().then(async () => {
       log(`Warte auf API :${API_PORT}…`);
       await waitForPort(API_PORT);
       log("API bereit.");
+      await loadDictationHotkeyFromApi();
     } catch (e) {
       log(`API-Start fehlgeschlagen: ${e}`);
     }
