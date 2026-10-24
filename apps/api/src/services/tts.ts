@@ -25,6 +25,9 @@ export interface TTSResult {
   contentType: string;
 }
 
+const MAX_RETRIES = 3;
+const RETRY_BASE_MS = 800;
+
 async function synthesizeMsEdge(
   text: string,
   options: TTSOptions,
@@ -34,11 +37,23 @@ async function synthesizeMsEdge(
     ? rawVoice
     : DEFAULT_VOICE;
 
-  const tts = new EdgeTTS();
-  const result = await tts.generate(text, voice);
-  const buffer = Buffer.from(result.audio);
-
-  return { buffer, contentType: "audio/mpeg" };
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const tts = new EdgeTTS();
+      const result = await tts.generate(text, voice);
+      return { buffer: Buffer.from(result.audio), contentType: "audio/mpeg" };
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("429") || msg.includes("Too Many")) {
+        await new Promise((r) => setTimeout(r, RETRY_BASE_MS * 2 ** attempt));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr;
 }
 
 // Kokoro only for languages with proper voice quality — German uses MsEdgeTTS/Katja

@@ -115,6 +115,11 @@ speechRouter.post("/synthesize", async (req, res, next) => {
     });
     res.send(result.buffer);
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("429") || msg.includes("Too Many")) {
+      res.status(429).json({ error: "TTS rate limit — bitte kurz warten" });
+      return;
+    }
     next(err);
   }
 });
