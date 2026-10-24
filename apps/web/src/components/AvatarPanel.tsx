@@ -2,31 +2,52 @@ import React, { useRef, useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
 
 type OrbMode = "idle" | "thinking" | "speaking";
+type StressLevel = "low" | "medium" | "high";
 
 interface Props {
   isThinking: boolean;
   isSpeaking: boolean;
+  stressLevel?: StressLevel;
 }
 
 const PHI = Math.PI * (3 - Math.sqrt(5));
+
+const STRESS_TINT: Record<StressLevel, [number, number, number]> = {
+  low: [0, 0, 0],
+  medium: [40, 20, -30],
+  high: [70, -10, -60],
+};
 
 function orbColor(
   depth: number,
   t: number,
   mode: OrbMode,
+  stress: StressLevel = "low",
 ): [number, number, number] {
   const d = depth;
+  const [sr, sg, sb] = STRESS_TINT[stress];
+  let r: number, g: number, b: number;
   if (mode === "idle") {
     const p = 0.45 + 0.55 * Math.sin(t * 0.75);
-    return [~~(18 + d * 108 * p), ~~(14 + d * 88 * p), ~~(60 + d * 187 * p)];
-  }
-  if (mode === "speaking") {
+    r = 18 + d * 108 * p;
+    g = 14 + d * 88 * p;
+    b = 60 + d * 187 * p;
+  } else if (mode === "speaking") {
     const p = 0.4 + 0.6 * Math.abs(Math.sin(t * 7.5));
-    return [~~(80 + d * 110 * p), ~~(60 + d * 130 * p), ~~(180 + d * 67 * p)];
+    r = 80 + d * 110 * p;
+    g = 60 + d * 130 * p;
+    b = 180 + d * 67 * p;
+  } else {
+    const p = 0.5 + 0.5 * Math.sin(t * 3.2);
+    r = 50 + d * 110 * p;
+    g = 5 + d * 18 * p;
+    b = 100 + d * 130 * p;
   }
-  // thinking
-  const p = 0.5 + 0.5 * Math.sin(t * 3.2);
-  return [~~(50 + d * 110 * p), ~~(5 + d * 18 * p), ~~(100 + d * 130 * p)];
+  return [
+    Math.max(0, Math.min(255, ~~(r + sr * d))),
+    Math.max(0, Math.min(255, ~~(g + sg * d))),
+    Math.max(0, Math.min(255, ~~(b + sb * d))),
+  ];
 }
 
 const INFO_LINES: Record<OrbMode, string[]> = {
@@ -53,9 +74,14 @@ const STATE_LABEL: Record<OrbMode, string> = {
   speaking: "Spricht",
 };
 
-const AvatarPanel: React.FC<Props> = ({ isThinking, isSpeaking }) => {
+const AvatarPanel: React.FC<Props> = ({
+  isThinking,
+  isSpeaking,
+  stressLevel = "low",
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const modeRef = useRef<OrbMode>("idle");
+  const stressRef = useRef<StressLevel>("low");
   const rafRef = useRef<number>(0);
   const infoIdxRef = useRef(0);
   const infoTimerRef = useRef(0);
@@ -79,6 +105,10 @@ const AvatarPanel: React.FC<Props> = ({ isThinking, isSpeaking }) => {
     infoTimerRef.current = 0;
     setInfoText(INFO_LINES[mode][0]);
   }, [mode]);
+
+  useEffect(() => {
+    stressRef.current = stressLevel;
+  }, [stressLevel]);
 
   // Health polling — Ollama + Kokoro Status
   useEffect(() => {
@@ -124,6 +154,7 @@ const AvatarPanel: React.FC<Props> = ({ isThinking, isSpeaking }) => {
     function frame(ts: number) {
       const t = ts * 0.001;
       const m = modeRef.current;
+      const sl = stressRef.current;
       const ctx = canvas!.getContext("2d");
       if (!ctx) {
         rafRef.current = requestAnimationFrame(frame);
@@ -144,20 +175,36 @@ const AvatarPanel: React.FC<Props> = ({ isThinking, isSpeaking }) => {
       const cx = W / 2,
         cy = H / 2;
       const N = 800;
-      const R = Math.min(W, H) * 0.4;
+      const baseR = Math.min(W, H) * 0.4;
+
+      // Organic breathing — subtle radius oscillation
+      const breathe =
+        m === "idle"
+          ? 0.02 * Math.sin(t * 0.6) + 0.01 * Math.sin(t * 1.1)
+          : m === "speaking"
+            ? 0.04 * Math.sin(t * 4.3) +
+              0.025 * Math.sin(t * 7.1) +
+              0.015 * Math.sin(t * 11.3)
+            : 0.015 * Math.sin(t * 1.8);
+      const R = baseR * (1 + breathe);
 
       ctx.fillStyle = "#0f1117";
       ctx.fillRect(0, 0, W, H);
 
-      // Glow behind orb
-      const glowMap: Record<OrbMode, [number, number, number]> = {
+      // Glow behind orb — stress shifts hue
+      const glowBase: Record<OrbMode, [number, number, number]> = {
         idle: [124, 106, 247],
         speaking: [167, 139, 250],
         thinking: [147, 51, 234],
       };
-      const [gr, gg, gb] = glowMap[m];
+      const [gbr, gbg, gbb] = glowBase[m];
+      const [str, stg, stb] = STRESS_TINT[sl];
+      const gr = Math.max(0, Math.min(255, gbr + str * 0.6));
+      const gg = Math.max(0, Math.min(255, gbg + stg * 0.6));
+      const gb = Math.max(0, Math.min(255, gbb + stb * 0.6));
+      const glowAlpha = sl === "high" ? 0.22 : sl === "medium" ? 0.19 : 0.16;
       const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 1.4);
-      grd.addColorStop(0, `rgba(${gr},${gg},${gb},0.16)`);
+      grd.addColorStop(0, `rgba(${~~gr},${~~gg},${~~gb},${glowAlpha})`);
       grd.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = grd;
       ctx.beginPath();
@@ -199,16 +246,17 @@ const AvatarPanel: React.FC<Props> = ({ isThinking, isSpeaking }) => {
       pts.sort((a, b) => a.z3 - b.z3);
 
       for (const p of pts) {
-        const [r, g, b] = orbColor(p.depth, t, m);
+        const [r, g, b] = orbColor(p.depth, t, m, sl);
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, 0.8 * (0.5 + p.depth * 0.8), 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${r},${g},${b},${0.2 + p.depth * 0.72})`;
         ctx.fill();
       }
 
-      // Orbital ring
+      // Orbital ring — stress shifts color
+      const ringAlpha = sl === "high" ? 0.22 : 0.15;
       ctx.save();
-      ctx.strokeStyle = "rgba(124,106,247,0.15)";
+      ctx.strokeStyle = `rgba(${~~gr},${~~gg},${~~gb},${ringAlpha})`;
       ctx.lineWidth = 0.7;
       const rng = R * 1.2,
         tilt = Math.PI / 7 + rX * 0.25;

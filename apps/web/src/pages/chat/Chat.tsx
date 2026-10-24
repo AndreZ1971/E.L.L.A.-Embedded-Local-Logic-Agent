@@ -328,6 +328,9 @@ const Chat: React.FC = () => {
   const loadingRef = useRef(false);
   const lastWakewordTimeRef = useRef<number>(0);
   const stressLevelRef = useRef<"low" | "medium" | "high">("low");
+  const [stressLevel, setStressLevel] = useState<"low" | "medium" | "high">(
+    "low",
+  );
   const followUpUntilRef = useRef<number>(0);
   const stopCurrentAudioRef = useRef<() => void>(() => {});
 
@@ -1013,8 +1016,10 @@ const Chat: React.FC = () => {
                 })
                   .then((sr) => sr.json() as Promise<{ stress?: string }>)
                   .then((sd) => {
-                    stressLevelRef.current =
+                    const lvl =
                       (sd.stress as "low" | "medium" | "high") ?? "low";
+                    stressLevelRef.current = lvl;
+                    setStressLevel(lvl);
                   })
                   .catch(() => {}),
               ]);
@@ -1136,8 +1141,9 @@ const Chat: React.FC = () => {
           })
             .then((sr) => sr.json() as Promise<{ stress?: string }>)
             .then((sd) => {
-              stressLevelRef.current =
-                (sd.stress as "low" | "medium" | "high") ?? "low";
+              const lvl = (sd.stress as "low" | "medium" | "high") ?? "low";
+              stressLevelRef.current = lvl;
+              setStressLevel(lvl);
             })
             .catch(() => {});
           try {
@@ -1348,7 +1354,11 @@ const Chat: React.FC = () => {
 
   return (
     <div style={{ display: "flex", height: "100%", gap: 16 }}>
-      <AvatarPanel isThinking={loading} isSpeaking={ttsActive} />
+      <AvatarPanel
+        isThinking={loading}
+        isSpeaking={ttsActive}
+        stressLevel={stressLevel}
+      />
       <div
         style={{
           display: "flex",
