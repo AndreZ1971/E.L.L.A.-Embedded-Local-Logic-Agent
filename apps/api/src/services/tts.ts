@@ -1,4 +1,4 @@
-import { MsEdgeTTS, MetadataOptions, OUTPUT_FORMAT } from "msedge-tts";
+import { EdgeTTS } from "@andresaya/edge-tts";
 import { isKokoroReady, synthesizeKokoro } from "./kokoro.js";
 
 const FEMALE_VOICES: Record<string, string> = {
@@ -29,44 +29,19 @@ async function synthesizeMsEdge(
   text: string,
   options: TTSOptions,
 ): Promise<TTSResult> {
-  const tts = new MsEdgeTTS();
-
   const rawVoice = options.voice?.trim() ?? "";
   const voice = /^[a-z]{2}-[A-Z]{2}-.+/.test(rawVoice)
     ? rawVoice
     : DEFAULT_VOICE;
-  const locale = voice.split("-").slice(0, 2).join("-");
 
-  const metadataOptions = new MetadataOptions();
-  metadataOptions.voiceLocale = locale;
-
-  await tts.setMetadata(
-    voice,
-    OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3,
-    metadataOptions,
-  );
-
-  const buffer = await new Promise<Buffer>((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    let settled = false;
-    const { audioStream } = tts.toStream(text);
-    audioStream.on("data", (chunk: Buffer) => chunks.push(chunk));
-    audioStream.on("end", () => {
-      if (settled) return;
-      settled = true;
-      resolve(Buffer.concat(chunks));
-    });
-    audioStream.on("error", (err: Error) => {
-      if (settled) return;
-      settled = true;
-      reject(err);
-    });
-  });
+  const tts = new EdgeTTS();
+  const result = await tts.generate(text, voice);
+  const buffer = Buffer.from(result.audio);
 
   return { buffer, contentType: "audio/mpeg" };
 }
 
-// Languages with actual Kokoro voice models — no German, no Italian, no Hindi etc.
+// Kokoro only for languages with proper voice quality — German uses MsEdgeTTS/Katja
 const KOKORO_LANGS = new Set(["en", "fr", "es"]);
 
 export async function synthesize(
@@ -74,7 +49,6 @@ export async function synthesize(
   options: TTSOptions = {},
 ): Promise<TTSResult> {
   const lang = options.lang ?? "de";
-  // Kokoro only where it has a real voice model — German always uses MsEdgeTTS/Katja
   if (isKokoroReady() && KOKORO_LANGS.has(lang)) {
     try {
       return await synthesizeKokoro(text, lang);
@@ -82,7 +56,6 @@ export async function synthesize(
       // fall through to MsEdgeTTS
     }
   }
-  // MsEdgeTTS — proper neural voices for all languages including German
   return synthesizeMsEdge(text, options);
 }
 

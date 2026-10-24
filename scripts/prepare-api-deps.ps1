@@ -27,7 +27,7 @@ $pkgJson = @"
     "express": "^4.21.0",
     "googleapis": "^173.0.0",
     "mammoth": "^1.12.0",
-    "msedge-tts": "^2.0.5",
+    "@andresaya/edge-tts": "^1.9.1",
     "multer": "^2.1.1",
     "mysql2": "^3.11.0",
     "pdf-parse": "^2.4.5",
