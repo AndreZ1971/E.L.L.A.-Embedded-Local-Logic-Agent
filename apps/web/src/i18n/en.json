@@ -600,7 +600,8 @@
     "no_subject": "(No subject)",
     "unread": "unread",
     "no_playback": "No playback",
-    "unknown_title": "Unknown title"
+    "unknown_title": "Unknown title",
+    "hint_followup_full": "Follow-up {{sec}}s · “stop” interrupts"
   },
   "model_select": {
     "heading": "Before we begin —",

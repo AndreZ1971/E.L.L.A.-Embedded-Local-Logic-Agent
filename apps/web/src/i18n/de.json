@@ -608,6 +608,7 @@
     "no_subject": "(Kein Betreff)",
     "unread": "ungelesen",
     "no_playback": "Keine Wiedergabe",
-    "unknown_title": "Unbekannter Titel"
+    "unknown_title": "Unbekannter Titel",
+    "hint_followup_full": "Follow-up {{sec}}s · „Stopp“ unterbricht"
   }
 }

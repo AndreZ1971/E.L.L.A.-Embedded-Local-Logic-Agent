@@ -1432,7 +1432,7 @@ const Chat: React.FC = () => {
   const hudHintText = loading
     ? toolStatus || null
     : isListeningNow && listenRemainingMs != null
-      ? `${t("hud.hint_followup", "Nachfrage-Fenster")} · ${t("hud.hint_remaining", "noch")} ${Math.ceil(listenRemainingMs / 1000)} s · „${t("hud.hint_stop", "Stopp")}“ ${t("hud.hint_interrupts", "unterbricht")}`
+      ? t("hud.hint_followup_full", { sec: Math.ceil(listenRemainingMs / 1000) })
       : null;
 
   const exitShow = useCallback(() => {
