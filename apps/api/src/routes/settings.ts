@@ -60,6 +60,7 @@ settingsRouter.put("/", async (req, res, next) => {
       hudAccent,
       hudTelemetry,
       hudThrottle,
+      hudWidgets,
     } = req.body as {
       provider?: "auto" | "openai" | "ollama";
       ollamaModel?: string;
@@ -96,6 +97,7 @@ settingsRouter.put("/", async (req, res, next) => {
       hudAccent?: "cyan" | "violett" | "bernstein";
       hudTelemetry?: boolean;
       hudThrottle?: boolean;
+      hudWidgets?: { left: string[]; right: string[] };
     };
 
     const raw = {
@@ -132,6 +134,7 @@ settingsRouter.put("/", async (req, res, next) => {
       hudAccent,
       hudTelemetry,
       hudThrottle,
+      hudWidgets,
     };
     // undefined-Werte herausfiltern — vermeidet dass fehlende Felder bestehende überschreiben
     const patch = Object.fromEntries(

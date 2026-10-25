@@ -3,6 +3,10 @@ import { useTranslation } from "react-i18next";
 import "./Settings.css";
 import { apiFetch } from "../../lib/api";
 import { resolveAppearance } from "../../hooks/useAppearance";
+import {
+  WIDGET_CATALOG,
+  DEFAULT_HUD_WIDGETS,
+} from "../../components/hud/widgetRegistry";
 const MASKED = "***";
 
 interface AppEntry {
@@ -206,6 +210,10 @@ interface Settings {
   hudAccent: "cyan" | "violett" | "bernstein";
   hudTelemetry: boolean;
   hudThrottle: boolean;
+  hudWidgets: { left: string[]; right: string[] };
+  licenseActivated: boolean;
+  licenseKey: string;
+  licenseProduct: string;
 }
 
 const ALL_TOOLS: { name: string; label: string }[] = [
@@ -356,7 +364,8 @@ type Tab =
   | "regeln"
   | "google"
   | "backup"
-  | "appearance";
+  | "appearance"
+  | "about";
 
 const Settings: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -422,6 +431,20 @@ const Settings: React.FC = () => {
     ok: boolean;
     text: string;
   } | null>(null);
+
+  // About-Tab States
+  const [updateCheck, setUpdateCheck] = useState<{
+    loading: boolean;
+    result: {
+      current?: string;
+      latest?: string;
+      updateAvailable?: boolean;
+      url?: string;
+      error?: string;
+    } | null;
+  }>({ loading: false, result: null });
+  const [supportCopied, setSupportCopied] = useState(false);
+  const [licensesOpen, setLicensesOpen] = useState(false);
 
   const [reducedMotion, setReducedMotion] = useState(false);
   useEffect(() => {
@@ -888,6 +911,21 @@ const Settings: React.FC = () => {
       : t("settings.tab_google"),
     backup: t("settings.tab_backup"),
     appearance: t("settings.tab_appearance"),
+    about: t("settings.tab_about"),
+  };
+
+  const maskLicenseKey = (key: string): string => {
+    if (!key || key.length < 10) return key ? "••••" : "";
+    const parts = key.split("-");
+    if (parts.length >= 4) {
+      return [
+        parts[0],
+        parts[1],
+        ...parts.slice(2, -1).map(() => "••••"),
+        parts[parts.length - 1],
+      ].join("-");
+    }
+    return key.slice(0, 6) + "•".repeat(key.length - 10) + key.slice(-4);
   };
 
   const rowLabel: React.CSSProperties = {
@@ -973,6 +1011,7 @@ const Settings: React.FC = () => {
             "regeln",
             "google",
             "backup",
+            "about",
           ] as Tab[]
         ).map((t) => (
           <button
@@ -4370,6 +4409,111 @@ const Settings: React.FC = () => {
                 </label>
               </div>
 
+              {/* HUD Widget-Konfiguration */}
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid var(--ella-border)",
+                  borderRadius: 8,
+                  padding: "12px 14px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 10,
+                  }}
+                >
+                  <strong
+                    style={{
+                      fontSize: "0.88rem",
+                      color: "var(--ella-text)",
+                    }}
+                  >
+                    {t("hud.widgets_title")}
+                  </strong>
+                  <button
+                    onClick={() =>
+                      patchAndSave({ hudWidgets: DEFAULT_HUD_WIDGETS })
+                    }
+                    style={{
+                      fontSize: "0.75rem",
+                      background: "none",
+                      border: "1px solid var(--ella-border)",
+                      borderRadius: 4,
+                      color: "var(--ella-text-dim)",
+                      cursor: "pointer",
+                      padding: "2px 8px",
+                    }}
+                  >
+                    {t("hud.widgets_reset")}
+                  </button>
+                </div>
+                {(["left", "right"] as const).map((col) => (
+                  <div key={col} style={{ marginBottom: 8 }}>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--ella-text-muted)",
+                        marginBottom: 4,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      {t(`hud.widgets_${col}`)}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 6,
+                      }}
+                    >
+                      {WIDGET_CATALOG.map((w) => {
+                        const active = (
+                          settings.hudWidgets?.[col] ?? []
+                        ).includes(w.id);
+                        return (
+                          <button
+                            key={w.id}
+                            onClick={() => {
+                              const current =
+                                settings.hudWidgets ?? DEFAULT_HUD_WIDGETS;
+                              const list = current[col];
+                              const next = active
+                                ? list.filter((id: string) => id !== w.id)
+                                : [...list, w.id];
+                              patchAndSave({
+                                hudWidgets: { ...current, [col]: next },
+                              });
+                            }}
+                            style={{
+                              fontSize: "0.78rem",
+                              padding: "4px 10px",
+                              borderRadius: 4,
+                              border: active
+                                ? "1px solid var(--ella-accent)"
+                                : "1px solid var(--ella-border)",
+                              background: active
+                                ? "rgba(79,209,255,0.15)"
+                                : "transparent",
+                              color: active
+                                ? "var(--ella-accent)"
+                                : "var(--ella-text-dim)",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {t(w.labelKey)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Info-Box: automatischer Rückfall */}
               <div
                 style={{
@@ -4618,6 +4762,558 @@ const Settings: React.FC = () => {
                   </div>
                 )}
               </div>
+            </Section>
+          </React.Fragment>
+        )}
+
+        {/* ── Über E.L.L.A. ──────────────────────────────────── */}
+        {tab === "about" && (
+          <React.Fragment>
+            {/* Version & Build */}
+            <Section title={t("settings.about_version_title")}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  marginBottom: 16,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "var(--ella-font-display, inherit)",
+                    fontSize: "2rem",
+                    fontWeight: 700,
+                    color: "var(--ella-accent)",
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  v1.5.6
+                </span>
+                <span
+                  style={{ fontSize: "0.85rem", color: "var(--ella-text-dim)" }}
+                >
+                  E.L.L.A. — Embedded Local Logic Agent
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr",
+                  gap: "6px 16px",
+                  fontSize: "0.85rem",
+                  color: "var(--ella-text)",
+                }}
+              >
+                <span style={{ color: "var(--ella-text-muted)" }}>
+                  {t("settings.about_version")}
+                </span>
+                <span style={{ fontWeight: 600 }}>1.5.6</span>
+                <span style={{ color: "var(--ella-text-muted)" }}>
+                  {t("settings.about_build_date")}
+                </span>
+                <span>2026-10-25</span>
+                <span style={{ color: "var(--ella-text-muted)" }}>
+                  {t("settings.about_codename")}
+                </span>
+                <span>HUD-Modus &amp; Widgets</span>
+                <span style={{ color: "var(--ella-text-muted)" }}>
+                  {t("settings.about_stack")}
+                </span>
+                <span>Electron 33 · React 18 · Ollama · MariaDB</span>
+              </div>
+            </Section>
+
+            {/* Update prüfen */}
+            <Section title={t("settings.about_update_title")}>
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "var(--ella-text-muted)",
+                  margin: "0 0 12px 0",
+                  lineHeight: 1.5,
+                }}
+              >
+                {t("settings.about_update_desc")}
+              </p>
+              <button
+                disabled={updateCheck.loading || settings.offlineMode}
+                onClick={async () => {
+                  setUpdateCheck({ loading: true, result: null });
+                  try {
+                    const res = await apiFetch("/api/system/check-update");
+                    const data = await res.json();
+                    setUpdateCheck({ loading: false, result: data });
+                  } catch {
+                    setUpdateCheck({
+                      loading: false,
+                      result: { error: "network" },
+                    });
+                  }
+                }}
+                style={{
+                  padding: "9px 22px",
+                  borderRadius: 6,
+                  background: settings.offlineMode
+                    ? "var(--ella-surface-2)"
+                    : "var(--ella-accent)",
+                  color: "#fff",
+                  border: "none",
+                  cursor: settings.offlineMode ? "not-allowed" : "pointer",
+                  fontSize: "0.88rem",
+                  fontWeight: 600,
+                  opacity: settings.offlineMode ? 0.5 : 1,
+                }}
+              >
+                {updateCheck.loading ? "..." : t("settings.about_update_btn")}
+              </button>
+              {settings.offlineMode && (
+                <p
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "var(--ella-text-dim)",
+                    margin: "8px 0 0 0",
+                  }}
+                >
+                  {t("settings.about_update_offline")}
+                </p>
+              )}
+              {updateCheck.result && (
+                <div
+                  style={{
+                    marginTop: 10,
+                    padding: "10px 14px",
+                    borderRadius: 8,
+                    background: updateCheck.result.updateAvailable
+                      ? "rgba(251,191,36,0.08)"
+                      : "rgba(74,222,128,0.08)",
+                    border: `1px solid ${updateCheck.result.updateAvailable ? "#92400e" : "#166534"}`,
+                    fontSize: "0.85rem",
+                    color: "var(--ella-text)",
+                  }}
+                >
+                  {updateCheck.result.error ? (
+                    t("settings.about_update_error")
+                  ) : updateCheck.result.updateAvailable ? (
+                    <>
+                      {t("settings.about_update_available", {
+                        version: updateCheck.result.latest,
+                      })}
+                      {updateCheck.result.url && (
+                        <a
+                          href={updateCheck.result.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: "block",
+                            marginTop: 6,
+                            color: "var(--ella-accent)",
+                          }}
+                        >
+                          {t("settings.about_update_download")}
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    t("settings.about_update_current")
+                  )}
+                </div>
+              )}
+            </Section>
+
+            {/* Lizenz */}
+            <Section title={t("settings.about_license_title")}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr",
+                  gap: "6px 16px",
+                  fontSize: "0.85rem",
+                  color: "var(--ella-text)",
+                }}
+              >
+                <span style={{ color: "var(--ella-text-muted)" }}>Status</span>
+                <span
+                  style={{
+                    fontWeight: 600,
+                    color: settings.licenseActivated
+                      ? "#4ade80"
+                      : "var(--ella-text-dim)",
+                  }}
+                >
+                  {settings.licenseActivated
+                    ? t("settings.about_license_active")
+                    : t("settings.about_license_inactive")}
+                </span>
+                {settings.licenseKey && (
+                  <>
+                    <span style={{ color: "var(--ella-text-muted)" }}>
+                      {t("settings.about_license_key")}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--ella-font-data, monospace)",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      {maskLicenseKey(settings.licenseKey)}
+                    </span>
+                  </>
+                )}
+                {settings.licenseProduct && (
+                  <>
+                    <span style={{ color: "var(--ella-text-muted)" }}>
+                      {t("settings.about_license_product")}
+                    </span>
+                    <span>{settings.licenseProduct}</span>
+                  </>
+                )}
+              </div>
+            </Section>
+
+            {/* Kontakt & Links */}
+            <Section title={t("settings.about_contact_title")}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <a
+                  href="https://ella-agent.de"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 16px",
+                    borderRadius: 8,
+                    background: "rgba(79,209,255,0.06)",
+                    border: "1px solid var(--ella-border)",
+                    color: "var(--ella-accent)",
+                    textDecoration: "none",
+                    fontSize: "0.88rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  ella-agent.de
+                </a>
+                <a
+                  href="https://ella-agent.de/impressum"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "var(--ella-text-dim)",
+                    textDecoration: "underline",
+                    padding: "2px 0",
+                  }}
+                >
+                  {t("settings.about_imprint")}
+                </a>
+                <a
+                  href="https://ella-agent.de/datenschutz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "var(--ella-text-dim)",
+                    textDecoration: "underline",
+                    padding: "2px 0",
+                  }}
+                >
+                  {t("settings.about_privacy")}
+                </a>
+                <a
+                  href="https://ella-agent.de/eula"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "var(--ella-text-dim)",
+                    textDecoration: "underline",
+                    padding: "2px 0",
+                  }}
+                >
+                  {t("settings.about_eula")}
+                </a>
+              </div>
+            </Section>
+
+            {/* Die E.L.L.A. Directive */}
+            <Section title={t("settings.about_directive_title")}>
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "var(--ella-text-muted)",
+                  margin: "0 0 8px 0",
+                  lineHeight: 1.5,
+                }}
+              >
+                {t("settings.about_directive_desc")}
+              </p>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr",
+                  gap: "4px 16px",
+                  fontSize: "0.85rem",
+                  color: "var(--ella-text)",
+                  marginBottom: 10,
+                }}
+              >
+                <span style={{ color: "var(--ella-text-muted)" }}>Version</span>
+                <span>1.0.0</span>
+                <span style={{ color: "var(--ella-text-muted)" }}>
+                  {t("settings.about_directive_seal")}
+                </span>
+                <span style={{ color: "#4ade80" }}>
+                  {t("settings.about_directive_sealed")}
+                </span>
+              </div>
+              <a
+                href="https://github.com/AndreZ1971/The-E.L.L.A.-Directive-"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "10px 16px",
+                  borderRadius: 8,
+                  background: "rgba(79,209,255,0.06)",
+                  border: "1px solid var(--ella-border)",
+                  color: "var(--ella-accent)",
+                  textDecoration: "none",
+                  fontSize: "0.88rem",
+                  fontWeight: 600,
+                }}
+              >
+                {t("settings.about_directive_link")}
+              </a>
+            </Section>
+
+            {/* Support-Infos kopieren */}
+            <Section title={t("settings.about_support_title")}>
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "var(--ella-text-muted)",
+                  margin: "0 0 12px 0",
+                  lineHeight: 1.5,
+                }}
+              >
+                {t("settings.about_support_desc")}
+              </p>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await apiFetch("/api/system/support-info");
+                    const data = await res.json();
+                    await navigator.clipboard.writeText(data.text ?? "");
+                    setSupportCopied(true);
+                    setTimeout(() => setSupportCopied(false), 3000);
+                  } catch {
+                    /* ignore */
+                  }
+                }}
+                style={{
+                  padding: "9px 22px",
+                  borderRadius: 6,
+                  background: supportCopied ? "#166534" : "var(--ella-accent)",
+                  color: "#fff",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "0.88rem",
+                  fontWeight: 600,
+                }}
+              >
+                {supportCopied
+                  ? t("settings.about_support_copied")
+                  : t("settings.about_support_btn")}
+              </button>
+            </Section>
+
+            {/* Drittanbieter-Lizenzen */}
+            <Section title={t("settings.about_thirdparty_title")}>
+              <button
+                onClick={() => setLicensesOpen(!licensesOpen)}
+                style={{
+                  background: "none",
+                  border: "1px solid var(--ella-border)",
+                  borderRadius: 6,
+                  padding: "8px 16px",
+                  color: "var(--ella-text)",
+                  cursor: "pointer",
+                  fontSize: "0.85rem",
+                  width: "100%",
+                }}
+              >
+                {licensesOpen
+                  ? t("settings.about_thirdparty_hide")
+                  : t("settings.about_thirdparty_show")}
+              </button>
+              {licensesOpen && (
+                <div
+                  style={{
+                    marginTop: 10,
+                    fontSize: "0.78rem",
+                    color: "var(--ella-text-dim)",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {[
+                    {
+                      name: "MariaDB",
+                      license: "GPL v2",
+                      url: "https://mariadb.org/about/#legal",
+                    },
+                    {
+                      name: "Ollama",
+                      license: "MIT",
+                      url: "https://github.com/ollama/ollama/blob/main/LICENSE",
+                    },
+                    {
+                      name: "Llama 3.1 (Meta)",
+                      license: "Llama 3.1 Community",
+                      url: "https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE",
+                      notice: "Built with Llama",
+                    },
+                    {
+                      name: "Qwen (Alibaba)",
+                      license: "Apache 2.0",
+                      url: "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/blob/main/LICENSE",
+                    },
+                    {
+                      name: "Whisper (OpenAI)",
+                      license: "MIT",
+                      url: "https://github.com/openai/whisper/blob/main/LICENSE",
+                    },
+                    {
+                      name: "Node.js",
+                      license: "MIT",
+                      url: "https://github.com/nodejs/node/blob/main/LICENSE",
+                    },
+                    {
+                      name: "Electron",
+                      license: "MIT",
+                      url: "https://github.com/electron/electron/blob/main/LICENSE",
+                    },
+                    {
+                      name: "React",
+                      license: "MIT",
+                      url: "https://github.com/facebook/react/blob/main/LICENSE",
+                    },
+                    {
+                      name: "Vite",
+                      license: "MIT",
+                      url: "https://github.com/vitejs/vite/blob/main/LICENSE",
+                    },
+                    {
+                      name: "Express",
+                      license: "MIT",
+                      url: "https://github.com/expressjs/express/blob/master/LICENSE",
+                    },
+                    {
+                      name: "Kokoro TTS",
+                      license: "Apache 2.0",
+                      url: "https://huggingface.co/hexgrad/Kokoro-82M",
+                    },
+                    {
+                      name: "MsEdgeTTS",
+                      license: "MIT",
+                      url: "https://github.com/nicholaspufal/edge-tts",
+                    },
+                    {
+                      name: "MediaPipe",
+                      license: "Apache 2.0",
+                      url: "https://github.com/google-ai-edge/mediapipe/blob/master/LICENSE",
+                    },
+                    {
+                      name: "Chakra Petch",
+                      license: "OFL",
+                      url: "https://fonts.google.com/specimen/Chakra+Petch/about",
+                    },
+                    {
+                      name: "JetBrains Mono",
+                      license: "OFL",
+                      url: "https://www.jetbrains.com/lp/mono/",
+                    },
+                    {
+                      name: "openWakeWord",
+                      license: "Apache 2.0",
+                      url: "https://github.com/dscripka/openWakeWord/blob/main/LICENSE",
+                    },
+                    {
+                      name: "chess.js",
+                      license: "BSD-2",
+                      url: "https://github.com/jhlywa/chess.js/blob/master/LICENSE",
+                    },
+                    {
+                      name: "D3.js",
+                      license: "ISC",
+                      url: "https://github.com/d3/d3/blob/main/LICENSE",
+                    },
+                    {
+                      name: "marked",
+                      license: "MIT",
+                      url: "https://github.com/markedjs/marked/blob/master/LICENSE.md",
+                    },
+                    {
+                      name: "mysql2",
+                      license: "MIT",
+                      url: "https://github.com/sidorares/node-mysql2/blob/master/License",
+                    },
+                    {
+                      name: "ffmpeg-static",
+                      license: "GPL v3",
+                      url: "https://github.com/eugeneware/ffmpeg-static/blob/master/LICENSE",
+                    },
+                  ].map(
+                    (lib: {
+                      name: string;
+                      license: string;
+                      url: string;
+                      notice?: string;
+                    }) => (
+                      <div
+                        key={lib.name}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "4px 0",
+                          borderBottom: "1px solid rgba(79,209,255,0.06)",
+                        }}
+                      >
+                        <span>
+                          {lib.name}
+                          {lib.notice && (
+                            <span
+                              style={{
+                                fontSize: "0.68rem",
+                                color: "var(--ella-text-muted)",
+                                marginLeft: 6,
+                              }}
+                            >
+                              {lib.notice}
+                            </span>
+                          )}
+                        </span>
+                        <a
+                          href={lib.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "var(--ella-accent)",
+                            textDecoration: "none",
+                            fontSize: "0.75rem",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {lib.license}
+                        </a>
+                      </div>
+                    ),
+                  )}
+                </div>
+              )}
             </Section>
           </React.Fragment>
         )}

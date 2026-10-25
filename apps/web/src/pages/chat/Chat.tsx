@@ -6,10 +6,8 @@ import AvatarPanel from "../../components/AvatarPanel";
 import { apiFetch, eventStreamUrl } from "../../lib/api";
 import { useAppearance } from "../../hooks/useAppearance";
 import { useHudData } from "../../hooks/useHudData";
-import HudSystemPanel from "../../components/hud/HudSystemPanel";
-import HudMonitorPanel from "../../components/hud/HudMonitorPanel";
-import HudRoutinesPanel from "../../components/hud/HudRoutinesPanel";
-import HudDirectivePanel from "../../components/hud/HudDirectivePanel";
+import HudWidgetSlot from "../../components/hud/HudWidgetSlot";
+import { DEFAULT_HUD_WIDGETS } from "../../components/hud/widgetRegistry";
 
 type VoiceMode = "off" | "manual" | "wakeword" | "always" | "dictation";
 
@@ -92,6 +90,7 @@ const Chat: React.FC = () => {
     appearance.effective === "hud" || appearance.effective === "show";
   const isShow = appearance.effective === "show";
   const [hudTelemetryEnabled, setHudTelemetryEnabled] = useState(true);
+  const [hudWidgets, setHudWidgets] = useState(DEFAULT_HUD_WIDGETS);
   const hudData = useHudData(isHud, hudTelemetryEnabled);
   const toolLabel = (name: string) =>
     t(`tools.${name}`, { defaultValue: name });
@@ -1301,6 +1300,7 @@ const Chat: React.FC = () => {
         accessibilityMode?: "none" | "blind" | "deaf";
         hudTelemetry?: boolean;
         hudThrottle?: boolean;
+        hudWidgets?: { left: string[]; right: string[] };
       }>,
       apiFetch("/api/homework/status").then((r) => r.json()) as Promise<{
         active: boolean;
@@ -1317,6 +1317,8 @@ const Chat: React.FC = () => {
         setAccessibilityMode(mode);
         setHudTelemetryEnabled(s.hudTelemetry !== false);
         setHudThrottle(s.hudThrottle !== false);
+        if (s.hudWidgets?.left && s.hudWidgets?.right)
+          setHudWidgets(s.hudWidgets);
         setHomeworkActive(h.active);
         setHomeworkConfigured(h.configured);
       })
@@ -1466,8 +1468,9 @@ const Chat: React.FC = () => {
         {/* Seitenpanels nur im normalen HUD, nicht im Show-Modus */}
         {!isShow && (
           <div className="hud-chat-left">
-            {hudTelemetryEnabled && <HudSystemPanel data={hudData.telemetry} />}
-            <HudMonitorPanel monitors={hudData.monitors} />
+            {hudWidgets.left.map((id) => (
+              <HudWidgetSlot key={id} widgetId={id} data={hudData} />
+            ))}
           </div>
         )}
 
@@ -1493,8 +1496,9 @@ const Chat: React.FC = () => {
 
         {!isShow && (
           <div className="hud-chat-right">
-            <HudRoutinesPanel setups={hudData.setups} />
-            <HudDirectivePanel cloudToday={hudData.cloudToday} />
+            {hudWidgets.right.map((id) => (
+              <HudWidgetSlot key={id} widgetId={id} data={hudData} />
+            ))}
           </div>
         )}
 

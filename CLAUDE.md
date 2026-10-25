@@ -248,17 +248,18 @@ database/
 - **API-Hotkey-Sync:** nach API-Start lädt Electron den Hotkey per `GET /api/settings`; Hotkey-Änderungen im Settings-UI aktualisieren sofort per IPC
 - **380 Tests — alle grün** (Vitest Unit + Integration, inkl. 11 Dictation-Tests)
 
-### v1.5.6 — HUD-Modus & Erscheinungsbild
+### v1.5.6 — HUD-Modus, Widgets & Über E.L.L.A.
 
 - **Drei Erscheinungsbilder:** `appearance`-Setting mit Werten `calm` (Standard-Dunkel), `hud` (technisch/Cyan) und `show` (Präsentation/Vollbild); Stil-Token als CSS Custom Properties (`var(--ella-...)`) in `theme.css`, umgeschaltet via `data-theme`-Attribut
 - **Akzentfarben:** `hudAccent`-Setting mit 3 Optionen: Cyan, Violett, Bernstein — live per `data-hud-accent`-Attribut
 - **Lokale Schriften:** Chakra Petch (Display, 600/700) + JetBrains Mono (Daten, 400/600) als woff2 in `apps/web/public/fonts/` — kein CDN nötig, offline-kompatibel
 - **Stil-Auflösung:** `resolveAppearance()` in `hooks/useAppearance.ts` — automatischer Rückfall auf `calm` bei Blindmodus, Hausaufgabenmodus oder `prefers-reduced-motion`; Polling alle 10s
 - **HUD Top Bar:** `components/hud/HudTopBar.tsx` — Logo + Navigations-Links + Status-Chips (LOKAL/OFFLINE/CLOUD) statt Sidebar im HUD-Modus
-- **HUD Chat-Layout:** Drei-Spalten-Grid (200px / 1fr / 200px) mit 4 Panels: System (Telemetrie), Monitore, Setups, Direktive; letzte 12 Nachrichten als Untertitel unter dem Orb
-- **HUD Panels:** `HudSystemPanel` (CPU/RAM/VRAM/Disk/Temp), `HudMonitorsPanel` (Multi-Monitor-Liste), `HudSetupsPanel` (App-Makros mit Uhrzeit-Badge), `HudDirectivePanel` (4 Direktive-Regeln)
-- **HUD Daten-Hook:** `hooks/useHudData.ts` — pollt Telemetrie, Monitore, Cloud-Today, Setups alle 5s; pausiert wenn Tab nicht sichtbar
-- **API-Routen:** `GET /api/system/telemetry` (CPU/RAM/VRAM/Disk/Temp via PowerShell/nvidia-smi), `GET /api/system/monitors` (Multi-Monitor via PowerShell)
+- **HUD Chat-Layout:** Drei-Spalten-Grid (280px / 1fr / 280px) mit konfigurierbaren Widget-Spalten; letzte 12 Nachrichten als Untertitel unter dem Orb
+- **HUD Widget-System:** `hudWidgets`-Setting (`{ left: string[], right: string[] }`) — Nutzer wählen in den Einstellungen (Tab Aussehen) welche Widgets links/rechts erscheinen; 8 Widgets im Katalog (`widgetRegistry.ts`); `HudWidgetSlot.tsx` rendert per Switch; `DEFAULT_HUD_WIDGETS`: links System+Monitore, rechts Routinen+Directive
+- **8 HUD-Widgets:** `HudSystemPanel` (CPU/RAM/VRAM/Disk/Temp), `HudMonitorPanel` (Multi-Monitor-Liste), `HudRoutinesPanel` (App-Makros mit Uhrzeit-Badge), `HudDirectivePanel` (4 Directive-Regeln), `HudClockWidget` (Digitaluhr, reines Frontend), `HudTasksWidget` (offene Aufgaben aus DB, max 5, Prioritätsfarben), `HudMailWidget` (letzte 4 E-Mails, Unread-Count, Outlook/Thunderbird), `HudMusicWidget` (aktueller Titel via Windows Media Transport Controls)
+- **HUD Daten-Hook:** `hooks/useHudData.ts` — pollt 7 Endpoints alle 5s (Telemetrie, Monitore, Cloud-Today, Setups, Tasks, Mails, Now-Playing); pausiert wenn Tab nicht sichtbar
+- **API-Routen (System):** `GET /api/system/telemetry`, `GET /api/system/monitors`, `GET /api/system/tasks` (offene Tasks, max 10), `GET /api/system/mails` (letzte 5 E-Mails + Unread-Count), `GET /api/system/now-playing` (Windows Media Transport), `GET /api/system/version`, `GET /api/system/check-update` (GitHub Releases API, offline-gesperrt, sendet keine Nutzerdaten), `GET /api/system/support-info` (Version/Windows/GPU/Modell/Stimme als Text)
 - **Orb 6 Zustände:** `idle`, `listening`, `thinking`, `speaking`, `cloud`, `offline` — jeder mit eigener Farbe, Atemrhythmus, Geschwindigkeit und Formunterscheidung (Offline: Quadrat-Partikel)
 - **OrbRings:** SVG-Overlay mit rotierenden Ringen (gepunktet + gestrichelt), geneigten Ellipsen, Countdown-Ring (grün, beim Zuhören), Cloud-Ring (bernstein, schnell), Offline-Rahmen (eckig, gestrichelt)
 - **Countdown-Ring:** Visualisiert die 8s Follow-Up-Fenster-Dauer als abnehmender grüner Ring
@@ -266,15 +267,17 @@ database/
 - **Performance-Drosselung:** `hudThrottle`-Setting (default: an) — setzt `--ella-anim-speed: 0.35` während LLM rechnet; Canvas-FPS auf 20fps limitiert bei Throttle; alle CSS-Animationen respektieren `--ella-anim-speed` via `calc()`
 - **Visibility-Pause:** `visibilitychange`-Listener stoppt Canvas-RAF wenn Tab nicht sichtbar, startet bei Rückkehr
 - **Responsive:** `@media (max-width: 720px)` → Einspaltiges Layout; `prefers-reduced-motion` → `--ella-anim-speed: 0`
-- **HUD Feinschliff:** TopBar überarbeitet (Logo-Split E.L.L.A. + // HUD, CLOUD-Chip immer sichtbar); Panels optisch ans Mockup angepasst (2×2 Directive-Grid, VRAM violett, Monitor-Apps, Schedule-Format); Orb 320px im HUD ohne Card/Chips; Zustandszeile mit i18n + Hint-Zeile (Tool-Name, Follow-up-Countdown); breitere Spalten (280px)
+- **HUD Feinschliff:** TopBar überarbeitet (Logo-Split E.L.L.A. + // HUD, CLOUD-Chip immer sichtbar); Panels optisch ans Mockup angepasst (2×2 Directive-Grid, VRAM violett, Monitor-Apps, Schedule-Format); Orb 320px im HUD ohne Card/Chips; Zustandszeile mit i18n + Hint-Zeile (Tool-Name, Follow-up-Countdown)
 - **Telemetrie erweitert:** `GET /api/system/telemetry` liefert GPU-Name + `ttsEngine` (Kokoro/Edge TTS); `HudSystemPanel` zeigt MODELL, TEMPO, STIMME unter Separator
-- **i18n HUD-Keys:** `hud.*`-Namespace in de.json/en.json — Zustandsnamen (BEREIT/HÖRT/DENKT/SPRICHT), Directive-Texte, Diktat-Modus
+- **Über E.L.L.A. (Settings-Tab):** 7 Sektionen — (1) Version & Build-Datum, (2) Update-Check (GitHub Releases, offline-gesperrt, kein Versand von Nutzerdaten), (3) Lizenzstatus mit maskiertem Schlüssel (`ELLA-N7AA-••••-••••-VJM7`), (4) Kontakt & Links (ella-agent.de, Impressum, Datenschutz, EULA), (5) Die E.L.L.A. Directive (Version 1.0.0, Siegel, GitHub-Repo), (6) Support-Infos in Zwischenablage kopieren, (7) Drittanbieter-Lizenzen (21 Einträge inkl. "Built with Llama"-Hinweis, Qwen, Whisper, MediaPipe)
+- **i18n:** `hud.*`-Widget-Keys, `settings.about_*`-Keys (DE+EN) für alle 7 Sektionen; `hud.*`-Zustandsnamen (BEREIT/HÖRT/DENKT/SPRICHT), Directive-Texte, Diktat-Modus
 - **Selbstbild:** System-Prompt-Block SELBSTBILD — E.L.L.A. kennt ihre eigene Natur als lokaler Agent mit Orb-Visualisierung
 - **Diktat-Indikator türkis:** `#5eead4` statt bernstein für den Diktat-Modus-Indikator
 - **Sofortiger Stilwechsel:** `ella:appearance-changed`-Event in `useAppearance.ts` — Settings-Änderungen wirken sofort statt erst nach 10s Polling
 - **Zahlenformat:** Lokale-bewusste GB-Anzeige (`Intl.NumberFormat`, deutsches Komma / englischer Punkt)
+- **4 hudWidgets-Tests:** Migration, Malformed-Fallback, Custom-Config, Patch-Erhalt
 - **resolveAppearance-Tests:** 9 Tests für Prioritätslogik (blind > homework > reduced_motion > wanted)
-- **389 Tests — alle grün** (Vitest Unit + Integration, inkl. 9 resolveAppearance-Tests)
+- **393 Tests — alle grün** (Vitest Unit + Integration, inkl. 4 hudWidgets + 9 resolveAppearance-Tests)
 
 ---
 
@@ -305,7 +308,7 @@ Jedes neue Tool braucht alle folgenden Schritte:
 
 ---
 
-## Die E.L.L.A. Direktive (Konzept)
+## Die E.L.L.A. Directive (Konzept)
 
 Vier unveränderliche Verbote — architektonisch verankert, nicht konfigurierbar:
 
@@ -379,7 +382,7 @@ cd apps/desktop && node build-main.mjs && cd ../..
 $env:ELLA_DEV = "1"; cd apps\desktop; .\node_modules\electron\dist\electron.exe .
 
 # Tests
-npm test                       # 329 Unit + Integration Tests (Vitest)
+npm test                       # 393 Unit + Integration Tests (Vitest)
 npm run lint
 
 # Ollama prüfen
@@ -424,7 +427,7 @@ https://github.com/AndreZ1971/E.L.L.A.git
 
 ### MCP & Skills awareness (Claude Code ToolBox)
 
-_Last synced: 2026-10-24T19:59:31.946Z._
+_Last synced: 2026-10-25T09:57:21.899Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).

@@ -9,6 +9,12 @@ import { getDiskUsage } from "@ella/agent-tools";
 import { getSettings, saveSettings } from "../services/settings.js";
 import type { AppEntry } from "../services/settings.js";
 import { activeTtsEngine } from "../services/tts.js";
+import { listTasks } from "../services/tasks.js";
+import { readEmails } from "../services/mail.js";
+import { getNowPlaying } from "../services/mediaControl.js";
+
+const ELLA_VERSION = "1.5.6";
+const ELLA_BUILD_DATE = "2026-10-25";
 
 export const systemRouter = Router();
 
@@ -484,4 +490,139 @@ $result | ConvertTo-Json -Compress
       /* best effort */
     }
   }
+});
+
+// ── HUD Tasks ─────────────────────────────────────────────────────────────
+
+systemRouter.get("/tasks", async (_req, res) => {
+  try {
+    const tasks = await listTasks(undefined, "pending");
+    res.json({
+      count: tasks.length,
+      tasks: tasks.slice(0, 10).map((t) => ({
+        id: t.id,
+        title: t.title,
+        priority: t.priority,
+        dueDate: t.dueDate,
+      })),
+    });
+  } catch {
+    res.json({ count: 0, tasks: [] });
+  }
+});
+
+// ── HUD Mails ─────────────────────────────────────────────────────────────
+
+systemRouter.get("/mails", (_req, res) => {
+  try {
+    const result = readEmails(5);
+    const unread = result.items.filter((m) => m.unread);
+    res.json({
+      source: result.source,
+      unreadCount: unread.length,
+      mails: result.items.slice(0, 5).map((m) => ({
+        subject: m.subject,
+        sender: m.sender,
+        received: m.received,
+        unread: m.unread,
+      })),
+    });
+  } catch {
+    res.json({ source: "none", unreadCount: 0, mails: [] });
+  }
+});
+
+// ── HUD Now Playing ───────────────────────────────────────────────────────
+
+systemRouter.get("/now-playing", async (_req, res) => {
+  try {
+    const info = await getNowPlaying();
+    res.json(info);
+  } catch {
+    res.json({ available: false });
+  }
+});
+
+// ── Version Info ──────────────────────────────────────────────────────────
+
+systemRouter.get("/version", (_req, res) => {
+  res.json({ version: ELLA_VERSION, buildDate: ELLA_BUILD_DATE });
+});
+
+// ── Update Check ──────────────────────────────────────────────────────────
+
+systemRouter.get("/check-update", async (_req, res) => {
+  const { offlineMode } = getSettings();
+  if (offlineMode) {
+    res.json({ error: "offline", current: ELLA_VERSION });
+    return;
+  }
+  try {
+    const response = await fetch(
+      "https://api.github.com/repos/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases/latest",
+      {
+        headers: { Accept: "application/vnd.github.v3+json" },
+        signal: AbortSignal.timeout(8_000),
+      },
+    );
+    if (!response.ok) {
+      res.json({ error: "github_error", current: ELLA_VERSION });
+      return;
+    }
+    const data = (await response.json()) as {
+      tag_name?: string;
+      html_url?: string;
+    };
+    const latest = (data.tag_name ?? "").replace(/^v/, "");
+    res.json({
+      current: ELLA_VERSION,
+      latest,
+      updateAvailable: (() => {
+        if (latest === ELLA_VERSION || !latest) return false;
+        const lp = latest.split(".").map(Number);
+        const cp = ELLA_VERSION.split(".").map(Number);
+        for (let i = 0; i < 3; i++) {
+          if ((lp[i] ?? 0) > (cp[i] ?? 0)) return true;
+          if ((lp[i] ?? 0) < (cp[i] ?? 0)) return false;
+        }
+        return false;
+      })(),
+      url: data.html_url ?? "",
+    });
+  } catch {
+    res.json({ error: "network", current: ELLA_VERSION });
+  }
+});
+
+// ── Support Info ──────────────────────────────────────────────────────────
+
+systemRouter.get("/support-info", (_req, res) => {
+  const s = getSettings();
+  const cpus = os.cpus();
+
+  let gpu = "N/A";
+  try {
+    gpu = execSync(
+      "nvidia-smi --query-gpu=name --format=csv,noheader,nounits",
+      { timeout: 4000, encoding: "utf-8" },
+    ).trim();
+  } catch {
+    // no nvidia
+  }
+
+  const ttsEngine = activeTtsEngine(s.spokenLanguage ?? "de");
+
+  const info = [
+    `E.L.L.A. v${ELLA_VERSION} (${ELLA_BUILD_DATE})`,
+    `Windows ${os.release()} (${os.arch()})`,
+    `CPU: ${cpus[0]?.model ?? "N/A"} (${cpus.length} Kerne)`,
+    `RAM: ${Math.round(os.totalmem() / 1073741824)} GB`,
+    `GPU: ${gpu}`,
+    `Modell: ${s.ollamaModel}`,
+    `Stimme: ${ttsEngine}`,
+    `Sprache: ${s.spokenLanguage}`,
+    `Provider: ${s.provider}`,
+  ].join("\n");
+
+  res.json({ text: info });
 });

@@ -106,4 +106,36 @@ describe("loadSettings migration", () => {
     // Should not throw; settings remain at defaults
     expect(getSettings().provider).toBe(DEFAULT_SETTINGS.provider);
   });
+
+  it("migrates missing hudWidgets to defaults", async () => {
+    const oldData = JSON.stringify({ provider: "auto" });
+    vi.mocked(fsMod.readFile).mockResolvedValue(oldData as any);
+    await loadSettings();
+    const { hudWidgets } = getSettings();
+    expect(hudWidgets).toEqual(DEFAULT_SETTINGS.hudWidgets);
+    expect(hudWidgets.left).toEqual(["system", "monitors"]);
+    expect(hudWidgets.right).toEqual(["routines", "directive"]);
+  });
+
+  it("migrates malformed hudWidgets to defaults", async () => {
+    const badData = JSON.stringify({ hudWidgets: { left: "not-array" } });
+    vi.mocked(fsMod.readFile).mockResolvedValue(badData as any);
+    await loadSettings();
+    expect(getSettings().hudWidgets).toEqual(DEFAULT_SETTINGS.hudWidgets);
+  });
+
+  it("preserves valid custom hudWidgets", async () => {
+    const customWidgets = { left: ["clock"], right: ["system", "directive"] };
+    const data = JSON.stringify({ hudWidgets: customWidgets });
+    vi.mocked(fsMod.readFile).mockResolvedValue(data as any);
+    await loadSettings();
+    expect(getSettings().hudWidgets).toEqual(customWidgets);
+  });
+
+  it("hudWidgets can be patched via saveSettings", async () => {
+    const newWidgets = { left: ["clock", "system"], right: ["monitors"] };
+    await saveSettings({ hudWidgets: newWidgets });
+    expect(getSettings().hudWidgets).toEqual(newWidgets);
+    await saveSettings({ hudWidgets: DEFAULT_SETTINGS.hudWidgets });
+  });
 });

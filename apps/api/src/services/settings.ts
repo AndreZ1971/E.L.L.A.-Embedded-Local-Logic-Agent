@@ -36,6 +36,11 @@ export interface HomeworkModeConfig {
   active: boolean;
 }
 
+export interface HudWidgetConfig {
+  left: string[];
+  right: string[];
+}
+
 export interface Settings {
   provider: "auto" | "openai" | "ollama";
   ollamaModel: string;
@@ -87,6 +92,7 @@ export interface Settings {
   hudAccent: "cyan" | "violett" | "bernstein";
   hudTelemetry: boolean;
   hudThrottle: boolean;
+  hudWidgets: HudWidgetConfig;
 }
 
 // Im Installer: ELLA_USERDATA = %APPDATA%\ELLA (gesetzt von Electron main.ts)
@@ -234,6 +240,10 @@ export const DEFAULT_SETTINGS: Settings = {
   hudAccent: "cyan",
   hudTelemetry: true,
   hudThrottle: true,
+  hudWidgets: {
+    left: ["system", "monitors"],
+    right: ["routines", "directive"],
+  },
   apps: [
     { name: "vscode", command: "code", allowed: true },
     { name: "notepad", command: "notepad.exe", allowed: true },
@@ -346,6 +356,12 @@ export async function loadSettings(): Promise<void> {
       parsed.hudTelemetry = DEFAULT_SETTINGS.hudTelemetry;
     if (typeof parsed.hudThrottle !== "boolean")
       parsed.hudThrottle = DEFAULT_SETTINGS.hudThrottle;
+    if (
+      !parsed.hudWidgets ||
+      !Array.isArray(parsed.hudWidgets.left) ||
+      !Array.isArray(parsed.hudWidgets.right)
+    )
+      parsed.hudWidgets = DEFAULT_SETTINGS.hudWidgets;
     current = { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
     // no file yet — keep defaults
