@@ -8,7 +8,7 @@
 
 **A personal AI assistant for Windows — fully offline, fully yours.**
 
-[![Version](https://img.shields.io/badge/version-1.5.0-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A./releases)
+[![Version](https://img.shields.io/badge/version-1.5.6-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A./releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows)](https://ella-agent.de)
 [![License](https://img.shields.io/badge/license-Proprietary-ff6500?style=flat-square)](LICENSE)
 [![Directive](https://img.shields.io/badge/Directive-v1.0.0%20%E2%80%94%20sealed-3ecf8e?style=flat-square)](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
@@ -23,7 +23,7 @@
 
 E.L.L.A. is a personal AI assistant that runs entirely on your Windows PC. No cloud. No subscription. No data leaving your machine.
 
-It understands natural language and can operate your computer — launch apps, search files, read emails, manage your calendar, control media, monitor your system, and much more. With 90 tools, a persistent vector memory, a knowledge graph, proactive monitoring, self-learning, and a built-in ethics layer, E.L.L.A. is not a chatbot. It is an agent.
+It understands natural language and can operate your computer — launch apps, search files, read emails, manage your calendar, control media, monitor your system, and much more. With 111 tools, a persistent vector memory, a knowledge graph, proactive monitoring, self-learning, and a built-in ethics layer, E.L.L.A. is not a chatbot. It is an agent.
 
 > _"I just wanted an assistant that works under this Directive."_
 > — Andre Zabel, May 2026
@@ -49,7 +49,7 @@ Four hardcoded prohibitions that no prompt, rule, or setting can override:
 
 These are not rules. They are architectural impossibilities — no code path leads to them. [→ Full Directive](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
 
-### 🛠️ 90 Tools
+### 🛠️ 111 Tools
 
 Full system control through natural language:
 
@@ -93,6 +93,22 @@ Positive feedback (thumbs up) creates golden Q&A pairs. These are injected as fe
 
 Hand gesture recognition via MediaPipe Hands (Stage 1). Control E.L.L.A. without touching the keyboard.
 
+### 🖥️ HUD Mode
+
+Three visual appearances: Calm (default dark), HUD (technical Cyan dashboard with live telemetry, widgets, and Orb visualization), and Show (fullscreen presentation mode with privacy filter). Configurable widget columns, accent colors, and performance throttling.
+
+### 🎤 Dictation Mode
+
+System-wide dictation: speech is transcribed via Whisper and typed directly into the active Windows window — not just in E.L.L.A. Configurable global hotkey, optional spell correction, clipboard preservation.
+
+### 🔇 Stop-Interrupt & Follow-Up
+
+Say "stopp" or "shut up" during TTS playback to immediately stop E.L.L.A. After TTS ends, an 8-second follow-up window allows speaking without the wakeword.
+
+### 🔒 Offline Mode & Data Redaction
+
+Full offline mode blocks all network tools and cloud access. Sensitive data (API keys, IBANs, passwords) is automatically redacted before storing in memories or clipboard history.
+
 ### 👁️ Proactive Intelligence
 
 E.L.L.A. monitors and writes to the chat unprompted when something matters:
@@ -133,7 +149,7 @@ The installer bundles everything: Node.js, MariaDB, and Ollama as portable binar
 
 | File                      | Description                |
 | ------------------------- | -------------------------- |
-| `E.L.L.A.Setup.1.5.0.exe` | Windows installer (NSIS)   |
+| `E.L.L.A Setup 1.5.6.exe` | Windows installer (NSIS)   |
 | `SHA256SUMS.txt`          | Checksums for verification |
 
 ---
@@ -169,13 +185,13 @@ The installer bundles everything: Node.js, MariaDB, and Ollama as portable binar
 │         └────────────┬────────────┘                 │
 │                      │                              │
 │         ┌────────────▼────────────┐                 │
-│         │      Tool Selector      │  ← 12 of 90     │
+│         │      Tool Selector      │  ← 12 of 111    │
 │         │   (token-optimized)     │    per request   │
 │         └────────────┬────────────┘                 │
 │                      │                              │
 │    ┌─────────────────┼─────────────────┐            │
 │    ▼                 ▼                 ▼            │
-│ Ollama           OpenAI            90 Tools         │
+│ Ollama           OpenAI            111 Tools        │
 │ (local, offline) (opt-in only)    (system control)  │
 │                                                     │
 │    ┌────────────────────────────────────────────┐   │
