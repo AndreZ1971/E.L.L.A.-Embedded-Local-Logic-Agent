@@ -1,6 +1,8 @@
 # Roadmap — E.L.L.A. Entwicklungshistorie & offene Punkte
 
-Stand: v3.9.1 · 2026-06-28
+Stand: v1.5.6 (intern v3.x) · 2026-10-25
+
+> **Hinweis:** Diese Datei nutzt interne Versionsnummern (v0.x–v3.x) aus der Entwicklungshistorie. Die öffentlichen Releases heißen v1.x (aktuell v1.5.6).
 
 ---
 
@@ -79,12 +81,12 @@ Stand: v3.9.1 · 2026-06-28
 
 ## Offen — Priorität 1 (hoher Mehrwert, Directive-konform)
 
-| Feature               | Beschreibung                                                             |
-| --------------------- | ------------------------------------------------------------------------ |
-| Browser-Steuerung     | Chrome/Edge via DevTools Protocol — Tabs, Navigation, DOM-Zugriff        |
-| Lokale Websuche       | SearXNG selbst-gehostet als DuckDuckGo-Fallback ohne externe API         |
-| Spracherkennung lokal | Whisper via Ollama als Alternative zu Web Speech API (offline, präziser) |
-| Plugin-Verzeichnis    | Tool-Manifest-Format damit Nutzer eigene Tools registrieren können       |
+| Feature                   | Beschreibung                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------- |
+| Browser-Steuerung         | Chrome/Edge via DevTools Protocol — Tabs, Navigation, DOM-Zugriff               |
+| Lokale Websuche           | SearXNG selbst-gehostet als DuckDuckGo-Fallback ohne externe API                |
+| ~~Spracherkennung lokal~~ | ✅ Erledigt — Xenova/whisper-small lokal, OpenAI Whisper als Fallback (v1.5.0+) |
+| Plugin-Verzeichnis        | Tool-Manifest-Format damit Nutzer eigene Tools registrieren können              |
 
 ---
 
@@ -101,10 +103,10 @@ Stand: v3.9.1 · 2026-06-28
 
 ## Nicht geplant (bewusste Entscheidung)
 
-| Feature              | Warum nicht                                                            |
-| -------------------- | ---------------------------------------------------------------------- |
-| Cloud-Hosting        | Lokale Ausführung ist Designprinzip                                    |
-| Multi-User-Netzwerk  | Nutzerprofile sind gerätlokal, kein Netzwerk-Sharing                   |
-| Docker-Deployment    | Direkte Windows-Integration ist der Kern — Docker abstrahiert das weg  |
-| Freie Shell ohne Box | run_command existiert — aber sandboxed (60+ Muster, immer Bestätigung) |
-| Kamera-Integration   | Surveillance-Risiko — würde Verbot III (surveil) strukturell gefährden |
+| Feature                 | Warum nicht                                                                                                                                                                                                              |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cloud-Hosting           | Lokale Ausführung ist Designprinzip                                                                                                                                                                                      |
+| Multi-User-Netzwerk     | Nutzerprofile sind gerätlokal, kein Netzwerk-Sharing                                                                                                                                                                     |
+| Docker-Deployment       | Direkte Windows-Integration ist der Kern — Docker abstrahiert das weg                                                                                                                                                    |
+| Freie Shell ohne Box    | run_command existiert — aber sandboxed (60+ Muster, immer Bestätigung)                                                                                                                                                   |
+| Kamera-Dauerüberwachung | Surveillance-Risiko — würde Verbot III (surveil) strukturell gefährden. Hinweis: Kamera-Zugriff auf Anfrage existiert (`list_cameras`, `capture_photo`) — einzelne Fotos mit sichtbarer Aktivierung, keine Daueraufnahme |

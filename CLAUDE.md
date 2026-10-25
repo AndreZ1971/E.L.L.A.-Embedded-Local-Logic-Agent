@@ -1,6 +1,6 @@
 # E.L.L.A — Embedded Local Logic Agent
 
-Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama (llama3.1:8b), optional mit OpenAI GPT-4o.
+Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft lokal via Ollama (llama3.1:8b), optional mit OpenAI-API (eigener Key).
 
 **Aktueller Stand: v1.5.6**
 
@@ -316,7 +316,7 @@ Vier unveränderliche Verbote — architektonisch verankert, nicht konfigurierba
 
 Hierarchie: `Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → Tool Execution`
 
-Repo: `github.com/AndreZ1971/The-E.L.L.A.-Directive-` (privat, Tag v1.0.0)
+Repo: `github.com/AndreZ1971/The-E.L.L.A.-Directive-` (öffentlich, Tag v1.0.0)
 
 ---
 

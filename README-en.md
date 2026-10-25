@@ -2,9 +2,9 @@
 
 ![Tests](https://github.com/AndreZ1971/E.L.L.A/actions/workflows/test.yml/badge.svg)
 
-Local AI assistant for Windows as a native desktop app. LLM-driven automation — fully offline via Ollama, optionally with OpenAI GPT-4o.
+Local AI assistant for Windows as a native desktop app. LLM-driven automation — runs locally via Ollama, optionally with OpenAI API. No telemetry — network only for license check and online features you use ([details](docs/english/network.md)).
 
-**Version:** v1.0.0 · Windows 10/11 (x64)
+**Version:** v1.5.6 · Windows 10/11 (x64)
 
 _ELLA adapts to the user and grows with her challenges._
 
@@ -30,47 +30,47 @@ No Python, no separate MariaDB setup, no PATH configuration required.
 
 ## Features
 
-| Area                  | What E.L.L.A. can do                                                               |
-| --------------------- | ---------------------------------------------------------------------------------- |
-| Programs              | Launch/close apps, load setups, list installed programs                            |
-| Drives                | Rename, format USB sticks (system drives locked)                                   |
-| Mail (Outlook)        | Read emails, mark as read/spam/archived                                            |
-| Mail (Gmail)          | Read and label Gmail via OAuth 2.0                                                 |
-| Calendar (Outlook)    | Read and create Outlook appointments                                               |
-| Calendar (Google)     | Read Google Calendar and create events via OAuth 2.0                               |
-| System                | Temp files, recycle bin, RAM, disk, diagnostics, shutdown                          |
-| Memory                | Vector embeddings (nomic-embed-text), cosine search, 3 types, profile-isolated     |
-| Voice input           | Web Speech API (Chromium built-in, no API key) - Hands-free / Manual / Wakeword    |
-| Voice output          | MsEdgeTTS + Kokoro TTS — female voices DE/EN/ES/FR selectable                      |
-| Stress detection      | Voice analysis (Python/numpy) — adapts ELLA's tone under tension (opt-in)          |
-| Pause                 | Disable wakeword 1–120 minutes, countdown, automatic resume                        |
-| Web                   | Instant search without confirmation (movies, people, products, news)               |
-| Weather               | Current weather via Open-Meteo                                                     |
-| Homework mode         | PIN-secured kiosk with app whitelist                                               |
-| Rule engine           | 57 default rules, allow/deny, time conditions, Directive Layer                     |
-| Monitoring            | Background worker, SSE push, Disk/Ollama/RAM alerts, PnP events                    |
-| USB detection         | USB drives are detected and announced (proactive message + TTS)                    |
-| Network               | LAN scan via ARP, TCP connections, DNS/Firewall/WiFi monitoring                    |
-| Self-configuration    | Change setups, rules, and settings via conversation                                |
-| Music                 | Search library (artist/album/title), open in Media Player                          |
-| Files                 | Search all drives (Windows Search Index, fast), open files                         |
-| Documents             | Create Word/TXT, read .docx/.pdf/.xlsx/.html (mammoth/pdf-parse/SheetJS)           |
-| Alarms                | DB-based alarms with daily check, proactive trigger in background worker           |
-| Dictation             | Voice input directly into Word, AI corrects grammar and punctuation                |
-| Compose email         | Open Outlook draft with AI-corrected text (does not send automatically)            |
-| Processes             | Show running processes, kill CPU/RAM hogs (system-critical protected)              |
-| System control        | Set/mute volume, read/write clipboard with 20-entry history                        |
-| Reminders             | Windows Task Scheduler — fires as popup at the set time                            |
-| Screenshot + Vision   | Capture screen and analyze with GPT-4o Vision (OpenAI key required)                |
-| Writing style         | Generate text in the user's personal style — learns from existing emails           |
-| Duplicates            | Find duplicate files, calculate wasted storage                                     |
-| Autostart             | List programs that start with Windows                                              |
-| Task list             | Persistent TODOs with priority and due date, integrated into daily summary         |
-| Proactive             | Meeting prep, daily summary, comeback briefing, break reminder, clipboard patterns |
-| Feedback loop         | Thumbs up/down → Ollama extracts user preferences → long-term memory               |
-| Window context        | ELLA knows the active application during chat (opt-in, Ollama only)                |
-| Conversation compress | Automatically compress long sessions (local Ollama)                                |
-| User profiles         | Separate memory and chat history per profile, PBKDF2-secured PIN                   |
+| Area                  | What E.L.L.A. can do                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------ |
+| Programs              | Launch/close apps, load setups, list installed programs                              |
+| Drives                | Rename, format USB sticks (system drives locked)                                     |
+| Mail (Outlook)        | Read emails, mark as read/spam/archived                                              |
+| Mail (Gmail)          | Read and label Gmail via OAuth 2.0                                                   |
+| Calendar (Outlook)    | Read and create Outlook appointments                                                 |
+| Calendar (Google)     | Read Google Calendar and create events via OAuth 2.0                                 |
+| System                | Temp files, recycle bin, RAM, disk, diagnostics, shutdown                            |
+| Memory                | Vector embeddings (nomic-embed-text), cosine search, 3 types, profile-isolated       |
+| Voice input           | Web Speech API (Chromium built-in, no API key) - Hands-free / Manual / Wakeword      |
+| Voice output          | Kokoro TTS local (EN/ES/FR), Edge TTS for German (internet required) — female voices |
+| Stress detection      | Voice analysis (Python/numpy) — adapts ELLA's tone under tension (opt-in)            |
+| Pause                 | Disable wakeword 1–120 minutes, countdown, automatic resume                          |
+| Web                   | Instant search without confirmation (movies, people, products, news)                 |
+| Weather               | Current weather via Open-Meteo                                                       |
+| Homework mode         | PIN-secured kiosk with app whitelist                                                 |
+| Rule engine           | 107 default rules, allow/deny, time conditions, Directive Layer                      |
+| Monitoring            | Background worker, SSE push, Disk/Ollama/RAM alerts, PnP events                      |
+| USB detection         | USB drives are detected and announced (proactive message + TTS)                      |
+| Network               | LAN scan via ARP, TCP connections, DNS/Firewall/WiFi monitoring                      |
+| Self-configuration    | Change setups, rules, and settings via conversation                                  |
+| Music                 | Search library (artist/album/title), open in Media Player                            |
+| Files                 | Search all drives (Windows Search Index, fast), open files                           |
+| Documents             | Create Word/TXT, read .docx/.pdf/.xlsx/.html (mammoth/pdf-parse/SheetJS)             |
+| Alarms                | DB-based alarms with daily check, proactive trigger in background worker             |
+| Dictation             | Voice input directly into Word, AI corrects grammar and punctuation                  |
+| Compose email         | Open Outlook draft with AI-corrected text (does not send automatically)              |
+| Processes             | Show running processes, kill CPU/RAM hogs (system-critical protected)                |
+| System control        | Set/mute volume, read/write clipboard with 20-entry history                          |
+| Reminders             | Windows Task Scheduler — fires as popup at the set time                              |
+| Screenshot + Vision   | Capture screen and analyze with GPT-4o Vision (OpenAI key required)                  |
+| Writing style         | Generate text in the user's personal style — learns from existing emails             |
+| Duplicates            | Find duplicate files, calculate wasted storage                                       |
+| Autostart             | List programs that start with Windows                                                |
+| Task list             | Persistent TODOs with priority and due date, integrated into daily summary           |
+| Proactive             | Meeting prep, daily summary, comeback briefing, break reminder, clipboard patterns   |
+| Feedback loop         | Thumbs up/down → Ollama extracts user preferences → long-term memory                 |
+| Window context        | ELLA knows the active application during chat (opt-in, Ollama only)                  |
+| Conversation compress | Automatically compress long sessions (local Ollama)                                  |
+| User profiles         | Separate memory and chat history per profile, PBKDF2-secured PIN                     |
 
 ### The E.L.L.A. Directive — four immovable prohibitions
 
@@ -105,7 +105,7 @@ ELLA uses `window.SpeechRecognition` (Chromium built-in) directly in the rendere
 - 4 female voices: Katja (DE), Sonia (EN), Elvira (ES), Denise (FR)
 - Selectable via `spokenLanguage` setting (independent of UI language)
 
-**Kokoro TTS** (`scripts/tts_server.py`, Port 3003, fully offline):
+**Kokoro TTS** (`scripts/tts_server.py`, Port 3003, fully offline for EN/FR/ES; German uses Edge TTS via internet):
 
 - Local neural voice, no internet required
 - Same 4 languages: `af_sarah` / `bf_emma` / `ef_dora` / `ff_siwis`

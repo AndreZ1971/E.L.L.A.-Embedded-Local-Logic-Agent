@@ -330,7 +330,7 @@ Vor dem ersten Ollama-Modell-Download erscheint ein Overlay mit Hardware-Tier-Au
 **Kokoro TTS (`scripts/tts_server.py`):**
 
 - Python Flask-Server, Port 3003, ausschließlich 127.0.0.1 (kein Netzwerk-Zugriff)
-- `kokoro-onnx` — neuronale Stimme, lokal, vollständig offline
+- `kokoro-onnx` — neuronale Stimme, lokal, vollständig offline (EN/FR/ES)
 - Fallback auf Windows-Stimme wenn Kokoro nicht verfügbar
 - Proaktive Alerts und Device-Events werden vorgelesen
 

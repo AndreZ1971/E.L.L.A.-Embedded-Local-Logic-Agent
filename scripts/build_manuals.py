@@ -374,7 +374,7 @@ def make_cover(version, subtitle, styles):
 
 # ── Build ──────────────────────────────────────────────────────────────────────
 
-def build(md_path, pdf_path, pdf_title, cover_subtitle, version='v3.9.0'):
+def build(md_path, pdf_path, pdf_title, cover_subtitle, version='v1.5.6'):
     styles = make_styles()
 
     with open(md_path, encoding='utf-8') as f:

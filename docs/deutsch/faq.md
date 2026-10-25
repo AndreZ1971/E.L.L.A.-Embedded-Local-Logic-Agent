@@ -1,6 +1,6 @@
 # E.L.L.A. — Häufig gestellte Fragen (FAQ)
 
-Version 3.9.1 — Zuletzt aktualisiert: 2026-06-28
+Version 1.5.6 — Zuletzt aktualisiert: 2026-10-25
 
 ---
 
@@ -35,7 +35,7 @@ E.L.L.A. steht für **Embedded Local Logic Agent** — ein persönlicher KI-Assi
 
 ### Was macht ELLA besonders?
 
-- **Läuft lokal:** Das KI-Modell läuft auf deinem Rechner — kein Cloud-Zwang, keine Datenübertragung
+- **Läuft lokal:** Das KI-Modell läuft auf deinem Rechner — kein Cloud-Zwang. Netzwerk nur für Lizenzprüfung und Online-Funktionen die du nutzt ([Details](netzwerk.md))
 - **Lernt mit:** ELLA merkt sich Gewohnheiten und Präferenzen über ein Vektorspeicher-Gedächtnis
 - **Handelt proaktiv:** ELLA schreibt von sich aus in den Chat wenn etwas wichtig ist — ohne dass du fragen musst
 - **Versteht natürliche Sprache:** Du sprichst mit ELLA wie mit einem Menschen — kein Syntaxlernen nötig
@@ -44,14 +44,19 @@ E.L.L.A. steht für **Embedded Local Logic Agent** — ein persönlicher KI-Assi
 
 ### Brauche ich Internet?
 
-Für den **Grundbetrieb: nein.** Chat, Spracheingabe, Musik, Dateisuche, Systemsteuerung — alles läuft offline.
+Für den **Grundbetrieb mit englischer/französischer/spanischer Sprachausgabe: nein.** Chat, lokale Spracheingabe (Whisper), Musik, Dateisuche, Systemsteuerung — alles läuft offline.
 
-Internet ist nur für folgendes nötig:
+**Deutsche Sprachausgabe braucht Internet:** ELLA nutzt dafür Microsoft Edge TTS — der vorgelesene Text wird an Microsoft-Server übertragen. Eine lokale deutsche Stimme ist in Arbeit.
 
+Internet ist außerdem nötig für:
+
+- Lizenzprüfung beim Start (offline-tolerant — funktioniert auch ohne Internet dank Cache)
 - Web-Suche und Wetter
-- OpenAI-Funktionen (GPT-4o, Whisper, Vision)
-- Gmail und Google Calendar (OAuth)
-- Microsoft Edge TTS (Sprachausgabe — kann durch lokales Kokoro TTS ersetzt werden)
+- OpenAI-API mit eigenem Key (Chat, Whisper, Vision, Pipelines)
+- Gmail und Google Calendar (nur wenn verbunden)
+- Einmalige Modell-Downloads beim ersten Nutzen (Kokoro, Whisper, Ollama, MediaPipe)
+
+👉 Alle Netzwerkverbindungen im Detail: [docs/deutsch/netzwerk.md](netzwerk.md)
 
 ### Auf welchen Systemen läuft ELLA?
 
@@ -464,11 +469,16 @@ Wenn du mehr als 30 Minuten inaktiv warst und zurückkommst, fasst ELLA zusammen
 
 Standardmäßig **nein** — im reinen Ollama-Modus verlassen keine Gesprächsdaten deinen Rechner.
 
+**Ausnahme: Deutsche Sprachausgabe** nutzt Microsoft Edge TTS — der vorgelesene Text wird dabei an Microsoft übertragen. Für Englisch, Französisch und Spanisch wird die lokale Kokoro-Stimme verwendet (kein Internet nötig).
+
 Mit OpenAI-Key werden folgende Daten an OpenAI gesendet:
 
 - Der Gesprächsverlauf (Chat-Nachrichten)
 - Audio-Dateien wenn du die Whisper-Spracherkennung nutzt
 - Screenshots wenn du Screenshot-Analyse nutzt
+- Multi-Agenten-Pipelines (laufen nur über OpenAI)
+
+Jede OpenAI-Anfrage wird im Cloud-Zähler im Dashboard protokolliert.
 
 Niemals an externe Dienste gesendet (auch mit OpenAI):
 
@@ -476,6 +486,8 @@ Niemals an externe Dienste gesendet (auch mit OpenAI):
 - Fenster-Kontext (aktive Anwendung)
 - Gesprächskompressionen
 - Gedächtnis-Inhalte
+
+👉 Alle Netzwerkverbindungen im Detail: [docs/deutsch/netzwerk.md](netzwerk.md)
 
 ### Wo werden meine Daten gespeichert?
 
@@ -488,7 +500,7 @@ Niemals an externe Dienste gesendet (auch mit OpenAI):
 | Profil-PINs      | MariaDB (PBKDF2+Salt, 100.000 Iterationen)    |
 | OpenAI-Key       | `%APPDATA%\ELLA\settings.json` (lokal)        |
 
-Alles bleibt auf deinem Rechner. Keine Cloud-Sync, keine Telemetrie.
+Alles bleibt auf deinem Rechner. Keine Cloud-Sync, keine Telemetrie, keine Nutzungsdaten an uns oder Dritte.
 
 ### Wie sicher sind meine Profil-PINs?
 

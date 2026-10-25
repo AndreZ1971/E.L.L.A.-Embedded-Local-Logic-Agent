@@ -231,7 +231,7 @@ Before the first Ollama model download, an overlay appears with a hardware tier 
 
 **Feedback → memory:** Thumbs up/down → `POST /api/feedback` → Ollama extracts a user preference as a natural-language sentence → stored as a `user` memory. Example: thumbs down on a long response → ELLA notes "User prefers short responses".
 
-**85-tool system prompt:** All 85 active tools are explained to the LLM in the system prompt. Prevents hallucinations on tool names.
+**111-tool system prompt:** All 111 active tools are explained to the LLM in the system prompt. Prevents hallucinations on tool names.
 
 **Tests:** 205 → 224 (19 new tests for v3.5.0 features). Default rules IDs 1–85 (IDs 83–85 added, `alarms` table).
 
@@ -330,7 +330,7 @@ Before the first Ollama model download, an overlay appears with a hardware tier 
 **Kokoro TTS (`scripts/tts_server.py`):**
 
 - Python Flask server, port 3003, exclusively 127.0.0.1 (no network access)
-- `kokoro-onnx` — neural voice, local, fully offline
+- `kokoro-onnx` — neural voice, local, fully offline (EN/FR/ES; German uses Edge TTS via internet)
 - Fallback to Windows voice when Kokoro is unavailable
 - Proactive alerts and device events are read aloud
 

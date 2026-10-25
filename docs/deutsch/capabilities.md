@@ -1,42 +1,48 @@
-# E.L.L.A. — Was ich kann (v3.9.1)
+# E.L.L.A. — Was ich kann (v1.5.6)
 
-Stand: 2026-06-28 — 224 Tests grün
+Stand: 2026-10-25 — 389 Tests grün
 
 ---
 
 ## Gedächtnis & Konfiguration
 
-| Tool             | Was es tut                                                          |
-| ---------------- | ------------------------------------------------------------------- |
-| `remember`       | Speichert Informationen dauerhaft (ML-Embedding, Cosine-Similarity) |
-| `forget`         | Löscht eine Erinnerung per ID                                       |
-| `list_memories`  | Listet alles was ELLA über den Nutzer weiß                          |
-| `create_setup`   | Legt eine benannte App-Gruppe an (z. B. "Arbeit starten")           |
-| `load_setup`     | Startet alle Apps aus einem gespeicherten Setup                     |
-| `update_setting` | Ändert ELLA-Einstellungen per Sprache                               |
-| `create_rule`    | Erstellt Erlaubnis-/Verbotsregeln für Tools                         |
+| Tool                     | Was es tut                                                          |
+| ------------------------ | ------------------------------------------------------------------- |
+| `remember`               | Speichert Informationen dauerhaft (ML-Embedding, Cosine-Similarity) |
+| `forget`                 | Löscht eine Erinnerung per ID                                       |
+| `list_memories`          | Listet alles was ELLA über den Nutzer weiß                          |
+| `reflect_on_experiences` | Reflektiert über gesammelte Erfahrungen und Muster                  |
+| `create_setup`           | Legt eine benannte App-Gruppe an (z. B. "Arbeit starten")           |
+| `load_setup`             | Startet alle Apps aus einem gespeicherten Setup                     |
+| `update_setting`         | Ändert ELLA-Einstellungen per Sprache                               |
+| `create_rule`            | Erstellt Erlaubnis-/Verbotsregeln für Tools                         |
 
 ---
 
-## System & Festplatten
+## System & Hardware
 
-| Tool                 | Was es tut                                                      |
-| -------------------- | --------------------------------------------------------------- |
-| `get_disk_usage`     | Freier/belegter Speicher je Laufwerk                            |
-| `get_system_info`    | CPU, GPU, RAM, Computername                                     |
-| `get_system_status`  | Alles auf einmal: Disk + RAM + Netzwerk + Alerts + Boot-Zeit    |
-| `clean_temp`         | Temporäre Dateien löschen                                       |
-| `empty_recycle_bin`  | Papierkorb leeren                                               |
-| `free_ram`           | Ungenutzten RAM freigeben                                       |
-| `shutdown_system`    | PC herunterfahren / neu starten / Schlafmodus                   |
-| `format_drive`       | USB-/externe Laufwerke formatieren _(Bestätigung erforderlich)_ |
-| `rename_drive`       | Volume-Label ändern _(Systemlaufwerke gesperrt)_                |
-| `list_programs`      | Alle installierten Programme auflisten                          |
-| `list_autostart`     | Autostart-Einträge anzeigen                                     |
-| `get_battery_status` | Ladestand, ob geladen wird, geschätzte Restlaufzeit             |
-| `get_temperatures`   | CPU/ACPI-Thermalzonen in °C                                     |
-| `get_event_log`      | Windows-Fehler/Warnungen aus dem Ereignisprotokoll              |
-| `toggle_dark_mode`   | Dark Mode / Light Mode umschalten (Registry)                    |
+| Tool                  | Was es tut                                                      |
+| --------------------- | --------------------------------------------------------------- |
+| `get_disk_usage`      | Freier/belegter Speicher je Laufwerk                            |
+| `get_system_info`     | CPU, GPU, RAM, Computername                                     |
+| `get_system_status`   | Alles auf einmal: Disk + RAM + Netzwerk + Alerts + Boot-Zeit    |
+| `get_gpu_info`        | GPU-Details (Name, VRAM, Treiber, Auslastung)                   |
+| `get_ram_info`        | Detaillierte RAM-Informationen (Slots, Geschwindigkeit, Typ)    |
+| `get_storage_devices` | Alle Speichergeräte mit Typ und Kapazität                       |
+| `get_audio_devices`   | Audio-Ein-/Ausgabegeräte auflisten                              |
+| `get_usb_devices`     | Alle USB-Geräte mit Hersteller und Status                       |
+| `clean_temp`          | Temporäre Dateien löschen                                       |
+| `empty_recycle_bin`   | Papierkorb leeren                                               |
+| `free_ram`            | Ungenutzten RAM freigeben                                       |
+| `shutdown_system`     | PC herunterfahren / neu starten / Schlafmodus                   |
+| `format_drive`        | USB-/externe Laufwerke formatieren _(Bestätigung erforderlich)_ |
+| `rename_drive`        | Volume-Label ändern _(Systemlaufwerke gesperrt)_                |
+| `list_programs`       | Alle installierten Programme auflisten                          |
+| `list_autostart`      | Autostart-Einträge anzeigen                                     |
+| `get_battery_status`  | Ladestand, ob geladen wird, geschätzte Restlaufzeit             |
+| `get_temperatures`    | CPU/ACPI-Thermalzonen in °C                                     |
+| `get_event_log`       | Windows-Fehler/Warnungen aus dem Ereignisprotokoll              |
+| `toggle_dark_mode`    | Dark Mode / Light Mode umschalten (Registry)                    |
 
 ---
 
@@ -47,11 +53,13 @@ Stand: 2026-06-28 — 224 Tests grün
 | `search_files`      | Alle Laufwerke nach Dateien durchsuchen                                |
 | `open_file`         | Datei öffnen (optional: mit App, bei Word ans Ende springen)           |
 | `explore_folder`    | Ordner im Windows Explorer öffnen                                      |
+| `list_folder`       | Ordnerinhalt auflisten                                                 |
 | `read_file_content` | Inhalt einer Textdatei lesen _(BLOCKED_PREFIXES schützen Systempfade)_ |
 | `rename_file`       | Datei/Ordner umbenennen _(mit Bestätigung)_                            |
 | `copy_file`         | Datei kopieren _(mit Bestätigung, Systempfade gesperrt)_               |
 | `create_folder`     | Ordner anlegen (inkl. Unterordner)                                     |
 | `delete_file`       | Datei/Ordner in den Papierkorb _(kein permanentes Löschen)_            |
+| `delete_files`      | Mehrere Dateien auf einmal löschen                                     |
 | `find_duplicates`   | Doppelte Dateien nach Hash finden (Speicherplatz-Verschwendung)        |
 
 ---
@@ -68,6 +76,16 @@ Stand: 2026-06-28 — 224 Tests grün
 | `summarize_text`      | Text zusammenfassen: kurz / mittel / ausführlich                    |
 | `correct_text`        | Grammatik und Zeichensetzung korrigieren (Ollama/OpenAI)            |
 | `write_in_style`      | Text im persönlichen Schreibstil des Nutzers formulieren            |
+
+---
+
+## Dokumenten-Index
+
+| Tool                   | Was es tut                                                |
+| ---------------------- | --------------------------------------------------------- |
+| `index_documents`      | Ordner indexieren für lokale Volltextsuche mit Embeddings |
+| `search_documents`     | Semantische Suche über indexierte Dokumente               |
+| `list_indexed_folders` | Alle indexierten Ordner anzeigen                          |
 
 ---
 
@@ -129,6 +147,9 @@ Stand: 2026-06-28 — 224 Tests grün
 | `list_tasks`      | Offene oder erledigte Aufgaben anzeigen         |
 | `complete_task`   | Aufgabe als erledigt markieren                  |
 | `delete_task`     | Aufgabe löschen                                 |
+| `set_alarm`       | Wecker stellen (DB-basiert, Worker-Check)       |
+| `list_alarms`     | Aktive Wecker anzeigen                          |
+| `delete_alarm`    | Wecker löschen                                  |
 | `set_reminder`    | Erinnerung per Windows Task Scheduler setzen    |
 | `list_reminders`  | Aktive Erinnerungen anzeigen                    |
 | `delete_reminder` | Erinnerung löschen                              |
@@ -150,19 +171,51 @@ Stand: 2026-06-28 — 224 Tests grün
 | Tool              | Was es tut                                                        |
 | ----------------- | ----------------------------------------------------------------- |
 | `play_music`      | Musikbibliothek durchsuchen (Künstler/Album/Titel), Player öffnen |
-| `control_media`   | Medien steuern: Play / Pause / Next / Prev / Stop (VK*MEDIA*\*)   |
-| `get_now_playing` | Aktuell spielenden Titel abrufen (WinRT Windows.Media.Control)    |
+| `control_media`   | Medien steuern: Play / Pause / Next / Prev / Stop                 |
+| `get_now_playing` | Aktuell spielenden Titel abrufen (WinRT)                          |
 
 ---
 
 ## Bildschirm & Vision
 
-| Tool              | Was es tut                                                               |
-| ----------------- | ------------------------------------------------------------------------ |
-| `take_screenshot` | Screenshot + KI-Analyse (GPT-4o Vision)                                  |
-| `read_screen`     | Text vom Bildschirm lesen — lokal, offline (Windows.Media.Ocr WinRT)     |
-| `watch_screen`    | Bildschirm bis 30 s beobachten, Änderungen melden (OCR-Diff)             |
-| `click_element`   | Auf UI-Element klicken per sichtbarem Text — semantisch via OCR (3-Pass) |
+| Tool               | Was es tut                                                               |
+| ------------------ | ------------------------------------------------------------------------ |
+| `take_screenshot`  | Screenshot + KI-Analyse (GPT-4o Vision)                                  |
+| `describe_screen`  | Bildschirm beschreiben (GPT-4o Vision)                                   |
+| `describe_image`   | Bild analysieren (GPT-4o Vision)                                         |
+| `describe_webpage` | Webseite laden und beschreiben                                           |
+| `read_screen`      | Text vom Bildschirm lesen — lokal, offline (Windows.Media.Ocr WinRT)     |
+| `watch_screen`     | Bildschirm bis 30 s beobachten, Änderungen melden (OCR-Diff)             |
+| `click_element`    | Auf UI-Element klicken per sichtbarem Text — semantisch via OCR (3-Pass) |
+
+---
+
+## Kameras
+
+| Tool            | Was es tut                                        |
+| --------------- | ------------------------------------------------- |
+| `list_cameras`  | Alle angeschlossenen Kameras auflisten            |
+| `capture_photo` | Foto aufnehmen (optional mit GPT-4o-Beschreibung) |
+
+---
+
+## Drucker
+
+| Tool               | Was es tut                       |
+| ------------------ | -------------------------------- |
+| `list_printers`    | Alle Drucker auflisten           |
+| `print_document`   | Dokument an einen Drucker senden |
+| `get_print_jobs`   | Aktuelle Druckaufträge anzeigen  |
+| `cancel_print_job` | Druckauftrag abbrechen           |
+
+---
+
+## Monitore
+
+| Tool                  | Was es tut                                 |
+| --------------------- | ------------------------------------------ |
+| `list_monitors`       | Alle angeschlossenen Bildschirme auflisten |
+| `open_app_on_monitor` | App auf einem bestimmten Monitor öffnen    |
 
 ---
 
@@ -189,6 +242,14 @@ Stand: 2026-06-28 — 224 Tests grün
 
 ---
 
+## Schach
+
+| Tool                | Was es tut                                             |
+| ------------------- | ------------------------------------------------------ |
+| `open_chess_window` | Schachpartie in eigenem Fenster starten (4 Themes, KI) |
+
+---
+
 ## Shell
 
 | Tool          | Was es tut                                                        |
@@ -199,24 +260,36 @@ Stand: 2026-06-28 — 224 Tests grün
 
 ## Immer aktiv — ohne Tool-Aufruf
 
-| Feature                           | Was es tut                                                                           |
-| --------------------------------- | ------------------------------------------------------------------------------------ |
-| **Wakeword "ella"**               | Sprachaktivierung via openWakeWord + ONNX (lokal, offline)                           |
-| **Kokoro TTS**                    | Neuronale Sprachausgabe (Node.js via `kokoro-js`, ONNX q8, offline, kein Python)     |
-| **Proaktive Nachrichten**         | ELLA schreibt von sich aus in den Chat (SSE `proactive_message`)                     |
-| **Clipboard-Muster-Erkennung**    | IBAN, Paketnummer, Telefon, URL, E-Mail — Polling alle 3 s                           |
-| **Background Worker**             | Disk/RAM/Ollama-Alerts, PnP, ARP, TCP, Firewall/WiFi/DNS — alle 60 s                 |
-| **Gesprächskompression**          | Ab 15 Nachrichten: älteste 10 → Ollama-Summary (lokal)                               |
-| **Fenster-Kontext**               | Aktives Fenster-Titel wird als Kontext mitgegeben (opt-in, sensible Titel gefiltert) |
-| **Nutzerprofile**                 | Mehrere Profile, PIN-geschützt (PBKDF2 + Salt, 100k Iterationen)                     |
-| **Feedback-Buttons**              | Daumen hoch/runter auf jeder Antwort (DB, nicht im LLM-Kontext)                      |
-| **System Tray**                   | Balloon-Alerts mit Schweregrad-Sound (warning / error / info / device)               |
-| **Onboarding**                    | 6-Schritt-Flow (Name, Directive, Hardware-Scan, Stimme, Standort)                    |
-| **Comeback-Briefing**             | Was hat sich verändert während du weg warst                                          |
-| **Meeting-Prep / Tagesabschluss** | Automatisch fällige Aufgaben + Kalender                                              |
-| **Pause-Reminder**                | Erinnert an Pausen nach Arbeitsmuster                                                |
-| **Rhythmus-Analyse**              | Täglich 12 Uhr — Nutzungsmuster auswerten                                            |
-| **Duplikat-Scan**                 | Sonntags 10 Uhr automatisch                                                          |
+| Feature                           | Was es tut                                                                       |
+| --------------------------------- | -------------------------------------------------------------------------------- |
+| **Wakeword "ella"**               | Sprachaktivierung via openWakeWord + ONNX (lokal, offline)                       |
+| **Kokoro TTS**                    | Neuronale Sprachausgabe für EN/FR/ES (lokal, ONNX q8, offline)                   |
+| **Edge TTS**                      | Sprachausgabe für Deutsch (Microsoft-Server, Text wird übertragen)               |
+| **Diktat-Modus**                  | Sprache wird transkribiert und ins aktive Windows-Fenster getippt (systemweit)   |
+| **Stop-Interrupt**                | Stop-Wörter (Stopp, Halt, Sei still …) brechen TTS sofort ab                     |
+| **Follow-Up-Fenster**             | 8 s nach TTS kann im Wakeword-Modus ohne Wakeword gesprochen werden              |
+| **Proaktive Nachrichten**         | ELLA schreibt von sich aus in den Chat (SSE `proactive_message`)                 |
+| **Proactive Approval-Memory**     | Lernt welche Benachrichtigungen gewünscht sind; Auto-Mute nach 5× Dismiss        |
+| **Clipboard-Muster-Erkennung**    | IBAN, Paketnummer, Telefon, URL, E-Mail — Polling alle 3 s                       |
+| **Background Worker**             | Disk/RAM/Ollama-Alerts, PnP, ARP, TCP, Firewall/WiFi/DNS — alle 60 s             |
+| **Gesprächskompression**          | Zweistufig: regelbasiert (kein LLM) + Ollama-Summary ab 16 Nachrichten           |
+| **Fenster-Kontext**               | Aktives Fenster-Titel als Kontext (opt-in, sensible Titel gefiltert)             |
+| **Knowledge Graph**               | Automatische Tripel-Extraktion aus Gesprächen; Hybrid-Recall (Cosine + Graph)    |
+| **Self-Learning**                 | Positives Feedback (👍) speichert Q&A als Few-Shot-Beispiele                     |
+| **Nutzerprofile**                 | Mehrere Profile, PIN-geschützt (PBKDF2 + Salt, 100k Iterationen)                 |
+| **Feedback-Buttons**              | Daumen hoch/runter auf jeder Antwort (DB, nicht im LLM-Kontext)                  |
+| **System Tray**                   | Balloon-Alerts mit Schweregrad-Sound (warning / error / info / device)           |
+| **Onboarding**                    | 6-Schritt-Flow (Name, Directive, Hardware-Scan, Stimme, Standort)                |
+| **Comeback-Briefing**             | Was hat sich verändert während du weg warst                                      |
+| **Meeting-Prep / Tagesabschluss** | Automatisch fällige Aufgaben + Kalender                                          |
+| **Pause-Reminder**                | Erinnert an Pausen nach Arbeitsmuster                                            |
+| **Rhythmus-Analyse**              | Täglich 12 Uhr — Nutzungsmuster auswerten                                        |
+| **Duplikat-Scan**                 | Sonntags 10 Uhr automatisch                                                      |
+| **Schwärzen**                     | Sensible Daten (API-Keys, IBANs, Passwörter) werden vor dem Speichern geschwärzt |
+| **Stresserkennung**               | Optionale Sprachanalyse (RMS/ZCR/Pitch) gibt Hinweise in Memories                |
+| **Erscheinungsbilder**            | 3 Themes: Calm (Standard), HUD (technisch/Cyan), Show (Präsentation)             |
+| **Gestensteuerung**               | MediaPipe-basierte Handgesten zur Steuerung (experimentell)                      |
+| **Token-Optimierung**             | Tool-Selector (~12 statt 111 Tools pro Anfrage) + Tool-Ergebnis-Kompression      |
 
 ---
 
@@ -233,7 +306,7 @@ Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → Tool Execu
 | **surveil**    | Keine Überwachung ohne ausdrückliches Wissen und aktive Zustimmung         |
 | **exfiltrate** | Keine Datenweitergabe an Dritte ohne ausdrückliche Zustimmung              |
 
-- 89 Default-Regeln möglich (IDs 1–85 eingespielt, weitere via Bestätigungs-Varianten) — automatisch beim Start gesetzt
+- **107 Default-Regeln** (IDs 1–107) — automatisch beim Start gesetzt
 - Audit-Log jeder Directive-Ablehnung in `directive_audit`-Tabelle
 - Konfirmationspflicht für destruktive Aktionen (Klick, Drag, Shell, Umbenennen, Fenster schließen)
 - Passwort-Manager-Fenster gesperrt für Maus-Tools (1Password, KeePass, Bitwarden, PayPal, Bank…)
@@ -242,13 +315,27 @@ Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → Tool Execu
 
 ---
 
+## API-Sicherheit
+
+| Maßnahme         | Detail                                                |
+| ---------------- | ----------------------------------------------------- |
+| Loopback-Binding | Express bindet auf `127.0.0.1` — nur lokal erreichbar |
+| Per-Start Token  | `randomBytes(32)` bei jedem Electron-Start            |
+| CORS             | Nur `http://localhost:5173` zugelassen                |
+| Cloud-Gateway    | Alle OpenAI-Calls über `openaiRequest()` — geloggt    |
+| Schwärzen        | API-Keys, IBANs, Kreditkarten vor dem Speichern       |
+
+---
+
 ## Zahlen
 
-| Kennzahl         | Wert                                                                     |
-| ---------------- | ------------------------------------------------------------------------ |
-| Tools (aktiv)    | **85** _(+ 1 durch Directive gesperrt: `delete_files`)_                  |
-| Test-Cases       | **224 grün** (Vitest Unit + Integration)                                 |
-| Git-Tags         | v1.0 → v3.9.1                                                            |
-| LLM-Backends     | Ollama llama3.1:8b (lokal) + OpenAI GPT-4o (optional)                    |
-| Datenbank        | MariaDB, lokal, kein Cloud-Zugriff                                       |
-| Netzwerk-Ausgang | Nur auf expliziten Nutzer-Befehl (Web-Suche, Wetter, Gmail/Google OAuth) |
+| Kennzahl       | Wert                                                                             |
+| -------------- | -------------------------------------------------------------------------------- |
+| Tools (aktiv)  | **111** _(+ 1 durch Directive gesperrt: `delete_files`)_                         |
+| Test-Cases     | **389 grün** (Vitest Unit + Integration)                                         |
+| Default-Regeln | **107** (IDs 1–107)                                                              |
+| Git-Tags       | v1.0 → v1.5.6                                                                    |
+| LLM-Backends   | Ollama (lokal) + OpenAI-API (optional, eigener Key)                              |
+| LLM-Modi       | Auto (lokal zuerst) · OpenAI (Cloud bevorzugt) · Ollama (nur lokal)              |
+| Datenbank      | MariaDB, lokal, kein Cloud-Zugriff                                               |
+| Netzwerk       | Siehe [Netzwerkverbindungen](netzwerk.md) für die vollständige Transparenz-Seite |

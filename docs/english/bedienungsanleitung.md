@@ -1,6 +1,6 @@
 # E.L.L.A. — User Manual
 
-Version 1.5.0
+Version 1.5.6
 
 ---
 
@@ -8,10 +8,10 @@ Version 1.5.0
 
 E.L.L.A. stands for _Embedded Local Logic Agent_ — your personal AI assistant for Windows. Always ready, always local, always yours.
 
-What makes me different: I run entirely on your own machine. Your data stays with you — no cloud server, no subscription, no privacy fine print. Just install and go.
+What makes me different: I run locally on your own machine. No subscription, no privacy fine print. Just install and go.
 
-**No ChatGPT. No Groq. No hidden API key that makes it all possible.**
-I don't need any of that — Ollama runs locally, the AI runs locally, your data stays local.
+**No hidden API key that makes it all possible.**
+Ollama runs locally, the AI runs locally, your data stays local. For some optional features (German voice output, multi-agents, vision) you can configure your own OpenAI key — details at [Network connections](network.md).
 
 ---
 
@@ -19,7 +19,7 @@ I don't need any of that — Ollama runs locally, the AI runs locally, your data
 
 ### Installation
 
-1. Run `E.L.L.A Setup 1.5.0.exe`
+1. Run `E.L.L.A Setup 1.5.6.exe`
 2. Choose an installation path (default: `C:\Program Files\E.L.L.A`)
 3. The installer sets everything up automatically — MariaDB, Ollama, Node.js. Nothing else to install.
 
@@ -53,8 +53,9 @@ Click the **microphone button** or say **"Ella"** (wakeword mode). Modes:
 
 ### Voice Output (TTS)
 
-- **Kokoro TTS** (default) — local neural voice via `kokoro-js`, fully offline, model downloaded automatically on first launch
-- **Microsoft Edge TTS** (fallback) — automatic fallback when Kokoro is unavailable
+- **Kokoro TTS** — local neural voice via `kokoro-js` (ONNX q8, offline) for **English, French, and Spanish**. Model downloaded from HuggingFace on first launch (~80 MB, one-time)
+- **Microsoft Edge TTS** — primary voice for **German** (de-DE-KatjaNeural). The spoken text is sent to Microsoft servers. Also used as fallback for other languages when Kokoro is unavailable
+- Language selection in Settings: DE/EN/ES/FR — the appropriate engine is selected automatically
 
 ### Feedback Loop
 
@@ -72,7 +73,7 @@ The avatar panel bottom-left shows a green chip indicating whether **Ollama** (l
 
 ## All Tools at a Glance
 
-ELLA has **85+ tools**. Here are all of them — with examples.
+ELLA has **111 tools**. Here are all of them — with examples.
 
 ---
 
@@ -1206,11 +1207,69 @@ Refusals appear as a red **DIRECTIVE** banner in chat.
 
 ## Privacy
 
-- All data stays on your machine
+- All data stays on your machine — no usage data sent to us or third parties
 - No telemetry, no tracking
-- Ollama runs fully offline
-- OpenAI features (Vision, Multi-Agents) only when a key is configured and actively used
+- Ollama runs locally, database locally (MariaDB)
+- German voice output via Edge TTS: text is sent to Microsoft servers (only exception during standard operation)
+- OpenAI features (Vision, Multi-Agents, Whisper) only when your own key is configured and actively used
 - OpenAI does not train models on API data
+- Full transparency: [Network connections](network.md)
+
+---
+
+## Dictation Mode (since v1.5.4)
+
+Speech is transcribed and typed directly into the active Windows window — system-wide, not just within ELLA.
+
+**Activation:**
+
+- In Settings → Voice → set mode to "Dictation"
+- Or: keyboard shortcut `Ctrl+Alt+Space` (configurable in Settings)
+
+**How it works:**
+
+- ELLA listens, transcribes via Whisper, and types the text into the active window
+- Optional: spell correction before typing (`dictationCorrection` setting)
+- The clipboard is backed up and restored after insertion
+
+---
+
+## Appearances (since v1.5.6)
+
+ELLA has three visual themes:
+
+- **Calm** (default) — dark, quiet design
+- **HUD** — technical layout with cyan accent, top bar instead of sidebar, telemetry panels
+- **Show** — presentation mode in fullscreen: only the orb and the last response, sensitive data is redacted
+
+Switch: Settings → Appearance
+
+**HUD accent colors:** Cyan, Violet, Amber
+
+**Automatic fallback:** In blind mode, homework mode, or with `prefers-reduced-motion`, the appearance automatically falls back to Calm.
+
+---
+
+## Offline Mode (since v1.5.2)
+
+Under Settings → Offline Mode, ELLA can be completely disconnected from the internet:
+
+- All network tools blocked (web search, weather, location, webpages)
+- No OpenAI — `cloudAllowed()` returns `false`
+- License verification uses the local cache
+- Local network tools (`scan_network`, `list_connections`, `list_devices`) still work
+
+**Note:** In offline mode, German voice output is unavailable (Edge TTS requires internet).
+
+---
+
+## Cloud Governance (since v1.5.1)
+
+All OpenAI requests go through a central function (`openaiRequest()`):
+
+- **Cloud counter:** Every request is logged in the database
+- **Dashboard tile:** Shows today's cloud request count
+- **Three provider modes:** Auto (local first, OpenAI fallback) · OpenAI (cloud preferred) · Ollama (local only)
 
 ---
 
@@ -1220,7 +1279,7 @@ Refusals appear as a red **DIRECTIVE** banner in chat.
 Ollama may not be running. The orange banner at the top of the chat indicates this. Restart Ollama or switch to OpenAI.
 
 **Can I use ELLA offline?**
-Yes — completely. Only weather (Open-Meteo), Gmail/Google Calendar, and OpenAI features need internet.
+Mostly yes. The core (chat, tools, memory) runs locally via Ollama. German voice output requires Edge TTS (internet, Microsoft servers). Weather, Gmail/Google Calendar, and OpenAI features also need internet. The offline mode in Settings blocks all network tools and cloud services. Details: [Network connections](network.md).
 
 **How do I change the language model?**
 Settings → LLM → choose a model or enter a custom name.
@@ -1239,5 +1298,5 @@ Say "Forget everything about me" — or individual entries: "Show me your memory
 
 ---
 
-_E.L.L.A. v1.5.0 — Embedded Local Logic Agent_
+_E.L.L.A. v1.5.6 — Embedded Local Logic Agent_
 _Built for Windows 10/11 (x64)_

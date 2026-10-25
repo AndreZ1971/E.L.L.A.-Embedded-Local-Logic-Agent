@@ -2,7 +2,7 @@
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
-Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offline via Ollama, optional mit OpenAI GPT-4o.
+Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft lokal via Ollama, optional mit OpenAI-API. Keine Telemetrie — Netzwerk nur für Lizenzprüfung und Online-Funktionen die du nutzt ([Details](docs/deutsch/netzwerk.md)).
 
 **[English version below](#english)**
 
@@ -10,7 +10,7 @@ Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft vollständig offli
 
 ## Was ist ELLA?
 
-ELLA ist ein persönlicher KI-Assistent, der vollständig auf deinem Windows-Rechner läuft — keine Cloud, kein Abo, keine Telemetrie. Sie verwaltet dein System, lernt deine Gewohnheiten, erinnert sich an Gespräche und handelt proaktiv.
+ELLA ist ein persönlicher KI-Assistent, der lokal auf deinem Windows-Rechner läuft — kein Cloud-Zwang, kein Abo, keine Telemetrie. Sie verwaltet dein System, lernt deine Gewohnheiten, erinnert sich an Gespräche und handelt proaktiv.
 
 ## Highlights
 
@@ -23,7 +23,7 @@ ELLA ist ein persönlicher KI-Assistent, der vollständig auf deinem Windows-Rec
 
 ### Produktivität
 
-- **85 Tools:** Dateien suchen, Dokumente erstellen/lesen, Aufgaben verwalten, Wecker, Musik, Prozesse, Dienste, Lautstärke, Zwischenablage, Erinnerungen, Screenshots, Textverarbeitung
+- **111 Tools:** Dateien suchen, Dokumente erstellen/lesen, Aufgaben verwalten, Wecker, Musik, Prozesse, Dienste, Lautstärke, Zwischenablage, Erinnerungen, Screenshots, Textverarbeitung, Desktop-Automation, Drucker, Kameras, Hardware-Info
 - **Outlook & Gmail:** E-Mails lesen, Kalender verwalten, Entwürfe erstellen
 - **Multi-Agenten-Pipeline:** Parallele KI-Agenten für komplexe Aufgaben (Morgenbriefing, System-Report)
 - **Setup-Aktionen:** Automatisierte Tool-Chains als persönliche Makros
@@ -37,7 +37,7 @@ ELLA ist ein persönlicher KI-Assistent, der vollständig auf deinem Windows-Rec
 ### Voice & Barrierefreiheit
 
 - **Wakeword:** "ELLA" — immer bereit, lokal erkannt (OpenWakeWord + ONNX)
-- **Kokoro TTS:** Lokale neuronale Stimme in 4 Sprachen (DE/EN/ES/FR)
+- **Kokoro TTS:** Lokale neuronale Stimme für Englisch, Französisch, Spanisch (ONNX). Deutsch über Microsoft Edge TTS (Internetverbindung nötig)
 - **Stress-Erkennung:** Analysiert Stimme auf Stresslevel, passt Antworten an
 - **Blind-Modus:** TTS erzwungen, Audio-Feedback, vollständige ARIA-Labels
 - **Gehörlosenmodus:** Rein visuell, keine Audio-Elemente
@@ -60,7 +60,7 @@ Vier unveränderliche, architektonisch verankerte Verbote:
 
 ### Token-Optimierung
 
-- **Tool-Selector:** Sendet nur relevante Tools (~12 statt 85) pro Anfrage
+- **Tool-Selector:** Sendet nur relevante Tools (~12 statt 111) pro Anfrage
 - **Pre-Compression:** Regelbasierte Vorkompression ohne LLM-Kosten
 - **Output-Limits:** Hard-Cap auf Tool-Ergebnisse und JSON-Strings
 
@@ -98,7 +98,7 @@ Der Installer bündelt alles — Node.js, MariaDB, Ollama. Der Nutzer braucht ni
 
 | Version    | Highlights                                                                             |
 | ---------- | -------------------------------------------------------------------------------------- |
-| v1.0.0     | Kern: 85 Tools, Rule Engine, Voice, Directive, Onboarding                              |
+| v1.0.0     | Kern: 111 Tools, Rule Engine, Voice, Directive, Onboarding                             |
 | v1.1.0     | Token-Optimierung: Tool-Selector, Token-Optimizer                                      |
 | v1.2.0     | Multi-Agenten-Pipeline mit Live-Streaming                                              |
 | v1.3.0     | Setup-Aktionen, Netzwerk-Transparenz                                                   |
@@ -117,7 +117,7 @@ Proprietär. Lizenzschlüssel erforderlich.
 
 > _ELLA adapts to the user and grows with their challenges._
 
-Local Windows AI assistant as an Electron desktop app. Runs fully offline via Ollama, optionally with OpenAI GPT-4o.
+Local Windows AI assistant as an Electron desktop app. Runs locally via Ollama, optionally with OpenAI API. No telemetry — network only for license check and online features you use.
 
 ---
 
@@ -136,7 +136,7 @@ ELLA is a personal AI assistant that runs entirely on your Windows machine — n
 
 ### Productivity
 
-- **85 Tools:** Search files, create/read documents, manage tasks, alarms, music, processes, services, volume, clipboard, reminders, screenshots, text processing
+- **111 Tools:** Search files, create/read documents, manage tasks, alarms, music, processes, services, volume, clipboard, reminders, screenshots, text processing, desktop automation, printers, cameras, hardware info
 - **Outlook & Gmail:** Read emails, manage calendar, create drafts
 - **Multi-Agent Pipeline:** Parallel AI agents for complex tasks (morning briefing, system report)
 - **Setup Actions:** Automated tool-chains as personal macros
@@ -211,7 +211,7 @@ The installer bundles everything — Node.js, MariaDB, Ollama. The user needs no
 
 | Version    | Highlights                                                                            |
 | ---------- | ------------------------------------------------------------------------------------- |
-| v1.0.0     | Core: 85 tools, rule engine, voice, directive, onboarding                             |
+| v1.0.0     | Core: 111 tools, rule engine, voice, directive, onboarding                            |
 | v1.1.0     | Token optimization: tool selector, token optimizer                                    |
 | v1.2.0     | Multi-agent pipeline with live streaming                                              |
 | v1.3.0     | Setup actions, network transparency                                                   |

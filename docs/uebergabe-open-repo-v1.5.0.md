@@ -1,20 +1,19 @@
-# Übergabe: ELLA Open Repo auf v1.5.0 aktualisieren
+# Übergabe: ELLA Open Repo auf v1.5.6 aktualisieren
 
-**Datum:** 2026-10-10
+**Datum:** 2026-10-25
 **Quell-Repo:** `github.com/AndreZ1971/E.L.L.A.git` (privat, Branch: master)
-**Ziel:** ELLA Open Repo auf den aktuellen Stand v1.5.0 bringen
+**Ziel:** ELLA Open Repo auf den aktuellen Stand v1.5.6 bringen
 
 ---
 
 ## Aktueller Stand im Haupt-Repo
 
-- **HEAD:** `efca81e` — Self-Learning Loop
-- **Letzter Tag:** `v3.9.1` (internes Tagging-Schema)
-- **App-Version:** 1.5.0
-- **Installer:** `E.L.L.A Setup 1.5.0.exe` gebaut und bereit
-- **Tests:** 261 Tests — alle grün
-- **Desktop package.json:** auf 1.5.0 aktualisiert
-- **Build-Script:** auf 1.5.0 aktualisiert
+- **HEAD:** `022bf44` — HUD Feinschliff
+- **Letzter Tag:** `v1.5.6`
+- **App-Version:** 1.5.6 (Desktop package.json noch auf 1.5.5 — **vor Release aktualisieren**)
+- **Installer:** noch nicht gebaut für v1.5.6
+- **Tests:** 389 Tests — alle grün
+- **Build-Script:** auf v1.5.6 aktualisiert
 
 ---
 
@@ -60,6 +59,42 @@
 - Zeitbewusstsein (Session-Dauer, Pausen, letzte Interaktion)
 - qwen2.5:7b als Balanced-Tier
 
+### v1.5.1 — Sicherheitspatch & Cloud-Governance
+
+- Loopback-Binding (127.0.0.1), Per-Start API-Token, CORS
+- `openaiRequest()` als zentrale Cloud-Funktion, Cloud-Zähler
+- `cloudFirst()` / `cloudAllowed()` Pattern
+- DuckDuckGo als primäre Websuche
+- Cloud-Dashboard-Kachel
+
+### v1.5.2 — Directive-Härtung & Datenschutz
+
+- Schwärzen sensibler Daten vor dem Speichern (redact.ts)
+- Ergebnis-Transparenz im System-Prompt
+- Offline-Modus (offlineMode-Setting)
+
+### v1.5.3 — Natürliches Gespräch
+
+- Stop-Interrupt: TTS abbrechen per Sprachbefehl
+- Follow-Up-Fenster: 8s nach TTS ohne Wakeword sprechen
+
+### v1.5.4 — Diktat überall
+
+- Diktat-Modus: Sprache → aktives Windows-Fenster (systemweit)
+- Konfigurierbarer Hotkey (Ctrl+Alt+Space)
+
+### v1.5.5 — Diktat-Qualität & Hotkey-Sicherheit
+
+- Clipboard-Sicherung bei Diktat
+- Konfigurierbarer Hotkey ohne Konflikte
+
+### v1.5.6 — HUD-Modus & Erscheinungsbild
+
+- 3 Erscheinungsbilder: Calm, HUD, Show (Präsentation)
+- HUD-Akzentfarben, Telemetrie-Panels, Orb-Zustände
+- Lokale Schriften (Chakra Petch, JetBrains Mono)
+- Performance-Drosselung bei LLM-Arbeit
+
 ---
 
 ## Commits (chronologisch, älteste zuerst)
@@ -103,6 +138,7 @@ efca81e feat: Self-Learning Loop
 - `proactive_preferences` — Proaktive Nachrichten Approval/Mute
 - `learning_examples` — Self-Learning goldene Q&A-Paare
 - `indexed_documents` / `document_chunks` — Dokument-RAG
+- `system_events` — Cloud-Request-Logging (v1.5.1)
 
 Alle in `database/schema.sql` als `CREATE TABLE IF NOT EXISTS` — idempotent.
 
@@ -114,6 +150,12 @@ Alle in `database/schema.sql` als `CREATE TABLE IF NOT EXISTS` — idempotent.
 - `stressDetectionEnabled` (boolean, default: false)
 - `indexedFolders` (string[], default: [])
 - `spokenLanguage` ("de" | "en" | "es" | "fr")
+- `offlineMode` (boolean, default: false)
+- `dictationCorrection` (boolean, default: false)
+- `dictationHotkey` (string, default: "CommandOrControl+Alt+Space")
+- `appearance` ("calm" | "hud" | "show", default: "calm")
+- `hudAccent` ("cyan" | "violett" | "bernstein", default: "cyan")
+- `hudThrottle` (boolean, default: true)
 
 ---
 
@@ -132,12 +174,12 @@ Alle in `database/schema.sql` als `CREATE TABLE IF NOT EXISTS` — idempotent.
 
 - [ ] Alle neuen Source-Dateien kopieren / synchronisieren
 - [ ] `database/schema.sql` abgleichen (neue Tabellen)
-- [ ] `package.json` Versionen prüfen (Desktop → 1.5.0)
-- [ ] `CLAUDE.md` aktualisieren (Feature-Stand v1.5.0)
+- [ ] `package.json` Versionen prüfen (Desktop → 1.5.6)
+- [ ] `CLAUDE.md` aktualisieren (Feature-Stand v1.5.6)
 - [ ] README.md / Dokumentation aktualisieren
 - [ ] `.gitignore` prüfen (keine Secrets, keine vendor-Binaries)
-- [ ] Tests laufen lassen (`npm test` → 261 grün)
-- [ ] Tag setzen (`v1.5.0`)
+- [ ] Tests laufen lassen (`npm test` → 389 grün)
+- [ ] Tag setzen (`v1.5.6`)
 - [ ] Push + Release erstellen
 
 ---

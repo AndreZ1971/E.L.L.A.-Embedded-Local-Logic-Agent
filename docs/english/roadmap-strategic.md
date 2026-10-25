@@ -1,7 +1,7 @@
 # E.L.L.A. — Strategic Roadmap
 
 **As of:** June 2026
-**Current:** v3.4.0 — production-ready, local, Directive-secured, 85 tools
+**Current:** v1.5.6 (internally v3.x) — production-ready, local, Directive-secured, 111 tools
 
 > _E.L.L.A. adapts to the user and grows with her challenges._
 
@@ -11,12 +11,12 @@
 
 E.L.L.A. runs on an i3 12th Gen with a GTX 1060 — consumer hardware below the market average. This is no accident. It is the proof: what runs on this hardware runs on any modern Windows device.
 
-**Productive today (v3.4.0):**
+**Productive today (v1.5.6):**
 
-- Local AI inference (llama3.1:8b, 14.6 t/s GPU, fully offline)
-- 85 active tools — system control, files, media, network, communication, UI automation
+- Local AI inference (llama3.1:8b, 14.6 t/s GPU, local)
+- 111 active tools — system control, files, media, network, communication, UI automation, printers, cameras, desktop automation
 - Wakeword activation ("ella") via openWakeWord + ONNX, fully offline
-- Kokoro TTS — neural local speech output (Port 3003, 127.0.0.1-only)
+- Kokoro TTS — neural local speech output for EN/FR/ES (Node.js ONNX), Edge TTS for German
 - Mail & calendar (Outlook COM + Gmail/Google Calendar via OAuth 2.0)
 - Proactive monitoring — firewall, DNS, new devices, storage, clipboard patterns
 - Complete memory system (768-dim embeddings, MariaDB, cosine search)

@@ -4,6 +4,138 @@ Alle nennenswerten Änderungen je Release. Neueste Version zuerst.
 
 ---
 
+## v1.5.6 — HUD-Modus & Erscheinungsbild
+
+**Veröffentlicht:** Oktober 2026
+
+### Neue Funktionen
+
+#### Drei Erscheinungsbilder
+
+- **Ruhig** (`calm`, Standard): klassisches dunkles Design
+- **HUD** (`hud`): technisches Interface mit Cyan-Akzent, Telemetrie-Panels, System-Infos
+- **Präsentation** (`show`): Vollbild-Modus mit nur Orb und letzter Antwort, Privat-Filter für sensible Daten
+
+#### HUD-Modus im Detail
+
+- Top-Bar mit Status-Chips (LOKAL/OFFLINE/CLOUD) statt Sidebar
+- Vier Info-Panels: System (CPU/RAM/VRAM/Temp), Monitore, Routinen, Direktive
+- Großer Orb mit 6 animierten Zuständen: bereit, hört, denkt, spricht, cloud, offline
+- SVG-Ring-Overlay mit Countdown-Anzeige für das Follow-Up-Fenster
+- Akzentfarben wählbar: Cyan, Violett, Bernstein
+
+#### Weitere Verbesserungen
+
+- Automatischer Rückfall auf "Ruhig" bei Blindmodus, Hausaufgabenmodus oder `prefers-reduced-motion`
+- Lokale Schriften (Chakra Petch + JetBrains Mono) — kein CDN nötig
+- Performance-Drosselung: Animationen werden beim Denken verlangsamt, Canvas pausiert bei unsichtbarem Tab
+- Sofortiger Stilwechsel über Custom Event (kein 10s-Polling nötig)
+- Telemetrie-API: `GET /api/system/telemetry` (CPU/RAM/VRAM/Disk/Temp), `GET /api/system/monitors`
+- TTS-Engine-Erkennung korrigiert: `activeTtsEngine()` als Single Source of Truth
+
+---
+
+## v1.5.5 — Diktat-Qualität & Hotkey-Sicherheit
+
+**Veröffentlicht:** Oktober 2026
+
+- Clipboard-Sicherung beim Diktieren: Zwischenablage wird vor dem Einfügen gesichert und wiederhergestellt
+- Konfigurierbarer Diktat-Hotkey (Standard: `Ctrl+Alt+Space`, vorher `Ctrl+Shift+D` — kollidierte mit Word/Chrome/VS Code)
+- Hotkey-Registrierung abgesichert: fehlgeschlagene Registrierung wird geloggt
+- API-Hotkey-Sync: Hotkey-Änderungen im Settings-UI aktualisieren sofort per IPC
+
+---
+
+## v1.5.4 — Diktat überall
+
+**Veröffentlicht:** Oktober 2026
+
+### Neue Funktionen
+
+#### Diktat-Modus
+
+Sprache wird transkribiert und direkt ins aktive Windows-Fenster getippt — systemweit, nicht nur in ELLA.
+
+- Neuer Hörmodus "Diktat" neben Aus/Manuell/Wakeword/Freihand
+- `POST /api/speech/dictate`: Audio → Whisper → optionale Rechtschreibkorrektur → Text ins Fenster
+- Amber-Statusanzeige im Chat bei aktivem Diktat
+- Electron Global Hotkey zum Umschalten (konfigurierbar)
+- Optionale Rechtschreibkorrektur via `correctText()` vor dem Tippen
+
+---
+
+## v1.5.3 — Natürliches Gespräch
+
+**Veröffentlicht:** September 2026
+
+- **Stop-Interrupt:** ELLA stoppt die Sprachausgabe sofort bei Stop-Wörtern (Stopp, Halt, Sei still, Leise, Quiet, Stop it, Shut up)
+- **Follow-Up-Fenster:** 8 Sekunden nach TTS-Ende kann ohne erneutes Wakeword gesprochen werden
+- Echo-Cancellation verhindert Fehlauslösung durch eigene Sprachausgabe
+
+---
+
+## v1.5.2 — Directive-Härtung & Datenschutz
+
+**Veröffentlicht:** September 2026
+
+- **Schwärzen vor dem Speichern:** API-Keys, Bearer-Tokens, IBANs, Kreditkartennummern werden per Regex entfernt bevor sie in Gedächtnis oder Clipboard-History landen
+- **Ergebnis-Transparenz:** System-Prompt erzwingt dass ELLA Tool-Fehler klar kommuniziert statt "erledigt" zu sagen
+- **Offline-Modus:** Sperrt alle Web-Tools und OpenAI; lokale Netzwerk-Tools funktionieren weiterhin; Offline-Banner in der UI
+
+---
+
+## v1.5.1 — Sicherheitspatch & Cloud-Governance
+
+**Veröffentlicht:** August 2026
+
+### Sicherheit
+
+- **Loopback-Binding:** API bindet auf `127.0.0.1` — nur lokal erreichbar
+- **Per-Start API-Token:** `randomBytes(32)` bei jedem Start, `timingSafeEqual`-Prüfung
+- **CORS:** Nur `http://localhost:5173` erlaubt
+
+### Cloud-Governance
+
+- **`openaiRequest()`:** Zentrale Funktion für alle OpenAI-Calls, prüft `cloudAllowed()`
+- **Cloud-Zähler:** Jeder OpenAI-Call wird in `system_events` protokolliert (Dashboard-Kachel)
+- **Drei Provider-Modi:** `auto` (lokal zuerst), `openai` (Cloud bevorzugt), `ollama` (nur lokal)
+- **DuckDuckGo-Websuche:** Primäre Suchmaschine ohne API-Key; OpenAI Web Search nur als Fallback
+
+---
+
+## v1.5.0 — Knowledge Graph & Intelligentes Gedächtnis
+
+**Veröffentlicht:** August 2026
+
+### Neue Funktionen
+
+#### Knowledge Graph
+
+ELLA extrahiert automatisch Zusammenhänge aus Gesprächen als Subjekt/Prädikat/Objekt-Triples — ohne Extra-LLM-Call.
+
+- Hybrid-Recall: Cosine-Suche + Graph-Traversal für tieferen Kontext
+- Dashboard-Graph: Echte Relationen als Kanten im Memory-Graph (D3.js)
+
+#### Proaktives Gedächtnis
+
+- 14 Kategorien für proaktive Nachrichten, Auto-Mute nach 5x Wegdrücken
+- Dismiss- und Mute-Buttons direkt an jeder proaktiven Nachricht
+- `alarm` und `scheduled_setup` nicht stummschaltbar
+
+#### Self-Learning
+
+- Positives Feedback (👍) speichert Q&A-Paare als Few-Shot-Beispiele
+- `recallExamples()` findet ähnliche Paare und injiziert sie in den System-Prompt
+- Duplikat-Prävention (≥85% Cosine)
+
+#### Weitere Verbesserungen
+
+- Regelbasierte Pre-Compression: leere Nachrichten, Duplikate, lange Texte kürzen — kein LLM nötig
+- Token-Output-Limits: Hard-Cap 3000 Zeichen pro Tool-Ergebnis
+- Memory-Deduplizierung: rückwirkende Bereinigung mit 🧹-Button im Dashboard
+
+---
+
 ## v1.4.0 — Schach & visuelles Brett-Erlebnis
 
 **Veröffentlicht:** September 2026
@@ -191,7 +323,7 @@ In der gesamten UI heißt der Cloud-Provider jetzt einheitlich "OpenAI" statt "O
 
 #### Tool-Selector
 
-Statt alle 85 Tools bei jeder Anfrage zu übertragen, analysiert ELLA die Anfrage und sendet nur die ~12 relevantesten Tools. Bis zu 90 % weniger Input-Tokens. 8 Kern-Tools sind immer aktiv, 20 Gruppen werden per DE/EN-Regex bedarfsweise zugeschaltet.
+Statt alle 111 Tools bei jeder Anfrage zu übertragen, analysiert ELLA die Anfrage und sendet nur die ~12 relevantesten Tools. Bis zu 90 % weniger Input-Tokens. 8 Kern-Tools sind immer aktiv, 20 Gruppen werden per DE/EN-Regex bedarfsweise zugeschaltet.
 
 #### Token-Optimizer
 
@@ -212,7 +344,7 @@ Ab Runde 1 des Tool-Loops werden nur noch kontextrelevante Tools angeboten. Olla
 - Dual-LLM: Ollama (llama3.1:8b, offline) + OpenAI GPT-4o (optional)
 - SSE-Streaming für Echtzeit-Antworten
 - Tool-Loop mit maximal 5 Runden
-- 85 Tools mit vollständigen Handlern und Audit-Log
+- 111 Tools mit vollständigen Handlern und Audit-Log
 - Rule Engine: Direktive → Deny → Allow → Standard-Allow
 - Directive-Denial UI: roter Badge bei Regelablehnung
 - Per-Session Mutex gegen Race-Conditions bei parallelen Anfragen

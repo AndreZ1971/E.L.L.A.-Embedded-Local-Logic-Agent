@@ -1,4 +1,4 @@
-# Architektur — v3.9.1
+# Architektur — v1.5.6
 
 ---
 
@@ -39,7 +39,7 @@
 │                    └────────────────┘          └─────────────┘  │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │  Tool-Loop (85 aktive Tools)                            │    │
+│  │  Tool-Loop (111 aktive Tools)                            │    │
 │  │   1. recall(message)         — Gedächtnis laden         │    │
 │  │   2. LLM-Stream              — mit Memories + Tools     │    │
 │  │   3. DirectiveLayer.check()  — harm/surveil/etc.        │    │
@@ -314,7 +314,7 @@ z:\repos\E.L.L.A\
 │  │     │  ├─ windowManager.ts     — launchApp, controlWindow, sendKeys
 │  │     │  └─ worker.ts            — Background-Worker (60s: Disk/RAM/PnP/ARP/TCP)
 │  │     └─ tools/
-│  │        ├─ definitions.ts       — Tool-Schemas für LLM (85 aktive Tools)
+│  │        ├─ definitions.ts       — Tool-Schemas für LLM (111 aktive Tools)
 │  │        ├─ executor.ts          — Directive + Rule-Check + Dispatch
 │  │        └─ registry.ts          — Legacy (listEnabled via settings)
 │  │

@@ -1,6 +1,6 @@
 # E.L.L.A. — Bedienungsanleitung
 
-Version 1.5.0
+Version 1.5.6
 
 ---
 
@@ -8,10 +8,10 @@ Version 1.5.0
 
 E.L.L.A. steht für _Embedded Local Logic Agent_ — dein persönlicher KI-Assistent für Windows. Immer bereit, immer lokal, immer bei dir.
 
-Das Besondere: Ich laufe vollständig auf deinem eigenen Rechner. Kein Cloud-Server, kein Abo, kein Datenschutz-Kleingedrucktes. Einfach starten und loslegen.
+Das Besondere: Ich laufe lokal auf deinem eigenen Rechner. Kein Abo, kein Datenschutz-Kleingedrucktes. Einfach starten und loslegen.
 
-**Kein ChatGPT. Kein Groq. Kein versteckter API-Key der das Ganze erst möglich macht.**
-Ich brauche das alles nicht — Ollama läuft lokal, die KI läuft lokal, deine Daten bleiben lokal.
+**Kein versteckter API-Key der das Ganze erst möglich macht.**
+Ollama läuft lokal, die KI läuft lokal, deine Daten bleiben lokal. Für einige optionale Funktionen (deutsche Sprachausgabe, Multi-Agenten, Vision) kann ein eigener OpenAI-Key konfiguriert werden — Details unter [Netzwerkverbindungen](netzwerk.md).
 
 ---
 
@@ -19,7 +19,7 @@ Ich brauche das alles nicht — Ollama läuft lokal, die KI läuft lokal, deine 
 
 ### Installation
 
-1. `E.L.L.A Setup 1.5.0.exe` ausführen
+1. `E.L.L.A Setup 1.5.6.exe` ausführen
 2. Installationspfad wählen (Standard: `C:\Programme\E.L.L.A`)
 3. Der Installer richtet alles automatisch ein — MariaDB, Ollama, Node.js. Nichts weiter installieren.
 
@@ -53,8 +53,9 @@ Klicke den **Mikrofon-Button** oder sag **„Ella"** (Wakeword-Modus). Modi:
 
 ### Sprachausgabe (TTS)
 
-- **Kokoro TTS** (Standard) — lokale neuronale Stimme via `kokoro-js`, vollständig offline, Modell wird beim ersten Start automatisch heruntergeladen
-- **Microsoft Edge TTS** (Fallback) — automatischer Rückfall wenn Kokoro nicht verfügbar
+- **Kokoro TTS** — lokale neuronale Stimme via `kokoro-js` (ONNX q8, offline) für **Englisch, Französisch und Spanisch**. Modell wird beim ersten Start von HuggingFace heruntergeladen (~80 MB, einmalig)
+- **Microsoft Edge TTS** — für **Deutsch** die primäre Stimme (de-DE-KatjaNeural). Der vorgelesene Text wird dabei an Microsoft-Server übertragen. Auch als Fallback für andere Sprachen wenn Kokoro nicht verfügbar ist
+- Sprachauswahl in den Einstellungen: DE/EN/ES/FR — jeweils automatisch die passende Engine
 
 ### Feedback-Loop
 
@@ -72,7 +73,7 @@ Im Avatar-Panel unten links zeigt ein grüner Chip ob gerade **Ollama** (lokal) 
 
 ## Alle Tools im Überblick
 
-ELLA hat **85+ Werkzeuge**. Hier sind alle — mit Beispielen.
+ELLA hat **111 Werkzeuge**. Hier sind alle — mit Beispielen.
 
 ---
 
@@ -1206,11 +1207,69 @@ Ablehnungen erscheinen als roter **DIRECTIVE**-Banner im Chat.
 
 ## Datenschutz
 
-- Alle Daten bleiben auf dem Rechner
+- Alle Daten bleiben auf dem Rechner — keine Nutzungsdaten an uns oder Dritte
 - Kein Telemetrie, kein Tracking
-- Ollama läuft vollständig offline
-- OpenAI-Funktionen (Vision, Multi-Agenten) nur wenn Key konfiguriert und aktiv genutzt
+- Ollama läuft lokal, Datenbank lokal (MariaDB)
+- Deutsche Sprachausgabe über Edge TTS: Text wird an Microsoft-Server gesendet (einzige Ausnahme im Standardbetrieb)
+- OpenAI-Funktionen (Vision, Multi-Agenten, Whisper) nur wenn eigener Key konfiguriert und aktiv genutzt
 - OpenAI trainiert keine Modelle auf API-Daten
+- Vollständige Transparenz: [Netzwerkverbindungen](netzwerk.md)
+
+---
+
+## Diktat-Modus (ab v1.5.4)
+
+Sprache wird transkribiert und direkt ins aktive Windows-Fenster getippt — systemweit, nicht nur in ELLA.
+
+**Aktivierung:**
+
+- In den Einstellungen → Sprache → Modus auf „Diktat" stellen
+- Oder: Tastenkürzel `Strg+Alt+Leertaste` (konfigurierbar in den Einstellungen)
+
+**Funktionsweise:**
+
+- ELLA hört zu, transkribiert per Whisper, und tippt den Text ins aktive Fenster
+- Optional: Rechtschreibkorrektur vor dem Einfügen (`dictationCorrection`-Setting)
+- Die Zwischenablage wird gesichert und nach dem Einfügen wiederhergestellt
+
+---
+
+## Erscheinungsbilder (ab v1.5.6)
+
+ELLA hat drei visuelle Themes:
+
+- **Calm** (Standard) — dunkles, ruhiges Design
+- **HUD** — technisches Layout mit Cyan-Akzent, Top Bar statt Sidebar, Telemetrie-Panels
+- **Show** — Präsentationsmodus im Vollbild: nur der Orb und die letzte Antwort, sensible Daten werden ausgeblendet
+
+Wechsel: Einstellungen → Erscheinungsbild
+
+**HUD-Akzentfarben:** Cyan, Violett, Bernstein
+
+**Automatischer Rückfall:** Im Blind-Modus, Hausaufgaben-Modus oder bei `prefers-reduced-motion` wird automatisch auf Calm zurückgeschaltet.
+
+---
+
+## Offline-Modus (ab v1.5.2)
+
+Unter Einstellungen → Offline-Modus kann ELLA komplett vom Internet getrennt werden:
+
+- Alle Netzwerk-Tools gesperrt (Websuche, Wetter, Standort, Webseiten)
+- Kein OpenAI — `cloudAllowed()` gibt `false` zurück
+- Lizenzprüfung nutzt den lokalen Cache
+- Lokale Netzwerk-Tools (`scan_network`, `list_connections`, `list_devices`) funktionieren weiterhin
+
+**Hinweis:** Im Offline-Modus ist keine deutsche Sprachausgabe verfügbar (Edge TTS benötigt Internet).
+
+---
+
+## Cloud-Governance (ab v1.5.1)
+
+Alle OpenAI-Anfragen laufen über eine zentrale Funktion (`openaiRequest()`):
+
+- **Cloud-Zähler:** Jede Anfrage wird in der Datenbank geloggt
+- **Dashboard-Kachel:** Zeigt die heutige Anzahl Cloud-Anfragen
+- **Drei Provider-Modi:** Auto (lokal zuerst, OpenAI als Fallback) · OpenAI (Cloud bevorzugt) · Ollama (nur lokal)
 
 ---
 
@@ -1220,7 +1279,7 @@ Ablehnungen erscheinen als roter **DIRECTIVE**-Banner im Chat.
 Ollama läuft möglicherweise nicht. Der orangene Banner oben im Chat zeigt es an. Ollama neu starten oder auf OpenAI wechseln.
 
 **Kann ich ELLA offline nutzen?**
-Ja — vollständig. Nur Wetter (Open-Meteo), Gmail/Google Calendar und OpenAI-Funktionen benötigen Internet.
+Weitgehend ja. Der Kern (Chat, Tools, Gedächtnis) läuft lokal über Ollama. Deutsche Sprachausgabe benötigt Edge TTS (Internet, Microsoft-Server). Wetter, Gmail/Google Calendar und OpenAI-Funktionen brauchen ebenfalls Internet. Der Offline-Modus in den Einstellungen sperrt alle Netzwerk-Tools und Cloud-Dienste. Details: [Netzwerkverbindungen](netzwerk.md).
 
 **Wie ändere ich das Sprachmodell?**
 Einstellungen → LLM → gewünschtes Modell wählen oder eigenen Namen eingeben.
@@ -1239,5 +1298,5 @@ Eigene Regel greift oder ELLA-Direktive. Roter Banner erklärt den Grund. Regeln
 
 ---
 
-_E.L.L.A. v1.5.0 — Embedded Local Logic Agent_
+_E.L.L.A. v1.5.6 — Embedded Local Logic Agent_
 _Entwickelt für Windows 10/11 (x64)_

@@ -1,6 +1,6 @@
 # E.L.L.A — Embedded Local Logic Agent
 
-Local Windows AI assistant as an Electron desktop app. Runs fully offline via Ollama (llama3.1:8b), optionally with OpenAI GPT-4o.
+Local Windows AI assistant as an Electron desktop app. Runs locally via Ollama (llama3.1:8b), optionally with OpenAI API (own key).
 
 **Current version: v1.0.0**
 
@@ -50,7 +50,7 @@ database/
 ### Core
 
 - Dual-LLM (Ollama/OpenAI), SSE streaming, tool loop max. 5 rounds
-- 85 tools with handlers + audit log (`tool_executions`)
+- 111 tools with handlers + audit log (`tool_executions`)
 - Rule engine: Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → allow
 - **Directive-denial UI:** red badge in chat on rule rejection
 - ML memory: nomic-embed-text, cosine similarity, 3 types (user/system/note)
