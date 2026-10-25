@@ -1,4 +1,4 @@
-Write-Host "E.L.L.A. Installer Build v1.5.0" -ForegroundColor Cyan
+Write-Host "E.L.L.A. Installer Build v1.5.6" -ForegroundColor Cyan
 $root = Split-Path $PSScriptRoot -Parent
 
 Write-Host "[1/6] Shared packages bauen..." -ForegroundColor Yellow
