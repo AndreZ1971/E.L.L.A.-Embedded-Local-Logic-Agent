@@ -1,0 +1,13 @@
+{
+  "name": "E.L.L.A. — Embedded Local Logic Agent",
+  "short_name": "E.L.L.A.",
+  "description": "Your local AI assistant for Windows. Private, offline, powerful.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#0f1117",
+  "icons": [
+    {"src": "/favicon.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png"}
+  ]
+}

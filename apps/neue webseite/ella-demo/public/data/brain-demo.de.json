@@ -1,0 +1,410 @@
+{
+  "persona": "Max",
+  "start": "2026-10-01T19:00:00",
+  "memories": [
+    {
+      "day": 1,
+      "type": "user",
+      "topic": "profil",
+      "text": "Max nutzt E.L.L.A. auf einem PC namens „WERKSTATT“."
+    },
+    {
+      "day": 1,
+      "type": "user",
+      "topic": "kommunikation",
+      "text": "Max mag kurze, direkte Antworten."
+    },
+    {
+      "day": 1,
+      "type": "user",
+      "topic": "profil",
+      "text": "Max hat zwei Monitore angeschlossen."
+    },
+    {
+      "day": 1,
+      "type": "system",
+      "topic": "selbst",
+      "text": "Ich bin neu bei Max und lerne seine Gewohnheiten kennen."
+    },
+    {
+      "day": 2,
+      "type": "user",
+      "topic": "arbeit",
+      "text": "Max arbeitet als Tischler und plant Aufträge am Abend."
+    },
+    {
+      "day": 2,
+      "type": "user",
+      "topic": "arbeit",
+      "text": "Max schreibt Angebote in Word und rechnet in Excel."
+    },
+    {
+      "day": 2,
+      "type": "user",
+      "topic": "tagesablauf",
+      "text": "Max arbeitet abends am liebsten, meist ab 19 Uhr."
+    },
+    {
+      "day": 3,
+      "type": "user",
+      "topic": "musik",
+      "text": "Max hört beim Arbeiten Jazz."
+    },
+    {
+      "day": 3,
+      "type": "user",
+      "topic": "musik",
+      "text": "Max mag Miles Davis, besonders ruhige Alben."
+    },
+    {
+      "day": 3,
+      "type": "note",
+      "topic": "arbeit",
+      "text": "Notiz: Angebot Küche Familie Berger bis Freitag."
+    },
+    {
+      "day": 4,
+      "type": "user",
+      "topic": "schach",
+      "text": "Max spielt Schach und eröffnet gern mit e4."
+    },
+    {
+      "day": 4,
+      "type": "system",
+      "topic": "schach",
+      "text": "Schach-Grundregel: Entwickle Springer und Läufer früh."
+    },
+    {
+      "day": 4,
+      "type": "user",
+      "topic": "schach",
+      "text": "Max hat eine Partie gegen E.L.L.A. gewonnen."
+    },
+    {
+      "day": 5,
+      "type": "system",
+      "topic": "schach",
+      "text": "Schach-Erkenntnis: Ich habe das Zentrum zu früh aufgegeben."
+    },
+    {
+      "day": 5,
+      "type": "user",
+      "topic": "kommunikation",
+      "text": "Max duzt E.L.L.A. und mag lockeren Ton."
+    },
+    {
+      "day": 6,
+      "type": "user",
+      "topic": "technik",
+      "text": "Max hat einen Drucker im Büro (Brother)."
+    },
+    {
+      "day": 6,
+      "type": "user",
+      "topic": "technik",
+      "text": "Max sichert seine Projekte jeden Freitag."
+    },
+    {
+      "day": 7,
+      "type": "note",
+      "topic": "tagesablauf",
+      "text": "Notiz: Freitags Backup und Rechnungen schreiben."
+    },
+    {
+      "day": 7,
+      "type": "user",
+      "topic": "kochen",
+      "text": "Max kocht am Wochenende gern italienisch."
+    },
+    {
+      "day": 8,
+      "type": "user",
+      "topic": "kochen",
+      "text": "Max sucht oft Rezepte mit Pilzen."
+    },
+    {
+      "day": 8,
+      "type": "user",
+      "topic": "arbeit",
+      "text": "Max nutzt Diktat, um Aufmaße direkt in Excel zu sprechen."
+    },
+    {
+      "day": 9,
+      "type": "system",
+      "topic": "selbst",
+      "text": "Max bevorzugt Stichpunkte statt langer Absätze."
+    },
+    {
+      "day": 9,
+      "type": "user",
+      "topic": "schach",
+      "text": "Max will die Sizilianische Verteidigung lernen."
+    },
+    {
+      "day": 10,
+      "type": "system",
+      "topic": "schach",
+      "text": "Schach-Prinzip: Bring den König durch Rochade in Sicherheit."
+    },
+    {
+      "day": 10,
+      "type": "user",
+      "topic": "musik",
+      "text": "Max hat eine Playlist „Werkstatt abends“ angelegt."
+    },
+    {
+      "day": 11,
+      "type": "user",
+      "topic": "arbeit",
+      "text": "Max fragt oft nach Holzpreisen für Eiche und Buche."
+    },
+    {
+      "day": 11,
+      "type": "user",
+      "topic": "technik",
+      "text": "Max öffnet Tabellen gern auf dem rechten Monitor."
+    },
+    {
+      "day": 12,
+      "type": "note",
+      "topic": "arbeit",
+      "text": "Notiz: Eiche-Lieferung kommt Dienstag."
+    },
+    {
+      "day": 12,
+      "type": "user",
+      "topic": "tagesablauf",
+      "text": "Max macht um 21 Uhr eine kurze Pause."
+    },
+    {
+      "day": 13,
+      "type": "reflection",
+      "topic": "selbst",
+      "text": "Reflexion: Abends antworte ich kürzer, Max ist dann müde."
+    },
+    {
+      "day": 13,
+      "type": "user",
+      "topic": "kochen",
+      "text": "Max mag kein Koriander."
+    },
+    {
+      "day": 14,
+      "type": "user",
+      "topic": "schach",
+      "text": "Max spielt jeden Sonntag eine lange Partie."
+    },
+    {
+      "day": 14,
+      "type": "system",
+      "topic": "schach",
+      "text": "Schach-Selbstbild: Ich lerne durch Erfahrung und entwickle meinen Stil."
+    },
+    {
+      "day": 15,
+      "type": "user",
+      "topic": "arbeit",
+      "text": "Max hat einen Stammkunden: Schreinerei Holm."
+    },
+    {
+      "day": 15,
+      "type": "user",
+      "topic": "kommunikation",
+      "text": "Max lobt Antworten mit „passt“."
+    },
+    {
+      "day": 16,
+      "type": "user",
+      "topic": "technik",
+      "text": "Max nutzt die Gestensteuerung, um Musik zu pausieren."
+    },
+    {
+      "day": 16,
+      "type": "user",
+      "topic": "musik",
+      "text": "Max mag Bill Evans zum Konzentrieren."
+    },
+    {
+      "day": 17,
+      "type": "note",
+      "topic": "kochen",
+      "text": "Notiz: Risotto-Rezept für Samstag gespeichert."
+    },
+    {
+      "day": 17,
+      "type": "user",
+      "topic": "arbeit",
+      "text": "Max kalkuliert mit 15 % Verschnitt."
+    },
+    {
+      "day": 18,
+      "type": "reflection",
+      "topic": "selbst",
+      "text": "Reflexion: Bei Zahlen will Max eine Tabelle, keine Erklärung."
+    },
+    {
+      "day": 18,
+      "type": "user",
+      "topic": "tagesablauf",
+      "text": "Max beendet den Tag mit einer Übersicht für morgen."
+    },
+    {
+      "day": 19,
+      "type": "user",
+      "topic": "schach",
+      "text": "Max verliert oft im Endspiel."
+    },
+    {
+      "day": 19,
+      "type": "system",
+      "topic": "schach",
+      "text": "Schach-Erkenntnis: Im Endspiel den König aktivieren."
+    },
+    {
+      "day": 20,
+      "type": "user",
+      "topic": "technik",
+      "text": "Max hat E.L.L.A. auf Erscheinungsbild HUD umgestellt."
+    },
+    {
+      "day": 20,
+      "type": "user",
+      "topic": "arbeit",
+      "text": "Max schickt Angebote immer als PDF."
+    },
+    {
+      "day": 21,
+      "type": "note",
+      "topic": "arbeit",
+      "text": "Notiz: Rechnung Holm offen, nachfragen."
+    },
+    {
+      "day": 21,
+      "type": "user",
+      "topic": "kochen",
+      "text": "Max backt sonntags Brot."
+    },
+    {
+      "day": 22,
+      "type": "reflection",
+      "topic": "selbst",
+      "text": "Reflexion: Max mag es, wenn ich an offene Aufgaben erinnere."
+    },
+    {
+      "day": 22,
+      "type": "user",
+      "topic": "musik",
+      "text": "Max hört sonntags lieber Klassik."
+    },
+    {
+      "day": 23,
+      "type": "user",
+      "topic": "arbeit",
+      "text": "Max plant eine neue Werkbank."
+    },
+    {
+      "day": 23,
+      "type": "user",
+      "topic": "technik",
+      "text": "Max lässt E.L.L.A. im Offline-Modus laufen, wenn er telefoniert."
+    },
+    {
+      "day": 24,
+      "type": "system",
+      "topic": "selbst",
+      "text": "Max fragt morgens nie, abends viel."
+    },
+    {
+      "day": 24,
+      "type": "user",
+      "topic": "schach",
+      "text": "Max hat die Sizilianische Verteidigung zum ersten Mal gespielt."
+    },
+    {
+      "day": 25,
+      "type": "user",
+      "topic": "kommunikation",
+      "text": "Max mag Humor, aber nicht bei Zahlen."
+    },
+    {
+      "day": 26,
+      "type": "note",
+      "topic": "tagesablauf",
+      "text": "Notiz: Werkbank-Material bis Monatsende bestellen."
+    },
+    {
+      "day": 26,
+      "type": "user",
+      "topic": "arbeit",
+      "text": "Max rechnet Fahrtkosten pauschal ab."
+    },
+    {
+      "day": 27,
+      "type": "reflection",
+      "topic": "selbst",
+      "text": "Reflexion: Ich kenne Max jetzt gut genug, um Vorschläge zu machen."
+    },
+    {
+      "day": 27,
+      "type": "user",
+      "topic": "kochen",
+      "text": "Max probiert ein Rezept mit Steinpilzen."
+    },
+    {
+      "day": 28,
+      "type": "user",
+      "topic": "tagesablauf",
+      "text": "Max nennt E.L.L.A. abends „Feierabend-Kollegin“."
+    },
+    {
+      "day": 28,
+      "type": "system",
+      "topic": "schach",
+      "text": "Schach-Prinzip: Kontrolliere das Zentrum mit Bauern und Figuren."
+    }
+  ],
+  "knowledge": [
+    { "a": 7, "b": 8, "label": "mag" },
+    { "a": 7, "b": 36, "label": "hört" },
+    { "a": 22, "b": 52, "label": "spielt" },
+    { "a": 18, "b": 37, "label": "kocht" },
+    { "a": 19, "b": 57, "label": "mag" },
+    { "a": 33, "b": 45, "label": "schuldet" },
+    { "a": 25, "b": 27, "label": "bestellt" },
+    { "a": 49, "b": 54, "label": "braucht" },
+    { "a": 41, "b": 42, "label": "lernt" }
+  ],
+  "semanticExtra": [
+    { "a": 1, "b": 21 },
+    { "a": 24, "b": 35 },
+    { "a": 16, "b": 17 },
+    { "a": 29, "b": 6 },
+    { "a": 20, "b": 26 },
+    { "a": 53, "b": 39 }
+  ],
+  "labels": {
+    "title": "Was E.L.L.A. in vier Wochen über Max lernt",
+    "subtitle": "Jeder Punkt ist eine Erinnerung. Ähnliche Erinnerungen ziehen sich an, so entsteht ihr Gedächtnis. Ziehen, zoomen, anklicken. Dein echtes Gedächtnis bleibt auf deinem PC.",
+    "footer": "Physik, Farben und Verbindungsarten entsprechen der Gedächtnisansicht in E.L.L.A. Die Inhalte sind erfunden.",
+    "play": "▶ Abspielen",
+    "pause": "❚❚ Pause",
+    "day": "Tag",
+    "memories": "Erinnerungen",
+    "hint": "ZIEHEN · ZOOMEN · ANKLICKEN",
+    "local": "Lokal",
+    "sample": "Beispieldaten",
+    "filterAll": "Alle",
+    "filterUser": "Nutzer",
+    "filterSystem": "System",
+    "filterNote": "Notizen",
+    "filterReflection": "Reflexionen",
+    "hubUser": "Nutzer",
+    "hubSystem": "System",
+    "hubNote": "Notiz",
+    "hubReflection": "Reflexion",
+    "listView": "Liste",
+    "graphView": "Graph",
+    "session": "Sitzung",
+    "transition": "Ihr Gedächtnis gehört dir. Was sie nicht darf, steht in der Directive."
+  }
+}

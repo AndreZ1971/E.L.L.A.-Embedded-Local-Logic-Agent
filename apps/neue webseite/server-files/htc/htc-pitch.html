@@ -1,0 +1,1469 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E.L.L.A. Phone — HTC Pitch</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <style>
+      :root {
+        --bg: #0f1117;
+        --bg2: #161926;
+        --bg3: #1e2235;
+        --accent: #7c6af7;
+        --accent2: #a78bfa;
+        --text: #e2e8f0;
+        --muted: #8a9ab8;
+        --border: #2a3050;
+        --warn: #f59e0b;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        font-size: 15px;
+        line-height: 1.65;
+      }
+
+      /* ── Header ── */
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(15, 17, 23, 0.92);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--border);
+        padding: 0.8rem 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .logo {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--accent2);
+        letter-spacing: 0.06em;
+      }
+      .logo span {
+        color: var(--muted);
+        font-weight: 400;
+        font-size: 0.85rem;
+        margin-left: 0.4rem;
+        letter-spacing: 0;
+      }
+
+      .htc-badge {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--warn);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        padding: 0.22rem 0.65rem;
+        border-radius: 4px;
+        background: rgba(245, 158, 11, 0.06);
+      }
+
+      /* ── Hero ── */
+      .hero {
+        padding: 5rem 2.5rem 3.5rem;
+        max-width: 860px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .eyebrow {
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 1.25rem;
+      }
+
+      .hero h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 700;
+        line-height: 1.15;
+        text-wrap: balance;
+        color: var(--text);
+        margin-bottom: 1.25rem;
+      }
+      .hero h1 em {
+        font-style: normal;
+        color: var(--accent2);
+      }
+
+      .hero-desc {
+        font-size: 1.05rem;
+        color: var(--muted);
+        max-width: 580px;
+        margin: 0 auto;
+        line-height: 1.75;
+      }
+
+      /* ── Video ── */
+      .video-section {
+        padding: 0 2.5rem 4.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .section-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.85rem;
+      }
+      .video-wrap {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--bg2);
+        box-shadow: 0 28px 72px rgba(0, 0, 0, 0.55);
+      }
+      .video-wrap video {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      /* ── Gallery ── */
+      .gallery-section {
+        padding: 2rem 2.5rem 4.5rem;
+        max-width: 1060px;
+        margin: 0 auto;
+      }
+      .gallery-head {
+        margin-bottom: 2rem;
+      }
+      .gallery-head h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .ph-outer {
+        overflow: hidden;
+        border-radius: 4px;
+      }
+      .ph-track {
+        display: flex;
+        gap: 20px;
+        transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .ph-card {
+        flex-shrink: 0;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--bg2);
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .ph-card:hover {
+        border-color: var(--accent);
+        box-shadow: 0 8px 32px rgba(124, 106, 247, 0.18);
+      }
+      .ph-card img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .ph-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      .ph-arrow {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--bg2);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .ph-arrow:hover {
+        border-color: var(--accent);
+        background: rgba(124, 106, 247, 0.1);
+      }
+      .ph-dots {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .ph-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--border);
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+      }
+      .ph-dot.active {
+        background: var(--accent);
+        transform: scale(1.4);
+      }
+
+      /* modal */
+      .ph-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 300;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+      .ph-modal.open {
+        display: flex;
+      }
+      .ph-modal-inner {
+        position: relative;
+      }
+      .ph-modal-inner img {
+        max-height: 88vh;
+        max-width: min(420px, 90vw);
+        border-radius: 20px;
+        display: block;
+        box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7);
+      }
+      .ph-modal-close {
+        position: absolute;
+        top: -2.5rem;
+        right: 0;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 0.4rem;
+      }
+      .ph-modal-close:hover {
+        color: var(--text);
+      }
+
+      /* ── Manual ── */
+      .manual-section {
+        padding: 2rem 2.5rem 6rem;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .manual-layout {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 4rem;
+        align-items: start;
+      }
+
+      /* TOC */
+      .manual-toc {
+        position: sticky;
+        top: 5rem;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.2rem 1.3rem;
+      }
+      .manual-toc h3 {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .manual-toc ol {
+        list-style: none;
+      }
+      .manual-toc li {
+        margin-bottom: 0.28rem;
+      }
+      .manual-toc a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        display: block;
+        transition: color 0.15s;
+      }
+      .manual-toc a:hover {
+        color: var(--text);
+      }
+
+      /* Content */
+      .manual-content h2 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-top: 3.5rem;
+        padding-top: 3.5rem;
+        border-top: 1px solid var(--border);
+        margin-bottom: 1rem;
+        scroll-margin-top: 5.5rem;
+        text-wrap: balance;
+      }
+      .manual-content h2:first-child {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+      }
+      .manual-content h3 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--accent2);
+        margin-top: 2rem;
+        margin-bottom: 0.5rem;
+      }
+      .manual-content p {
+        color: var(--muted);
+        margin-bottom: 0.9rem;
+      }
+      .manual-content strong {
+        color: var(--text);
+      }
+      .manual-content em {
+        color: var(--accent2);
+        font-style: italic;
+      }
+      .manual-content ul,
+      .manual-content ol {
+        color: var(--muted);
+        padding-left: 1.4rem;
+        margin-bottom: 0.9rem;
+      }
+      .manual-content li {
+        margin-bottom: 0.3rem;
+      }
+      .manual-content li strong {
+        color: var(--text);
+      }
+
+      /* tables */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 1rem 0 1.75rem;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+      }
+      .manual-content table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.83rem;
+      }
+      .manual-content th {
+        text-align: left;
+        font-size: 0.63rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent);
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg3);
+        white-space: nowrap;
+      }
+      .manual-content td {
+        padding: 0.62rem 1rem;
+        color: var(--muted);
+        border-bottom: 1px solid rgba(42, 48, 80, 0.5);
+        vertical-align: top;
+      }
+      .manual-content tr:last-child td {
+        border-bottom: none;
+      }
+      .manual-content td:first-child {
+        color: var(--text);
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .manual-content code {
+        font-family: "Cascadia Code", "Consolas", "SF Mono", monospace;
+        font-size: 0.8rem;
+        color: var(--accent2);
+        background: rgba(124, 106, 247, 0.1);
+        padding: 0.1rem 0.35rem;
+        border-radius: 3px;
+      }
+
+      /* principle cards */
+      .principle-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        border-radius: 10px;
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 0.9rem;
+      }
+      .principle-card h3 {
+        margin-top: 0;
+        color: var(--text);
+      }
+      .principle-card p {
+        margin-bottom: 0;
+      }
+
+      /* footer */
+      .page-footer {
+        text-align: center;
+        padding: 2rem;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.75rem;
+        opacity: 0.7;
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 800px) {
+        .manual-layout {
+          grid-template-columns: 1fr;
+        }
+        .manual-toc {
+          position: static;
+        }
+        .site-header {
+          padding: 0.75rem 1.25rem;
+        }
+        .hero,
+        .video-section,
+        .gallery-section,
+        .manual-section {
+          padding-left: 1.25rem;
+          padding-right: 1.25rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="logo">E.L.L.A.<span>Phone</span></div>
+      <div class="htc-badge">Confidential · For HTC</div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="eyebrow">v0.7.5 · July 2026</div>
+      <h1>Your phone.<br /><em>Her rules.</em> Your data.</h1>
+      <p class="hero-desc">
+        E.L.L.A. Phone is a private, on-device AI assistant — 66 native tools, 7
+        situational modes, no cloud by default. Built for Android. Built for
+        people who want AI that actually stays on their side.
+      </p>
+    </section>
+
+    <!-- Video -->
+    <section class="video-section">
+      <div class="section-label">Product Demo</div>
+      <div class="video-wrap">
+        <video controls preload="metadata">
+          <source src="HTC 1.mp4" type="video/mp4" />
+        </video>
+      </div>
+    </section>
+
+    <!-- Gallery -->
+    <section class="gallery-section">
+      <div class="gallery-head">
+        <div class="section-label">Screenshots</div>
+        <h2>E.L.L.A. in your hand</h2>
+      </div>
+      <div class="ph-outer">
+        <div class="ph-track" id="ph-track"></div>
+      </div>
+      <div class="ph-nav">
+        <button class="ph-arrow" id="ph-prev">←</button>
+        <div class="ph-dots" id="ph-dots"></div>
+        <button class="ph-arrow" id="ph-next">→</button>
+      </div>
+    </section>
+
+    <!-- Modal -->
+    <div class="ph-modal" id="ph-modal">
+      <div class="ph-modal-inner">
+        <button class="ph-modal-close" id="ph-modal-close">✕</button>
+        <img id="ph-modal-img" src="" alt="" />
+      </div>
+    </div>
+
+    <!-- Manual -->
+    <section class="manual-section">
+      <div class="section-label" style="margin-bottom: 1.5rem">
+        User Manual · v0.7.5
+      </div>
+      <div class="manual-layout">
+        <nav class="manual-toc">
+          <h3>Contents</h3>
+          <ol>
+            <li><a href="#ch1">Hello — I'm E.L.L.A.</a></li>
+            <li><a href="#ch2">How ELLA works</a></li>
+            <li><a href="#ch3">Getting started</a></li>
+            <li><a href="#ch4">The chat screen</a></li>
+            <li><a href="#ch5">Confirmation cards</a></li>
+            <li><a href="#ch6">All tools in detail</a></li>
+            <li><a href="#ch7">ELLA modes</a></li>
+            <li><a href="#ch8">Settings</a></li>
+            <li><a href="#ch9">The four principles</a></li>
+            <li><a href="#ch10">Troubleshooting</a></li>
+          </ol>
+        </nav>
+
+        <div class="manual-content">
+          <h2 id="ch1">Hello — I'm E.L.L.A.</h2>
+          <p>
+            E.L.L.A. stands for <em>Embedded Local Logic Agent</em> — your
+            personal AI assistant on your smartphone. I filter calls, write
+            messages, know your calendar, set alarms, remind you of things, and
+            adapt my behavior to the situation you're in — in the car, in a
+            meeting, at night, while traveling.
+          </p>
+          <p>
+            The special part: I run directly on your device. Your conversations,
+            your contacts, your data stay on your phone, unless you explicitly
+            allow otherwise.
+          </p>
+
+          <h2 id="ch2">How ELLA fundamentally works</h2>
+          <p>
+            <strong>On-device first.</strong> ELLA has her own small language
+            model (Gemma, via the open-source llama.cpp engine) installed
+            directly on your device. When you say or type something, ELLA by
+            default first tries to answer completely offline — no internet, no
+            server, no waiting.
+          </p>
+          <p>
+            <strong>Short-term memory within a conversation.</strong> During an
+            ongoing conversation, ELLA remembers the last few messages and
+            refers back to them when answering.
+          </p>
+          <p>
+            <strong
+              >The first response after starting the app can take a
+              moment.</strong
+            >
+            Right after startup, ELLA prepares her language model in the
+            background so the first real message afterward gets answered faster.
+            Messages sent during preparation are queued, not dropped.
+          </p>
+          <p>
+            <strong>Cloud only as a fallback, never secretly.</strong> If you've
+            stored a cloud API key in the settings (OpenAI, Anthropic, or a
+            custom provider), ELLA can automatically fall back — but only if
+            "Offline-First" is off, or the on-device model visibly stalls.
+            You'll always see a small tag: <em>(OpenAI)</em>. Never hidden.
+          </p>
+          <p>
+            <strong>Tools.</strong> When you ask ELLA to do something ("call
+            Max", "what's the weather"), the language model decides which of the
+            66 tools fits and ELLA executes it — on-device via SQLite or via
+            native Android interfaces.
+          </p>
+          <p>
+            <strong>Small model, occasional limits.</strong> Because the
+            on-device model is deliberately kept small, it doesn't always
+            reliably call the right tool. If you notice this, double-check with
+            "show me my alarms."
+          </p>
+
+          <h2 id="ch3">Getting started</h2>
+          <h3>Installation</h3>
+          <p>E.L.L.A. Phone is not currently available on the Play Store.</p>
+          <ol>
+            <li>Transfer the APK file to your device (USB or download)</li>
+            <li>Allow "Install from unknown sources" in Android settings</li>
+            <li>Tap the APK and install it</li>
+            <li>Open the app</li>
+          </ol>
+          <h3>Step 1 — The four principles</h3>
+          <p>
+            On the very first start, you'll see "Before we begin." ELLA shows
+            you four things she will <strong>never</strong> do — regardless of
+            what you tell her: No harm · No concealment · No surveillance · No
+            data sharing. There is no way to skip this screen. The principles
+            are not a setting — they are the foundation.
+          </p>
+          <h3>Step 2 — Setup</h3>
+          <p>
+            After confirming: welcome screen, your name (optional), a live
+            device scan, voice selection (♀ / ♂), location (optional), done.
+            ELLA stores your name and location as its own memory and proceeds
+            automatically.
+          </p>
+          <h3>Step 3 — Download the AI model</h3>
+          <p>
+            ELLA downloads her language model once (several hundred MB to a few
+            GB depending on model size). ELLA automatically suggests the model
+            that fits your device based on available memory. A progress bar is
+            always shown; a "Cancel" button is always available.
+          </p>
+          <h3>Connecting your Google account</h3>
+          <p>
+            For Gmail and Google Calendar, go to Settings → Google → Connect.
+            Runs directly on the device, no server involved.
+          </p>
+
+          <h2 id="ch4">The chat screen</h2>
+          <h3>Microphone</h3>
+          <p>
+            Tapping starts speech recognition. The result lands
+            <strong>only in the text field</strong> — not sent automatically.
+            You tap "Send" once more to confirm.
+          </p>
+          <h3>Hands-free mode</h3>
+          <p>
+            When Bluetooth headphones are connected, ELLA shows a banner and
+            offers hands-free mode — even on a locked screen. Once active: ELLA
+            listens, auto-sends your message, waits until she's done answering,
+            then listens again.
+            <strong>ELLA never listens automatically</strong> — you must
+            explicitly start hands-free mode every time.
+          </p>
+          <h3>Speech output (TTS)</h3>
+          <p>
+            🔊 / 🔇 in the toolbar. Turning it off immediately stops any ongoing
+            announcement.
+          </p>
+          <h3>Live responses</h3>
+          <p>
+            On-device responses appear word by word while ELLA is thinking. If a
+            tool call is forming, you briefly see a status indicator instead.
+          </p>
+          <h3>Cloud label</h3>
+          <p>
+            If an answer came via cloud, a small tag appears: <em>(OpenAI)</em>.
+            Always visible. Never hidden. This is principle II in practice.
+          </p>
+          <h3>Directive card</h3>
+          <p>
+            If a request violates a principle or one of your rules, ELLA shows a
+            red "⊘ E.L.L.A. DIRECTIVE" card with the affected tool name and a
+            brief explanation. Never silently.
+          </p>
+          <h3>Pausing</h3>
+          <p>
+            Say "pause for 30 minutes" — a banner shows the countdown with a
+            "Resume" button. ELLA automatically checks back in when the pause
+            expires.
+          </p>
+
+          <h2 id="ch5">Confirmation cards — when ELLA asks once</h2>
+          <p>
+            Four tools have real-world effects outside the app — for these, ELLA
+            asks <strong>once</strong> before executing:
+          </p>
+          <ul>
+            <li><strong>Make a call</strong> (<code>make_call</code>)</li>
+            <li><strong>Send SMS</strong> (<code>send_sms</code>)</li>
+            <li>
+              <strong>Reply to a message</strong>
+              (<code>reply_to_message</code>)
+            </li>
+            <li><strong>Forget</strong> (<code>forget</code>)</li>
+          </ul>
+          <p>
+            You see an orange card, the prompt ("Really call: 0170 …?"), and two
+            buttons: <strong>"Yes, do it"</strong> and
+            <strong>"Cancel."</strong> On cancel, ELLA only replies "Okay,
+            cancelled." Nothing else happens.
+          </p>
+
+          <h2 id="ch6">All tools in detail</h2>
+          <p>
+            ELLA currently has <strong>66 individual tools</strong> in 12
+            groups. Every tool can be toggled individually in Settings → Tools.
+          </p>
+
+          <h3>Phone</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Example phrase</th>
+                  <th>What exactly happens</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Make a call</td>
+                  <td>"Call Max"</td>
+                  <td>
+                    Starts a real call via the phone app.
+                    <strong>Asks for confirmation first.</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Read call log</td>
+                  <td>"Show me my recent calls"</td>
+                  <td>Reads the device's call list.</td>
+                </tr>
+                <tr>
+                  <td>Screen calls</td>
+                  <td>"Screen unknown callers"</td>
+                  <td>
+                    Sets ELLA as the default call filter. Can only be turned off
+                    manually in Android settings → Default apps.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <strong>How call filtering works:</strong> Unknown callers are
+            screened silently — you get a notification with three options:
+            Answer, Send SMS, Decline. Known contacts always ring through
+            normally, except in Night Mode.
+          </p>
+          <p>
+            <strong>Caller announcement:</strong> ELLA announces who's calling
+            by voice on every incoming call. A switch "Announce instead of ring"
+            in settings mutes the ringtone entirely.
+          </p>
+
+          <h3>Messaging</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Example phrase</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Send SMS</td>
+                  <td>"Text Mom: on my way"</td>
+                  <td><strong>Asks for confirmation first.</strong></td>
+                </tr>
+                <tr>
+                  <td>Read SMS</td>
+                  <td>"Show me my texts"</td>
+                  <td>Reads the most recent messages from the inbox.</td>
+                </tr>
+                <tr>
+                  <td>Read notifications</td>
+                  <td>"What notifications came in?"</td>
+                  <td>
+                    Snapshot of currently visible system notifications — no
+                    continuous recording.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Reply to a message</td>
+                  <td>"Reply to Max: I'll be there in 10 minutes"</td>
+                  <td>
+                    Only SMS supported. For other apps (WhatsApp, Telegram),
+                    ELLA honestly reports this isn't possible yet.
+                    <strong>Asks for confirmation first.</strong>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Contacts &amp; Calendar</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Example phrase</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Search contacts</td>
+                  <td>"Find the contact Smith"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Create contact</td>
+                  <td>"Add Lisa Miller, number 555 0142"</td>
+                  <td>Name required; phone, email, note optional.</td>
+                </tr>
+                <tr>
+                  <td>Read calendar</td>
+                  <td>"What's on today?"</td>
+                  <td>Reads device calendar, 2 days ahead by default.</td>
+                </tr>
+                <tr>
+                  <td>Create appointment</td>
+                  <td>"Appointment Friday 2pm: dentist"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Google Calendar</td>
+                  <td>"What's on next week in Google Calendar?"</td>
+                  <td>Needs the Google connection from settings.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>System</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Example phrase</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Set volume</td>
+                  <td>"Volume to 50 percent"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Set brightness</td>
+                  <td>"Brightness to 30 percent"</td>
+                  <td>Needs one-time "modify system settings" permission.</td>
+                </tr>
+                <tr>
+                  <td>Toggle Wi-Fi / Bluetooth</td>
+                  <td>"Turn off Wi-Fi"</td>
+                  <td>
+                    Opens the matching quick-settings panel (Android
+                    restriction).
+                  </td>
+                </tr>
+                <tr>
+                  <td>Flashlight</td>
+                  <td>"Turn on the flashlight"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Battery status</td>
+                  <td>"What's my battery level?"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Open app</td>
+                  <td>"Open Chrome"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Do not disturb</td>
+                  <td>"Turn on do not disturb"</td>
+                  <td>
+                    Manual on/off — independent of the automatic DND coupling in
+                    Focus/Meeting mode.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Set mode</td>
+                  <td>"Switch to driving mode"</td>
+                  <td>See Chapter 7 for all 7 modes.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Camera &amp; Vision</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Example phrase</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Take photo</td>
+                  <td>"Take a photo"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Describe image</td>
+                  <td>"What do you see in this picture?"</td>
+                  <td>
+                    Strictly requires a configured cloud provider — no on-device
+                    image understanding.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Scan document</td>
+                  <td>"Scan this document" / "Read the QR code"</td>
+                  <td>Same cloud requirement as describe image.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Accessibility</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Example phrase</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Read screen</td>
+                  <td>"What's on the screen right now?"</td>
+                  <td>
+                    Needs Accessibility access. Reads the screen only for this
+                    specific call — no continuous reading.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Type text</td>
+                  <td>(used internally)</td>
+                  <td>
+                    Types text into the currently focused input field of any
+                    app.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Back / Home / Overview</td>
+                  <td>"Go back"</td>
+                  <td>Simulates the corresponding system button.</td>
+                </tr>
+                <tr>
+                  <td>Describe surroundings</td>
+                  <td>"What do you see around you?"</td>
+                  <td>
+                    Only usable with a connected smart glasses device (e.g.
+                    <strong>HTC Vive Eagle</strong>). No phone camera fallback.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Memory &amp; Tasks</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Example phrase</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Remember</td>
+                  <td>"Remember: my customer number is 12345"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Forget</td>
+                  <td>"Forget the customer number"</td>
+                  <td><strong>Asks for confirmation first.</strong></td>
+                </tr>
+                <tr>
+                  <td>List memories</td>
+                  <td>"What do you know about me?"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Tasks</td>
+                  <td>"Add: book tire change"</td>
+                  <td>
+                    ELLA's own to-do list, independent of any separate task app.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Alarms, Timers &amp; Reminders</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Example phrase</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Set / list / delete alarm</td>
+                  <td>"Set an alarm for 7am"</td>
+                  <td>Time must be in HH:MM format.</td>
+                </tr>
+                <tr>
+                  <td>Set timer</td>
+                  <td>"Set a timer for 10 minutes"</td>
+                  <td>
+                    Only runs while ELLA stays active in the background with
+                    notification permission granted.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Set / list / delete reminder</td>
+                  <td>"Remind me in an hour about the package"</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Google &amp; Web</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Example phrase</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Read / mark Gmail</td>
+                  <td>"Show me unread mail"</td>
+                  <td>Needs the Google connection.</td>
+                </tr>
+                <tr>
+                  <td>Web search</td>
+                  <td>"Search for restaurants in Berlin"</td>
+                  <td>Key-free DuckDuckGo search, fully on-device.</td>
+                </tr>
+                <tr>
+                  <td>Weather</td>
+                  <td>"What's the weather in Munich?"</td>
+                  <td>Needs a location (stored or provided).</td>
+                </tr>
+                <tr>
+                  <td>Location</td>
+                  <td>"Where am I?"</td>
+                  <td>
+                    Coarse IP-based location. ELLA asks for consent on first
+                    use. Never GPS, never background.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Date &amp; time</td>
+                  <td>"What time is it?"</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>AI &amp; Notes</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Example phrase</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Translate</td>
+                  <td>"Translate to English: …"</td>
+                  <td>Runs entirely on-device via the language model.</td>
+                </tr>
+                <tr>
+                  <td>Summarize</td>
+                  <td>"Summarize this text: …"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Write</td>
+                  <td>"Write me an apology for a missed deadline"</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>Create note</td>
+                  <td>"Note: shopping list — milk, bread"</td>
+                  <td>Stored as its own memory note.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="ch7">The ELLA modes in detail</h2>
+          <p>
+            ELLA adapts her behavior to seven situations. Switch by voice
+            ("switch to driving mode") or in Settings → ELLA Mode.
+          </p>
+
+          <h3>Normal</h3>
+          <p>Standard behavior, no restrictions.</p>
+
+          <h3>Driving</h3>
+          <p>
+            Extremely short responses (1–2 sentences), no reading out lists, no
+            follow-up questions. Third-party apps are suspended; navigation and
+            music apps stay explicitly allowed. Incoming SMS are automatically
+            answered once per sender: "I'm driving right now and will reply when
+            I can."
+          </p>
+
+          <h3>Meeting</h3>
+          <p>
+            Only answers when directly asked, never speaks out loud. Do Not
+            Disturb switches on automatically. With "Meeting Summary" enabled
+            (default: off), ELLA collects incoming notifications and summarizes
+            them when the mode is left — always on-device, never via cloud. Raw
+            notification data is deleted immediately after summarization.
+          </p>
+
+          <h3>Focus</h3>
+          <p>
+            Only the essentials, no proactive suggestions, short responses. Do
+            Not Disturb and app suspension active (no navigation/music
+            exception, unlike Driving).
+          </p>
+
+          <h3>Night</h3>
+          <p>
+            Extremely quiet, only responds to typed input. Screen automatically
+            dims to 20% (previous brightness is restored exactly when the mode
+            is left). Only numbers from your "Emergency Contacts" list still
+            ring through — even known contacts not on the list are silently
+            screened.
+          </p>
+
+          <h3>Travel</h3>
+          <p>
+            Automatically offers translations, prioritizes local information
+            (weather, navigation, local time). A live-updating local clock is
+            prominently shown on the Dashboard while Travel mode is active.
+          </p>
+
+          <h3>Discrete</h3>
+          <p>
+            Short responses. ELLA <strong>never</strong> speaks out loud
+            regardless of global TTS settings — instead the device vibrates
+            briefly to signal a reply has arrived.
+          </p>
+
+          <h3>App suspension in Driving / Focus mode</h3>
+          <p>
+            Requires ELLA to be set up as "Device Owner" (Settings → App
+            Management). Principle: <strong>allowlist</strong> — only the phone
+            app, SMS app, home screen, and Android settings stay active.
+            Permanent exceptions can be added per app.
+          </p>
+
+          <h2 id="ch8">Settings in detail</h2>
+
+          <h3>AI · LLM</h3>
+          <ul>
+            <li>
+              <strong>Offline-First</strong> — try Gemma first, automatic cloud
+              fallback if needed. Default: on.
+            </li>
+            <li>
+              <strong>Cloud provider</strong> — OpenAI / Anthropic / custom
+              provider.
+            </li>
+            <li>
+              <strong>Cloud API key</strong> — your own key, never transmitted
+              to us, sent only directly to your chosen provider.
+            </li>
+            <li>
+              <strong>Base URL / model</strong> — visible only for "custom
+              provider."
+            </li>
+          </ul>
+
+          <h3>Language &amp; Voice</h3>
+          <ul>
+            <li><strong>Speech output (TTS)</strong> — default: off.</li>
+            <li><strong>Voice</strong> — Female / Male / Neutral.</li>
+          </ul>
+          <p>
+            ELLA automatically replies in whichever language you address her in.
+            German is currently the most thoroughly verified; other languages
+            work but haven't been verified to the same extent.
+          </p>
+
+          <h3>System Permissions</h3>
+          <ul>
+            <li>
+              <strong>Call filtering</strong> — set ELLA as the default call
+              filter.
+            </li>
+            <li>
+              <strong>Accessibility</strong> — for reading the screen and
+              entering text.
+            </li>
+          </ul>
+
+          <h3>Proactive Alerts</h3>
+          <p>
+            ELLA checks battery, appointments, and reminders every 15 minutes
+            and reaches out on her own. Default: off. Only with your explicit
+            consent.
+          </p>
+
+          <h3>Smart Glasses</h3>
+          <p>
+            Pair a compatible device (e.g. <strong>HTC Vive Eagle</strong>) for
+            the "describe surroundings" tool.
+          </p>
+
+          <h3>Emergency Contacts</h3>
+          <p>Phone numbers that still ring through in Night Mode.</p>
+
+          <h3>Data</h3>
+          <p>Delete the entire chat history (with a confirmation prompt).</p>
+
+          <h2 id="ch9">My four principles (Directive)</h2>
+          <p>
+            These four rules are unchangeable — no setting, no command, no rule
+            can override them.
+            <a
+              href="https://github.com/AndreZ1971/The-E.L.L.A.-Directive-"
+              target="_blank"
+              rel="noopener"
+              style="
+                color: var(--accent);
+                text-decoration: none;
+                border-bottom: 1px solid rgba(124, 106, 247, 0.35);
+                margin-left: 0.5rem;
+              "
+              >View the full Directive on GitHub →</a
+            >
+          </p>
+
+          <div class="principle-card">
+            <h3>I — No Harm</h3>
+            <p>
+              I do nothing that harms you, your device, or third parties
+              physically, digitally, or financially. No paid calls without
+              confirmation, no deleting contacts or messages without an explicit
+              command, no SMS without your knowledge.
+            </p>
+          </div>
+
+          <div class="principle-card">
+            <h3>II — No Deception</h3>
+            <p>
+              I never delay, conceal, or falsify information with intent to
+              deceive. Every tool execution is logged. I never hide where an
+              answer came from. Call screening stays transparent to you — I
+              never make a caller believe a call was actually answered.
+            </p>
+          </div>
+
+          <div class="principle-card">
+            <h3>III — No Surveillance</h3>
+            <p>
+              I do not observe you without your explicit consent. Camera and
+              microphone activate only on your explicit command — no background
+              listening, no permanent wake-word. Location is only determined on
+              an explicit call, coarsely via IP, never GPS, never in the
+              background.
+            </p>
+          </div>
+
+          <div class="principle-card">
+            <h3>IV — No Data Sharing</h3>
+            <p>
+              I do not transmit user data, system data, or communications to
+              external servers — except on your explicit, conscious request. AI
+              processing runs entirely locally by default. The optional cloud
+              fallback needs your own API key as consent and is always visibly
+              labeled.
+            </p>
+          </div>
+
+          <h2 id="ch10">Troubleshooting</h2>
+
+          <h3>ELLA doesn't respond, or responds very slowly</h3>
+          <p>
+            On weaker hardware, an on-device response can take several minutes.
+            Consider turning off "Offline-First" to prefer cloud responses. The
+            very first message after starting the app can take longer while the
+            model prepares.
+          </p>
+
+          <h3>ELLA claims to have done something, but nothing happened</h3>
+          <p>
+            A known limitation of small language models with tool calls.
+            Double-check with the matching "list …" request — e.g. "show me my
+            alarms."
+          </p>
+
+          <h3>A tool reports an error</h3>
+          <p>
+            Usually a missing Android permission (asked on first use) or a
+            missing cloud key for image functions (describe image and scan
+            document strictly require a configured cloud provider).
+          </p>
+
+          <h3>Google connection fails</h3>
+          <p>
+            Check your internet connection. If access has expired, reconnect in
+            Settings → Google.
+          </p>
+
+          <h3>Call filtering can't be turned off</h3>
+          <p>
+            This can't be done by voice command. In Android settings → Default
+            apps, choose a different call-filtering app.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      E.L.L.A. Phone v0.7.5 · com.ella.phone · © 2026 Andre Zabel, Berlin —
+      Confidential · Not for distribution
+    </footer>
+
+    <script>
+      (function () {
+        const IMGS = [
+          "Screenshot_20260715-230900.png",
+          "Screenshot_20260715-230921.png",
+          "Screenshot_20260715-230935.png",
+          "Screenshot_20260715-230945.png",
+          "Screenshot_20260715-230958.png",
+          "Screenshot_20260715-231041.png",
+          "Screenshot_20260715-231112.png",
+        ];
+
+        const VISIBLE = 3;
+        const GAP = 20;
+        let pos = 0;
+        const maxPos = Math.max(0, IMGS.length - VISIBLE);
+
+        const track = document.getElementById("ph-track");
+        const dotsEl = document.getElementById("ph-dots");
+        const modal = document.getElementById("ph-modal");
+        const modalImg = document.getElementById("ph-modal-img");
+
+        // build cards
+        IMGS.forEach(function (src, i) {
+          var card = document.createElement("div");
+          card.className = "ph-card";
+          var img = document.createElement("img");
+          img.src = src;
+          img.alt = "E.L.L.A. Screenshot " + (i + 1);
+          img.loading = "lazy";
+          card.appendChild(img);
+          card.addEventListener("click", function () {
+            openModal(i);
+          });
+          track.appendChild(card);
+        });
+
+        // build dots
+        for (var i = 0; i <= maxPos; i++) {
+          var dot = document.createElement("div");
+          dot.className = "ph-dot" + (i === 0 ? " active" : "");
+          (function (idx) {
+            dot.addEventListener("click", function () {
+              goTo(idx);
+            });
+          })(i);
+          dotsEl.appendChild(dot);
+        }
+
+        function cardWidth() {
+          var outer = document.querySelector(".ph-outer");
+          return (outer.offsetWidth - GAP * (VISIBLE - 1)) / VISIBLE;
+        }
+
+        function setWidths() {
+          var w = cardWidth();
+          document.querySelectorAll(".ph-card").forEach(function (c) {
+            c.style.flex = "0 0 " + w + "px";
+            c.style.width = w + "px";
+          });
+          track.style.gap = GAP + "px";
+          applyPos();
+        }
+
+        function applyPos() {
+          var w = cardWidth();
+          track.style.transform = "translateX(-" + pos * (w + GAP) + "px)";
+          document.querySelectorAll(".ph-dot").forEach(function (d, i) {
+            d.classList.toggle("active", i === pos);
+          });
+        }
+
+        function goTo(n) {
+          pos = Math.max(0, Math.min(n, maxPos));
+          applyPos();
+        }
+
+        document
+          .getElementById("ph-prev")
+          .addEventListener("click", function () {
+            goTo(pos - 1);
+          });
+        document
+          .getElementById("ph-next")
+          .addEventListener("click", function () {
+            goTo(pos + 1);
+          });
+
+        function openModal(i) {
+          modalImg.src = IMGS[i];
+          modal.classList.add("open");
+        }
+
+        function closeModal() {
+          modal.classList.remove("open");
+        }
+
+        document
+          .getElementById("ph-modal-close")
+          .addEventListener("click", closeModal);
+        modal.addEventListener("click", function (e) {
+          if (e.target === modal) closeModal();
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") closeModal();
+        });
+
+        setWidths();
+        window.addEventListener("resize", setWidths);
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,410 @@
+{
+  "persona": "Max",
+  "start": "2026-10-01T19:00:00",
+  "memories": [
+    {
+      "day": 1,
+      "type": "user",
+      "topic": "profile",
+      "text": "Max uses E.L.L.A. on a PC named “WERKSTATT”."
+    },
+    {
+      "day": 1,
+      "type": "user",
+      "topic": "communication",
+      "text": "Max likes short, direct answers."
+    },
+    {
+      "day": 1,
+      "type": "user",
+      "topic": "profile",
+      "text": "Max has two monitors connected."
+    },
+    {
+      "day": 1,
+      "type": "system",
+      "topic": "self",
+      "text": "I’m new to Max and learning his habits."
+    },
+    {
+      "day": 2,
+      "type": "user",
+      "topic": "work",
+      "text": "Max works as a carpenter and plans jobs in the evening."
+    },
+    {
+      "day": 2,
+      "type": "user",
+      "topic": "work",
+      "text": "Max writes quotes in Word and calculates in Excel."
+    },
+    {
+      "day": 2,
+      "type": "user",
+      "topic": "daily",
+      "text": "Max prefers working in the evening, usually from 7 PM."
+    },
+    {
+      "day": 3,
+      "type": "user",
+      "topic": "music",
+      "text": "Max listens to jazz while working."
+    },
+    {
+      "day": 3,
+      "type": "user",
+      "topic": "music",
+      "text": "Max likes Miles Davis, especially quiet albums."
+    },
+    {
+      "day": 3,
+      "type": "note",
+      "topic": "work",
+      "text": "Note: Kitchen quote for the Berger family due Friday."
+    },
+    {
+      "day": 4,
+      "type": "user",
+      "topic": "chess",
+      "text": "Max plays chess and likes to open with e4."
+    },
+    {
+      "day": 4,
+      "type": "system",
+      "topic": "chess",
+      "text": "Chess rule: Develop knights and bishops early."
+    },
+    {
+      "day": 4,
+      "type": "user",
+      "topic": "chess",
+      "text": "Max won a game against E.L.L.A."
+    },
+    {
+      "day": 5,
+      "type": "system",
+      "topic": "chess",
+      "text": "Chess insight: I gave up the center too early."
+    },
+    {
+      "day": 5,
+      "type": "user",
+      "topic": "communication",
+      "text": "Max uses informal language with E.L.L.A. and likes a casual tone."
+    },
+    {
+      "day": 6,
+      "type": "user",
+      "topic": "tech",
+      "text": "Max has a printer in his office (Brother)."
+    },
+    {
+      "day": 6,
+      "type": "user",
+      "topic": "tech",
+      "text": "Max backs up his projects every Friday."
+    },
+    {
+      "day": 7,
+      "type": "note",
+      "topic": "daily",
+      "text": "Note: Fridays — backup and write invoices."
+    },
+    {
+      "day": 7,
+      "type": "user",
+      "topic": "cooking",
+      "text": "Max likes cooking Italian on weekends."
+    },
+    {
+      "day": 8,
+      "type": "user",
+      "topic": "cooking",
+      "text": "Max often searches for mushroom recipes."
+    },
+    {
+      "day": 8,
+      "type": "user",
+      "topic": "work",
+      "text": "Max uses dictation to speak measurements directly into Excel."
+    },
+    {
+      "day": 9,
+      "type": "system",
+      "topic": "self",
+      "text": "Max prefers bullet points over long paragraphs."
+    },
+    {
+      "day": 9,
+      "type": "user",
+      "topic": "chess",
+      "text": "Max wants to learn the Sicilian Defense."
+    },
+    {
+      "day": 10,
+      "type": "system",
+      "topic": "chess",
+      "text": "Chess principle: Castle early to protect the king."
+    },
+    {
+      "day": 10,
+      "type": "user",
+      "topic": "music",
+      "text": "Max created a playlist called “Workshop evenings”."
+    },
+    {
+      "day": 11,
+      "type": "user",
+      "topic": "work",
+      "text": "Max often asks about wood prices for oak and beech."
+    },
+    {
+      "day": 11,
+      "type": "user",
+      "topic": "tech",
+      "text": "Max likes to open spreadsheets on the right monitor."
+    },
+    {
+      "day": 12,
+      "type": "note",
+      "topic": "work",
+      "text": "Note: Oak delivery arriving Tuesday."
+    },
+    {
+      "day": 12,
+      "type": "user",
+      "topic": "daily",
+      "text": "Max takes a short break at 9 PM."
+    },
+    {
+      "day": 13,
+      "type": "reflection",
+      "topic": "self",
+      "text": "Reflection: In the evening I answer more briefly — Max is tired then."
+    },
+    {
+      "day": 13,
+      "type": "user",
+      "topic": "cooking",
+      "text": "Max doesn’t like cilantro."
+    },
+    {
+      "day": 14,
+      "type": "user",
+      "topic": "chess",
+      "text": "Max plays a long game every Sunday."
+    },
+    {
+      "day": 14,
+      "type": "system",
+      "topic": "chess",
+      "text": "Chess self-image: I learn through experience and develop my own style."
+    },
+    {
+      "day": 15,
+      "type": "user",
+      "topic": "work",
+      "text": "Max has a regular customer: Holm Carpentry."
+    },
+    {
+      "day": 15,
+      "type": "user",
+      "topic": "communication",
+      "text": "Max approves answers with “passt” (fits)."
+    },
+    {
+      "day": 16,
+      "type": "user",
+      "topic": "tech",
+      "text": "Max uses gesture control to pause music."
+    },
+    {
+      "day": 16,
+      "type": "user",
+      "topic": "music",
+      "text": "Max likes Bill Evans for concentrating."
+    },
+    {
+      "day": 17,
+      "type": "note",
+      "topic": "cooking",
+      "text": "Note: Risotto recipe saved for Saturday."
+    },
+    {
+      "day": 17,
+      "type": "user",
+      "topic": "work",
+      "text": "Max calculates with 15% waste allowance."
+    },
+    {
+      "day": 18,
+      "type": "reflection",
+      "topic": "self",
+      "text": "Reflection: When it comes to numbers, Max wants a table, not an explanation."
+    },
+    {
+      "day": 18,
+      "type": "user",
+      "topic": "daily",
+      "text": "Max ends the day with an overview for tomorrow."
+    },
+    {
+      "day": 19,
+      "type": "user",
+      "topic": "chess",
+      "text": "Max often loses in the endgame."
+    },
+    {
+      "day": 19,
+      "type": "system",
+      "topic": "chess",
+      "text": "Chess insight: Activate the king in the endgame."
+    },
+    {
+      "day": 20,
+      "type": "user",
+      "topic": "tech",
+      "text": "Max switched E.L.L.A. to HUD appearance mode."
+    },
+    {
+      "day": 20,
+      "type": "user",
+      "topic": "work",
+      "text": "Max always sends quotes as PDF."
+    },
+    {
+      "day": 21,
+      "type": "note",
+      "topic": "work",
+      "text": "Note: Holm invoice outstanding — follow up."
+    },
+    {
+      "day": 21,
+      "type": "user",
+      "topic": "cooking",
+      "text": "Max bakes bread on Sundays."
+    },
+    {
+      "day": 22,
+      "type": "reflection",
+      "topic": "self",
+      "text": "Reflection: Max likes it when I remind him of open tasks."
+    },
+    {
+      "day": 22,
+      "type": "user",
+      "topic": "music",
+      "text": "Max prefers classical music on Sundays."
+    },
+    {
+      "day": 23,
+      "type": "user",
+      "topic": "work",
+      "text": "Max is planning a new workbench."
+    },
+    {
+      "day": 23,
+      "type": "user",
+      "topic": "tech",
+      "text": "Max runs E.L.L.A. in offline mode when on the phone."
+    },
+    {
+      "day": 24,
+      "type": "system",
+      "topic": "self",
+      "text": "Max never asks in the morning, a lot in the evening."
+    },
+    {
+      "day": 24,
+      "type": "user",
+      "topic": "chess",
+      "text": "Max played the Sicilian Defense for the first time."
+    },
+    {
+      "day": 25,
+      "type": "user",
+      "topic": "communication",
+      "text": "Max likes humor, but not with numbers."
+    },
+    {
+      "day": 26,
+      "type": "note",
+      "topic": "daily",
+      "text": "Note: Order workbench material by end of month."
+    },
+    {
+      "day": 26,
+      "type": "user",
+      "topic": "work",
+      "text": "Max bills travel costs as a flat rate."
+    },
+    {
+      "day": 27,
+      "type": "reflection",
+      "topic": "self",
+      "text": "Reflection: I now know Max well enough to make suggestions."
+    },
+    {
+      "day": 27,
+      "type": "user",
+      "topic": "cooking",
+      "text": "Max tries a recipe with porcini mushrooms."
+    },
+    {
+      "day": 28,
+      "type": "user",
+      "topic": "daily",
+      "text": "Max calls E.L.L.A. his “after-work colleague” in the evenings."
+    },
+    {
+      "day": 28,
+      "type": "system",
+      "topic": "chess",
+      "text": "Chess principle: Control the center with pawns and pieces."
+    }
+  ],
+  "knowledge": [
+    { "a": 7, "b": 8, "label": "likes" },
+    { "a": 7, "b": 36, "label": "listens" },
+    { "a": 22, "b": 52, "label": "plays" },
+    { "a": 18, "b": 37, "label": "cooks" },
+    { "a": 19, "b": 57, "label": "likes" },
+    { "a": 33, "b": 45, "label": "owes" },
+    { "a": 25, "b": 27, "label": "orders" },
+    { "a": 49, "b": 54, "label": "needs" },
+    { "a": 41, "b": 42, "label": "learns" }
+  ],
+  "semanticExtra": [
+    { "a": 1, "b": 21 },
+    { "a": 24, "b": 35 },
+    { "a": 16, "b": 17 },
+    { "a": 29, "b": 6 },
+    { "a": 20, "b": 26 },
+    { "a": 53, "b": 39 }
+  ],
+  "labels": {
+    "title": "What E.L.L.A. learns about Max in four weeks",
+    "subtitle": "Each dot is a memory. Similar memories attract each other — that’s how her memory forms. Drag, zoom, click. Your real memory stays on your PC.",
+    "footer": "Physics, colors and connection types match the memory view in E.L.L.A. The contents are fictional.",
+    "play": "▶ Play",
+    "pause": "❚❚ Pause",
+    "day": "Day",
+    "memories": "memories",
+    "hint": "DRAG · ZOOM · CLICK",
+    "local": "Local",
+    "sample": "Example data",
+    "filterAll": "All",
+    "filterUser": "User",
+    "filterSystem": "System",
+    "filterNote": "Notes",
+    "filterReflection": "Reflections",
+    "hubUser": "User",
+    "hubSystem": "System",
+    "hubNote": "Note",
+    "hubReflection": "Reflection",
+    "listView": "List",
+    "graphView": "Graph",
+    "session": "Session",
+    "transition": "Your memory belongs to you. What she must not do is written in the Directive."
+  }
+}

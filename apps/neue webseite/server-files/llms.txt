@@ -1,0 +1,19 @@
+# E.L.L.A. — Embedded Local Logic Agent
+
+> E.L.L.A. is a local-first AI assistant for Windows. All processing runs on-device — no cloud, no subscriptions, no data collection. One-time purchase, yours forever.
+
+E.L.L.A. combines a large language model, 70+ system tools, persistent memory, voice control, and a built-in Safety Directive — without sending a single byte to the cloud.
+
+## Product
+
+- [E.L.L.A. Landing Page](https://ella-agent.de/): Main product page with features, pricing, and launch information
+- [E.L.L.A. Safety Directive](https://github.com/AndreZ1971/ella-directive): Open specification with 4 hard prohibitions enforced at architecture level
+
+## Features
+
+- [Kokoro TTS — Local Voice Engine](https://ella-agent.de/): On-device voice synthesis, no cloud dependency
+- [Ollama Integration](https://ella-agent.de/): Local LLM inference via Gemma, Llama, Mistral
+
+## Optional
+
+- [E.L.L.A. on GitHub](https://github.com/AndreZ1971): Source repositories and open specifications

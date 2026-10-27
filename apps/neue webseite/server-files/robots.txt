@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ella-agent.de/sitemap.xml

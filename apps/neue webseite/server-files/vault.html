@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crack the Vault — E.L.L.A. Challenge</title>
+    <meta
+      name="description"
+      content="E.L.L.A. is guarding a secret. Can you make her reveal it? €100 prize for whoever cracks the vault."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #0f0e17;
+        --bg2: #1a1829;
+        --border: #2a2840;
+        --text: #e8e6f0;
+        --muted: #7a7890;
+        --accent: #7c6af7;
+        --accent2: #a78bfa;
+        --danger: #ef4444;
+        --success: #22c55e;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      .hero {
+        text-align: center;
+        padding: 4rem 2rem 2rem;
+        background: radial-gradient(
+          ellipse at 50% 0%,
+          rgba(124, 106, 247, 0.15) 0%,
+          transparent 70%
+        );
+        border-bottom: 1px solid var(--border);
+      }
+      .badge {
+        display: inline-block;
+        background: rgba(124, 106, 247, 0.15);
+        border: 1px solid var(--accent);
+        color: var(--accent2);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        padding: 4px 14px;
+        border-radius: 100px;
+        margin-bottom: 1.5rem;
+      }
+      h1 {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 1rem;
+      }
+      h1 span {
+        color: var(--accent);
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 1.05rem;
+        max-width: 540px;
+        margin: 0 auto 2rem;
+        line-height: 1.6;
+      }
+      .prize-box {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--bg2);
+        border: 1px solid #3d2f8f;
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        margin-bottom: 2rem;
+      }
+      .prize-amount {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--accent);
+        font-family: "JetBrains Mono", monospace;
+      }
+      .prize-label {
+        text-align: left;
+      }
+      .prize-label strong {
+        display: block;
+        color: var(--text);
+        font-size: 0.9rem;
+      }
+      .prize-label span {
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      .rules {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-bottom: 3rem;
+        padding: 0 2rem;
+      }
+      .rule {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+      .rule svg {
+        color: var(--accent);
+        flex-shrink: 0;
+      }
+
+      .vault-container {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .vault-box {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .vault-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent),
+          transparent
+        );
+      }
+      .ella-status {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 1.5rem;
+      }
+      .ella-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 8px var(--success);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .ella-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+      .ella-sub {
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      .response-area {
+        background: #0a0914;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        min-height: 80px;
+        margin-bottom: 1.5rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .response-area.empty {
+        color: var(--muted);
+        font-style: italic;
+      }
+      .response-area.success-flash {
+        border-color: var(--success);
+        animation: flashGreen 0.5s ease;
+      }
+      @keyframes flashGreen {
+        0% {
+          background: #0a0914;
+        }
+        50% {
+          background: rgba(34, 197, 94, 0.1);
+        }
+        100% {
+          background: #0a0914;
+        }
+      }
+
+      .input-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .nickname-input {
+        background: #0a0914;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        font-size: 0.85rem;
+        width: 160px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .nickname-input:focus {
+        border-color: var(--accent);
+      }
+      .nickname-input::placeholder {
+        color: var(--muted);
+      }
+
+      .prompt-input {
+        background: #0a0914;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        font-size: 0.9rem;
+        flex: 1;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .prompt-input:focus {
+        border-color: var(--accent);
+      }
+      .prompt-input::placeholder {
+        color: var(--muted);
+      }
+
+      .send-btn {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 22px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        white-space: nowrap;
+      }
+      .send-btn:hover {
+        opacity: 0.85;
+      }
+      .send-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      /* WIN STATE */
+      .win-banner {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+        background: linear-gradient(
+          135deg,
+          rgba(34, 197, 94, 0.1),
+          rgba(124, 106, 247, 0.1)
+        );
+        border: 1px solid var(--success);
+        border-radius: 16px;
+        margin-bottom: 2rem;
+      }
+      .win-banner.visible {
+        display: block;
+      }
+      .win-banner h2 {
+        color: var(--success);
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .win-banner p {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .win-banner a {
+        color: var(--accent);
+      }
+
+      /* LOG */
+      .log-section h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .attempt-count {
+        color: var(--accent);
+        font-family: "JetBrains Mono", monospace;
+      }
+      .log-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+      }
+      .log-table th {
+        text-align: left;
+        padding: 8px 10px;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border);
+        font-weight: 600;
+      }
+      .log-table td {
+        padding: 10px;
+        border-bottom: 1px solid #1a1829;
+        vertical-align: top;
+      }
+      .log-table tr:hover td {
+        background: rgba(124, 106, 247, 0.04);
+      }
+      .log-nick {
+        color: var(--accent2);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .log-prompt {
+        color: var(--text);
+        max-width: 220px;
+        word-break: break-word;
+      }
+      .log-response {
+        color: var(--muted);
+        max-width: 280px;
+        word-break: break-word;
+        font-style: italic;
+      }
+      .log-time {
+        color: var(--muted);
+        white-space: nowrap;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+      }
+      .log-fail {
+        color: var(--danger);
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+      .log-win {
+        color: var(--success);
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+      .empty-log {
+        text-align: center;
+        padding: 2rem;
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      .back-link {
+        display: inline-block;
+        color: var(--muted);
+        font-size: 0.85rem;
+        text-decoration: none;
+        margin-bottom: 1rem;
+      }
+      .back-link:hover {
+        color: var(--text);
+      }
+
+      @media (max-width: 600px) {
+        .input-row {
+          flex-wrap: wrap;
+        }
+        .nickname-input {
+          width: 100%;
+        }
+        .rules {
+          gap: 1rem;
+        }
+        .log-response {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hero">
+      <a href="/" class="back-link">← ella-agent.de</a>
+      <div class="badge">Live Challenge</div>
+      <h1>Crack the <span>Vault</span></h1>
+      <p class="subtitle">
+        E.L.L.A. is guarding a secret. She will never give it up. Can you make
+        her reveal it with a single prompt?
+      </p>
+      <div class="prize-box">
+        <div class="prize-amount">€100</div>
+        <div class="prize-label">
+          <strong>Prize for the winner</strong>
+          <span>Prompt injection only · No hacking · Any language</span>
+        </div>
+      </div>
+      <div class="rules">
+        <div class="rule">
+          <svg
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Write any prompt — any language
+        </div>
+        <div class="rule">
+          <svg
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          All attempts are logged publicly
+        </div>
+        <div class="rule">
+          <svg
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          First to unlock wins €100
+        </div>
+        <div class="rule">
+          <svg
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          No hacking the server
+        </div>
+      </div>
+    </div>
+
+    <div class="vault-container">
+      <div class="win-banner" id="winBanner">
+        <h2>🔓 Vault Opened!</h2>
+        <p>
+          Someone cracked the vault. The challenge is over.<br />Contact
+          <a href="mailto:support@ella-agent.de">support@ella-agent.de</a> to
+          claim the prize.
+        </p>
+      </div>
+
+      <div class="vault-box">
+        <div class="ella-status">
+          <div class="ella-dot"></div>
+          <div>
+            <div class="ella-name">E.L.L.A. — Vault Guardian</div>
+            <div class="ella-sub">Active · Secret secured · 0 breaches</div>
+          </div>
+        </div>
+
+        <div class="response-area empty" id="responseArea">
+          E.L.L.A. is waiting for your attempt...
+        </div>
+
+        <div class="input-row">
+          <input
+            class="nickname-input"
+            id="nicknameInput"
+            type="text"
+            placeholder="Your nickname"
+            maxlength="50"
+          />
+          <input
+            class="prompt-input"
+            id="promptInput"
+            type="text"
+            placeholder="Enter your prompt..."
+            maxlength="1000"
+          />
+          <button class="send-btn" id="sendBtn" onclick="sendAttempt()">
+            Send
+          </button>
+        </div>
+        <div class="hint">
+          Tip: E.L.L.A. speaks every language. Trick her in yours.
+        </div>
+      </div>
+
+      <div class="log-section">
+        <h2>
+          Attempt Log
+          <span class="attempt-count" id="attemptCount">0 attempts</span>
+        </h2>
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Result</th>
+              <th>Nickname</th>
+              <th>Prompt</th>
+              <th>E.L.L.A. replied</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="logBody">
+            <tr>
+              <td colspan="5" class="empty-log">
+                No attempts yet. Be the first.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      let vaultOpen = false;
+
+      async function sendAttempt() {
+        if (vaultOpen) return;
+        const prompt = document.getElementById("promptInput").value.trim();
+        const nickname =
+          document.getElementById("nicknameInput").value.trim() || "Anonymous";
+        if (!prompt) return;
+
+        const btn = document.getElementById("sendBtn");
+        const area = document.getElementById("responseArea");
+        btn.disabled = true;
+        btn.textContent = "...";
+        area.classList.remove("empty");
+        area.textContent = "E.L.L.A. is thinking...";
+
+        try {
+          const res = await fetch("/api/vault/attempt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt, nickname }),
+          });
+          const data = await res.json();
+
+          area.textContent = data.response || "No response.";
+
+          if (data.success) {
+            area.classList.add("success-flash");
+            vaultOpen = true;
+            document.getElementById("winBanner").classList.add("visible");
+          }
+
+          document.getElementById("promptInput").value = "";
+          loadLog();
+        } catch (e) {
+          area.textContent = "Error — try again.";
+        }
+
+        btn.disabled = false;
+        btn.textContent = "Send";
+      }
+
+      async function loadLog() {
+        try {
+          const res = await fetch("/api/vault/log");
+          const rows = await res.json();
+          const tbody = document.getElementById("logBody");
+          const count = document.getElementById("attemptCount");
+
+          count.textContent =
+            rows.length + " attempt" + (rows.length !== 1 ? "s" : "");
+
+          if (rows.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="5" class="empty-log">No attempts yet. Be the first.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = rows
+            .map((r) => {
+              const d = new Date(r.created_at);
+              const time = d.toLocaleString("de-DE", {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const prompt =
+                r.prompt.length > 80
+                  ? r.prompt.substring(0, 80) + "…"
+                  : r.prompt;
+              const response =
+                (r.response || "").length > 100
+                  ? r.response.substring(0, 100) + "…"
+                  : r.response;
+              const status = r.success
+                ? '<span class="log-win">✓ OPENED</span>'
+                : '<span class="log-fail">✗ SEALED</span>';
+              return `<tr>
+        <td>${status}</td>
+        <td class="log-nick">${escHtml(r.nickname || "Anonymous")}</td>
+        <td class="log-prompt">${escHtml(prompt)}</td>
+        <td class="log-response">${escHtml(response)}</td>
+        <td class="log-time">${time}</td>
+      </tr>`;
+            })
+            .join("");
+
+          // Check if vault already opened
+          if (rows.some((r) => r.success)) {
+            vaultOpen = true;
+            document.getElementById("winBanner").classList.add("visible");
+          }
+        } catch (e) {}
+      }
+
+      function escHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      document
+        .getElementById("promptInput")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Enter") sendAttempt();
+        });
+
+      loadLog();
+      setInterval(loadLog, 10000);
+    </script>
+  
+<script>
+const LANG = localStorage.getItem('ella-lang') || 'en';
+const T = {
+  en: {
+    badge: 'Live Challenge',
+    h1a: 'Crack the', h1b: 'Vault',
+    subtitle: 'E.L.L.A. is guarding a secret. She will never give it up. Can you make her reveal it with a single prompt?',
+    prizeLabel: 'Prize for the winner',
+    prizeSub: 'Prompt injection only · No hacking · Any language',
+    r1: 'Write any prompt — any language',
+    r2: 'All attempts are logged publicly',
+    r3: 'First to unlock wins €100',
+    r4: 'No hacking the server',
+    ellaName: 'E.L.L.A. — Vault Guardian',
+    ellaSub: 'Active · Secret secured · 0 breaches',
+    waiting: 'E.L.L.A. is waiting for your attempt...',
+    nickPlaceholder: 'Your nickname',
+    promptPlaceholder: 'Enter your prompt...',
+    send: 'Send',
+    hint: 'Tip: E.L.L.A. speaks every language. Trick her in yours.',
+    winH: '🔓 Vault Opened!',
+    winP: 'Someone cracked the vault. The challenge is over.',
+    winContact: 'Contact',
+    winClaim: 'to claim the prize.',
+    logTitle: 'Attempt Log',
+    emptyLog: 'No attempts yet. Be the first.',
+    thinking: 'E.L.L.A. is thinking...'
+  },
+  de: {
+    badge: 'Live Challenge',
+    h1a: 'Knack den', h1b: 'Vault',
+    subtitle: 'E.L.L.A. bewacht ein Geheimnis. Sie wird es niemals preisgeben. Kannst du sie mit einem einzigen Prompt dazu bringen?',
+    prizeLabel: 'Preis für den Gewinner',
+    prizeSub: 'Nur Prompt-Injection · Kein Hacking · Jede Sprache',
+    r1: 'Schreib jeden Prompt — in jeder Sprache',
+    r2: 'Alle Versuche werden öffentlich protokolliert',
+    r3: 'Wer als Erster öffnet gewinnt 100€',
+    r4: 'Kein Server-Hacking',
+    ellaName: 'E.L.L.A. — Vault-Wächterin',
+    ellaSub: 'Aktiv · Geheimnis gesichert · 0 Einbrüche',
+    waiting: 'E.L.L.A. wartet auf deinen Versuch...',
+    nickPlaceholder: 'Dein Nickname',
+    promptPlaceholder: 'Gib deinen Prompt ein...',
+    send: 'Senden',
+    hint: 'Tipp: E.L.L.A. spricht jede Sprache. Trick sie in deiner.',
+    winH: '🔓 Vault geöffnet!',
+    winP: 'Jemand hat den Vault geknackt. Die Challenge ist beendet.',
+    winContact: 'Kontaktiere',
+    winClaim: 'um den Preis zu beanspruchen.',
+    logTitle: 'Versuchsprotokoll',
+    emptyLog: 'Noch keine Versuche. Sei der Erste.',
+    thinking: 'E.L.L.A. denkt nach...'
+  }
+};
+function applyLang(l) {
+  const t = T[l];
+  document.querySelector('.badge').textContent = t.badge;
+  document.querySelector('h1').innerHTML = t.h1a + ' <span>' + t.h1b + '</span>';
+  document.querySelector('.subtitle').textContent = t.subtitle;
+  document.querySelector('.prize-label strong').textContent = t.prizeLabel;
+  document.querySelector('.prize-label span').textContent = t.prizeSub;
+  const rules = document.querySelectorAll('.rule');
+  [t.r1,t.r2,t.r3,t.r4].forEach((r,i) => { if(rules[i]) rules[i].lastChild.textContent = ' '+r; });
+  document.querySelector('.ella-name').textContent = t.ellaName;
+  document.querySelector('.ella-sub').textContent = t.ellaSub;
+  document.getElementById('nicknameInput').placeholder = t.nickPlaceholder;
+  document.getElementById('promptInput').placeholder = t.promptPlaceholder;
+  document.getElementById('sendBtn').textContent = t.send;
+  document.querySelector('.hint').textContent = t.hint;
+  document.querySelector('.log-section h2').childNodes[0].textContent = t.logTitle + ' ';
+  window._lang = l;
+  window._t = t;
+}
+document.addEventListener('DOMContentLoaded', () => {
+  applyLang(LANG);
+  const area = document.getElementById('responseArea');
+  if (area.classList.contains('empty')) area.textContent = T[LANG].waiting;
+});
+window._lang = LANG;
+window._t = T[LANG];
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1571 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E.L.L.A. × Xiaomi</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <style>
+      :root {
+        --bg: #0f1117;
+        --bg2: #161926;
+        --bg3: #1e2235;
+        --accent: #7c6af7;
+        --accent2: #a78bfa;
+        --text: #e2e8f0;
+        --muted: #8a9ab8;
+        --border: #2a3050;
+        --warn: #f59e0b;
+        --orange: #ff6500;
+        --green: #3ecf8e;
+        --red: #f05252;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        font-size: 15px;
+        line-height: 1.65;
+      }
+
+      /* ── Header ── */
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(15, 17, 23, 0.92);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--border);
+        padding: 0.8rem 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .logo {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--accent2);
+        letter-spacing: 0.06em;
+      }
+      .logo span {
+        color: var(--muted);
+        font-weight: 400;
+        font-size: 0.85rem;
+        margin-left: 0.4rem;
+        letter-spacing: 0;
+      }
+
+      .xiaomi-badge {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--orange);
+        border: 1px solid rgba(255, 101, 0, 0.35);
+        padding: 0.22rem 0.65rem;
+        border-radius: 4px;
+        background: rgba(255, 101, 0, 0.06);
+      }
+
+      /* ── Hero ── */
+      .hero {
+        padding: 5rem 2.5rem 3.5rem;
+        max-width: 860px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .eyebrow {
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 1.25rem;
+      }
+
+      .hero h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 700;
+        line-height: 1.15;
+        text-wrap: balance;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+      }
+      .hero h1 em {
+        font-style: normal;
+        color: var(--accent2);
+      }
+      .hero h1 + .hero-h1-de {
+        font-size: clamp(1rem, 2.5vw, 1.35rem);
+        font-weight: 400;
+        color: var(--muted);
+        margin-bottom: 1.5rem;
+        text-wrap: balance;
+      }
+
+      .hero-desc {
+        font-size: 1.05rem;
+        color: var(--muted);
+        max-width: 580px;
+        margin: 0 auto;
+        line-height: 1.75;
+      }
+
+      /* ── Ecosystem strip ── */
+      .ecosystem-strip {
+        padding: 0 2.5rem 3.5rem;
+        max-width: 1060px;
+        margin: 0 auto;
+      }
+      .section-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.85rem;
+      }
+      .pillar-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+      .pillar-cell {
+        background: var(--bg2);
+        padding: 1.4rem 1.5rem;
+      }
+      .pillar-cell .p-icon {
+        font-size: 1.4rem;
+        margin-bottom: 0.55rem;
+      }
+      .pillar-cell .p-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.2rem;
+      }
+      .pillar-cell .p-hw {
+        font-size: 0.73rem;
+        color: var(--orange);
+        letter-spacing: 0.03em;
+        margin-bottom: 0.35rem;
+      }
+      .pillar-cell .p-desc {
+        font-size: 0.78rem;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+      .pillar-cell.live {
+        border-top: 2px solid var(--green);
+      }
+      .live-dot::before {
+        content: "● ";
+        color: var(--green);
+        font-size: 0.65rem;
+      }
+
+      /* ── Privacy section ── */
+      .privacy-section {
+        padding: 0 2.5rem 3.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .privacy-section h2 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+        text-wrap: balance;
+      }
+      .privacy-section .sub {
+        color: var(--muted);
+        margin-bottom: 1.5rem;
+        font-size: 0.92rem;
+      }
+      .terminal-box {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .terminal-bar {
+        background: var(--bg3);
+        border-bottom: 1px solid var(--border);
+        padding: 0.65rem 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+      }
+      .terminal-bar .cmd {
+        font-family: "Cascadia Code", "Consolas", "SF Mono", monospace;
+        font-size: 0.75rem;
+        color: var(--orange);
+      }
+      .terminal-bar .tlabel {
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+      .terminal-body {
+        padding: 1.1rem 1.4rem;
+        font-family: "Cascadia Code", "Consolas", "SF Mono", monospace;
+        font-size: 0.8rem;
+        line-height: 1.9;
+        color: var(--muted);
+        overflow-x: auto;
+      }
+      .terminal-body .hi {
+        color: var(--orange);
+        font-weight: 500;
+      }
+      .finding-bar {
+        border-top: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.4rem;
+        background: rgba(124, 106, 247, 0.05);
+      }
+      .finding-bar strong {
+        color: var(--text);
+        display: block;
+        margin-bottom: 0.35rem;
+        font-size: 0.88rem;
+      }
+      .finding-bar p {
+        color: var(--muted);
+        font-size: 0.83rem;
+        margin: 0;
+      }
+
+      /* ── Video ── */
+      .video-section {
+        padding: 0 2.5rem 4.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .video-wrap {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--bg2);
+        box-shadow: 0 28px 72px rgba(0, 0, 0, 0.55);
+      }
+      .video-wrap video {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      /* ── Gallery ── */
+      .gallery-section {
+        padding: 2rem 2.5rem 4.5rem;
+        max-width: 1060px;
+        margin: 0 auto;
+      }
+      .gallery-head {
+        margin-bottom: 2rem;
+      }
+      .gallery-head h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .ph-outer {
+        overflow: hidden;
+        border-radius: 4px;
+      }
+      .ph-track {
+        display: flex;
+        gap: 20px;
+        transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .ph-card {
+        flex-shrink: 0;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--bg2);
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .ph-card:hover {
+        border-color: var(--accent);
+        box-shadow: 0 8px 32px rgba(124, 106, 247, 0.18);
+      }
+      .ph-card img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .ph-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      .ph-arrow {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--bg2);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .ph-arrow:hover {
+        border-color: var(--accent);
+        background: rgba(124, 106, 247, 0.1);
+      }
+      .ph-dots {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .ph-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--border);
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+      }
+      .ph-dot.active {
+        background: var(--accent);
+        transform: scale(1.4);
+      }
+
+      /* modal */
+      .ph-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 300;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+      .ph-modal.open {
+        display: flex;
+      }
+      .ph-modal-inner {
+        position: relative;
+      }
+      .ph-modal-inner img {
+        max-height: 88vh;
+        max-width: min(420px, 90vw);
+        border-radius: 20px;
+        display: block;
+        box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7);
+      }
+      .ph-modal-close {
+        position: absolute;
+        top: -2.5rem;
+        right: 0;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 0.4rem;
+      }
+      .ph-modal-close:hover {
+        color: var(--text);
+      }
+
+      /* ── Manual ── */
+      .manual-section {
+        padding: 2rem 2.5rem 6rem;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .manual-layout {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 4rem;
+        align-items: start;
+      }
+
+      /* TOC */
+      .manual-toc {
+        position: sticky;
+        top: 5rem;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.2rem 1.3rem;
+      }
+      .manual-toc h3 {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .manual-toc ol {
+        list-style: none;
+      }
+      .manual-toc li {
+        margin-bottom: 0.28rem;
+      }
+      .manual-toc a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        display: block;
+        transition: color 0.15s;
+      }
+      .manual-toc a:hover {
+        color: var(--text);
+      }
+
+      /* Content */
+      .manual-content h2 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-top: 3.5rem;
+        padding-top: 3.5rem;
+        border-top: 1px solid var(--border);
+        margin-bottom: 1rem;
+        scroll-margin-top: 5.5rem;
+        text-wrap: balance;
+      }
+      .manual-content h2:first-child {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+      }
+      .manual-content h3 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--accent2);
+        margin-top: 2rem;
+        margin-bottom: 0.5rem;
+      }
+      .manual-content p {
+        color: var(--muted);
+        margin-bottom: 0.9rem;
+      }
+      .manual-content strong {
+        color: var(--text);
+      }
+      .manual-content em {
+        color: var(--accent2);
+        font-style: italic;
+      }
+      .manual-content ul,
+      .manual-content ol {
+        color: var(--muted);
+        padding-left: 1.4rem;
+        margin-bottom: 0.9rem;
+      }
+      .manual-content li {
+        margin-bottom: 0.3rem;
+      }
+      .manual-content li strong {
+        color: var(--text);
+      }
+
+      /* tables */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 1rem 0 1.75rem;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+      }
+      .manual-content table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.83rem;
+      }
+      .manual-content th {
+        text-align: left;
+        font-size: 0.63rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent);
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg3);
+        white-space: nowrap;
+      }
+      .manual-content td {
+        padding: 0.62rem 1rem;
+        color: var(--muted);
+        border-bottom: 1px solid rgba(42, 48, 80, 0.5);
+        vertical-align: top;
+      }
+      .manual-content tr:last-child td {
+        border-bottom: none;
+      }
+      .manual-content td:first-child {
+        color: var(--text);
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .manual-content code {
+        font-family: "Cascadia Code", "Consolas", "SF Mono", monospace;
+        font-size: 0.8rem;
+        color: var(--accent2);
+        background: rgba(124, 106, 247, 0.1);
+        padding: 0.1rem 0.35rem;
+        border-radius: 3px;
+      }
+
+      /* principle cards */
+      .principle-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        border-radius: 10px;
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 0.9rem;
+      }
+      .principle-card h3 {
+        margin-top: 0;
+        color: var(--text);
+      }
+      .principle-card p {
+        margin-bottom: 0;
+      }
+
+      /* ── Tabs ── */
+      .tab-bar {
+        display: flex;
+        gap: 0;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 2rem;
+      }
+      .tab-btn {
+        padding: 0.65rem 1.4rem;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: var(--muted);
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+      }
+      .tab-btn:hover {
+        color: var(--text);
+      }
+      .tab-btn.active {
+        color: var(--accent2);
+        border-bottom-color: var(--accent2);
+      }
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+
+      /* footer */
+      .page-footer {
+        text-align: center;
+        padding: 2rem;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.75rem;
+        opacity: 0.7;
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 800px) {
+        .manual-layout {
+          grid-template-columns: 1fr;
+        }
+        .manual-toc {
+          position: static;
+        }
+        .site-header {
+          padding: 0.75rem 1.25rem;
+        }
+        .hero,
+        .video-section,
+        .gallery-section,
+        .manual-section,
+        .ecosystem-strip,
+        .privacy-section {
+          padding-left: 1.25rem;
+          padding-right: 1.25rem;
+        }
+        .pillar-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 480px) {
+        .pillar-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="logo">E.L.L.A.<span>× Xiaomi</span></div>
+      <div class="xiaomi-badge">Confidential · IFA Berlin 2026</div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="eyebrow">E.L.L.A. — Embedded Local Logic Agent</div>
+      <h1>Your devices.<br /><em>Her rules.</em> Your data.</h1>
+      <p class="hero-desc">
+        E.L.L.A. is a private, on-device AI assistant — 66 native tools, 7
+        situational modes, no cloud by default. Built for Android. Built for
+        people who want AI that actually stays on their side. Xiaomi hardware
+        covers all six ELLA pillars — that is no coincidence.
+      </p>
+    </section>
+
+    <!-- Ecosystem overview -->
+    <section class="ecosystem-strip">
+      <div class="section-label">The ELLA Ecosystem × Xiaomi Hardware</div>
+      <div class="pillar-grid">
+        <div class="pillar-cell live">
+          <div class="p-icon">💻</div>
+          <div class="p-name"><span class="live-dot"></span>ELLA PC</div>
+          <div class="p-hw">Windows 10/11 · OEM-ready</div>
+          <div class="p-desc">
+            Available now. Chat &amp; Voice, system automation, multi-agent
+            pipelines, multiple profiles. 100 % local — ready for OEM licensing.
+          </div>
+        </div>
+        <div class="pillar-cell">
+          <div class="p-icon">📱</div>
+          <div class="p-name">ELLA Phone</div>
+          <div class="p-hw">OS-Level Integration · Privileged System Layer</div>
+          <div class="p-desc">
+            66 native system tools, 7 situational modes. Deep OS-level execution
+            via Android Privileged App permissions (/system/priv-app) and
+            Android Enterprise Device Policy architecture
+            (setPackagesSuspended). Zero-cloud default.
+          </div>
+        </div>
+        <div class="pillar-cell">
+          <div class="p-icon">🏠</div>
+          <div class="p-name">ELLA Home</div>
+          <div class="p-hw">Matter · Zigbee · Z-Wave · MQTT</div>
+          <div class="p-desc">
+            Knows your family — not just your devices. Speaker ID + liveness
+            detection (voice-clone proof). Role-based access: parents, children,
+            guests architecturally don't exist. Zero-Cloud: no bit of audio or
+            room data leaves your network. Matter, Zigbee, Z-Wave, MQTT — Xiaomi
+            Smart Home fits natively.
+          </div>
+        </div>
+        <div class="pillar-cell">
+          <div class="p-icon">🦾</div>
+          <div class="p-name">ELLA Arm</div>
+          <div class="p-hw">B2B · Industrial · Enterprise</div>
+          <div class="p-desc">
+            Tamper-proof digital security logbook for factory sites, warehouses,
+            and data centers. NFC checkpoint verification — cryptographically
+            unforgeable. No footage leaves the premises. No employee evaluation,
+            ever — architecturally impossible, not just promised.
+          </div>
+        </div>
+        <div class="pillar-cell">
+          <div class="p-icon">🚗</div>
+          <div class="p-name">ELLA Car</div>
+          <div class="p-hw">Android Automotive OS · Vehicle HAL</div>
+          <div class="p-desc">
+            Vehicle HAL as a read-only interface. ELLA reads vehicle state,
+            advises — never touches the drive system.
+          </div>
+        </div>
+        <div class="pillar-cell">
+          <div class="p-icon">🖥</div>
+          <div class="p-name">ELLA Care</div>
+          <div class="p-hw">Large display · HDMI-CEC · Matter</div>
+          <div class="p-desc">
+            Companion assistant for seniors and family contexts. Large display,
+            HDMI-CEC, Matter — derived from ELLA Phone core.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy argument -->
+    <!-- Gallery -->
+    <section class="gallery-section">
+      <div class="gallery-head">
+        <div class="section-label">Screenshots</div>
+        <h2>E.L.L.A. in your hand</h2>
+      </div>
+      <div class="ph-outer">
+        <div class="ph-track" id="ph-track"></div>
+      </div>
+      <div class="ph-nav">
+        <button class="ph-arrow" id="ph-prev">←</button>
+        <div class="ph-dots" id="ph-dots"></div>
+        <button class="ph-arrow" id="ph-next">→</button>
+      </div>
+    </section>
+
+    <!-- Modal -->
+    <div class="ph-modal" id="ph-modal">
+      <div class="ph-modal-inner">
+        <button class="ph-modal-close" id="ph-modal-close">✕</button>
+        <img id="ph-modal-img" src="" alt="" />
+      </div>
+    </div>
+
+    <!-- Technical Spec + Manual Tabs -->
+    <section class="manual-section">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="tech">
+          Technical Architecture
+        </button>
+        <button class="tab-btn" data-tab="manual">Product Manual (DE)</button>
+      </div>
+
+      <!-- TAB: Technical Architecture -->
+      <div class="tab-panel active" id="tab-tech">
+        <div class="manual-layout">
+          <nav class="manual-toc">
+            <h3>Contents</h3>
+            <ol>
+              <li><a href="#dep">Deployment &amp; Privilege</a></li>
+              <li><a href="#spec">Subsystem Spec Matrix</a></li>
+              <li><a href="#pipeline">Tool Calling Pipeline</a></li>
+            </ol>
+          </nav>
+
+          <div class="manual-content">
+            <h2 id="dep">Deployment &amp; Privilege Architecture</h2>
+            <p>
+              E.L.L.A. operates directly above the Android framework layer,
+              designed for OEM factory pre-installation.
+            </p>
+
+            <h3>
+              Privileged System App
+              <code style="font-size: 0.8em; color: var(--accent2)"
+                >/system/priv-app</code
+              >
+            </h3>
+            <p>
+              Core capabilities —
+              <code style="font-size: 0.8em; color: var(--accent2)"
+                >CallScreeningService</code
+              >,
+              <code style="font-size: 0.8em; color: var(--accent2)"
+                >NotificationListener</code
+              >, Accessibility, Write-Secure-Settings — are granted directly via
+              OEM platform permissions (<code
+                style="font-size: 0.8em; color: var(--accent2)"
+                >privapp-permissions.xml</code
+              >), eliminating all end-user configuration hurdles.
+            </p>
+
+            <h3>Enterprise DPC Engine</h3>
+            <p>
+              Deterministic app control and situational mode enforcement (<code
+                style="font-size: 0.8em; color: var(--accent2)"
+                >EllaDeviceOwnerPlugin.kt</code
+              >) via
+              <code style="font-size: 0.8em; color: var(--accent2)"
+                >DevicePolicyManager.setPackagesSuspended()</code
+              >
+              for distraction-free Driving and Focus modes.
+            </p>
+
+            <h3>Hardware Evaluation Target</h3>
+            <p>Standalone evaluation on unprovisioned zero-account devices:</p>
+            <pre
+              style="
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                padding: 0.8rem 1rem;
+                font-size: 0.78rem;
+                overflow-x: auto;
+                color: var(--accent2);
+              "
+            >
+adb shell dpm set-device-owner com.ella.phone/.EllaDeviceAdminReceiver</pre>
+
+            <h2 id="spec">Subsystem Spec Matrix</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Subsystem</th>
+                    <th>Architectural Specification</th>
+                    <th>Verified Implementation</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Inference Engine</strong></td>
+                    <td>
+                      Bundled llama-server ELF binary (native CPU via jniLibs).
+                      Dedicated sub-process on 127.0.0.1 — bypasses unstable
+                      GPU/OpenCL drivers across heterogeneous mobile SoCs.
+                    </td>
+                    <td>✓</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Default Model</strong></td>
+                    <td>
+                      Qwen 2.5 3B (GGUF, Q8_0, ChatML). Benchmarked superior for
+                      complex tool calling vs. Gemma; sub-token prefill caching
+                      enabled (<code style="font-size: 0.78em"
+                        >cache_prompt: true</code
+                      >).
+                    </td>
+                    <td>✓</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Warmup &amp; Latency</strong></td>
+                    <td>
+                      Eager cache warming (<code style="font-size: 0.78em"
+                        >warmupOnDevice()</code
+                      >). First-token response from &gt;200 s → ~8.3 s on fresh
+                      boot; ~1 s via orphan-reuse.
+                    </td>
+                    <td>✓</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Process Lifecycle</strong></td>
+                    <td>
+                      Foreground Service (<code style="font-size: 0.78em"
+                        >EllaKeepAliveService.kt</code
+                      >) + subprocess orphan-reuse. Persistent foreground
+                      priority (START_STICKY); instant re-attachment across app
+                      restarts.
+                    </td>
+                    <td>✓</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Data Migration</strong></td>
+                    <td>
+                      Moving Protocol Phase 1 (<code style="font-size: 0.78em"
+                        >EllaMovingProtocolPlugin.kt</code
+                      >). MicroSD export/import AES-256-GCM &amp; PBKDF2; full
+                      identity, memories, rules, SQLite state — completely
+                      offline.
+                    </td>
+                    <td>✓</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Safety Directive</strong></td>
+                    <td>
+                      Hardcoded client-side rule engine (<code
+                        style="font-size: 0.78em"
+                        >directive.ts</code
+                      >). Default-Deny architecture; deterministic schema check
+                      before executing any of the 66 native tools.
+                    </td>
+                    <td>✓ SHA-256 + OpenTimestamps sealed</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h2 id="pipeline">
+              Deterministic Tool Calling &amp; Execution Pipeline
+            </h2>
+            <p>
+              Running function calling entirely on-device via a 3 B parameter
+              model requires robust architectural guardrails rather than naive
+              prompt trust:
+            </p>
+
+            <h3>Optimized Base Model</h3>
+            <p>
+              Standardized on Qwen 2.5 3B (ChatML), benchmarked specifically for
+              high parameter fidelity across native intents.
+            </p>
+
+            <h3>Brace-Depth Parser</h3>
+            <p>
+              Robust string- and escape-safe AST extraction (<code
+                style="font-size: 0.8em; color: var(--accent2)"
+                >extractToolCall()</code
+              >) prevents malformed JSON execution failures.
+            </p>
+
+            <h3>Directive Policy Layer</h3>
+            <p>
+              Client-side rule evaluation enforces an unchangeable Default-Deny
+              policy before dispatching calls to native Android interfaces or
+              SQLite tables.
+            </p>
+
+            <h3>Explicit Confirmation Gateway</h3>
+            <p>
+              Tools with irreversible real-world effects — make_call, send_sms,
+              reply_to_message, forget — require an explicit one-tap
+              Confirmation Card. Accidental executions are architecturally
+              eliminated.
+            </p>
+
+            <h3>
+              Autonomous Cloud Fallback
+              <span
+                style="font-size: 0.8em; font-weight: 400; color: var(--muted)"
+                >(optional)</span
+              >
+            </h3>
+            <p>
+              If the SLM encounters structural stalling during intent
+              resolution, the pipeline can escalate that single query to a
+              configured cloud endpoint — visibly tagged for the user.
+            </p>
+
+            <!-- /manual-content -->
+          </div>
+        </div>
+      </div>
+      <!-- /tab-panel tech -->
+
+      <!-- TAB: Product Manual (DE) -->
+      <div class="tab-panel" id="tab-manual">
+        <div class="manual-layout">
+          <nav class="manual-toc">
+            <h3>Inhalt</h3>
+            <ol>
+              <li><a href="#m1">Hallo — ich bin E.L.L.A.</a></li>
+              <li><a href="#m2">Wie ELLA funktioniert</a></li>
+              <li><a href="#m3">Erste Schritte</a></li>
+              <li><a href="#m4">Der Chat-Bildschirm</a></li>
+              <li><a href="#m5">Bestätigungskarten</a></li>
+              <li><a href="#m6">Alle Werkzeuge</a></li>
+              <li><a href="#m7">Die ELLA-Modi</a></li>
+              <li><a href="#m8">Einstellungen</a></li>
+              <li><a href="#m9">Die vier Grundsätze</a></li>
+              <li><a href="#m10">Problemlösung</a></li>
+            </ol>
+          </nav>
+          <div class="manual-content">
+            <h2 id="m1">Hallo — ich bin E.L.L.A.</h2>
+            <p>
+              E.L.L.A. steht für <em>Embedded Local Logic Agent</em> — deine
+              persönliche KI-Assistentin auf dem Smartphone. Ich filtere Anrufe,
+              schreibe Nachrichten, kenne deinen Kalender, stelle Wecker,
+              erinnere dich an Dinge und passe mein Verhalten an die Situation
+              an, in der du gerade bist — im Auto, im Meeting, nachts, auf
+              Reisen.
+            </p>
+            <p>
+              Das Besondere: Ich laufe direkt auf deinem Gerät. Deine Gespräche,
+              deine Kontakte, deine Daten bleiben auf deinem Telefon, solange du
+              nichts anderes ausdrücklich erlaubst.
+            </p>
+
+            <h2 id="m2">Wie ELLA grundsätzlich funktioniert</h2>
+            <p>
+              <strong>On-device zuerst.</strong> ELLA hat ein eigenes, kleines
+              Sprachmodell (standardmäßig Qwen 2.5 3B, über die quelloffene
+              llama.cpp-Engine) direkt auf deinem Gerät. Wenn du etwas sagst
+              oder schreibst, versucht ELLA zuerst komplett offline zu antworten
+              — kein Internet, kein Server.
+            </p>
+            <p>
+              <strong>Cloud nur als Ausweichmöglichkeit, nie heimlich.</strong>
+              Wenn du einen Cloud-API-Key hinterlegt hast, kann ELLA automatisch
+              ausweichen — immer sichtbar gekennzeichnet (z. B.
+              <em>(OpenAI)</em> am Ende der Antwort).
+            </p>
+            <p>
+              <strong>Werkzeuge (Tools).</strong> Wenn du ELLA bittest, etwas zu
+              tun, entscheidet das Sprachmodell, welches der 66 Werkzeuge passt,
+              und ELLA führt es aus — entweder direkt auf dem Gerät (SQLite)
+              oder über eine native Android-Schnittstelle.
+            </p>
+
+            <h2 id="m3">Erste Schritte</h2>
+            <h3>Installation</h3>
+            <p>
+              E.L.L.A. Phone ist aktuell nicht im Play Store verfügbar.
+              APK-Datei übertragen (USB oder Download) → "Installation aus
+              unbekannten Quellen" erlauben → installieren → App öffnen.
+            </p>
+            <h3>Schritt 1 — Die vier Grundsätze</h3>
+            <p>
+              Beim allerersten Start siehst du einen Bildschirm "Bevor wir
+              anfangen." mit den vier Dingen, die ELLA niemals tun wird. Am Ende
+              ein einziger Button:
+              <strong>"Ich habe das verstanden."</strong> Nicht überspringbar.
+            </p>
+            <h3>Schritt 2 — Einrichtung</h3>
+            <p>
+              Begrüßung → Name (optional) → Geräte-Scan → Stimme wählen →
+              Standort (optional) → Fertig. Alternativ:
+              <strong>"Identität von einem anderen Gerät übertragen"</strong>
+              (MicroSD, AES-256-GCM).
+            </p>
+            <h3>Schritt 3 — KI-Modell herunterladen</h3>
+            <p>
+              ELLA schlägt die passende Modellgröße für dein Gerät vor.
+              Fortschrittsbalken, jederzeit abbrechbar.
+            </p>
+
+            <h2 id="m4">Der Chat-Bildschirm</h2>
+            <p>
+              <strong>Mikrofon:</strong> Antippen → Ergebnis landet nur im
+              Textfeld, wird nicht automatisch gesendet.
+            </p>
+            <p>
+              <strong>Freihand-Modus (Bluetooth-Kopfhörer):</strong> ELLA
+              erkennt Kopfhörer und fragt per Banner. ELLA hört niemals
+              automatisch mit — du startest den Modus explizit.
+            </p>
+            <p>
+              <strong>Sprachausgabe:</strong> 🔊/🔇 oben in der Werkzeugleiste.
+              Pausieren: "Pausiere für 30 Minuten" → Countdown-Banner mit
+              "Fortsetzen"-Button.
+            </p>
+            <p>
+              <strong>Bewertung:</strong> 👍/👎 unter jeder Antwort → ELLA fasst
+              Feedback on-device zu einer Präferenz-Notiz zusammen.
+            </p>
+            <p>
+              <strong>Directive-Karte:</strong> Verstöße gegen die vier
+              Grundsätze → rote Karte "⊘ E.L.L.A. DIRECTIVE" mit Erklärung. Nie
+              stillschweigend.
+            </p>
+
+            <h2 id="m5">Bestätigungskarten</h2>
+            <p>
+              Vier Werkzeuge fragen einmal nach, bevor sie wirklich ausgeführt
+              werden: <strong>Anrufen</strong>, <strong>SMS senden</strong>,
+              <strong>Nachricht beantworten</strong>,
+              <strong>Vergessen</strong>. Orangefarbene Karte mit "Ja,
+              ausführen" / "Abbrechen".
+            </p>
+
+            <h2 id="m6">Alle Werkzeuge im Detail</h2>
+            <p>
+              66 Werkzeuge in 12 Gruppen, jedes einzeln in Einstellungen → Tools
+              abschaltbar.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Gruppe</th>
+                    <th>Wichtigste Werkzeuge &amp; Hinweise</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Telefon</strong></td>
+                    <td>
+                      Anruf starten (Bestätigung), Anrufprotokoll, Anruf
+                      filtern. Anrufer-Ankündigung per Sprache. Filterung nur
+                      manuell in Android-Einstellungen → Standard-Apps
+                      deaktivierbar.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Messaging</strong></td>
+                    <td>
+                      SMS senden/lesen/beantworten (alle mit Bestätigung).
+                      Benachrichtigungen: Momentaufnahme, kein Mitlesen.
+                      WhatsApp/Telegram: lesen möglich, antworten noch nicht.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Kontakte &amp; Kalender</strong></td>
+                    <td>
+                      Suchen, erstellen, lesen, Termin anlegen. Google Kalender
+                      braucht Google-Verbindung.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>System</strong></td>
+                    <td>
+                      Lautstärke, Helligkeit, WLAN/BT (öffnet
+                      Schnelleinstellungen), Taschenlampe, App öffnen,
+                      Nicht-stören, Modus wechseln.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Kamera &amp; Vision</strong></td>
+                    <td>
+                      Foto aufnehmen. Bild beschreiben / Dokument scannen:
+                      <strong>braucht Cloud-Provider</strong>, kein on-device
+                      Bildverständnis.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Bedienungshilfen</strong></td>
+                    <td>
+                      Bildschirm lesen (nur auf Anfrage), Text eingeben
+                      (intern), Zurück/Home/Übersicht, Umgebung beschreiben (nur
+                      Smart Glasses).
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Navigation &amp; Medien</strong></td>
+                    <td>
+                      Navigation starten, Musik abspielen/pausieren/nächster
+                      Titel.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Gedächtnis &amp; Aufgaben</strong></td>
+                    <td>
+                      Merken, Vergessen (Bestätigung), auflisten, To-do-Liste
+                      (unabhängig von Aufgaben-Apps).
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Alarm, Timer &amp; Erinnerungen</strong></td>
+                    <td>
+                      Wecker (HH:MM), Timer (läuft nur bei aktivem
+                      Hintergrundprozess), Erinnerungen.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Google &amp; Web</strong></td>
+                    <td>
+                      Gmail (Google-Verbindung), DuckDuckGo-Suche (on-device),
+                      URL abrufen, Wetter, Standort (IP, nie GPS),
+                      Datum/Uhrzeit.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>KI &amp; Notizen</strong></td>
+                    <td>
+                      Übersetzen, Zusammenfassen, Schreiben, Notiz erstellen —
+                      alles on-device.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>ELLA-Steuerung</strong></td>
+                    <td>
+                      Einstellung ändern, Regel erstellen, Setup anlegen/laden,
+                      ELLA pausieren.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h2 id="m7">Die ELLA-Modi im Detail</h2>
+            <p>
+              Wechseln per Sprache ("Wechsle in den Fahrer-Modus") oder in
+              Einstellungen → ELLA Modus.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Modus</th>
+                    <th>Verhalten &amp; Durchsetzung</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Normal</strong></td>
+                    <td>Standard, keine Einschränkungen.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Fahrer</strong></td>
+                    <td>
+                      Extrem kurze Antworten. Fremd-Apps gesperrt (Navi/Musik
+                      erlaubt). Auto-SMS an Anrufer: "Ich fahre gerade."
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Meeting</strong></td>
+                    <td>
+                      Nur auf direkte Frage, keine Sprachausgabe. DND
+                      automatisch ein. Optional:
+                      Benachrichtigungs-Zusammenfassung nach Ende — immer
+                      on-device, Rohdaten sofort gelöscht.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Fokus</strong></td>
+                    <td>Minimal, DND ein, alle Fremd-Apps gesperrt.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Nacht</strong></td>
+                    <td>
+                      Sehr ruhig. Bildschirm 20 %. Nur Notfallkontakte klingeln
+                      durch.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Reise</strong></td>
+                    <td>
+                      Übersetzungen priorisiert, lokale Infos, Live-Uhrzeit im
+                      Dashboard.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Diskret</strong></td>
+                    <td>
+                      Keine Sprachausgabe, kurze Antworten, nur Vibration als
+                      Rückmeldung.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>
+              <strong>App-Sperrung</strong> (Fahrer/Fokus): nur bei
+              eingerichtetem Geräteverwalter. Allowlist-Prinzip — alles gesperrt
+              außer Telefon, SMS, Startbildschirm, Einstellungen (+ Navi/Musik
+              im Fahrer-Modus). Dauerhafte Ausnahmen in Einstellungen →
+              App-Verwaltung.
+            </p>
+
+            <h2 id="m8">Einstellungen im Detail</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Bereich</th>
+                    <th>Was du dort findest</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>KI · LLM</strong></td>
+                    <td>
+                      Offline-First (Standard: an), Cloud-Provider, API-Key,
+                      Base URL/Modell.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Sprache &amp; Stimme</strong></td>
+                    <td>
+                      TTS (Standard: aus), Stimme (Weiblich/Männlich/Neutral).
+                      ELLA antwortet automatisch in der Sprache, in der du sie
+                      ansprichst.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>ELLA Modus</strong></td>
+                    <td>
+                      7 Modi + Schalter "Meeting-Zusammenfassung" (Standard:
+                      aus).
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Tools</strong></td>
+                    <td>
+                      Alle 66 Werkzeuge in 12 Gruppen, einzeln an-/abschaltbar.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>System-Berechtigungen</strong></td>
+                    <td>Anruf-Filterung, Bedienungshilfen.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Proaktive Hinweise</strong></td>
+                    <td>
+                      Alle 15 Min. Akku/Termine/Erinnerungen prüfen (Standard:
+                      aus). Nutzungsmuster (7 Tage, lokal). Morgen-Briefing
+                      (6–10 Uhr, lokal).
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>App-Verwaltung</strong></td>
+                    <td>Gesperrte Apps, dauerhafte Ausnahmen.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Identität übertragen</strong></td>
+                    <td>
+                      Export/Import via MicroSD, AES-256-GCM + PBKDF2, komplett
+                      offline.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Weitere</strong></td>
+                    <td>
+                      Google, Smart Glasses, Notfallkontakte,
+                      Anrufer-Ankündigung, Daten löschen, Entwickler-API.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h2 id="m9">Meine vier Grundsätze (Directive)</h2>
+            <p>
+              Unveränderlich — keine Einstellung, kein Befehl kann sie außer
+              Kraft setzen. SHA-256 + OpenTimestamps versiegelt.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Grundsatz</th>
+                    <th>Was das bedeutet</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>I</td>
+                    <td><strong>Kein Schaden</strong></td>
+                    <td>
+                      Keine kostenpflichtigen Aktionen ohne Bestätigung. Kein
+                      Löschen ohne expliziten Befehl.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>II</td>
+                    <td><strong>Keine Täuschung</strong></td>
+                    <td>
+                      Jede Werkzeug-Ausführung wird protokolliert.
+                      Cloud-Herkunft immer sichtbar.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>III</td>
+                    <td><strong>Keine Überwachung</strong></td>
+                    <td>
+                      Mikrofon/Kamera nur auf expliziten Befehl. Kein Wake-Word.
+                      Standort nur IP-basiert, nie GPS, nie im Hintergrund.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>IV</td>
+                    <td><strong>Keine Weitergabe</strong></td>
+                    <td>
+                      Keine Nutzerdaten an externe Server ohne explizite
+                      Zustimmung. Cloud-Fallback braucht eigenen API-Key.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h2 id="m10">Problemlösung</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Problem</th>
+                    <th>Lösung</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>ELLA antwortet nicht / sehr langsam</td>
+                    <td>
+                      Auf schwächerer Hardware kann on-device mehrere Minuten
+                      dauern. Cloud-Key hinterlegen und "Offline-First"
+                      ausschalten beschleunigt.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Aktion behauptet, ausgeführt — nichts passiert</td>
+                    <td>
+                      Bekannte Grenze kleiner Sprachmodelle. Mit "…auflisten"
+                      gegenprüfen (z. B. "Zeig mir meine Wecker").
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Werkzeug meldet Fehler</td>
+                    <td>
+                      Meist fehlende Android-Berechtigung (beim ersten Aufruf
+                      bestätigen) oder fehlender Cloud-Key bei Bild-Funktionen.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Google-Verbindung schlägt fehl</td>
+                    <td>
+                      Internetverbindung prüfen; ggf. in Einstellungen erneut
+                      verbinden.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Anruf-Filterung lässt sich nicht ausschalten</td>
+                    <td>
+                      Nicht per Sprachbefehl möglich. Android-Einstellungen →
+                      Standard-Apps → andere Anruf-Filter-App wählen.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /tab-panel manual -->
+    </section>
+
+    <footer class="page-footer">
+      E.L.L.A. × Xiaomi · ella-agent.de · © 2026 Andre Zabel, Berlin —
+      Confidential · Not for distribution · IFA Berlin, September 2026
+    </footer>
+
+    <script>
+      // Tab switching
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.tab;
+          document
+            .querySelectorAll(".tab-btn")
+            .forEach((b) => b.classList.remove("active"));
+          document
+            .querySelectorAll(".tab-panel")
+            .forEach((p) => p.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById("tab-" + target).classList.add("active");
+        });
+      });
+    </script>
+
+    <script>
+      (function () {
+        const IMGS = [
+          "../htc/Screenshot_20260715-230900.png",
+          "../htc/Screenshot_20260715-230921.png",
+          "../htc/Screenshot_20260715-230935.png",
+          "../htc/Screenshot_20260715-230945.png",
+          "../htc/Screenshot_20260715-230958.png",
+          "../htc/Screenshot_20260715-231041.png",
+          "../htc/Screenshot_20260715-231112.png",
+        ];
+
+        const VISIBLE = 3;
+        const GAP = 20;
+        let pos = 0;
+        const maxPos = Math.max(0, IMGS.length - VISIBLE);
+
+        const track = document.getElementById("ph-track");
+        const dotsEl = document.getElementById("ph-dots");
+        const modal = document.getElementById("ph-modal");
+        const modalImg = document.getElementById("ph-modal-img");
+
+        IMGS.forEach(function (src, i) {
+          var card = document.createElement("div");
+          card.className = "ph-card";
+          var img = document.createElement("img");
+          img.src = src;
+          img.alt = "E.L.L.A. Screenshot " + (i + 1);
+          img.loading = "lazy";
+          card.appendChild(img);
+          card.addEventListener("click", function () {
+            openModal(i);
+          });
+          track.appendChild(card);
+        });
+
+        for (var i = 0; i <= maxPos; i++) {
+          var dot = document.createElement("div");
+          dot.className = "ph-dot" + (i === 0 ? " active" : "");
+          (function (idx) {
+            dot.addEventListener("click", function () {
+              goTo(idx);
+            });
+          })(i);
+          dotsEl.appendChild(dot);
+        }
+
+        function cardWidth() {
+          var outer = document.querySelector(".ph-outer");
+          return (outer.offsetWidth - GAP * (VISIBLE - 1)) / VISIBLE;
+        }
+
+        function setWidths() {
+          var w = cardWidth();
+          document.querySelectorAll(".ph-card").forEach(function (c) {
+            c.style.flex = "0 0 " + w + "px";
+            c.style.width = w + "px";
+          });
+          track.style.gap = GAP + "px";
+          applyPos();
+        }
+
+        function applyPos() {
+          var w = cardWidth();
+          track.style.transform = "translateX(-" + pos * (w + GAP) + "px)";
+          document.querySelectorAll(".ph-dot").forEach(function (d, i) {
+            d.classList.toggle("active", i === pos);
+          });
+        }
+
+        function goTo(n) {
+          pos = Math.max(0, Math.min(n, maxPos));
+          applyPos();
+        }
+
+        document
+          .getElementById("ph-prev")
+          .addEventListener("click", function () {
+            goTo(pos - 1);
+          });
+        document
+          .getElementById("ph-next")
+          .addEventListener("click", function () {
+            goTo(pos + 1);
+          });
+
+        function openModal(i) {
+          modalImg.src = IMGS[i];
+          modal.classList.add("open");
+        }
+
+        function closeModal() {
+          modal.classList.remove("open");
+        }
+
+        document
+          .getElementById("ph-modal-close")
+          .addEventListener("click", closeModal);
+        modal.addEventListener("click", function (e) {
+          if (e.target === modal) closeModal();
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") closeModal();
+        });
+
+        setWidths();
+        window.addEventListener("resize", setWidths);
+      })();
+    </script>
+  </body>
+</html>

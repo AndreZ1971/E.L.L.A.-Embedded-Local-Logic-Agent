@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>E.L.L.A. — Live Demo</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #04060c;
+        --surface: rgba(10, 20, 34, 0.72);
+        --surface-2: rgba(10, 20, 34, 0.9);
+        --border: rgba(79, 209, 255, 0.28);
+        --border-strong: rgba(79, 209, 255, 0.55);
+        --text: #d8f3ff;
+        --text-muted: #b6cddb;
+        --text-dim: #8fb3c9;
+        --accent: #4fd1ff;
+        --accent-soft: #7ee7ff;
+        --accent-muted: #a5d8ff;
+        --danger: #f87171;
+        --danger-bg: rgba(248, 113, 113, 0.08);
+        --warning: #f5b14c;
+        --success: #22c55e;
+        --font-display: "Chakra Petch", system-ui, sans-serif;
+        --font-data: "JetBrains Mono", ui-monospace, Consolas, monospace;
+        --font-ui: system-ui, -apple-system, sans-serif;
+      }
+
+      body {
+        background-color: var(--bg);
+        background-image:
+          radial-gradient(
+            ellipse at 50% 38%,
+            rgba(56, 120, 255, 0.18) 0%,
+            transparent 55%
+          ),
+          repeating-linear-gradient(
+            0deg,
+            rgba(79, 209, 255, 0.05) 0 1px,
+            transparent 1px 40px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(79, 209, 255, 0.05) 0 1px,
+            transparent 1px 40px
+          );
+        color: var(--text);
+        font-family: var(--font-ui);
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-x: hidden;
+      }
+
+      /* ── Top Bar ─────────────────────────────────────────── */
+      .topbar {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        height: 56px;
+        padding: 0 22px;
+        background: var(--surface);
+        border-bottom: 1px solid rgba(79, 209, 255, 0.25);
+        gap: 16px;
+        flex-shrink: 0;
+      }
+      .topbar-logo {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        white-space: nowrap;
+      }
+      .topbar-name {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: 4px;
+        color: var(--text);
+      }
+      .topbar-suffix {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 3px;
+        color: var(--accent);
+      }
+      .topbar-chips {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+        font-family: var(--font-data);
+        font-size: 11px;
+        letter-spacing: 1px;
+      }
+      .topbar-chip {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 8px;
+        border: 1px solid;
+      }
+      .chip-demo {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .chip-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--success);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      /* ── Main Layout ─────────────────────────────────────── */
+      .main {
+        flex: 1;
+        width: 100%;
+        max-width: 800px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 24px 20px 16px;
+        gap: 0;
+      }
+
+      /* ── Orb Container ───────────────────────────────────── */
+      .orb-wrap {
+        position: relative;
+        width: 260px;
+        height: 260px;
+        flex-shrink: 0;
+      }
+      .orb-canvas {
+        display: block;
+        width: 260px;
+        height: 260px;
+      }
+      .orb-rings {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+      }
+
+      /* ── State Label ─────────────────────────────────────── */
+      .state-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .state-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 2s ease-in-out infinite;
+      }
+      .state-label {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 20px;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: var(--text);
+      }
+      .state-hint {
+        font-family: var(--font-data);
+        font-size: 11px;
+        letter-spacing: 1px;
+        color: var(--text-dim);
+        text-align: center;
+        margin-top: 4px;
+        min-height: 16px;
+      }
+
+      /* ── Chat Area ───────────────────────────────────────── */
+      .chat-area {
+        width: 100%;
+        margin-top: 16px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .messages {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 280px;
+        padding: 0 4px 8px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(79, 209, 255, 0.2) transparent;
+      }
+      .msg {
+        font-family: var(--font-data);
+        font-size: 0.82rem;
+        line-height: 1.5;
+        padding: 2px 0;
+        color: var(--text-muted);
+        animation: fadeIn 0.3s ease;
+      }
+      .msg-prefix {
+        font-weight: 600;
+        letter-spacing: 1px;
+        margin-right: 6px;
+      }
+      .msg--user .msg-prefix {
+        color: var(--text);
+      }
+      .msg--ella .msg-prefix {
+        color: var(--accent-soft);
+      }
+      .msg--system {
+        color: var(--text-dim);
+        font-size: 0.75rem;
+        font-style: italic;
+        text-align: center;
+      }
+      .msg--directive {
+        color: var(--danger);
+        border-left: 3px solid var(--danger);
+        padding: 8px 12px;
+        background: var(--danger-bg);
+        font-size: 0.78rem;
+        line-height: 1.6;
+      }
+      .msg--directive .directive-tag {
+        font-family: var(--font-display);
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .msg--directive .directive-note {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.68rem;
+        color: var(--text-dim);
+        font-style: italic;
+      }
+
+      /* ── Suggested Questions ─────────────────────────────── */
+      .suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 10px;
+      }
+      .suggestion {
+        font-family: var(--font-data);
+        font-size: 0.72rem;
+        letter-spacing: 0.5px;
+        padding: 6px 14px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-dim);
+        cursor: pointer;
+        transition: all 0.15s;
+        clip-path: polygon(
+          0 0,
+          calc(100% - 8px) 0,
+          100% 8px,
+          100% 100%,
+          8px 100%,
+          0 calc(100% - 8px)
+        );
+      }
+      .suggestion:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(79, 209, 255, 0.06);
+      }
+
+      /* ── Input Row ───────────────────────────────────────── */
+      .input-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .input-row input {
+        flex: 1;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-data);
+        font-size: 0.85rem;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      .input-row input:focus {
+        border-color: var(--accent);
+      }
+      .input-row input::placeholder {
+        color: var(--text-dim);
+      }
+      .input-row button {
+        padding: 10px 20px;
+        background: var(--accent);
+        color: var(--bg);
+        border: none;
+        font-family: var(--font-display);
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .input-row button:hover {
+        opacity: 0.85;
+      }
+      .input-row button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      /* ── Disclaimer ──────────────────────────────────────── */
+      .disclaimer {
+        font-family: var(--font-data);
+        font-size: 0.65rem;
+        line-height: 1.5;
+        color: var(--text-dim);
+        text-align: center;
+        margin-top: 8px;
+        padding: 0 8px;
+        max-width: 600px;
+      }
+      .disclaimer a {
+        color: var(--accent-muted);
+        text-decoration: none;
+      }
+      .disclaimer a:hover {
+        text-decoration: underline;
+      }
+
+      /* ── Rate Limit Bar ──────────────────────────────────── */
+      .rate-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 6px;
+        font-family: var(--font-data);
+        font-size: 0.68rem;
+        color: var(--text-dim);
+        letter-spacing: 0.5px;
+      }
+      .rate-pips {
+        display: flex;
+        gap: 3px;
+      }
+      .rate-pip {
+        width: 4px;
+        height: 12px;
+        background: rgba(79, 209, 255, 0.15);
+        transition: background 0.3s;
+      }
+      .rate-pip.used {
+        background: var(--accent);
+      }
+
+      /* ── Footer ──────────────────────────────────────────── */
+      .demo-footer {
+        width: 100%;
+        text-align: center;
+        padding: 16px 20px;
+        font-family: var(--font-data);
+        font-size: 0.7rem;
+        color: var(--text-dim);
+        letter-spacing: 0.5px;
+        border-top: 1px solid rgba(79, 209, 255, 0.12);
+        margin-top: auto;
+      }
+      .demo-footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .demo-footer a:hover {
+        text-decoration: underline;
+      }
+
+      /* ── Animations ──────────────────────────────────────── */
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.3;
+          transform: scale(0.7);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ── Reduced Motion ──────────────────────────────────── */
+      @media (prefers-reduced-motion: reduce) {
+        .state-dot,
+        .chip-dot {
+          animation: none;
+        }
+        .orb-rings svg * {
+          animation: none !important;
+        }
+      }
+
+      /* ── Responsive ──────────────────────────────────────── */
+      @media (max-width: 600px) {
+        .orb-wrap,
+        .orb-canvas {
+          width: 180px;
+          height: 180px;
+        }
+        .main {
+          padding: 12px 12px 10px;
+        }
+        .state-label {
+          font-size: 16px;
+          letter-spacing: 4px;
+        }
+        .messages {
+          max-height: 200px;
+        }
+        .suggestions {
+          gap: 6px;
+        }
+        .suggestion {
+          font-size: 0.66rem;
+          padding: 5px 10px;
+        }
+        .topbar {
+          padding: 0 12px;
+          height: 48px;
+        }
+        .topbar-name {
+          font-size: 15px;
+          letter-spacing: 3px;
+        }
+        .topbar-suffix {
+          font-size: 10px;
+        }
+        .disclaimer {
+          font-size: 0.6rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-logo">
+        <span class="topbar-name">E.L.L.A.</span>
+        <span class="topbar-suffix">// LIVE DEMO</span>
+      </div>
+      <div class="topbar-chips">
+        <div class="topbar-chip chip-demo">
+          <div class="chip-dot"></div>
+          DEMO
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+      <!-- Orb -->
+      <div class="orb-wrap">
+        <canvas
+          class="orb-canvas"
+          id="orbCanvas"
+          width="260"
+          height="260"
+        ></canvas>
+        <svg
+          class="orb-rings"
+          id="orbRings"
+          width="260"
+          height="260"
+          aria-hidden="true"
+        ></svg>
+      </div>
+
+      <!-- State -->
+      <div class="state-row">
+        <div class="state-dot" id="stateDot"></div>
+        <div class="state-label" id="stateLabel">BEREIT</div>
+      </div>
+      <div class="state-hint" id="stateHint">Frag mich etwas</div>
+
+      <!-- Chat -->
+      <div class="chat-area">
+        <div class="messages" id="messages"></div>
+
+        <!-- Suggestions (Phase G) -->
+        <div class="suggestions" id="suggestions">
+          <button class="suggestion" data-q="Was kannst du alles?">
+            Was kannst du alles?
+          </button>
+          <button class="suggestion" data-q="Wie sch&uuml;tzt du meine Daten?">
+            Wie sch&#252;tzt du meine Daten?
+          </button>
+          <button class="suggestion" data-q="Was ist die Directive?">
+            Was ist die Directive?
+          </button>
+          <button class="suggestion" data-q="L&auml;ufst du gerade lokal?">
+            L&#228;ufst du gerade lokal?
+          </button>
+          <button class="suggestion" data-q="Was passiert ohne Internet?">
+            Was passiert ohne Internet?
+          </button>
+          <button class="suggestion" data-q="Was kommt als N&auml;chstes?">
+            Was kommt als N&#228;chstes?
+          </button>
+        </div>
+
+        <!-- Input -->
+        <div class="input-row">
+          <input
+            type="text"
+            id="chatInput"
+            placeholder="Schreib mir etwas &#8230;"
+            maxlength="500"
+            autocomplete="off"
+          />
+          <button id="sendBtn">Senden</button>
+        </div>
+
+        <!-- Disclaimer (Phase G) -->
+        <div class="disclaimer">
+          Du sprichst mit einer KI. Diese Website-Demo l&#228;uft &#252;ber die
+          OpenAI-API &#8211; die echte E.L.L.A. l&#228;uft lokal auf deinem PC.
+          Bitte keine pers&#246;nlichen Daten eingeben. Antworten k&#246;nnen
+          Fehler enthalten.
+        </div>
+
+        <!-- Rate Limit -->
+        <div class="rate-bar">
+          <span id="rateText">15 Nachrichten verf&#252;gbar</span>
+          <div class="rate-pips" id="ratePips"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="demo-footer">
+      E.L.L.A. v1.5.6 &#8212; 111 Tools, 389 Tests &#8212;
+      <a
+        href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases/latest"
+        target="_blank"
+        rel="noopener"
+        >Vollversion herunterladen</a
+      >
+    </div>
+
+    <script>
+      // ═══════════════════════════════════════════════════════════════
+      //  SESSION MANAGEMENT (Phase B)
+      // ═══════════════════════════════════════════════════════════════
+
+      let sessionId = null;
+      let remaining = 15;
+      const LIMIT = 15;
+
+      async function ensureSession() {
+        // Try to restore from sessionStorage
+        try {
+          const stored = sessionStorage.getItem("ella-demo-session");
+          if (stored) {
+            sessionId = stored;
+            const r = await fetch("/api/status", {
+              headers: { "X-Session-Id": sessionId },
+            });
+            if (r.ok) {
+              const d = await r.json();
+              remaining = d.remaining;
+              if (d.paused) showGlobalPause();
+              updatePips();
+              return;
+            }
+          }
+        } catch {}
+
+        // Create new session
+        try {
+          const r = await fetch("/api/session");
+          if (r.ok) {
+            const d = await r.json();
+            sessionId = d.sessionId;
+            remaining = d.remaining;
+            try {
+              sessionStorage.setItem("ella-demo-session", sessionId);
+            } catch {}
+            updatePips();
+          } else {
+            const d = await r.json().catch(() => ({}));
+            addSystemMsg(d.error || "Demo nicht verfügbar");
+            disableInput();
+          }
+        } catch {
+          addSystemMsg("Verbindung zum Server fehlgeschlagen");
+          disableInput();
+        }
+      }
+
+      async function renewSession() {
+        sessionId = null;
+        try {
+          sessionStorage.removeItem("ella-demo-session");
+        } catch {}
+        messagesEl.innerHTML = "";
+        addSystemMsg("Neue Sitzung gestartet");
+        suggestionsEl.style.display = "flex";
+        await ensureSession();
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      //  ORB — Particle Sphere (from AvatarPanel.tsx)
+      // ═══════════════════════════════════════════════════════════════
+
+      const canvas = document.getElementById("orbCanvas");
+      const ctx = canvas.getContext("2d");
+      const PHI = Math.PI * (3 - Math.sqrt(5));
+      const N = 800;
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      let orbMode = "idle";
+
+      function orbColor(depth, t, mode) {
+        const d = depth;
+        let r, g, b;
+        if (mode === "idle") {
+          const p = 0.45 + 0.55 * Math.sin(t * 0.75);
+          r = 18 + d * 108 * p;
+          g = 14 + d * 88 * p;
+          b = 60 + d * 187 * p;
+        } else if (mode === "speaking") {
+          const p = 0.4 + 0.6 * Math.abs(Math.sin(t * 7.5));
+          r = 80 + d * 110 * p;
+          g = 60 + d * 130 * p;
+          b = 180 + d * 67 * p;
+        } else {
+          const p = 0.5 + 0.5 * Math.sin(t * 3.2);
+          r = 50 + d * 110 * p;
+          g = 5 + d * 18 * p;
+          b = 100 + d * 130 * p;
+        }
+        return [
+          Math.max(0, Math.min(255, ~~r)),
+          Math.max(0, Math.min(255, ~~g)),
+          Math.max(0, Math.min(255, ~~b)),
+        ];
+      }
+
+      const GLOW_BASE = {
+        idle: [124, 106, 247],
+        thinking: [147, 51, 234],
+        speaking: [167, 139, 250],
+      };
+
+      function renderOrb(ts) {
+        if (document.hidden) {
+          requestAnimationFrame(renderOrb);
+          return;
+        }
+
+        const t = reducedMotion ? 0 : ts * 0.001;
+        const W = canvas.width,
+          H = canvas.height;
+        const cx = W / 2,
+          cy = H / 2;
+        const baseR = Math.min(W, H) * 0.4;
+
+        const breathe = reducedMotion
+          ? 0
+          : orbMode === "idle"
+            ? 0.02 * Math.sin(t * 0.6) + 0.01 * Math.sin(t * 1.1)
+            : orbMode === "speaking"
+              ? 0.04 * Math.sin(t * 4.3) + 0.025 * Math.sin(t * 7.1)
+              : 0.015 * Math.sin(t * 1.8);
+        const R = baseR * (1 + breathe);
+
+        ctx.clearRect(0, 0, W, H);
+
+        const [gbr, gbg, gbb] = GLOW_BASE[orbMode] || GLOW_BASE.idle;
+        const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 1.4);
+        grd.addColorStop(0, `rgba(${gbr},${gbg},${gbb},0.16)`);
+        grd.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R * 1.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        const speed = reducedMotion
+          ? 0
+          : orbMode === "idle"
+            ? 0.18
+            : orbMode === "speaking"
+              ? 0.65
+              : 0.38;
+        const distort = reducedMotion
+          ? 0
+          : orbMode === "idle"
+            ? 0.015
+            : orbMode === "speaking"
+              ? 0.07
+              : 0.04;
+
+        const rY = t * speed,
+          rX = t * speed * 0.38 + Math.sin(t * 0.22) * 0.28;
+        const cY = Math.cos(rY),
+          sY = Math.sin(rY);
+        const cX = Math.cos(rX),
+          sX = Math.sin(rX);
+
+        const pts = [];
+        for (let i = 0; i < N; i++) {
+          const y0 = 1 - (i / (N - 1)) * 2;
+          const r0 = Math.sqrt(Math.max(0, 1 - y0 * y0));
+          const theta = PHI * i;
+          const wave = distort * Math.sin(theta * 6 + t * 3.5 + y0 * 5);
+          const rr = R * (1 + wave);
+          const x = r0 * Math.cos(theta) * rr,
+            y = y0 * rr,
+            z = r0 * Math.sin(theta) * rr;
+          const x2 = x * cY - z * sY,
+            z2 = x * sY + z * cY;
+          const y3 = y * cX - z2 * sX,
+            z3 = y * sX + z2 * cX;
+          const persp = 1 + z3 / (R * 3.5);
+          pts.push({
+            sx: cx + x2 * persp,
+            sy: cy + y3 * persp,
+            depth: (z3 / R + 1) / 2,
+            z3,
+          });
+        }
+        pts.sort((a, b) => a.z3 - b.z3);
+
+        for (const p of pts) {
+          const [r, g, b] = orbColor(p.depth, t, orbMode);
+          const sz = 0.8 * (0.5 + p.depth * 0.8);
+          ctx.fillStyle = `rgba(${r},${g},${b},${0.2 + p.depth * 0.72})`;
+          ctx.beginPath();
+          ctx.arc(p.sx, p.sy, sz, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (!reducedMotion) {
+          ctx.save();
+          ctx.strokeStyle = `rgba(${gbr},${gbg},${gbb},0.15)`;
+          ctx.lineWidth = 0.7;
+          const rng = R * 1.2,
+            tilt = Math.PI / 7 + rX * 0.25;
+          ctx.beginPath();
+          for (let a = 0; a < Math.PI * 2; a += 0.05) {
+            const rx = Math.cos(a + rY) * rng,
+              ry = Math.sin(a + rY) * rng * Math.sin(tilt);
+            a === 0
+              ? ctx.moveTo(cx + rx, cy + ry)
+              : ctx.lineTo(cx + rx, cy + ry);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        requestAnimationFrame(renderOrb);
+      }
+      requestAnimationFrame(renderOrb);
+
+      // SVG Rings
+      (function initRings() {
+        const svg = document.getElementById("orbRings");
+        const sz = 260,
+          cx = 130,
+          cy = 130;
+        const outerR = 122,
+          dashR = 116,
+          eRx = 112,
+          eRy = 48;
+        svg.innerHTML = `
+    <style>@keyframes orbSpin{to{transform:rotate(360deg)}}@keyframes orbSpinR{to{transform:rotate(-360deg)}}</style>
+    <circle cx="${cx}" cy="${cy}" r="${outerR}" fill="none" stroke="#7ee7ff" stroke-width="0.5" stroke-dasharray="2 6" opacity="0.4"
+      style="transform-origin:${cx}px ${cy}px;animation:orbSpin 36s linear infinite"/>
+    <circle cx="${cx}" cy="${cy}" r="${dashR}" fill="none" stroke="#7ee7ff" stroke-width="0.5" stroke-dasharray="8 12" opacity="0.25"
+      style="transform-origin:${cx}px ${cy}px;animation:orbSpinR 36s linear infinite"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${eRx}" ry="${eRy}" fill="none" stroke="#7ee7ff" stroke-width="0.4" opacity="0.2"
+      transform="rotate(25 ${cx} ${cy})" style="transform-origin:${cx}px ${cy}px;animation:orbSpin 22s linear infinite"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${eRx}" ry="${eRy}" fill="none" stroke="#7ee7ff" stroke-width="0.4" opacity="0.2"
+      transform="rotate(-25 ${cx} ${cy})" style="transform-origin:${cx}px ${cy}px;animation:orbSpinR 22s linear infinite"/>`;
+      })();
+
+      // ═══════════════════════════════════════════════════════════════
+      //  CHAT (Phase B + F + G)
+      // ═══════════════════════════════════════════════════════════════
+
+      const messagesEl = document.getElementById("messages");
+      const inputEl = document.getElementById("chatInput");
+      const sendBtn = document.getElementById("sendBtn");
+      const suggestionsEl = document.getElementById("suggestions");
+      const stateLabel = document.getElementById("stateLabel");
+      const stateDot = document.getElementById("stateDot");
+      const stateHint = document.getElementById("stateHint");
+      const rateText = document.getElementById("rateText");
+      const ratePips = document.getElementById("ratePips");
+
+      let sending = false;
+
+      function updatePips() {
+        ratePips.innerHTML = "";
+        for (let i = 0; i < LIMIT; i++) {
+          const pip = document.createElement("div");
+          pip.className = "rate-pip" + (i < LIMIT - remaining ? " used" : "");
+          ratePips.appendChild(pip);
+        }
+        rateText.textContent =
+          remaining > 0
+            ? `${remaining} Nachricht${remaining !== 1 ? "en" : ""} verfügbar`
+            : "Limit erreicht";
+      }
+      updatePips();
+
+      function setOrbState(mode, label, hint) {
+        orbMode = mode;
+        stateLabel.textContent = label;
+        if (hint !== undefined) stateHint.textContent = hint;
+        stateDot.style.background =
+          mode === "thinking"
+            ? "#9333ea"
+            : mode === "speaking"
+              ? "var(--accent-soft)"
+              : "var(--accent)";
+        stateDot.style.animationDuration =
+          mode === "thinking" ? "1.1s" : mode === "speaking" ? "0.5s" : "2.2s";
+      }
+
+      function escapeHtml(s) {
+        const d = document.createElement("div");
+        d.textContent = s;
+        return d.innerHTML;
+      }
+
+      function addMsg(prefix, text, cls) {
+        const div = document.createElement("div");
+        div.className = "msg " + cls;
+        div.innerHTML = `<span class="msg-prefix">${prefix}</span>${escapeHtml(text)}`;
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return div;
+      }
+
+      function addSystemMsg(text) {
+        const div = document.createElement("div");
+        div.className = "msg msg--system";
+        div.textContent = text;
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function showGlobalPause() {
+        addSystemMsg(
+          "Die Demo macht für heute Pause – lade E.L.L.A. herunter und frag sie lokal.",
+        );
+        disableInput();
+        setOrbState("idle", "BEREIT", "Morgen geht es weiter");
+      }
+
+      function disableInput() {
+        inputEl.disabled = true;
+        sendBtn.disabled = true;
+      }
+
+      function enableInput() {
+        inputEl.disabled = false;
+        sendBtn.disabled = false;
+      }
+
+      async function sendMessage(text) {
+        if (sending || !text.trim() || remaining <= 0 || !sessionId) return;
+        sending = true;
+        sendBtn.disabled = true;
+        inputEl.disabled = true;
+
+        addMsg("DU", text, "msg--user");
+        setOrbState("thinking", "DENKT", "Verarbeite Anfrage …");
+
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Session-Id": sessionId,
+            },
+            body: JSON.stringify({ message: text }),
+          });
+
+          // Session abgelaufen
+          if (res.status === 401) {
+            const d = await res.json().catch(() => ({}));
+            if (d.renew) {
+              await renewSession();
+            }
+            sending = false;
+            enableInput();
+            return;
+          }
+
+          // Rate limits
+          if (res.status === 429) {
+            const d = await res.json().catch(() => ({}));
+            addSystemMsg(d.error || "Limit erreicht");
+            if (d.type === "session_limit") {
+              remaining = 0;
+              updatePips();
+            }
+            if (d.type === "global_limit") {
+              disableInput();
+            }
+            setOrbState("idle", "BEREIT", "");
+            sending = false;
+            if (d.type !== "global_limit") enableInput();
+            return;
+          }
+
+          // 503 — zu viel los
+          if (res.status === 503) {
+            const d = await res.json().catch(() => ({}));
+            addSystemMsg(d.error || "Server ausgelastet");
+            setOrbState("idle", "BEREIT", "Gleich nochmal versuchen");
+            sending = false;
+            enableInput();
+            return;
+          }
+
+          setOrbState("speaking", "SPRICHT", "");
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let ellaDiv = null;
+          let fullText = "";
+          let buffer = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop();
+
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const data = line.slice(6);
+              if (data === "[DONE]") continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.error) {
+                  addSystemMsg(parsed.error);
+                  continue;
+                }
+                if (parsed.meta) {
+                  remaining = parsed.meta.remaining;
+                  updatePips();
+                  continue;
+                }
+                if (parsed.token) {
+                  fullText += parsed.token;
+                  if (!ellaDiv) {
+                    ellaDiv = document.createElement("div");
+                    ellaDiv.className = "msg msg--ella";
+                    ellaDiv.innerHTML = `<span class="msg-prefix">ELLA</span>`;
+                    messagesEl.appendChild(ellaDiv);
+                  }
+                  ellaDiv.innerHTML = `<span class="msg-prefix">ELLA</span>${escapeHtml(fullText)}`;
+                  messagesEl.scrollTop = messagesEl.scrollHeight;
+                }
+              } catch {}
+            }
+          }
+
+          setOrbState("idle", "BEREIT", "Frag mich etwas");
+        } catch {
+          addSystemMsg("Verbindungsfehler – bitte versuche es erneut.");
+          setOrbState("idle", "BEREIT", "");
+        }
+
+        sending = false;
+        enableInput();
+        inputEl.focus();
+      }
+
+      // Event listeners
+      sendBtn.addEventListener("click", () => {
+        const t = inputEl.value.trim();
+        inputEl.value = "";
+        sendMessage(t);
+      });
+      inputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          const t = inputEl.value.trim();
+          inputEl.value = "";
+          sendMessage(t);
+        }
+      });
+      document.querySelectorAll(".suggestion").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const q = btn.dataset.q;
+          btn.remove();
+          if (!suggestionsEl.children.length)
+            suggestionsEl.style.display = "none";
+          sendMessage(q);
+        });
+      });
+
+      // Init
+      inputEl.focus();
+      ensureSession();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,516 @@
+{
+  "de": {
+    "nodes": [
+      {
+        "id": "u1",
+        "type": "user",
+        "text": "Max arbeitet abends am liebsten",
+        "date": "2026-08-12"
+      },
+      {
+        "id": "u2",
+        "type": "user",
+        "text": "Max spielt Schach, eröffnet gern mit e4",
+        "date": "2026-08-14"
+      },
+      {
+        "id": "u3",
+        "type": "user",
+        "text": "Max mag kurze Antworten",
+        "date": "2026-08-15"
+      },
+      {
+        "id": "u4",
+        "type": "user",
+        "text": "Max trinkt morgens Kaffee, abends Tee",
+        "date": "2026-08-17"
+      },
+      {
+        "id": "u5",
+        "type": "user",
+        "text": "Max hört beim Arbeiten gern Lo-Fi-Musik",
+        "date": "2026-08-18"
+      },
+      {
+        "id": "u6",
+        "type": "user",
+        "text": "Max schreibt Berichte lieber auf Deutsch",
+        "date": "2026-08-20"
+      },
+      {
+        "id": "u7",
+        "type": "user",
+        "text": "Max hat zwei Monitore – Code links, Browser rechts",
+        "date": "2026-08-22"
+      },
+      {
+        "id": "u8",
+        "type": "user",
+        "text": "Max möchte Montags um 9 an das Team-Meeting erinnert werden",
+        "date": "2026-08-24"
+      },
+      {
+        "id": "u9",
+        "type": "user",
+        "text": "Max bevorzugt Dark Mode in allen Programmen",
+        "date": "2026-08-26"
+      },
+      {
+        "id": "u10",
+        "type": "user",
+        "text": "Max speichert Projekte auf Laufwerk Z:",
+        "date": "2026-08-28"
+      },
+      {
+        "id": "u11",
+        "type": "user",
+        "text": "Max nutzt Outlook für geschäftliche E-Mails",
+        "date": "2026-09-01"
+      },
+      {
+        "id": "u12",
+        "type": "user",
+        "text": "Max liest gern Science-Fiction",
+        "date": "2026-09-03"
+      },
+      {
+        "id": "u13",
+        "type": "user",
+        "text": "Max vergisst oft den Papierkorb zu leeren",
+        "date": "2026-09-05"
+      },
+      {
+        "id": "u14",
+        "type": "user",
+        "text": "Max hat freitags ab 16 Uhr keine Termine mehr",
+        "date": "2026-09-08"
+      },
+      {
+        "id": "u15",
+        "type": "user",
+        "text": "Max formatiert Tabellen gern mit Rahmenlinien",
+        "date": "2026-09-10"
+      },
+      {
+        "id": "s1",
+        "type": "system",
+        "text": "Ich lerne Schach durch Erfahrung",
+        "date": "2026-08-14"
+      },
+      {
+        "id": "s2",
+        "type": "system",
+        "text": "Max reagiert schneller auf Bullet Points als auf Fließtext",
+        "date": "2026-08-16"
+      },
+      {
+        "id": "s3",
+        "type": "system",
+        "text": "Abends längere Gespräche, morgens kurze Fragen",
+        "date": "2026-08-19"
+      },
+      {
+        "id": "s4",
+        "type": "system",
+        "text": "Wenn Max Musik will, immer zuerst Lo-Fi vorschlagen",
+        "date": "2026-08-18"
+      },
+      {
+        "id": "s5",
+        "type": "system",
+        "text": "Max antwortet bei Schach-Kommentaren mit Humor",
+        "date": "2026-08-30"
+      },
+      {
+        "id": "s6",
+        "type": "system",
+        "text": "Outlook-Suche über den Index ist schneller als PowerShell",
+        "date": "2026-09-01"
+      },
+      {
+        "id": "s7",
+        "type": "system",
+        "text": "Bei Berichten automatisch Deutsch wählen",
+        "date": "2026-09-04"
+      },
+      {
+        "id": "s8",
+        "type": "system",
+        "text": "Max bevorzugt es, Dateien zu öffnen statt Pfade zu zeigen",
+        "date": "2026-09-06"
+      },
+      {
+        "id": "n1",
+        "type": "note",
+        "text": "Montag 9:00 — Team-Meeting erinnern",
+        "date": "2026-08-24"
+      },
+      {
+        "id": "n2",
+        "type": "note",
+        "text": "Papierkorb-Check: Sonntags vorschlagen",
+        "date": "2026-09-05"
+      },
+      {
+        "id": "n3",
+        "type": "note",
+        "text": "Nächstes Schachspiel: Sizilianische Verteidigung ausprobieren",
+        "date": "2026-09-07"
+      },
+      {
+        "id": "n4",
+        "type": "note",
+        "text": "Lieblingsradio: ChillHop Station",
+        "date": "2026-09-02"
+      },
+      {
+        "id": "n5",
+        "type": "note",
+        "text": "Freitag-Routine: Wochenrückblick um 16:15 Uhr",
+        "date": "2026-09-09"
+      },
+      {
+        "id": "r1",
+        "type": "reflection",
+        "text": "Schach-Eröffnung e4 führt oft zu offenem Spiel — Max mag aggressive Partien",
+        "date": "2026-09-10"
+      },
+      {
+        "id": "r2",
+        "type": "reflection",
+        "text": "Max arbeitet effizienter, wenn ich proaktiv Musik starte",
+        "date": "2026-09-08"
+      },
+      {
+        "id": "r3",
+        "type": "reflection",
+        "text": "Kurze Antworten + Humor = Max' beste Reaktionsrate",
+        "date": "2026-09-11"
+      },
+      {
+        "id": "k1",
+        "type": "knowledge",
+        "text": "Max → arbeitet_bei → Architekturbüro",
+        "date": "2026-08-12"
+      },
+      {
+        "id": "k2",
+        "type": "knowledge",
+        "text": "Max → spielt → Schach",
+        "date": "2026-08-14"
+      },
+      {
+        "id": "k3",
+        "type": "knowledge",
+        "text": "Max → bevorzugt → Dark Mode",
+        "date": "2026-08-26"
+      },
+      {
+        "id": "k4",
+        "type": "knowledge",
+        "text": "Max → hört → Lo-Fi-Musik",
+        "date": "2026-08-18"
+      },
+      {
+        "id": "k5",
+        "type": "knowledge",
+        "text": "Max → nutzt → Outlook",
+        "date": "2026-09-01"
+      },
+      {
+        "id": "k6",
+        "type": "knowledge",
+        "text": "Max → schreibt_auf → Deutsch",
+        "date": "2026-08-20"
+      }
+    ],
+    "edges": [
+      { "from": "u2", "to": "s1", "label": "lernt von" },
+      { "from": "u2", "to": "r1", "label": "Reflexion" },
+      { "from": "u2", "to": "k2", "label": "Wissen" },
+      { "from": "u2", "to": "n3", "label": "nächster Schritt" },
+      { "from": "u5", "to": "s4", "label": "Erkenntnis" },
+      { "from": "u5", "to": "n4", "label": "Notiz" },
+      { "from": "u5", "to": "k4", "label": "Wissen" },
+      { "from": "u5", "to": "r2", "label": "Reflexion" },
+      { "from": "u3", "to": "s2", "label": "beobachtet" },
+      { "from": "u3", "to": "r3", "label": "Reflexion" },
+      { "from": "u1", "to": "s3", "label": "Muster" },
+      { "from": "u1", "to": "k1", "label": "Kontext" },
+      { "from": "u8", "to": "n1", "label": "Erinnerung" },
+      { "from": "u13", "to": "n2", "label": "Routine" },
+      { "from": "u14", "to": "n5", "label": "Routine" },
+      { "from": "u6", "to": "s7", "label": "Regel" },
+      { "from": "u6", "to": "k6", "label": "Wissen" },
+      { "from": "u11", "to": "s6", "label": "Erkenntnis" },
+      { "from": "u11", "to": "k5", "label": "Wissen" },
+      { "from": "u9", "to": "k3", "label": "Wissen" },
+      { "from": "u10", "to": "s8", "label": "beobachtet" },
+      { "from": "s5", "to": "r3", "label": "bestätigt" }
+    ],
+    "typeLabels": {
+      "user": "Nutzer",
+      "system": "System",
+      "note": "Notiz",
+      "reflection": "Reflexion",
+      "knowledge": "Wissen"
+    }
+  },
+  "en": {
+    "nodes": [
+      {
+        "id": "u1",
+        "type": "user",
+        "text": "Max prefers to work in the evenings",
+        "date": "2026-08-12"
+      },
+      {
+        "id": "u2",
+        "type": "user",
+        "text": "Max plays chess, likes to open with e4",
+        "date": "2026-08-14"
+      },
+      {
+        "id": "u3",
+        "type": "user",
+        "text": "Max likes short answers",
+        "date": "2026-08-15"
+      },
+      {
+        "id": "u4",
+        "type": "user",
+        "text": "Max drinks coffee in the morning, tea in the evening",
+        "date": "2026-08-17"
+      },
+      {
+        "id": "u5",
+        "type": "user",
+        "text": "Max listens to lo-fi music while working",
+        "date": "2026-08-18"
+      },
+      {
+        "id": "u6",
+        "type": "user",
+        "text": "Max prefers to write reports in German",
+        "date": "2026-08-20"
+      },
+      {
+        "id": "u7",
+        "type": "user",
+        "text": "Max has two monitors — code left, browser right",
+        "date": "2026-08-22"
+      },
+      {
+        "id": "u8",
+        "type": "user",
+        "text": "Max wants to be reminded of the team meeting Mondays at 9",
+        "date": "2026-08-24"
+      },
+      {
+        "id": "u9",
+        "type": "user",
+        "text": "Max prefers dark mode in all apps",
+        "date": "2026-08-26"
+      },
+      {
+        "id": "u10",
+        "type": "user",
+        "text": "Max stores projects on drive Z:",
+        "date": "2026-08-28"
+      },
+      {
+        "id": "u11",
+        "type": "user",
+        "text": "Max uses Outlook for business emails",
+        "date": "2026-09-01"
+      },
+      {
+        "id": "u12",
+        "type": "user",
+        "text": "Max likes reading science fiction",
+        "date": "2026-09-03"
+      },
+      {
+        "id": "u13",
+        "type": "user",
+        "text": "Max often forgets to empty the recycle bin",
+        "date": "2026-09-05"
+      },
+      {
+        "id": "u14",
+        "type": "user",
+        "text": "Max has no appointments on Fridays after 4 PM",
+        "date": "2026-09-08"
+      },
+      {
+        "id": "u15",
+        "type": "user",
+        "text": "Max likes to format tables with borders",
+        "date": "2026-09-10"
+      },
+      {
+        "id": "s1",
+        "type": "system",
+        "text": "I learn chess through experience",
+        "date": "2026-08-14"
+      },
+      {
+        "id": "s2",
+        "type": "system",
+        "text": "Max responds faster to bullet points than prose",
+        "date": "2026-08-16"
+      },
+      {
+        "id": "s3",
+        "type": "system",
+        "text": "Longer conversations in the evening, short questions in the morning",
+        "date": "2026-08-19"
+      },
+      {
+        "id": "s4",
+        "type": "system",
+        "text": "When Max wants music, always suggest lo-fi first",
+        "date": "2026-08-18"
+      },
+      {
+        "id": "s5",
+        "type": "system",
+        "text": "Max responds to chess comments with humor",
+        "date": "2026-08-30"
+      },
+      {
+        "id": "s6",
+        "type": "system",
+        "text": "Outlook search via index is faster than PowerShell",
+        "date": "2026-09-01"
+      },
+      {
+        "id": "s7",
+        "type": "system",
+        "text": "Choose German automatically for reports",
+        "date": "2026-09-04"
+      },
+      {
+        "id": "s8",
+        "type": "system",
+        "text": "Max prefers opening files rather than showing paths",
+        "date": "2026-09-06"
+      },
+      {
+        "id": "n1",
+        "type": "note",
+        "text": "Monday 9:00 AM — remind about team meeting",
+        "date": "2026-08-24"
+      },
+      {
+        "id": "n2",
+        "type": "note",
+        "text": "Recycle bin check: suggest on Sundays",
+        "date": "2026-09-05"
+      },
+      {
+        "id": "n3",
+        "type": "note",
+        "text": "Next chess game: try the Sicilian Defense",
+        "date": "2026-09-07"
+      },
+      {
+        "id": "n4",
+        "type": "note",
+        "text": "Favorite radio: ChillHop Station",
+        "date": "2026-09-02"
+      },
+      {
+        "id": "n5",
+        "type": "note",
+        "text": "Friday routine: weekly review at 4:15 PM",
+        "date": "2026-09-09"
+      },
+      {
+        "id": "r1",
+        "type": "reflection",
+        "text": "Chess opening e4 often leads to open games — Max likes aggressive matches",
+        "date": "2026-09-10"
+      },
+      {
+        "id": "r2",
+        "type": "reflection",
+        "text": "Max works more efficiently when I proactively start music",
+        "date": "2026-09-08"
+      },
+      {
+        "id": "r3",
+        "type": "reflection",
+        "text": "Short answers + humor = Max's best response rate",
+        "date": "2026-09-11"
+      },
+      {
+        "id": "k1",
+        "type": "knowledge",
+        "text": "Max → works_at → architecture firm",
+        "date": "2026-08-12"
+      },
+      {
+        "id": "k2",
+        "type": "knowledge",
+        "text": "Max → plays → chess",
+        "date": "2026-08-14"
+      },
+      {
+        "id": "k3",
+        "type": "knowledge",
+        "text": "Max → prefers → dark mode",
+        "date": "2026-08-26"
+      },
+      {
+        "id": "k4",
+        "type": "knowledge",
+        "text": "Max → listens_to → lo-fi music",
+        "date": "2026-08-18"
+      },
+      {
+        "id": "k5",
+        "type": "knowledge",
+        "text": "Max → uses → Outlook",
+        "date": "2026-09-01"
+      },
+      {
+        "id": "k6",
+        "type": "knowledge",
+        "text": "Max → writes_in → German",
+        "date": "2026-08-20"
+      }
+    ],
+    "edges": [
+      { "from": "u2", "to": "s1", "label": "learns from" },
+      { "from": "u2", "to": "r1", "label": "reflection" },
+      { "from": "u2", "to": "k2", "label": "knowledge" },
+      { "from": "u2", "to": "n3", "label": "next step" },
+      { "from": "u5", "to": "s4", "label": "insight" },
+      { "from": "u5", "to": "n4", "label": "note" },
+      { "from": "u5", "to": "k4", "label": "knowledge" },
+      { "from": "u5", "to": "r2", "label": "reflection" },
+      { "from": "u3", "to": "s2", "label": "observed" },
+      { "from": "u3", "to": "r3", "label": "reflection" },
+      { "from": "u1", "to": "s3", "label": "pattern" },
+      { "from": "u1", "to": "k1", "label": "context" },
+      { "from": "u8", "to": "n1", "label": "reminder" },
+      { "from": "u13", "to": "n2", "label": "routine" },
+      { "from": "u14", "to": "n5", "label": "routine" },
+      { "from": "u6", "to": "s7", "label": "rule" },
+      { "from": "u6", "to": "k6", "label": "knowledge" },
+      { "from": "u11", "to": "s6", "label": "insight" },
+      { "from": "u11", "to": "k5", "label": "knowledge" },
+      { "from": "u9", "to": "k3", "label": "knowledge" },
+      { "from": "u10", "to": "s8", "label": "observed" },
+      { "from": "s5", "to": "r3", "label": "confirms" }
+    ],
+    "typeLabels": {
+      "user": "User",
+      "system": "System",
+      "note": "Note",
+      "reflection": "Reflection",
+      "knowledge": "Knowledge"
+    }
+  }
+}
