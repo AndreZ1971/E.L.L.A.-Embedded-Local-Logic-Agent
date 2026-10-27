@@ -110,12 +110,17 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "js.stripe.com"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "js.stripe.com",
+          "https://stats.ella-agent.de",
+        ],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:", "blob:"],
         mediaSrc: ["'self'", "blob:"],
         frameSrc: ["js.stripe.com", "*.stripe.com"],
-        connectSrc: ["'self'"],
+        connectSrc: ["'self'", "https://stats.ella-agent.de"],
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
         frameAncestors: ["'none'"],
