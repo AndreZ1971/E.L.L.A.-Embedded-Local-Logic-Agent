@@ -4,6 +4,28 @@ Alle nennenswerten Änderungen je Release. Neueste Version zuerst.
 
 ---
 
+## v1.5.7 — Performance & Tool-Call-Robustheit
+
+**Veröffentlicht:** Oktober 2026
+
+### Verbesserungen
+
+#### Ollama & Modell-Upgrade
+
+- **Ollama 0.40.12:** Update von 0.24.0 — verbessertes Tool-Calling, schnellere Inferenz
+- **qwen2.5:14b als Standard-Modell:** Ersetzt llama3.1:8b — besseres Deutsch, zuverlässigere Tool-Calls (8.4 GB VRAM)
+- **Flash Attention:** `OLLAMA_FLASH_ATTENTION=1` — bis zu 12× schnellere Prompt-Verarbeitung
+- **KV-Cache-Quantisierung:** `OLLAMA_KV_CACHE_TYPE=q8_0` — geringerer VRAM-Verbrauch
+- **Kontextfenster:** `num_ctx` von 12288 auf 8192 optimiert — schnellere Antworten
+
+#### Tool-Call-Robustheit
+
+- **Tool-Selector erweitert:** Regex erkennt jetzt auch "systemstatus", "PC status", "Rechner check" — `get_system_status` wird zuverlässig als Tool geladen
+- **parseTextAsToolCall():** Fallback-Parser konvertiert JSON-Tool-Calls im Modell-Text-Output in echte Tool-Aufrufe
+- **Streaming-Buffer:** Chunks die mit `{`/`[` beginnen werden gepuffert bis klar ist ob Text oder Tool-Call — kein JSON-Flackern im Chat
+
+---
+
 ## v1.5.6 — HUD-Modus & Erscheinungsbild
 
 **Veröffentlicht:** Oktober 2026

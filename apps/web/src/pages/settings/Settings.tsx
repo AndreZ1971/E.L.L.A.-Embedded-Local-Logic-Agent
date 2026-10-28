@@ -4788,7 +4788,7 @@ const Settings: React.FC = () => {
                     letterSpacing: "0.02em",
                   }}
                 >
-                  v1.5.6
+                  v1.5.7
                 </span>
                 <span
                   style={{ fontSize: "0.85rem", color: "var(--ella-text-dim)" }}
@@ -4808,7 +4808,7 @@ const Settings: React.FC = () => {
                 <span style={{ color: "var(--ella-text-muted)" }}>
                   {t("settings.about_version")}
                 </span>
-                <span style={{ fontWeight: 600 }}>1.5.6</span>
+                <span style={{ fontWeight: 600 }}>1.5.7</span>
                 <span style={{ color: "var(--ella-text-muted)" }}>
                   {t("settings.about_build_date")}
                 </span>

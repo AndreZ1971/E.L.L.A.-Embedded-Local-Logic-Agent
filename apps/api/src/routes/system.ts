@@ -13,8 +13,8 @@ import { listTasks } from "../services/tasks.js";
 import { readEmails } from "../services/mail.js";
 import { getNowPlaying } from "../services/mediaControl.js";
 
-const ELLA_VERSION = "1.5.6";
-const ELLA_BUILD_DATE = "2026-10-25";
+const ELLA_VERSION = "1.5.7";
+const ELLA_BUILD_DATE = "2026-10-28";
 
 export const systemRouter = Router();
 

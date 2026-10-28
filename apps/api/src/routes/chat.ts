@@ -26,6 +26,40 @@ import {
 } from "../services/temporalContext.js";
 import type { ToolName } from "@ella/shared";
 
+/**
+ * Erkennt Tool-Calls die das Modell als JSON-Text ausgibt statt als strukturierte tool_calls.
+ * Gibt strukturierte tool_calls zurück wenn erkannt, sonst undefined.
+ */
+function parseTextAsToolCall(
+  content: string,
+): OllamaMessage["tool_calls"] | undefined {
+  const trimmed = content
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return undefined;
+  try {
+    const parsed = JSON.parse(trimmed);
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    const calls: NonNullable<OllamaMessage["tool_calls"]> = [];
+    for (const item of items) {
+      if (typeof item.name === "string") {
+        calls.push({
+          id: `call_text_${Date.now()}`,
+          function: {
+            name: item.name,
+            arguments: item.parameters ?? item.arguments ?? {},
+          },
+        });
+      }
+    }
+    return calls.length > 0 ? calls : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // Per-session mutex: serializes concurrent requests for the same session
 // prevents Read-Modify-Write races when two messages arrive simultaneously
 const sessionQueue = new Map<string, Promise<void>>();
@@ -226,13 +260,22 @@ chatRouter.post("/", async (req, res, next) => {
           );
       const assistantMsg = response.message;
 
-      if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
+      let resolvedToolCalls = assistantMsg.tool_calls;
+      if (
+        (!resolvedToolCalls || resolvedToolCalls.length === 0) &&
+        assistantMsg.content
+      ) {
+        resolvedToolCalls = parseTextAsToolCall(assistantMsg.content);
+      }
+
+      if (!resolvedToolCalls || resolvedToolCalls.length === 0) {
         finalReply = assistantMsg.content;
         break;
       }
 
+      assistantMsg.tool_calls = resolvedToolCalls;
       lastAssistantContent = assistantMsg.content ?? "";
-      lastToolNames = assistantMsg.tool_calls.map((c) => c.function.name);
+      lastToolNames = resolvedToolCalls.map((c) => c.function.name);
 
       messages.push(assistantMsg);
 
@@ -412,14 +455,45 @@ chatRouter.post("/stream", async (req, res) => {
 
         let roundContent = "";
         let roundToolCalls: OllamaMessage["tool_calls"] | undefined;
+        let chunkBuffer = "";
+        let bufferFlushed = false;
 
         for await (const event of stream) {
           if (event.type === "chunk") {
-            emit({ type: "chunk", text: event.text });
             roundContent += event.text;
+            if (!bufferFlushed) {
+              chunkBuffer += event.text;
+              const trimmed = chunkBuffer.trimStart();
+              if (
+                trimmed.startsWith("{") ||
+                trimmed.startsWith("[") ||
+                trimmed === ""
+              ) {
+                continue;
+              }
+              emit({ type: "chunk", text: chunkBuffer });
+              bufferFlushed = true;
+            } else {
+              emit({ type: "chunk", text: event.text });
+            }
           } else {
             roundToolCalls = event.toolCalls;
           }
+        }
+
+        if (!bufferFlushed && chunkBuffer) {
+          const parsedFromBuffer = parseTextAsToolCall(chunkBuffer);
+          if (parsedFromBuffer) {
+            roundToolCalls = parsedFromBuffer;
+            roundContent = "";
+          } else {
+            emit({ type: "chunk", text: chunkBuffer });
+          }
+        }
+
+        if ((!roundToolCalls || roundToolCalls.length === 0) && roundContent) {
+          roundToolCalls = parseTextAsToolCall(roundContent);
+          if (roundToolCalls) roundContent = "";
         }
 
         if (!roundToolCalls || roundToolCalls.length === 0) {

@@ -17,7 +17,7 @@ const LAZY_GROUPS: { pattern: RegExp; tools: string[] }[] = [
   {
     // Festplatte, RAM, Temp, Systeminfo, Akku, Temperaturen, Hardware-Details
     pattern:
-      /disk|laufwerk|festplatt|speicher.*platz|freier.*speicher|ram|arbeitsspeich|temp(?:eratur)?|papierkorb|m[uü]ll|recycle|system.*info|cpu|prozessor|gpu|grafik|vram|akku|batterie|overcloc|auslastung|free.*space|drive.*usage|ssd|hdd|nvme|ddr[45]?|mainboard|audio.*ger[äa]t|soundkarte|lautsprecher|kopfh[öo]rer|usb.*ger[äa]t|was.*angeschlossen|aufger[üu]sten|speicher.*typ|datenttr[äa]ger/i,
+      /disk|laufwerk|festplatt|speicher.*platz|freier.*speicher|ram|arbeitsspeich|temp(?:eratur)?|papierkorb|m[uü]ll|recycle|system(?:.*info|.*status|status|.*check)|cpu|prozessor|gpu|grafik|vram|akku|batterie|overcloc|auslastung|free.*space|drive.*usage|ssd|hdd|nvme|ddr[45]?|mainboard|audio.*ger[äa]t|soundkarte|lautsprecher|kopfh[öo]rer|usb.*ger[äa]t|was.*angeschlossen|aufger[üu]sten|speicher.*typ|datenttr[äa]ger|(?:pc|computer|rechner).*(?:status|check|zustand)/i,
     tools: [
       "get_disk_usage",
       "clean_temp",

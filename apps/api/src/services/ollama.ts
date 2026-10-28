@@ -367,7 +367,7 @@ export const ollamaClient = {
         ],
         tools: tools.length > 0 ? tools : undefined,
         stream: false,
-        options: { num_ctx: 12288 },
+        options: { num_ctx: 8192 },
       }),
     });
 
@@ -417,7 +417,7 @@ export const ollamaClient = {
         ],
         tools: tools.length > 0 ? tools : undefined,
         stream: true,
-        options: { num_ctx: 12288 },
+        options: { num_ctx: 8192 },
       }),
     });
 

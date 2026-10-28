@@ -1,8 +1,8 @@
 # E.L.L.A — Embedded Local Logic Agent
 
-Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft lokal via Ollama (llama3.1:8b), optional mit OpenAI-API (eigener Key).
+Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft lokal via Ollama (qwen2.5:14b), optional mit OpenAI-API (eigener Key).
 
-**Aktueller Stand: v1.5.6**
+**Aktueller Stand: v1.5.7**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -279,6 +279,18 @@ database/
 - **resolveAppearance-Tests:** 9 Tests für Prioritätslogik (blind > homework > reduced_motion > wanted)
 - **393 Tests — alle grün** (Vitest Unit + Integration, inkl. 4 hudWidgets + 9 resolveAppearance-Tests)
 
+### v1.5.7 — Performance & Tool-Call-Robustheit
+
+- **Ollama 0.40.12:** Upgrade von 0.24.0 → 0.40.12 — verbessertes Tool-Calling, schnellere Inferenz
+- **Modellwechsel qwen2.5:14b:** Ersetzt llama3.1:8b als Standard-Modell — besseres Deutsch, zuverlässigere Tool-Calls, 8.4 GB VRAM
+- **Flash Attention:** `OLLAMA_FLASH_ATTENTION=1` Umgebungsvariable — 12× schnellere Prompt-Verarbeitung
+- **KV-Cache-Quantisierung:** `OLLAMA_KV_CACHE_TYPE=q8_0` — reduziert VRAM-Verbrauch bei minimalem Qualitätsverlust
+- **Kontextfenster optimiert:** `num_ctx` von 12288 auf 8192 reduziert in `chat()` und `chatStream()` — schnellere Antworten, weniger VRAM
+- **Tool-Selector erweitert** (`toolSelector.ts`): Regex für System/Hardware-Gruppe erkennt jetzt auch "systemstatus", "PC status", "Rechner check" — `get_system_status` wird zuverlässig geladen
+- **parseTextAsToolCall()** (`chat.ts`): Fallback-Parser erkennt JSON-Tool-Calls im Modell-Text-Output und konvertiert sie in echte Tool-Aufrufe — verhindert dass `{"name": "tool", "parameters": {}}` als Chat-Text erscheint
+- **Streaming-Buffer** (`chat.ts`): Chunks die mit `{`/`[` beginnen werden zurückgehalten bis klar ist ob es Text oder ein Tool-Call ist — kein JSON-Flackern mehr im Chat
+- **393 Tests — alle grün** (Vitest Unit + Integration)
+
 ---
 
 ## Neue Tools — Checkliste
@@ -423,15 +435,11 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
 
-
-
-
-
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (Claude Code ToolBox)
 
-_Last synced: 2026-10-27T10:32:19.765Z._
+_Last synced: 2026-10-28T10:14:40.838Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).
