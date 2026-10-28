@@ -31,4 +31,4 @@ if (-not (Test-Path $electronLink) -and (Test-Path "$root\node_modules\electron"
 Set-Location "$root\apps\desktop"; npm run dist
 if ($LASTEXITCODE -ne 0) { Write-Host "Installer Build fehlgeschlagen!" -ForegroundColor Red; exit 1 }
 
-Write-Host "Fertig: $root\apps\desktop\dist-installer\E.L.L.A. Setup 1.5.0.exe" -ForegroundColor Green
+Write-Host "Fertig: $root\apps\desktop\dist-installer\" -ForegroundColor Green

@@ -1,6 +1,6 @@
 param(
   [string]$MariaDbVersion = "11.4.5",
-  [string]$OllamaVersion  = "0.30.7"
+  [string]$OllamaVersion  = "0.40.12"
 )
 
 $ErrorActionPreference = "Stop"
@@ -63,6 +63,13 @@ if (-not (Test-Path $ollamaExe)) {
 
   # Copy all extracted files into ollamaDir
   Get-ChildItem $tmpExtract | ForEach-Object { Copy-Item $_.FullName $ollamaDir -Recurse -Force }
+
+  # CUDA v12 entfernen — CUDA v13 deckt alle GPUs mit Treiber >= 525 ab
+  $cudaV12 = Join-Path $ollamaDir "lib\ollama\cuda_v12"
+  if (Test-Path $cudaV12) {
+    Write-Host "  Removing CUDA v12 (covered by v13)..." -ForegroundColor Yellow
+    Remove-Item $cudaV12 -Recurse -Force
+  }
 
   Remove-Item $tmpExtract -Recurse -Force -ErrorAction SilentlyContinue
   Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
