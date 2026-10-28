@@ -145,8 +145,7 @@
     "feedback_helpful": "Hilfreich",
     "feedback_not_helpful": "Nicht hilfreich",
     "proactive_dismiss": "Nicht mehr so oft zeigen",
-    "proactive_mute": "Diesen Hinweistyp stummschalten",
-    "tts_offline_hint": "Deutsche Sprachausgabe ist im Offline-Modus deaktiviert."
+    "proactive_mute": "Diesen Hinweistyp stummschalten"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -602,7 +601,6 @@
     "unread": "ungelesen",
     "no_playback": "Keine Wiedergabe",
     "unknown_title": "Unbekannter Titel",
-    "hint_followup_full": "Follow-up {{sec}}s · „Stopp“ unterbricht",
-    "tts_off_offline": "Aus (Offline)"
+    "hint_followup_full": "Follow-up {{sec}}s · „Stopp“ unterbricht"
   }
 }

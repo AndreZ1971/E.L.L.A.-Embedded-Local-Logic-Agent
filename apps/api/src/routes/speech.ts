@@ -108,10 +108,6 @@ speechRouter.post("/synthesize", async (req, res, next) => {
       rate,
       lang,
     });
-    if (!result) {
-      res.status(503).json({ error: "TTS im Offline-Modus nicht verfügbar" });
-      return;
-    }
     res.set({
       "Content-Type": result.contentType,
       "Content-Length": String(result.buffer.length),
