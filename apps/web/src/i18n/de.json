@@ -602,7 +602,7 @@
     "unread": "ungelesen",
     "no_playback": "Keine Wiedergabe",
     "unknown_title": "Unbekannter Titel",
-    “hint_followup_full”: “Follow-up {{sec}}s · „Stopp” unterbricht”,
-    “tts_off_offline”: “Aus (Offline)”
+    "hint_followup_full": "Follow-up {{sec}}s · „Stopp“ unterbricht",
+    "tts_off_offline": "Aus (Offline)"
   }
 }

@@ -602,8 +602,8 @@
     "unread": "unread",
     "no_playback": "No playback",
     "unknown_title": "Unknown title",
-    “hint_followup_full”: “Follow-up {{sec}}s · “stop” interrupts”,
-    “tts_off_offline”: “Off (Offline)”
+    "hint_followup_full": "Follow-up {{sec}}s · “stop” interrupts",
+    "tts_off_offline": "Off (Offline)"
   },
   "model_select": {
     "heading": "Before we begin —",
