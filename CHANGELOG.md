@@ -1,146 +1,178 @@
-# Changelog — E.L.L.A.
+# Changelog -- E.L.L.A.
 
 Entwicklungsverlauf seit der ersten öffentlichen Version. Neue Funktionen sind mit **(neu)** gekennzeichnet.
 
 ---
 
-## [1.4.0] — September 2026
+## [1.5.7] -- Oktober 2026
 
-### Neue Funktionen
+### Verbesserungen
 
-- **(neu) Schach-Fenster** — `open_chess_window`-Tool öffnet ein rahmenloses Electron-Fenster mit 4 Brett-Themes (ELLA/Holz/Nacht/Grün), Ambient-Glow und Partikel-Hintergrund
-- **(neu) 3D-Schachfiguren** — alle 32 Figuren als SVG mit radialen Farbverläufen und Drop-Shadow; kein externes Asset-Bundle
-- **(neu) Schach-KI** — chess.js liefert legale UCI-Züge → LLM wählt; Starter-Memories + strategische Reflexion nach Spielende in ELLAs Gedächtnis
-- **(neu) Schach-Kommentar** — fire-and-forget nach jedem ELLA-Zug über `proactive_message` SSE + TTS
-- **(neu) Geschlagene Figuren & Materialvorteil** — Unicode-Symbole über/unter dem Brett, `+N`-Anzeige
-- **(neu) Pause/Resume** — Spielstand (FEN + Züge) in `localStorage`, "▶ Weiter"-Button beim nächsten Öffnen
-- **(neu) Gedächtnis-Browser** — vollständige UI zum Durchsuchen, Filtern und Verwalten aller ELLA-Memories (Typ-Filter, Freitext-Suche, Paginierung)
-- **(neu) Knowledge-Graph** — D3 Force-Directed Graph visualisiert semantische Verbindungen zwischen Erinnerungen (Cosinus-Ähnlichkeit aus Embeddings)
-- **(neu) Hardware-Detail-Tools** — `get_gpu_info`, `get_ram_details`, `get_drive_details`, `get_audio_devices`, `get_usb_devices`; alle via Get-CimInstance, Windows 11 22H2+ kompatibel
-- **(neu) Backup & Restore** — JSON-Export aller Daten (Memories, Regeln, Wecker, Aufgaben, Setups); Import mit Merge- oder Ersetzen-Modus; eigener Tab in den Einstellungen
-- **(neu) i18n vollständig** — alle verbleibenden hardkodierten Strings in Chat.tsx, Dashboard.tsx und Memories.tsx durch `t()`-Aufrufe ersetzt; Memories-Sektion neu in de.json/en.json
-- **(neu) Dokument-Wissens-Graph** — Knowledge-Graph zeigt optional Dokument-Knoten (hellblau) mit gestrichelten Kanten zu semantisch ähnlichen Memories; Toggle-Button "📄 Dokumente einblenden" im Graph; Hover/Klick zeigt Dateiname, Pfad, Typ und Chunk-Anzahl
-- **(neu) `list_indexed_folders`-Tool** — zeigt alle bekannten Ordner mit Statistik (Dateien, Chunks, letztes Update); ELLA weiß was sie kennt
-- **(neu) Auto-Re-Index** — Worker indiziert täglich um 03:00 Uhr alle gespeicherten Ordner neu; bei neuen Dateien proaktive Chat-Nachricht
-- **(neu) Ordner-Persistenz** — `index_documents` merkt sich den Ordner automatisch in den Settings; kein erneutes Angeben nötig
-
-### Technisch
-
-- Neue DB-Tabelle `chess_games`
-- Neue API-Routen: `/api/chess/*`, `/api/backup/*`, `/api/memories/*`
-- `GET /api/memories/graph?docs=1` — erweiterter Graph mit `docNodes` + `crossEdges`
-- Tool `open_chess_window` + Regel 90; Hardware-Detail-Tools Regeln 91–95; `list_indexed_folders` Regel 107
-- `stress_server.py` korrekt in `extraResources` eingetragen (Bugfix Installer)
-- Desktop-Version auf `1.4.0` gebumpt
+- **Ollama 0.40.12** -- Upgrade von 0.24.0; verbessertes Tool-Calling, schnellere Inferenz
+- **Modellwechsel qwen2.5:14b** -- ersetzt llama3.1:8b als Standard-Modell; besseres Deutsch, zuverlässigere Tool-Aufrufe
+- **Flash Attention** -- bis zu 12x schnellere Prompt-Verarbeitung
+- **KV-Cache-Quantisierung** -- reduzierter VRAM-Verbrauch bei minimalem Qualitätsverlust
+- **Tool-Call-Robustheit** -- Fallback-Parser erkennt JSON-Tool-Calls im Textoutput und konvertiert sie in echte Aufrufe; Streaming-Buffer verhindert JSON-Flackern im Chat
+- **Tool-Selector erweitert** -- Systemstatus-Anfragen ("PC status", "Rechner check") werden zuverlässig erkannt
 
 ---
 
-## [1.3.0] — September 2026
+## [1.5.6] -- Oktober 2026
 
 ### Neue Funktionen
 
-- **(neu) Setup-Aktionen** — Setups unterstützen jetzt beliebige ELLA-Tool-Calls als geordnete Schritte mit optionalem `delay_ms`; 7 Action-Templates (App öffnen, Lautstärke, Dark Mode, RAM freigeben, Pause, Clipboard, Übersetzen)
-- **(neu) "▶ Jetzt"-Button** im Setup-Editor — `POST /api/setup/run` startet ein Setup direkt aus den Einstellungen ohne den Chat
-- **(neu) Port-Events im Dashboard** — neue Ports erscheinen live unter System-Events mit Prozessname; Orange bei unbekanntem Prozess, kein Chat-Spam
+- **(neu) HUD-Modus** -- technisches Erscheinungsbild mit Cyan/Violett/Bernstein-Akzent; Top Bar, Drei-Spalten-Layout, 8 konfigurierbare Widgets (System, Monitore, Aufgaben, E-Mails, Musik, Routinen, Directive, Uhr)
+- **(neu) Präsentationsmodus** -- Vollbild mit Orb und letzter Antwort; sensible Daten automatisch ausgeblendet
+- **(neu) Orb-Visualisierung** -- animierte Kugel mit 6 Zuständen (bereit, hört zu, denkt, spricht, Cloud, offline); Countdown-Ring für Follow-Up-Fenster
+- **(neu) Über E.L.L.A. (Einstellungen)** -- Version, Update-Check, Lizenzstatus, Kontakt, Directive-Info, Support-Infos, Drittanbieter-Lizenzen
+- **(neu) Drei Erscheinungsbilder** -- Standard (dunkel), HUD (technisch), Präsentationsmodus; umschaltbar in den Einstellungen
+- **(neu) Performance-Drosselung** -- Animationen werden während LLM-Berechnungen reduziert; Canvas-FPS auf 20 limitiert
+- **(neu) Lokale Schriften** -- Chakra Petch und JetBrains Mono als lokale Dateien, kein CDN nötig
+
+---
+
+## [1.5.5] -- Oktober 2026
+
+### Verbesserungen
+
+- **Diktat: Clipboard-Sicherung** -- Zwischenablage wird vor dem Einfügen gesichert und danach wiederhergestellt
+- **Konfigurierbarer Diktat-Hotkey** -- Standard geändert auf Strg+Alt+Leertaste (vermeidet Konflikte mit Word, Chrome, VS Code)
+- **Hotkey-Registrierung abgesichert** -- fehlgeschlagene Registrierung wird geloggt statt still zu scheitern
+- **Diktat-Text nicht in Clipboard-Historie** -- Diktat-Einfügungen werden automatisch übersprungen
+
+---
+
+## [1.5.4] -- Oktober 2026
+
+### Neue Funktionen
+
+- **(neu) Diktat-Modus** -- Sprache wird transkribiert und direkt ins aktive Windows-Fenster getippt; systemweit, nicht nur in ELLA
+- **(neu) Diktat-Rechtschreibkorrektur** -- optionale automatische Korrektur vor dem Tippen
+- **(neu) Diktat-Hotkey** -- konfigurierbarer globaler Hotkey zum Umschalten des Diktat-Modus
+
+---
+
+## [1.5.3] -- Oktober 2026
+
+### Neue Funktionen
+
+- **(neu) Stop-Interrupt** -- Stopp-Wörter ("stopp", "halt", "sei still", "quiet", "shut up") brechen die Sprachausgabe sofort ab; funktioniert in Wakeword- und Always-Modus
+- **(neu) Follow-Up-Fenster** -- 8 Sekunden nach einer Antwort kann ohne Wakeword direkt weitergesprochen werden
+
+---
+
+## [1.5.2] -- Oktober 2026
+
+### Verbesserungen
+
+- **Datenschutz: Schwärzen** -- sensible Daten (API-Keys, Passwörter, IBANs, Kreditkartennummern) werden vor dem Speichern in Memories und Clipboard-Historie automatisch entfernt
+- **Ergebnis-Transparenz** -- ELLA kommuniziert Tool-Fehler klar statt "erledigt" zu sagen
+- **(neu) Offline-Modus** -- sperrt alle Netzwerk-Funktionen, Cloud-Zugriff und nutzt Lizenz-Cache; lokale Netzwerk-Tools (LAN-Scan, Verbindungen) bleiben aktiv
+
+---
+
+## [1.5.1] -- September 2026
+
+### Sicherheit
+
+- **Loopback-Binding** -- API nur über localhost erreichbar, nicht im Netzwerk
+- **Per-Start API-Token** -- zufälliger Token bei jedem Start, timing-safe Prüfung
+- **PIN-geschützte Profile** -- zeitlich begrenzte Session-Tokens nach PIN-Eingabe
+- **Cloud-Governance** -- alle OpenAI-Aufrufe über zentrale Funktion mit Prüfung und Protokollierung
+- **Lokal-Zuerst-Muster** -- alle Dienste versuchen zuerst Ollama, dann OpenAI als Fallback
+- **DuckDuckGo-Websuche** -- primäre Suchmaschine ohne API-Key; OpenAI nur als Fallback
+- **Cloud-Zähler im Dashboard** -- zeigt Anzahl der Cloud-Anfragen pro Tag
+
+---
+
+## [1.5.0] -- September 2026
+
+### Neue Funktionen
+
+- **(neu) Knowledge Graph** -- Subjekt/Prädikat/Objekt-Triples automatisch aus Gesprächen extrahiert; kein zusätzlicher LLM-Aufruf
+- **(neu) Hybrid-Recall** -- Cosinus-Suche kombiniert mit Graph-Traversal für tieferen Kontext
+- **(neu) Dashboard-Graph** -- Relationen als lila gestrichelte Kanten mit Labels im Memory-Graph
+- **(neu) Proactive Approval-Memory** -- 14 Kategorien; Auto-Mute nach 5x Wegdrücken; Dismiss- und Mute-Buttons an jeder proaktiven Nachricht
+- **(neu) Memory-Deduplizierung** -- rückwirkende Bereinigung doppelter Erinnerungen; Button im Dashboard
+- **(neu) Self-Learning** -- positives Feedback speichert Frage-Antwort-Paare als Beispiele für künftige Antworten
+- **Regelbasierte Vorkompression** -- leere Nachrichten, Duplikate und lange Texte werden ohne LLM gekürzt
+- **Token-Output-Limits** -- maximal 3000 Zeichen pro Tool-Ergebnis, 500 Zeichen pro JSON-String
+
+---
+
+## [1.4.0] -- September 2026
+
+### Neue Funktionen
+
+- **(neu) Schach-Fenster** -- rahmenloses Electron-Fenster mit 4 Brett-Themes, Ambient-Glow und Partikel-Hintergrund
+- **(neu) 3D-Schachfiguren** -- alle 32 Figuren als SVG mit radialen Farbverläufen und Drop-Shadow
+- **(neu) Schach-KI** -- LLM wählt aus legalen Zügen; Starter-Memories und strategische Reflexion nach Spielende
+- **(neu) Schach-Kommentar** -- ELLA kommentiert live nach jedem eigenen Zug mit Persönlichkeit
+- **(neu) Geschlagene Figuren und Materialvorteil** -- Anzeige über und unter dem Brett
+- **(neu) Pause/Resume** -- Spielstand wird gespeichert, "Weiter"-Button beim nächsten Öffnen
+- **(neu) Gedächtnis-Browser** -- UI zum Durchsuchen, Filtern und Verwalten aller Erinnerungen
+- **(neu) Knowledge-Graph-Visualisierung** -- D3 Force-Directed Graph zeigt semantische Verbindungen
+- **(neu) Hardware-Detail-Tools** -- GPU, RAM, Laufwerke, Audio-Geräte, USB-Geräte abfragen
+- **(neu) Backup und Restore** -- JSON-Export und -Import aller Daten
+- **(neu) Dokument-Wissens-Graph** -- Dokumente als Knoten im Knowledge-Graph
+- **(neu) Auto-Re-Index** -- tägliche Neuindizierung gespeicherter Ordner um 03:00 Uhr
+
+---
+
+## [1.3.0] -- September 2026
+
+### Neue Funktionen
+
+- **(neu) Setup-Aktionen** -- beliebige ELLA-Werkzeuge als geordnete Schritte in Setups; 7 Action-Templates
+- **(neu) "Jetzt"-Button** im Setup-Editor -- Setups direkt aus den Einstellungen starten
+- **(neu) Port-Events im Dashboard** -- neue Netzwerk-Ports live angezeigt mit Prozessname
 
 ### Bugfixes
 
-- **WiFi-Erkennung** — `getWifiInfo()` nutzt jetzt `Get-NetConnectionProfile` statt textbasiertem `netsh`-Parsing; sprachunabhängig, adapter-agnostisch
-- **TCP-Verbindungen zeigten 0** — PowerShell 5.1 kennt `??`-Operator nicht; behoben durch `if/else`-Syntax und `[int]`-Cast auf beiden Seiten der Prozess-Hashtable
-- **Prozessname immer "Unknown"** bei Netzwerkverbindungen — `uint32` vs. `int`-Typkonflikt in der Hashtable behoben
-- **Pipeline-Analyse-Qualität** — Loopback-Adressen ausgeblendet, "unbekannter Prozess" kein Verdachtsindikator mehr; explizite Schwellwerte (RAM >85%, Temp >85°C, Akku <15%)
+- WiFi-Erkennung sprachunabhängig gemacht
+- TCP-Verbindungsanzeige unter PowerShell 5.1 repariert
+- Prozessnamen bei Netzwerkverbindungen korrekt aufgelöst
 
 ---
 
-## [1.2.0] — August 2026
+## [1.2.0] -- August 2026
 
 ### Neue Funktionen
 
-- **(neu) Multi-Agenten-Pipeline** — parallele und sequenzielle Pipelines über OpenAI; 2 vordefinierte Pipelines: Morgenbriefing (Kalender + Aufgaben + Wetter) und System-Report (Speicher + Performance + Prozesse + Netzwerk)
-- **(neu) Live-Streaming** — SSE-Events pro Agent (`agent_start`, `agent_chunk`, `agent_tool`, `agent_done`, `pipeline_done`); Synthese-Call nach allen Agenten
-- **(neu) Setup-Integration in Pipeline** — nach Pipeline-Abschluss optional ein Setup ausführen; `setup_executed`-Event mit Ergebnis-Card in der UI
-- **(neu) Multi-Agenten-Seite** — dedizierte `/pipeline`-Seite mit Pipeline-Karten, Live-Agent-Karten, Setup-Dropdown und Zusammenfassung
+- **(neu) Multi-Agenten-Pipeline** -- parallele und sequenzielle Pipelines über OpenAI; Morgenbriefing und System-Report vordefiniert
+- **(neu) Live-Streaming** -- Echtzeit-Events pro Agent im Chat
+- **(neu) Setup-Integration** -- nach Pipeline-Abschluss optional ein Setup ausführen
+- **(neu) Multi-Agenten-Seite** -- eigene Seite mit Pipeline-Karten und Live-Ansicht
 
 ---
 
-## [1.1.0] — Juli 2026
+## [1.1.0] -- Juli 2026
 
 ### Neue Funktionen
 
-- **(neu) Tool-Selector** — pro Anfrage nur ~12 statt 85 Tools; 8 CORE-Tools immer aktiv + 20 Lazy Groups mit DE/EN-Regex; bis zu 90 % weniger Input-Tokens
-- **(neu) Token-Optimizer** — Tool-Ergebnisse werden vor Kontexteinbettung komprimiert: JSON minify, Base64-Strip, Array-Truncation (max 50 Einträge)
-- **(neu) Smarter Tool-Loop** — ab Runde 1 nur kontextrelevante Tools; Ollama-Bug behoben (`toolCallsBuffer` außerhalb des `while(true)`-Loops)
+- **(neu) Tool-Selector** -- pro Anfrage nur ~12 statt 85 Werkzeuge; bis zu 90% weniger Token-Verbrauch
+- **(neu) Token-Optimizer** -- Tool-Ergebnisse werden vor der Einbettung komprimiert
+- **(neu) Smarter Tool-Loop** -- ab Runde 1 nur kontextrelevante Werkzeuge
 
 ---
 
-## [1.0.0] — Juni 2026
+## [1.0.0] -- Juni 2026
 
 ### Erstveröffentlichung
 
-#### Kern-System
-
-- Dual-LLM: Ollama (llama3.1:8b, offline) + OpenAI GPT-4o (optional)
-- SSE-Streaming, Tool-Loop (max. 5 Runden), 85 Tools mit Handlern + Audit-Log
-- Rule Engine: Direktive → DIRECTIVE_DENY → Deny → Allow; Directive-Denial UI (roter Badge)
-- Per-Session Mutex gegen Race-Conditions
-
-#### Gedächtnis & Profile
-
-- ML-Gedächtnis: nomic-embed-text, Cosinus-Ähnlichkeit, 3 Typen (user/system/note)
-- Nutzerprofile mit PBKDF2+Salt PIN-Hash, profil-isoliertes Gedächtnis
-- Gesprächskompression ab 15 Nachrichten (Ollama-only)
-- Fenster-Kontext: aktive App im Chat-Kontext (opt-in, Ollama-only)
-
-#### Stimme & TTS
-
-- Wakeword "ella" (Python/ONNX + openWakeWord)
-- Kokoro TTS: lokale neuronale Stimme via `kokoro-js` (Node.js, kein Python nötig)
-- MsEdgeTTS als Fallback
-- Mehrsprachige Stimmen DE/EN/ES/FR: `af_sarah` / `bf_emma` / `ef_dora` / `ff_siwis`
-- Onboarding-Stimmenauswahl mit Vorschau
-- Stress-Erkennung: `stress_server.py` (Port 3004, numpy-only), opt-in
-
-#### Produktivität
-
-- Dateien: suchen (Windows Search Index), öffnen, Ordner erkunden
-- Dokumente: Word/TXT erstellen, .docx/.pdf/.xlsx/.html lesen, Diktat
-- Aufgabenliste, Wecker (DB-basiert), Erinnerungen (Task Scheduler)
-- Musik: Bibliothek durchsuchen, Media Player öffnen
-- Prozesse und Windows-Dienste verwalten
-- Systemsteuerung: Lautstärke, Zwischenablage (+ 20-Einträge-Historie)
-- Screenshot + GPT-4o Vision Analyse
-- Schreibstil lernen aus E-Mail-Historie
-- Textverarbeitung: Übersetzen, Zusammenfassen, Korrigieren
-- Duplikat-Scanner, Autostart-Liste
-
-#### Kommunikation
-
-- Outlook COM: Mail lesen/markieren + Kalender lesen/erstellen + Entwurf verfassen
-- Gmail + Google Calendar via OAuth 2.0
-
-#### Proaktives Monitoring
-
-- Hintergrund-Worker (60s): Disk/RAM/Ollama-Alerts, PnP, ARP, TCP, Firewall/WiFi/DNS, Alarm-Check
-- Clipboard-Polling (3s): History + Mustererkennung (IBAN, Paketnummer, Telefon, URL, E-Mail)
-- Comeback-Briefing, Meeting-Prep, Tagesabschluss, Pause-Reminder
-- Rhythmus-Analyse (12 Uhr täglich), Duplikat-Scan (So 10 Uhr)
-
-#### Barrierefreiheit
-
-- Blind-Modus: TTS erzwungen, kein Markdown, Audio-Töne, ARIA-Labels
-- Gehörlosenmodus: TTS + Mikrofon vollständig ausgeblendet
-
-#### Infrastruktur
-
-- 6-Schritt-Onboarding (EULA, Direktive, Hardware-Scan, Stimme, Standort)
-- Hausaufgaben-Modus: SHA-256 PIN, nur per PIN beendbar
-- i18n: DE/EN vollständig (react-i18next)
-- Modell-Auswahl vor Download (`ModelSelectOverlay`)
-- 254 Tests — alle grün (Vitest Unit + Integration)
-- 13 Smoke Tests (PowerShell End-to-End)
-- GitHub Actions CI mit MariaDB Service Container
-- Installer: NSIS, MariaDB + Ollama + Node.js portable gebündelt
+- Dual-LLM: Ollama (offline) + OpenAI (optional)
+- 85 Werkzeuge mit Audit-Log
+- Rule Engine mit Directive Layer
+- ML-Gedächtnis mit Vektor-Embeddings und Nutzerprofilen
+- Wakeword "ELLA", Kokoro TTS (EN/ES/FR lokal), Edge TTS (DE)
+- Stress-Erkennung (opt-in)
+- Dateien, Dokumente, Aufgaben, Wecker, Erinnerungen, Musik
+- Outlook und Gmail Integration
+- Hintergrund-Monitoring mit proaktiven Hinweisen
+- Blind-Modus und Gehörlosenmodus
+- 6-Schritt-Onboarding, Hausaufgaben-Modus, i18n (DE/EN)
+- Windows NSIS-Installer mit allen Abhängigkeiten gebündelt
 
 ---
 
-_E.L.L.A. · Proprietär · Alle Rechte vorbehalten_
+_E.L.L.A. -- Proprietär -- Alle Rechte vorbehalten_

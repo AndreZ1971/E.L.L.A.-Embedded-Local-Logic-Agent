@@ -145,7 +145,8 @@
     "feedback_helpful": "Helpful",
     "feedback_not_helpful": "Not helpful",
     "proactive_dismiss": "Show less often",
-    "proactive_mute": "Mute this type of notification"
+    "proactive_mute": "Mute this type of notification",
+    "tts_offline_hint": "German voice output is disabled in offline mode."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -601,7 +602,8 @@
     "unread": "unread",
     "no_playback": "No playback",
     "unknown_title": "Unknown title",
-    "hint_followup_full": "Follow-up {{sec}}s · “stop” interrupts"
+    “hint_followup_full”: “Follow-up {{sec}}s · “stop” interrupts”,
+    “tts_off_offline”: “Off (Offline)”
   },
   "model_select": {
     "heading": "Before we begin —",

@@ -1,232 +1,285 @@
-# E.L.L.A. — Frequently Asked Questions (FAQ)
+# E.L.L.A. -- Frequently Asked Questions (FAQ)
 
-Version 3.9.1 — Last updated: 2026-06-28
+Version 1.5.7 -- Last updated: 2026-10-28
 
 ---
 
 ## Table of Contents
 
-1. [General — What is ELLA?](#1-general--what-is-ella)
-2. [Installation & First Launch](#2-installation--first-launch)
-3. [AI Models & LLM Providers](#3-ai-models--llm-providers)
-4. [Voice Input & Voice Output](#4-voice-input--voice-output)
-5. [Wakeword & Hands-Free Mode](#5-wakeword--hands-free-mode)
-6. [Music & Media](#6-music--media)
-7. [Files & Drives](#7-files--drives)
-8. [Email & Calendar](#8-email--calendar)
-9. [Memory & Learning](#9-memory--learning)
-10. [Proactive Intelligence](#10-proactive-intelligence)
-11. [Security & Privacy](#11-security--privacy)
-12. [The E.L.L.A. Directive](#12-the-ella-directive)
-13. [User Profiles & PIN](#13-user-profiles--pin)
-14. [Accessibility](#14-accessibility)
-15. [Homework Mode](#15-homework-mode)
-16. [Settings & Configuration](#16-settings--configuration)
-17. [Errors & Troubleshooting](#17-errors--troubleshooting)
-18. [Technical Questions (Developers)](#18-technical-questions-developers)
+1. [General -- What is ELLA?](#1-general--what-is-ella)
+2. [Hardware & Performance](#2-hardware--performance)
+3. [License & Cost](#3-license--cost)
+4. [Installation & First Launch](#4-installation--first-launch)
+5. [AI Models & Providers](#5-ai-models--providers)
+6. [Voice Input & Voice Output](#6-voice-input--voice-output)
+7. [Wakeword & Hands-Free Mode](#7-wakeword--hands-free-mode)
+8. [Music & Media](#8-music--media)
+9. [Files & Drives](#9-files--drives)
+10. [Email & Calendar](#10-email--calendar)
+11. [Memory & Learning](#11-memory--learning)
+12. [Proactive Intelligence](#12-proactive-intelligence)
+13. [Security & Privacy](#13-security--privacy)
+14. [The E.L.L.A. Directive & Rules](#14-the-ella-directive--rules)
+15. [User Profiles & PIN](#15-user-profiles--pin)
+16. [Accessibility](#16-accessibility)
+17. [Homework Mode](#17-homework-mode)
+18. [Settings & Updates](#18-settings--updates)
+19. [Errors & Troubleshooting](#19-errors--troubleshooting)
 
 ---
 
-## 1. General — What is ELLA?
+## 1. General -- What is ELLA?
 
 ### What is E.L.L.A.?
 
-E.L.L.A. stands for **Embedded Local Logic Agent** — a personal AI assistant for Windows that runs entirely on your own machine. ELLA understands natural language and can operate your computer on your behalf: launching apps, searching for files, playing music, composing emails, checking appointments, setting alarms, and much more.
+E.L.L.A. stands for **Embedded Local Logic Agent** -- a personal AI assistant for Windows that runs entirely on your own machine. ELLA understands natural language and can operate your computer on your behalf: launching apps, searching for files, playing music, composing emails, checking appointments, setting alarms, and much more.
+
+> **What is an AI assistant?** A program that understands natural language (your own words, not special commands) and responds by performing actions on your computer or providing information.
 
 ### What makes ELLA special?
 
-- **Runs locally:** The AI model runs on your machine — no cloud dependency, no data transmission
-- **Learns over time:** ELLA remembers habits and preferences via a vector-store memory
-- **Acts proactively:** ELLA writes to the chat on its own when something is important — without you having to ask
-- **Understands natural language:** You talk to ELLA like a person — no syntax to learn
-- **Transparent:** ELLA displays every action before it is executed and asks for confirmation on dangerous operations
+- **Runs locally:** The AI model runs on your machine -- no cloud dependency. Your conversations stay on your PC
+- **Learns over time:** ELLA remembers habits and preferences through an intelligent memory system
+- **Acts proactively:** ELLA writes to the chat on its own when something is important -- without you having to ask
+- **Understands natural language:** You talk to ELLA like a person -- no syntax to learn
+- **Transparent:** ELLA displays every action and asks for confirmation on sensitive operations
 - **Immutable ethics:** Four hardcoded prohibitions (harm, concealment, surveillance, data exfiltration) cannot be bypassed by any setting
 
 ### Do I need an internet connection?
 
-For **basic operation: no.** Chat, voice input, music, file search, system control — everything works offline.
+For **basic operation with English, French, or Spanish voice output: no.** Chat, local voice input, music, file search, system control -- everything works offline.
 
-Internet is only required for:
+**German voice output requires internet:** ELLA uses Microsoft Edge TTS for German -- the spoken text is transmitted to Microsoft servers. A local German voice is in development.
 
+Internet is also required for:
+
+- License check on startup (works without internet thanks to caching)
 - Web search and weather
-- OpenAI features (GPT-4o, Whisper, Vision)
-- Gmail and Google Calendar (OAuth)
-- Microsoft Edge TTS (voice output — can be replaced by local Kokoro TTS)
+- OpenAI features (chat, speech recognition, image analysis) -- only if you enter your own key
+- Gmail and Google Calendar (only when connected)
+- One-time downloads on first launch (AI model, voice model)
+
+Full details on all network connections: [netzwerk.md](netzwerk.md)
+
+### What data goes to the cloud?
+
+**By default: none.** In pure local mode (Ollama), no conversation data leaves your machine.
+
+**Exception -- German voice output:** The spoken text is transmitted to Microsoft. For English, French, and Spanish, the local Kokoro voice is used (no internet needed).
+
+If you enter an **OpenAI key**, the following data is sent to OpenAI:
+
+- The conversation history (chat messages)
+- Audio files when using OpenAI speech recognition
+- Screenshots when using image analysis
+- Multi-agent pipelines (run exclusively via OpenAI)
+
+**Never** sent to external services (even with an OpenAI key):
+
+- Clipboard contents
+- Window context (which app is currently active)
+- Memories and memory contents
+- Conversation compressions
+
+Every cloud request is logged in the dashboard counter -- you have full transparency.
 
 ### Which systems does ELLA run on?
 
 ELLA runs on **Windows 10 and Windows 11 (64-bit)**. A Mac or Linux version is not planned.
 
-### Is ELLA free?
+---
 
-ELLA is proprietary software. The installer requires a license key (`ELLA-XXXX-XXXX-XXXX-XXXX`). The source code is publicly visible on GitHub for demonstration purposes.
+## 2. Hardware & Performance
+
+### What hardware do I need?
+
+ELLA runs on most Windows machines from the last 5 years. For the best experience, we recommend an **NVIDIA graphics card with at least 10 GB of video memory (VRAM)**.
+
+> **What is VRAM?** The memory on your graphics card. The AI model is loaded entirely into this memory. The more VRAM available, the larger and better models ELLA can use.
+
+| Requirement   | Minimum                     | Recommended                  |
+| ------------- | --------------------------- | ---------------------------- |
+| Processor     | Intel Core i3 / AMD Ryzen 3 | Intel Core i5 / AMD Ryzen 5  |
+| Memory        | 16 GB RAM                   | 32 GB RAM                    |
+| Graphics card | Not strictly required       | NVIDIA with 10-12 GB VRAM    |
+| Disk space    | 20 GB free                  | 40 GB free (SSD recommended) |
+
+Full details: [hardware.md](hardware.md)
+
+### Does ELLA work on my laptop?
+
+**Yes** -- ELLA runs on any Windows laptop with at least 16 GB of RAM. Speed depends on whether your laptop has a dedicated graphics card:
+
+- **Gaming laptop with NVIDIA GPU (10+ GB VRAM):** Very good -- like a desktop
+- **Laptop with smaller GPU (4-8 GB):** Works, but slower AI mode
+- **Laptop without a graphics card:** Works, but slow -- OpenAI key recommended
+
+**Tip:** With an **OpenAI key**, ELLA can offload computation to the cloud. Local hardware then matters less and even an older laptop delivers fast answers.
+
+### ELLA responds slowly -- what can I do?
+
+| Cause                        | Solution                                                                    |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| No or small graphics card    | Enter an OpenAI key (Settings -> LLM) -- ELLA then uses cloud computation   |
+| Too little RAM (under 16 GB) | Close other programs or upgrade RAM                                         |
+| First load after startup     | The AI model is loaded into memory on startup -- wait 10-30 seconds         |
+| Context window full          | Start a new conversation (ELLA compresses long conversations automatically) |
+
+ELLA automatically enables **Flash Attention** -- an optimization that makes processing up to 12 times faster. This is active by default and requires no configuration.
+
+> **What is Flash Attention?** A technique that optimizes how the AI model processes your text. Instead of holding everything in memory at once, it works in smaller chunks more efficiently. This saves memory and speeds up responses.
 
 ---
 
-## 2. Installation & First Launch
+## 3. License & Cost
+
+### What does ELLA cost?
+
+ELLA is a premium product with a one-time purchase. The price and current offers are available at [ella-agent.de](https://ella-agent.de).
+
+### How does the license work?
+
+After purchase, you receive a license key in the format `ELLA-XXXX-XXXX-XXXX-XXXX`. You enter this on first launch. The license is verified online once and then cached locally -- after that, ELLA works without internet.
+
+The license is tied to your machine (via an anonymous hardware fingerprint). If you switch machines, you can transfer the license.
+
+### Are there additional costs?
+
+Local usage (Ollama mode) incurs **no ongoing costs**. Electricity for your machine aside.
+
+Optionally, you can enter an **OpenAI API key**. OpenAI charges per use (pay-per-use) -- costs are low (a few cents per conversation). This is not a requirement but an enhancement.
+
+---
+
+## 4. Installation & First Launch
 
 ### How do I install ELLA?
 
-1. Download and run `E.L.L.A Setup 1.0.0-rc.exe`
+1. Download the installer from ella-agent.de and run it
 2. Choose an installation path (default: `C:\Programme\E.L.L.A`)
-3. Wait for the installation to complete — all dependencies are set up automatically
+3. Wait for the installation to complete -- all dependencies are set up automatically
 4. Launch ELLA via the desktop shortcut
 
-**Nothing else is required.** The installer includes MariaDB, Ollama, and Node.js as portable binaries.
+**Nothing else is required.** The installer includes all necessary components.
 
 ### What happens on the very first launch?
 
 ELLA guides you through a 6-step onboarding process:
 
-1. **EULA** — read and accept the terms of use
-2. **License activation** — enter your license key (internet connection to the license server required)
-3. **Your name** — ELLA learns how to address you
-4. **The Directive** — ELLA explains its four immutable prohibitions
-5. **Hardware scan** — ELLA learns about your drives
-6. **Voice & location** — choose voice output, optionally enter your location
+1. **Terms of use** -- read and accept
+2. **License activation** -- enter your license key (internet connection required)
+3. **Your name** -- ELLA learns how to address you
+4. **The Directive** -- ELLA explains its four immutable prohibitions
+5. **Hardware scan** -- ELLA detects your drives and selects an appropriate AI model
+6. **Voice & location** -- choose voice output, optionally enter your location
 
-### Do I need to install Ollama separately?
+On first launch, ELLA also downloads the AI model (~8.4 GB). This takes a few minutes depending on your internet speed.
 
-**No** — the installer build includes Ollama as a portable binary and starts it automatically. In **development mode** (cloned from GitHub) you need to install Ollama yourself and pull the model:
+### ELLA starts but shows an orange banner. What should I do?
 
-```powershell
-ollama pull llama3.1:8b        # Chat model (~4.7 GB, one-time)
-ollama pull nomic-embed-text   # Memory model (~274 MB, one-time)
-```
-
-### ELLA starts but shows an error banner. What should I do?
-
-The most common reason is that Ollama or the AI model is not yet ready. ELLA displays an orange banner for this. Wait a moment — on first launch the model is loaded automatically. If the banner does not disappear after 2 minutes:
-
-- **Installer build:** Restart ELLA (tray → Quit → double-click the ELLA icon)
-- **Development mode:** Run `ollama list` to check whether `llama3.1:8b` is loaded
+The most common reason is that the AI model is still loading. Wait a moment -- on first launch it is downloaded automatically. If the banner does not disappear after 2 minutes, restart ELLA (tray icon -> Quit -> double-click the ELLA icon).
 
 ---
 
-## 3. AI Models & LLM Providers
+## 5. AI Models & Providers
 
 ### Which AI models does ELLA use?
 
-| Model                       | Purpose                               | Offline? |
-| --------------------------- | ------------------------------------- | -------- |
-| `llama3.1:8b` (Ollama)      | Chat, text processing, tool selection | Yes      |
-| `nomic-embed-text` (Ollama) | Memory (vector embeddings)            | Yes      |
-| `GPT-4o` (OpenAI)           | Chat fallback, Vision, writing style  | No       |
-| `gpt-4o-mini` (OpenAI)      | Noise/stutter filter (contextAlign)   | No       |
-| `whisper-1` (OpenAI)        | Higher-accuracy speech recognition    | No       |
+> **What is an LLM?** A "Large Language Model" -- an AI program trained on vast amounts of text that can understand and generate natural language.
+
+| Model                     | Purpose                                         | Runs on your machine?      |
+| ------------------------- | ----------------------------------------------- | -------------------------- |
+| qwen2.5:14b (Ollama)      | Chat, text processing, tool selection           | Yes -- fully local         |
+| nomic-embed-text (Ollama) | Memory and recall                               | Yes -- fully local         |
+| GPT-4o (OpenAI)           | Chat alternative, image analysis, writing style | No -- needs internet + key |
+| Whisper (OpenAI)          | More accurate speech recognition                | No -- needs internet + key |
 
 ### Do I need an OpenAI API key?
 
 **No.** ELLA works fully without OpenAI. With a key, the following features become better or available at all:
 
-- Faster and more accurate responses (GPT-4o instead of llama3.1:8b)
-- Screenshot analysis and image analysis (GPT-4o Vision)
-- Texts in your personal writing style (uses email analysis with GPT-4o)
-- Higher-quality speech recognition (OpenAI Whisper instead of local model)
-- Noise and stutter filtering for voice input (gpt-4o-mini)
+- Faster and more accurate responses
+- Screenshot and image analysis
+- Texts in your personal writing style
+- Higher-quality speech recognition
+- Noise and stutter filtering for voice input
 
-Enter the key under **Settings → LLM → OpenAI API Key**.
+Enter the key under **Settings -> LLM -> OpenAI API Key**.
 
-### What is the difference between Ollama and OpenAI in ELLA?
+### What is the difference between Ollama and OpenAI?
 
-|                          | Ollama                 | OpenAI                                                    |
-| ------------------------ | ---------------------- | --------------------------------------------------------- |
-| Cost                     | Free                   | Pay-per-use (~$0.006/min Whisper, gpt-4o-mini very cheap) |
-| Privacy                  | Everything stays local | Data is sent to OpenAI                                    |
-| Speed                    | Depends on hardware    | Fast and consistent                                       |
-| Window context           | Available              | Not available (privacy)                                   |
-| Conversation compression | Available              | Not available                                             |
-| Vision                   | Only with LLaVA model  | Always available                                          |
+|                | Ollama (local)                   | OpenAI (cloud)                             |
+| -------------- | -------------------------------- | ------------------------------------------ |
+| Cost           | Free                             | Pay-per-use (a few cents per conversation) |
+| Privacy        | Everything stays on your machine | Data is sent to OpenAI                     |
+| Speed          | Depends on your hardware         | Fast and consistent                        |
+| Image analysis | Limited                          | Always available                           |
 
 ### What does "Provider: Auto" mean?
 
-In Auto mode, ELLA automatically selects the best available provider. If it has a valid OpenAI key, it uses OpenAI — otherwise Ollama. You can also force a fixed provider in Settings.
-
-### ELLA is not responding — what is the AI model problem?
-
-The most common issue: `llama3.1:8b` is not loaded in Ollama. You can tell by the orange Ollama banner.
-
-**Solution:**
-
-```powershell
-ollama pull llama3.1:8b
-```
-
-This takes approximately 20 minutes the first time (4.7 GB). Then restart ELLA.
+In Auto mode, ELLA automatically selects the best available provider. If it has a valid OpenAI key, it uses OpenAI -- otherwise Ollama. You can also force a fixed provider in Settings.
 
 ### Can I use a different Ollama model?
 
-Yes — under **Settings → LLM → Ollama Model** you can enter any model you have loaded in Ollama (e.g. `mistral`, `phi3`, `gemma2`). The recommended model is `llama3.1:8b` — smaller models may have trouble with complex tool calls.
+Yes -- under **Settings -> LLM -> Ollama Model** you can enter any model you have loaded in Ollama. The default model (qwen2.5:14b with 14 billion parameters) offers the best balance of speed and quality. Smaller models respond faster but handle complex requests less well.
 
 ---
 
-## 4. Voice Input & Voice Output
+## 6. Voice Input & Voice Output
 
 ### How do I talk to ELLA?
 
-Three ways are available:
+Four ways are available:
 
 1. **Text:** Type your message and press Enter
 2. **Microphone button:** Click the microphone icon in the chat for a one-time recording
-3. **Wakeword:** Say "Ella" — ELLA then listens for your command (must be enabled)
+3. **Wakeword:** Say "Ella" -- ELLA then listens for your command (must be enabled)
 4. **Hands-free (Always-On):** ELLA listens continuously and responds to everything you say
 
 ### Do I need internet for voice input?
 
-The **Web Speech API** (Chromium built-in, default) requires an internet connection because it uses Microsoft/Google servers.
-
-If you want to stay completely offline: in Settings you can switch to local speech recognition (Whisper-small, runs on your machine) — no internet needed, but slightly slower.
+The default speech recognition (Web Speech API) requires an internet connection. If you want to stay fully offline, you can switch to local speech recognition (Whisper) in Settings -- no internet needed, but slightly slower.
 
 ### What is contextAlign and what is it for?
 
-contextAlign is a filter between your voice and ELLA. When you speak and there is music playing in the background, the TV is on, or you stutter, ELLA detects this and filters it out. Only your actual command is sent to ELLA.
+contextAlign is a filter between your voice and ELLA. When you speak and there is music playing in the background, the TV is on, or you stutter, ELLA detects this and filters it out. Only your actual command is processed.
 
 **Example:**
 
 - What you say: _"uh ella uh open open the Explorer is this the real life"_
 - What ELLA hears: _"Open Explorer"_
-- TV audio in the background → ELLA ignores it (NO_COMMAND)
-
-For this, ELLA needs either the Ollama model or an OpenAI key.
+- TV audio in the background -> ELLA ignores it
 
 ### How do I enable voice output (TTS)?
 
-Set **Settings → Mode → TTS** to "On". ELLA will then read all responses, alerts, and proactive messages aloud automatically.
+> **What is TTS?** "Text-to-Speech" -- converting text into spoken language. ELLA reads its responses aloud.
 
-Default voice: `de-DE-KatjaNeural` (Microsoft Edge Neural TTS, free, requires internet).
+Set **Settings -> Mode -> TTS** to "On". ELLA will then read all responses, alerts, and proactive messages aloud automatically.
 
 ### Can ELLA speak without an internet connection?
 
-Yes — with **Kokoro TTS**. This is a local neural voice that sounds significantly more natural than standard Windows voices.
-
-As of v3.9.1, Kokoro TTS runs directly inside the ELLA API as a Node.js service — **no Python required**. The ONNX model is downloaded automatically from HuggingFace Hub on first launch (`%APPDATA%\ELLA\kokoro-cache\`). The installer build bundles the model for offline use.
-
-MsEdgeTTS (requires internet) is used automatically as fallback while Kokoro is loading or unavailable. Readiness can be checked via `GET /api/health` → `kokoro_ready: true/false`.
+Yes -- with **Kokoro TTS**. This is a local voice that runs directly on your machine and sounds significantly more natural than standard Windows voices. Kokoro works fully offline for English, French, and Spanish. For German, Microsoft Edge TTS (internet required) is currently still used.
 
 ### Can I change the voice?
 
-Yes — under **Settings → Voice → Spoken Language** you can choose from 4 female voices:
+Yes -- under **Settings -> Voice -> Spoken Language** you can choose from 4 female voices:
 
-| Language | Online (MsEdgeTTS) | Offline (Kokoro) |
-| -------- | ------------------ | ---------------- |
-| German   | Katja              | af_sarah         |
-| English  | Sonia              | bf_emma          |
-| Spanish  | Elvira             | ef_dora          |
-| French   | Denise             | ff_siwis         |
-
-The choice applies regardless of the language you type or speak in.
+| Language | Online voice | Offline voice (Kokoro) |
+| -------- | ------------ | ---------------------- |
+| German   | Katja        | (in development)       |
+| English  | Sonia        | Emma                   |
+| Spanish  | Elvira       | Dora                   |
+| French   | Denise       | Siwis                  |
 
 ### Can ELLA detect whether I am stressed?
 
-Yes — with the optional **stress detection** under **Settings → Voice → Enable Voice Analysis**.
+Yes -- with the optional **stress detection** under **Settings -> Voice -> Enable Voice Analysis**.
 
-ELLA analyzes the raw data of your voice (pitch, speech rate, volume) in parallel with speech recognition and adjusts its tone when tension is detected. Under high stress, ELLA actively asks how you are doing.
-
-The analysis runs entirely locally (`stress_server.py`, port 3004) — no audio data leaves the device. This feature is disabled by default and must be deliberately switched on.
+ELLA analyzes pitch, speech rate, and volume, and adjusts its tone when tension is detected. The analysis runs entirely locally -- no audio data leaves the device. This feature is disabled by default and must be deliberately switched on.
 
 ---
 
-## 5. Wakeword & Hands-Free Mode
+## 7. Wakeword & Hands-Free Mode
 
 ### What is the difference between Wakeword and Hands-Free?
 
@@ -234,17 +287,11 @@ The analysis runs entirely locally (`stress_server.py`, port 3004) — no audio 
 | -------------------------- | --------------------------------------------------------------------------- |
 | **Wakeword**               | ELLA listens for the keyword "Ella" and then responds to the next sentence  |
 | **Hands-Free (Always-On)** | ELLA listens continuously and sends everything you say directly to the chat |
-| **Manual**                 | You press the microphone button — ELLA only listens then                    |
+| **Manual**                 | You press the microphone button -- ELLA only listens then                   |
 
 ### How do I enable the Wakeword?
 
-Set **Settings → Mode → Voice** to "Wakeword".
-
-The Wakeword runs entirely locally (Python + openWakeWord + ONNX) — no audio data is transmitted. Prerequisites for development mode:
-
-```powershell
-py -3.12 -m pip install openwakeword onnxruntime soundfile
-```
+Set **Settings -> Mode -> Voice** to "Wakeword". The Wakeword runs entirely locally -- no audio data is transmitted.
 
 ### How do I pause the Wakeword?
 
@@ -255,32 +302,17 @@ py -3.12 -m pip install openwakeword onnxruntime soundfile
 
 ELLA deactivates the Wakeword and automatically checks back in when the time has elapsed.
 
-### Does ELLA always listen — even when I make a private phone call?
+### Does ELLA always listen -- even during private phone calls?
 
-In **Hands-Free Mode (Always-On)** yes — ELLA listens continuously and processes everything. Hands-Free Mode is intended for users who want ELLA to be available at all times.
-
-If you want privacy: use **Wakeword Mode** (ELLA only activates after the keyword) or set the mode to **Manual** or **Off**.
-
-### Can I teach ELLA to only listen to my voice?
-
-ELLA does not currently recognize individual voices — the Wakeword model responds to the word "Ella" regardless of who says it. Speaker identification is on the roadmap.
+In **Hands-Free Mode (Always-On)** yes -- ELLA listens continuously and processes everything. If you want privacy: use **Wakeword Mode** (ELLA only activates after the keyword) or set the mode to **Manual** or **Off**.
 
 ---
 
-## 6. Music & Media
+## 8. Music & Media
 
 ### How do I tell ELLA where my music is?
 
-**Settings → Programs → Music Library** — enter the path to your music collection there, e.g. `H:\Music`. Click **Save** after entering.
-
-Additional paths can be added under **Settings → Programs → Additional Music Paths** (separate multiple paths with a comma).
-
-### ELLA cannot find my music — what should I do?
-
-1. **Is the path correct?** → Check Settings → Programs → Music Library
-2. **Is the drive in the search list?** → Settings → Programs → Search Drives (e.g. `C, D, E, H`)
-3. **Was it saved?** → Click **Save** after every change
-4. **Windows Search Index?** → Not all drives are indexed. ELLA automatically falls back to a direct search, which takes a bit longer
+**Settings -> Programs -> Music Library** -- enter the path to your music collection (e.g. `H:\Music`). Click **Save** after entering.
 
 ### How do I search for music?
 
@@ -288,18 +320,19 @@ Additional paths can be added under **Settings → Programs → Additional Music
 "Play music"
 "Play something by Rammstein"
 "Open the Thriller album by Michael Jackson"
-"Play my rock playlist"
 ```
 
 ELLA searches for folders and files matching the search term and opens them in the configured media player.
 
-### Which media player is used?
+### ELLA cannot find my music -- what should I do?
 
-The player entered under **Settings → Programs → Default Media Player**. Default: Windows Media Player. You can enter any player you like (e.g. `vlc`, `wmplayer`, `foobar2000`).
+1. **Is the path correct?** -> Check Settings -> Programs -> Music Library
+2. **Is the drive in the search list?** -> Settings -> Programs -> Search Drives (e.g. `C, D, E, H`)
+3. **Was it saved?** -> Click **Save** after every change
 
-### Can ELLA control the media player (Play/Pause/Next)?
+### Can ELLA control the media player?
 
-Yes — via system keys:
+Yes:
 
 ```
 "Next track"
@@ -308,38 +341,25 @@ Yes — via system keys:
 "What's playing right now?"
 ```
 
-`control_media` sends VK_MEDIA keys to Windows. `get_now_playing` reads the currently playing track via Windows Media Control (WinRT).
-
 ---
 
-## 7. Files & Drives
+## 9. Files & Drives
 
 ### Can ELLA search for files on all drives?
 
-Yes — but by default ELLA only searches on `C:\`. To include additional drives:
-
-**Settings → Programs → Search Drives** — enter all desired drive letters (e.g. `C, D, E, H, Z`).
-
-ELLA first uses the Windows Search Index (very fast) and falls back to a direct search if a drive is not indexed.
+Yes -- but by default ELLA only searches on `C:\`. To include additional drives: **Settings -> Programs -> Search Drives** -- enter all desired drive letters.
 
 ### Can ELLA format system drives?
 
-**No** — this is a hard, immutable prohibition (Directive). The following drives are always locked:
+**No** -- this is a hard, immutable prohibition (Directive). The following drives are always locked:
 
 - **C:** (system drive)
 - The drive on which ELLA is installed
-- All drives listed under **Settings → Drives → Protected Drives**
-
-USB sticks (DriveType 2) can be formatted — but only after explicit confirmation.
+- All drives listed under **Settings -> Drives -> Protected Drives**
 
 ### Can ELLA delete files?
 
-ELLA moves files to the **Recycle Bin** — permanent deletion without the Recycle Bin is not possible. The Recycle Bin always gives you the opportunity to undo the action.
-
-### Can ELLA read or edit system paths?
-
-No — the following directories are always locked:
-`C:\Windows`, `C:\Program Files`, `C:\ProgramData`, `C:\Users\Default`, and other system paths.
+ELLA moves files to the **Recycle Bin** -- permanent deletion without the Recycle Bin is not possible. You can always undo the action.
 
 ### How do I find duplicate files?
 
@@ -352,30 +372,36 @@ ELLA compares files by hash value (not just name) and shows you how much storage
 
 ---
 
-## 8. Email & Calendar
+## 10. Email & Calendar
 
-### Which email services does ELLA support?
+### Can ELLA read my emails? Is that safe?
 
-- **Outlook** (via COM automation, no setup needed if Outlook is installed)
-- **Gmail** (via Google OAuth 2.0 — one-time setup in Settings)
+Yes, ELLA can read your emails -- but only if you allow it. For **Outlook**, this works automatically if Outlook is installed. For **Gmail**, you need to connect ELLA to your Google account once (Settings -> Google).
 
-### Can ELLA send emails automatically?
+**Security:**
 
-**No** — for security reasons. ELLA opens a draft in Outlook with the prepared text. You send the email yourself. This prevents accidental or malicious automatic sends.
+- ELLA reads emails only on your machine -- in local mode (Ollama), no email content is transmitted
+- ELLA **cannot send emails automatically**. It only creates drafts in Outlook that you send yourself
+- Email content does not flow into memory (unless you explicitly say "remember this")
+- In offline mode, email access is limited (Gmail needs internet)
+
+### Which email services are supported?
+
+- **Outlook** (automatic, if installed)
+- **Gmail** (one-time setup via Google OAuth)
 
 ### How do I connect Gmail?
 
-1. Create an app in the [Google Cloud Console](https://console.cloud.google.com) (OAuth 2.0, Desktop type)
+1. Create an app in the [Google Cloud Console](https://console.cloud.google.com) (OAuth 2.0, type: Desktop App)
 2. Copy the Client ID and Client Secret
-3. In ELLA: **Settings → Google → enter Client ID + Secret**
-4. Click "Connect with Google" → browser opens → select your Google account → confirm
-5. ELLA returns automatically
+3. In ELLA: **Settings -> Google -> enter Client ID + Secret**
+4. Click "Connect with Google" -> browser opens -> select your Google account -> confirm
 
-The token is stored locally in `google-token.json` and is never shared.
+The token is stored locally on your machine and is never shared.
 
 ### Can ELLA edit my Google Calendar?
 
-Yes — both reading and creating events:
+Yes -- both reading and creating events:
 
 ```
 "What is on my Google Calendar today?"
@@ -384,11 +410,13 @@ Yes — both reading and creating events:
 
 ---
 
-## 9. Memory & Learning
+## 11. Memory & Learning
 
 ### How does ELLA remember things?
 
-ELLA uses **ML memory** with vector embeddings (nomic-embed-text model). Information is stored as semantic vectors and retrieved automatically for relevant queries — similar to human associations.
+ELLA uses an intelligent memory system with so-called "vector embeddings." This means: information is not stored word-for-word but as meaning-based patterns. When you later ask a similar question, ELLA finds the matching memory -- similar to human associations.
+
+> **What are tokens?** The smallest units into which an AI model splits text. A word typically consists of 1-3 tokens. "Good morning" is e.g. 2-3 tokens. The memory system works with these token patterns.
 
 ```
 "Remember: My tax ID is 123/456/78901"
@@ -396,115 +424,91 @@ ELLA uses **ML memory** with vector embeddings (nomic-embed-text model). Informa
 "What do you know about me?"
 ```
 
-### How many things can ELLA remember?
-
-There is no fixed limit. ELLA retrieves the **3 most similar memories** (cosine similarity) for each query. Very old or rarely used memories may be displaced by newer ones.
-
 ### Can I delete memories?
 
 Yes:
 
 ```
 "Forget my tax ID"
-"What do you know about me?" → note the memory ID
+"What do you know about me?" -> identify the memory
 "Forget memory 42"
 ```
 
 ### Does ELLA learn from feedback?
 
-Yes — the **thumbs buttons** below each response give ELLA feedback. Thumbs up/down is saved and ELLA extracts user preferences from it (e.g. "user prefers short answers") which flow into memory.
-
-The feedback **never** enters the active conversation context — no security risk.
+Yes -- the **thumbs buttons** below each response give ELLA feedback. Thumbs up saves the question-answer pair as a positive example. ELLA uses these examples to answer similar questions better in the future.
 
 ### Does ELLA learn my writing style?
 
-Yes — with an OpenAI key. When you ask ELLA to write a text "in your style", it analyzes existing emails and adopts your tone, typical phrasing, and sentence structure.
+Yes -- with an OpenAI key. When you ask ELLA to write a text "in your style," it analyzes existing emails and adopts your tone, typical phrasing, and sentence structure.
 
 ```
 "Write a rejection letter to Mr. Miller in my style"
-"Draft a friendly payment reminder for me"
 ```
 
 ---
 
-## 10. Proactive Intelligence
+## 12. Proactive Intelligence
 
 ### Does ELLA write to the chat without being asked?
 
-Yes — this is one of the core features. ELLA monitors your computer and writes to the chat on its own when:
+Yes -- this is one of the core features. ELLA monitors your computer and proactively informs you:
 
-| Event                         | What ELLA says                                                         |
-| ----------------------------- | ---------------------------------------------------------------------- |
-| 30 min before an appointment  | Meeting preparation, offer to retrieve documents                       |
-| 6:00 PM                       | End-of-day summary with activities, tomorrow's appointments, due tasks |
-| USB stick connected           | Drive announced, contents offered                                      |
-| RAM above 85%                 | Warning + offer to clean up                                            |
-| Hard drive above 90% full     | Warning + cleanup options                                              |
-| 30 min inactive + return      | Comeback briefing: what has changed?                                   |
-| 90 min of uninterrupted work  | Break recommendation                                                   |
-| IBAN in clipboard             | Context offer                                                          |
-| Parcel tracking number copied | Offer to track shipment                                                |
+| Event                        | What ELLA says                                                 |
+| ---------------------------- | -------------------------------------------------------------- |
+| 30 min before an appointment | Meeting preparation, offer to retrieve documents               |
+| 6:00 PM                      | End-of-day summary with activities and tomorrow's appointments |
+| USB stick connected          | Drive announced, contents offered                              |
+| RAM above 85%                | Warning + offer to clean up                                    |
+| Hard drive above 90% full    | Warning + cleanup options                                      |
+| 30 min inactive + return     | Comeback briefing: what has changed?                           |
+| 90 min of uninterrupted work | Break recommendation                                           |
+| IBAN in clipboard            | Context offer                                                  |
 
 ### Can I disable the proactive messages?
 
-Yes — individually or all at once:
+Yes -- individually or all at once:
 
-- **Settings → Mode → Proactive Intelligence** — turn off (all proactive messages)
-- **Settings → Mode → Detect Clipboard Patterns** — separately disableable
-
-### What is the Comeback Briefing?
-
-When you have been inactive for more than 30 minutes and return, ELLA summarizes what happened in your absence — system alerts, new emails, clipboard events.
+- **Settings -> Mode -> Proactive Intelligence** -- turn off (all)
+- **Settings -> Mode -> Detect Clipboard Patterns** -- separately disableable
+- Individual categories via the **Mute button** on each proactive message
 
 ---
 
-## 11. Security & Privacy
-
-### Does ELLA send my data to the cloud?
-
-By default **no** — in pure Ollama mode, no conversation data leaves your machine.
-
-With an OpenAI key, the following data is sent to OpenAI:
-
-- The conversation history (chat messages)
-- Audio files when you use Whisper speech recognition
-- Screenshots when you use screenshot analysis
-
-Never sent to external services (even with OpenAI):
-
-- Clipboard contents
-- Window context (active application)
-- Conversation compressions
-- Memory contents
+## 13. Security & Privacy
 
 ### Where is my data stored?
 
-| Data                 | Location                                      |
-| -------------------- | --------------------------------------------- |
-| Conversation history | MariaDB local (`%APPDATA%\ELLA\mariadb-data`) |
-| Memory               | MariaDB local (vector embeddings)             |
-| Settings             | `%APPDATA%\ELLA\settings.json`                |
-| Google token         | `%APPDATA%\ELLA\google-token.json`            |
-| Profile PINs         | MariaDB (PBKDF2+Salt, 100,000 iterations)     |
-| OpenAI key           | `%APPDATA%\ELLA\settings.json` (local)        |
+All data stays on your machine:
 
-Everything stays on your machine. No cloud sync, no telemetry.
+| Data                 | Location                           |
+| -------------------- | ---------------------------------- |
+| Conversation history | Local database (MariaDB)           |
+| Memory               | Local database                     |
+| Settings             | `%APPDATA%\ELLA\settings.json`     |
+| Google token         | `%APPDATA%\ELLA\google-token.json` |
+
+No cloud synchronization, no telemetry, no usage data sent to us or third parties.
 
 ### How secure are my profile PINs?
 
-PINs are stored with **PBKDF2+Salt and 100,000 iterations** — an industry standard for password hashing. Even if someone gained access to the database, cracking a PIN would be very costly.
+PINs are stored with **PBKDF2+Salt and 100,000 iterations** -- an industry standard for password hashing. Even with direct database access, cracking a PIN would be very costly.
 
 ### Can ELLA activate my webcam or microphone without my knowledge?
 
-**No.** The E.L.L.A. Directive prohibits **surveil** — no surveillance without explicit knowledge and active consent. The microphone is only activated when you explicitly request it (Wakeword, microphone button, or Hands-Free Mode that you have enabled yourself).
+**No.** The E.L.L.A. Directive prohibits surveillance without explicit knowledge and active consent. The microphone is only activated when you explicitly request it (Wakeword, microphone button, or Hands-Free Mode that you have enabled yourself).
 
 ### Can ELLA read my passwords?
 
-No — windows from password managers and banking apps (1Password, KeePass, Bitwarden, PayPal, banking URLs, etc.) are locked for all mouse and window tools. System paths that could contain passwords are also blocked.
+No -- windows from password managers and banking apps (1Password, KeePass, Bitwarden, PayPal, banking URLs, etc.) are locked for all mouse and window tools.
+
+### Is sensitive data filtered from memory?
+
+Yes -- ELLA automatically detects sensitive patterns (API keys, passwords, IBANs, credit card numbers) and redacts them before they are stored in memory or clipboard history.
 
 ---
 
-## 12. The E.L.L.A. Directive
+## 14. The E.L.L.A. Directive & Rules
 
 ### What is the E.L.L.A. Directive?
 
@@ -519,101 +523,77 @@ Four immutable prohibitions that are deeply embedded in the architecture. No set
 
 ### What happens when ELLA blocks something?
 
-ELLA displays a **red badge** in the chat with an explanation of why the action was blocked. You cannot bypass the decision — neither by rephrasing nor through settings.
+ELLA displays a **red badge** in the chat explaining why the action was blocked. These blocks are immutable and cannot be bypassed -- not even by rephrasing.
 
-### Can I change the Directive?
+### Can I give ELLA rules?
 
-**No.** The Directive is architecturally embedded — not in the database, not in settings. It exists as code constants that are evaluated on every request.
+Yes -- in addition to the immutable Directive, you can create your own rules that control when ELLA may perform which actions:
+
+```
+"Allow the tool clean_temp"
+"Deny music playback between 10 PM and 7 AM"
+"Create a rule: no drive formatting"
+```
+
+The evaluation order is: Directive (immutable) -> Deny rules -> Allow rules -> Execution.
+
+You can also disable individual tools in Settings (**Settings -> Tools** -- on/off switch for each tool).
 
 ---
 
-## 13. User Profiles & PIN
+## 15. User Profiles & PIN
 
 ### What are user profiles?
 
-Multiple people can use ELLA with separate memories and conversation histories. Each profile is fully isolated — one profile cannot access the memory of another.
+Multiple people can use ELLA with separate memories and conversation histories. Each profile is fully isolated -- one profile cannot access the memory of another.
 
 ### How do I create a new profile?
 
-**Settings → Profiles → New Profile** — choose a name and color, optionally set a PIN.
-
-### How do I switch profiles?
-
-Via the profile switcher in the navigation. PIN-protected profiles will prompt for the PIN.
+**Settings -> Profiles -> New Profile** -- choose a name and color, optionally set a PIN.
 
 ### What happens if I forget my profile PIN?
 
 For **user profiles**, resetting is only possible with direct database access. In this case, contact the developer.
 
-For the **Homework Mode PIN**, there is an emergency reset under Settings → Homework Mode.
-
-### Do profiles share settings?
-
-Global settings (LLM provider, TTS, rules) apply to all profiles. Memory and conversation history are profile-specific.
+For the **Homework Mode PIN**, there is an emergency reset under Settings -> Homework Mode.
 
 ---
 
-## 14. Accessibility
+## 16. Accessibility
 
 ### Which accessibility modes are available?
 
-ELLA supports two special modes under **Settings → Mode → Accessibility**:
+ELLA supports two special modes under **Settings -> Mode -> Accessibility**:
 
-| Mode           | For whom          | What changes                                                                                                                |
-| -------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **Blind Mode** | Visually impaired | TTS always active, audio feedback on microphone (tone = ready), responses formatted without Markdown, image analysis active |
-| **Deaf Mode**  | Hearing impaired  | All audio output disabled (no TTS, no sounds), text only                                                                    |
+| Mode           | For whom          | What changes                                                                           |
+| -------------- | ----------------- | -------------------------------------------------------------------------------------- |
+| **Blind Mode** | Visually impaired | TTS always active, audio feedback, responses without formatting, image analysis active |
+| **Deaf Mode**  | Hearing impaired  | All audio output disabled, text only                                                   |
 
 ### What can ELLA do for blind users?
 
-In Blind Mode, ELLA reads all responses aloud automatically. Additionally, ELLA can:
-
-```
-"What do you see on my screen?"
-"Describe this image: [path]"
-"Describe the website: example.com"
-```
-
-Image analysis uses GPT-4o Vision (OpenAI key required) or a locally installed LLaVA model.
-
-### Is there audio feedback for voice commands?
-
-In Blind Mode: yes. A short tone signals:
-
-- **High tone (880 Hz):** Microphone starts — ELLA is now listening
-- **Low tone (440 Hz):** Response is ready — ELLA reads it aloud
+In Blind Mode, ELLA reads all responses aloud automatically. Additionally, ELLA can describe screen contents, analyze images, and read web pages -- an OpenAI key is needed for this.
 
 ---
 
-## 15. Homework Mode
+## 17. Homework Mode
 
 ### What is Homework Mode?
 
-A PIN-secured kiosk mode for children. In Homework Mode, ELLA can only open apps from a pre-defined whitelist and only responds to school-related requests.
+A PIN-secured mode for children. ELLA can then only open apps from a pre-defined list and only responds to school-related requests.
 
-### How do I enable Homework Mode?
-
-```
-"Enable Homework Mode"
-```
-
-ELLA asks for the PIN (must be set beforehand in Settings).
-
-### How do I disable it?
+### How do I enable/disable it?
 
 ```
-"Disable Homework Mode"
+"Enable Homework Mode"  -> ELLA asks for the PIN
+"Disable Homework Mode" -> ELLA asks for the PIN
 ```
 
-ELLA asks for the PIN.
-
-### I forgot the Homework PIN
-
-**Settings → Mode → Homework Mode → Emergency Reset** — disables the mode without a PIN.
+The PIN must be set beforehand in Settings. If you forgot the PIN: **Settings -> Mode -> Homework Mode -> Emergency Reset**.
 
 ---
 
-## 16. Settings & Configuration
+## 18. Settings & Updates
 
 ### How do I open Settings?
 
@@ -623,212 +603,73 @@ Via the **gear icon** in the left navigation or by saying:
 "Open Settings"
 ```
 
-### Why are Settings changes not applied?
-
-You must click **Save** after every change. Changes are not saved automatically.
-
 ### Can I configure ELLA through conversation?
 
-Yes — many settings can be changed directly in the chat:
+Yes -- many settings can be changed directly in the chat:
 
 ```
 "Create a setup called Office with Chrome, Word, and Teams"
-"Allow the tool clean_temp"
-"Deny the tool format_drive between 10 PM and 7 AM"
-"Change the TTS voice to Stefan"
+"Change the voice to English"
+"Deny music playback between 10 PM and 7 AM"
 ```
 
-### What are rules and how do they work?
+### Why are settings changes not applied?
 
-Rules control when ELLA is allowed to perform which actions. The evaluation order is:
+You must click **Save** after every change. Changes are not saved automatically.
 
-```
-Directive (immutable) → DIRECTIVE_DENY → Deny rules → Allow rules → Execution
-```
+### How do I update ELLA?
 
-Example rules:
+ELLA checks in Settings under **About E.L.L.A.** whether a new version is available. If so, it downloads the installer and runs the update -- your settings, memories, and conversation histories are preserved.
 
-- `format_drive: deny, always` → ELLA may never format
-- `clean_temp: allow, always` → ELLA may clean temp files at any time
-- `play_music: deny, 22:00-07:00` → No music at night
-
-### Can I disable individual tools?
-
-Yes — **Settings → Tools** shows all available tools with an on/off switch. Disabled tools are not offered to the LLM — ELLA cannot then use them.
-
-### How do I set up Google Gmail and Calendar?
-
-1. [Google Cloud Console](https://console.cloud.google.com) → New Project → Create OAuth 2.0 Client ID (type: Desktop App)
-2. Enter the Client ID and Secret in ELLA: **Settings → Google**
-3. Click "Connect with Google" and authorize in the browser
-4. After a successful connection, ELLA can access Gmail and Google Calendar
+You can also trigger the update check manually: **Settings -> About E.L.L.A. -> Check for Updates**. The check sends no user data -- it only retrieves the latest version number.
 
 ---
 
-## 17. Errors & Troubleshooting
+## 19. Errors & Troubleshooting
 
 ### ELLA is not responding
 
 Possible causes and solutions:
 
-| Cause               | Solution                                  |
-| ------------------- | ----------------------------------------- |
-| Ollama not running  | `sc start Ollama` or start the Ollama app |
-| llama3.1:8b missing | `ollama pull llama3.1:8b`                 |
-| MariaDB not running | `sc start MariaDB`                        |
-| OpenAI key invalid  | Update key in Settings → LLM              |
-| API crashed         | Restart ELLA                              |
+| Cause                   | Solution                                  |
+| ----------------------- | ----------------------------------------- |
+| AI model not yet loaded | Wait (orange banner shows loading status) |
+| Database not started    | Restart ELLA                              |
+| OpenAI key invalid      | Update key in Settings -> LLM             |
+| API crashed             | Restart ELLA                              |
 
 Diagnostic: `"Ella, what is your status?"`
 
-### The orange Ollama banner does not disappear
-
-```powershell
-# Check Ollama status:
-Invoke-RestMethod http://localhost:11434/api/tags
-
-# Pull model if missing:
-ollama pull llama3.1:8b
-```
-
-Restart ELLA after the model has loaded.
-
 ### Speech recognition is not working
 
-1. **Check microphone permission:** Windows → Settings → Privacy → Microphone → Allow ELLA
-2. **Check voice mode:** Settings → Mode → Voice → set to "Wakeword" or "Manual"
-3. **Browser microphone:** The Wakeword server requires microphone access at the Python level
-
-### ELLA does not understand me correctly
-
-- With a strong accent or background noise, an **OpenAI key** helps for higher Whisper quality
-- **contextAlign** filters stuttering and background noise — requires Ollama model or OpenAI key
-- Type your command instead of speaking to check whether the problem is with speech recognition or the AI
-
-### Music is not found
-
-1. Is the music library path correct? → Settings → Programs → Music Library
-2. Is the drive in the search drives? → Settings → Programs → Search Drives
-3. Did you click **Save**?
-4. Path formatting: `H:\Music\` (with trailing backslash)
-
-### Settings are reset on the next launch
-
-Check whether `%APPDATA%\ELLA\settings.json` has write permissions. In development mode: make sure the API is not running as Administrator while the settings were saved as a regular user.
+1. **Check microphone permission:** Windows -> Settings -> Privacy -> Microphone -> Allow ELLA
+2. **Check voice mode:** Settings -> Mode -> Voice -> set to "Wakeword" or "Manual"
+3. Alternatively: type your command to check whether the problem is with speech recognition or the AI
 
 ### Kokoro TTS is not working
 
-As of v3.9.1, Kokoro TTS requires no Python. The service runs directly inside the ELLA API.
+Kokoro TTS runs directly inside ELLA -- no separate program needed. Possible causes:
 
-Possible causes and solutions:
+| Cause                       | Solution                                          |
+| --------------------------- | ------------------------------------------------- |
+| Voice model still loading   | Wait briefly -- first launch downloads ~80 MB     |
+| No internet on first launch | The installer includes the model for offline use  |
+| Persistent problem          | Restart ELLA -- Kokoro reloads on the next launch |
 
-| Cause                       | Solution                                                         |
-| --------------------------- | ---------------------------------------------------------------- |
-| Model still downloading     | Wait briefly — first launch fetches ~100 MB from HuggingFace Hub |
-| No internet on first launch | Installer build includes offline model at `vendor/kokoro/`       |
-| API log shows errors        | Restart ELLA — Kokoro reloads on the next API start              |
-
-If problems persist, ELLA falls back to MsEdgeTTS automatically. Check status: `GET http://localhost:3002/api/health` → `kokoro_ready: true/false`.
+If problems persist, ELLA automatically falls back to the online voice (Microsoft Edge TTS).
 
 ### Google connection fails
 
 - Client ID and Secret entered correctly (no spaces)?
-- In the Google Cloud Console: Application type "Desktop App" (not "Web App")
-- Delete token and reconnect: delete `%APPDATA%\ELLA\google-token.json`
-
-### Proactive messages are not appearing
-
-- **Settings → Mode → Proactive Intelligence** enabled?
-- The background worker runs every 60 seconds — wait a moment
-- For disk/RAM alerts: thresholds not yet reached (RAM > 85%, disk > 90%)
+- In the Google Cloud Console: application type "Desktop App" (not "Web App")
+- Delete token and reconnect: delete the file `%APPDATA%\ELLA\google-token.json`
 
 ### What does the red "Directive" badge in the chat mean?
 
-ELLA has blocked an action because it violates the E.L.L.A. Directive. The message explains why. These blocks are immutable and cannot be bypassed — not even by rephrasing.
+ELLA has blocked an action because it violates the E.L.L.A. Directive. The message explains why. These blocks are immutable and cannot be bypassed.
 
 ---
 
-## 18. Technical Questions (Developers)
+_E.L.L.A. v1.5.7 -- Proprietary -- All rights reserved_
 
-### Which ports does ELLA run on?
-
-| Service              | Port                  |
-| -------------------- | --------------------- |
-| Express API          | 3002                  |
-| React frontend (Dev) | 5173                  |
-| Ollama               | 11434                 |
-| MariaDB              | 3306                  |
-| Kokoro TTS           | 3003 (127.0.0.1 only) |
-
-### How do I start ELLA in development mode?
-
-```powershell
-# Install dependencies:
-npm install
-
-# Start MariaDB:
-sc start MariaDB
-
-# Start Ollama and check model:
-ollama pull llama3.1:8b
-ollama pull nomic-embed-text
-
-# Start API + Web in parallel:
-npm run dev
-
-# Or individually:
-npm run dev --workspace=apps/api   # API on :3002
-npm run dev --workspace=apps/web   # Web on :5173
-```
-
-### How do I add a new tool?
-
-New tools require entries in 5 files — full checklist in `CLAUDE.md`:
-
-1. `packages/shared/src/types/tool.ts` — ToolName union
-2. `apps/api/src/tools/definitions.ts` — tool definition
-3. `apps/api/src/tools/executor.ts` — handler
-4. `apps/api/src/config/migrate.ts` — default rule
-5. Test in `apps/api/src/__tests__/unit/executor.test.ts`
-
-### How do I build the installer?
-
-```powershell
-# Download vendor dependencies (one-time):
-.\scripts\download-vendor-deps.ps1
-
-# Build API and Web first:
-npm run build --workspace=apps/api
-npm run build --workspace=apps/web
-
-# Prepare production node_modules:
-.\scripts\prepare-api-deps.ps1
-
-# Build installer:
-.\scripts\build-installer.ps1
-# → dist-installer/E.L.L.A Setup 1.0.0-rc.exe
-```
-
-### How do I run the tests?
-
-```powershell
-npm test        # All 215 tests (Vitest Unit + Integration)
-npm run lint    # ESLint
-```
-
-All tests must be green before a commit.
-
-### Where are the logs stored?
-
-| Log                     | Path                               |
-| ----------------------- | ---------------------------------- |
-| Startup log (installer) | `%APPDATA%\ELLA\ella-startup.log`  |
-| API log                 | Console (Dev) / stdout (installer) |
-| Audit log               | MariaDB `tool_executions` table    |
-| Directive audit         | MariaDB `directive_audit` table    |
-
----
-
-_E.L.L.A. v3.5.0 · Proprietary · All rights reserved_
-
-_Further documentation: [User Manual](bedienungsanleitung.md) · [Architecture](architecture.md) · [Roadmap](roadmap.md)_
+_Further documentation: [Hardware Guide](hardware.md) -- [Network](netzwerk.md) -- [User Manual](bedienungsanleitung.md)_

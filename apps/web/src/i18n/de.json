@@ -145,7 +145,8 @@
     "feedback_helpful": "Hilfreich",
     "feedback_not_helpful": "Nicht hilfreich",
     "proactive_dismiss": "Nicht mehr so oft zeigen",
-    "proactive_mute": "Diesen Hinweistyp stummschalten"
+    "proactive_mute": "Diesen Hinweistyp stummschalten",
+    "tts_offline_hint": "Deutsche Sprachausgabe ist im Offline-Modus deaktiviert."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -305,15 +306,7 @@
     "setup_schedule_enable": "Automatisch ausführen",
     "setup_schedule_days": "Wochentage",
     "setup_schedule_time": "Uhrzeit",
-    "setup_schedule_days_short": [
-      "So",
-      "Mo",
-      "Di",
-      "Mi",
-      "Do",
-      "Fr",
-      "Sa"
-    ],
+    "setup_schedule_days_short": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
     "section_homework_apps": "Erlaubte Apps im Hausaufgaben-Modus",
     "homework_apps_hint": "Nur diese Apps laufen wenn der Modus aktiviert wird. Alle anderen bekannten Programme werden geschlossen.",
     "homework_apps_empty": "Erst unter \"Programme\" Apps eintragen.",
@@ -609,6 +602,7 @@
     "unread": "ungelesen",
     "no_playback": "Keine Wiedergabe",
     "unknown_title": "Unbekannter Titel",
-    "hint_followup_full": "Follow-up {{sec}}s · „Stopp“ unterbricht"
+    “hint_followup_full”: “Follow-up {{sec}}s · „Stopp” unterbricht”,
+    “tts_off_offline”: “Aus (Offline)”
   }
 }

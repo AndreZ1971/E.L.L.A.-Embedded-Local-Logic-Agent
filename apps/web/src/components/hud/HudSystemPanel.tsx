@@ -87,7 +87,7 @@ function Row({
 }
 
 const HudSystemPanel: React.FC<{ data: TelemetryData | null }> = ({ data }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const locale = i18n.language === "de" ? "de-DE" : "en-US";
 
   return (
@@ -177,7 +177,9 @@ const HudSystemPanel: React.FC<{ data: TelemetryData | null }> = ({ data }) => {
               >
                 STIMME{" "}
                 <span style={{ color: "var(--ella-text)" }}>
-                  {data.ttsEngine}
+                  {data.ttsEngine === "off"
+                    ? t("hud.tts_off_offline")
+                    : data.ttsEngine}
                 </span>
               </div>
             )}

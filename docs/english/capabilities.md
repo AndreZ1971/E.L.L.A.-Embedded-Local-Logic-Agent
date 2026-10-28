@@ -1,341 +1,302 @@
-# E.L.L.A. — What I Can Do (v1.5.6)
+# E.L.L.A. -- What Can I Do for You?
 
-As of: 2026-10-25 — 389 tests passing
+Version: v1.5.7 -- 111 capabilities, 393 tests passing
 
----
-
-## Memory & Configuration
-
-| Tool                     | What it does                                                     |
-| ------------------------ | ---------------------------------------------------------------- |
-| `remember`               | Stores information permanently (ML embedding, cosine similarity) |
-| `forget`                 | Deletes a memory entry by ID                                     |
-| `list_memories`          | Lists everything ELLA knows about the user                       |
-| `reflect_on_experiences` | Reflects on collected experiences and patterns                   |
-| `create_setup`           | Creates a named app group (e.g. "Start work")                    |
-| `load_setup`             | Launches all apps from a saved setup                             |
-| `update_setting`         | Changes ELLA settings by voice                                   |
-| `create_rule`            | Creates allow/deny rules for tools                               |
+E.L.L.A. is your local AI assistant for Windows. She runs directly on your machine, understands speech and text, and helps with everything -- from simple questions to full desktop control.
 
 ---
 
-## System & Hardware
+## 1. Conversation & Voice
 
-| Tool                  | What it does                                                  |
-| --------------------- | ------------------------------------------------------------- |
-| `get_disk_usage`      | Free/used storage per drive                                   |
-| `get_system_info`     | CPU, GPU, RAM, computer name                                  |
-| `get_system_status`   | Everything at once: disk + RAM + network + alerts + boot time |
-| `get_gpu_info`        | GPU details (name, VRAM, driver, utilization)                 |
-| `get_ram_info`        | Detailed RAM information (slots, speed, type)                 |
-| `get_storage_devices` | All storage devices with type and capacity                    |
-| `get_audio_devices`   | List audio input/output devices                               |
-| `get_usb_devices`     | All USB devices with manufacturer and status                  |
-| `clean_temp`          | Delete temporary files                                        |
-| `empty_recycle_bin`   | Empty the recycle bin                                         |
-| `free_ram`            | Release unused RAM                                            |
-| `shutdown_system`     | Shut down / restart / sleep the PC                            |
-| `format_drive`        | Format USB/external drives _(confirmation required)_          |
-| `rename_drive`        | Change volume label _(system drives locked)_                  |
-| `list_programs`       | List all installed programs                                   |
-| `list_autostart`      | Show startup entries                                          |
-| `get_battery_status`  | Charge level, whether charging, estimated remaining runtime   |
-| `get_temperatures`    | CPU/ACPI thermal zones in °C                                  |
-| `get_event_log`       | Windows errors/warnings from the event log                    |
-| `toggle_dark_mode`    | Toggle dark mode / light mode (Registry)                      |
+ELLA understands you by text and by voice. Just say "Ella" -- she listens, responds, and speaks back. In four languages.
+
+**What you can do:**
+
+- **Wakeword "Ella"** -- just say her name and she starts listening. Runs on your machine, no server required.
+- **Voice control** -- ask questions, give instructions, have conversations. By microphone or text input.
+- **Text-to-speech (TTS)** -- ELLA reads her answers aloud. Locally via Kokoro (neural voice) or Microsoft Edge TTS as fallback.
+- **Four voices** -- German, English, Spanish, and French. Selectable during onboarding or in settings.
+- **Dictation mode** -- ELLA listens and types what you say directly into the active window. Works system-wide -- in Word, in the browser, everywhere. Activatable by hotkey.
+- **Instant interrupt** -- say "Stop", "Halt", or "Be quiet" and ELLA stops speaking immediately.
+- **Follow-up without wakeword** -- after a response you have 8 seconds to continue speaking without saying "Ella" again.
+
+> Try it: "Ella, what's the weather like tomorrow?" -- "Ella, translate that into French."
 
 ---
 
-## Files & Folders
+## 2. Productivity
 
-| Tool                | What it does                                                               |
-| ------------------- | -------------------------------------------------------------------------- |
-| `search_files`      | Search all drives for files                                                |
-| `open_file`         | Open a file (optionally: with a specific app, jump to end for Word files)  |
-| `explore_folder`    | Open a folder in Windows Explorer                                          |
-| `list_folder`       | List folder contents                                                       |
-| `read_file_content` | Read the contents of a text file _(BLOCKED_PREFIXES protect system paths)_ |
-| `rename_file`       | Rename a file/folder _(with confirmation)_                                 |
-| `copy_file`         | Copy a file _(with confirmation, system paths locked)_                     |
-| `create_folder`     | Create a folder (including subfolders)                                     |
-| `delete_file`       | Move a file/folder to the recycle bin _(no permanent deletion)_            |
-| `delete_files`      | Delete multiple files at once                                              |
-| `find_duplicates`   | Find duplicate files by hash (storage waste detection)                     |
+Tasks, reminders, alarms, documents -- ELLA manages your daily routine.
 
----
+**Tasks:**
 
-## Documents & Writing
+- Create, view, complete, or delete tasks. Everything is stored in your local database.
+- "Ella, remind me about the dentist tomorrow at 9." -- "Ella, what's still on my list?"
 
-| Tool                  | What it does                                                 |
-| --------------------- | ------------------------------------------------------------ |
-| `create_document`     | Create a new Word document or TXT file                       |
-| `dictate_to_document` | Dictate into Word, AI corrects typos                         |
-| `compose_email`       | Open an Outlook draft _(does not send automatically)_        |
-| `write_for_me`        | Write text in the user's personal style (from email profile) |
-| `translate_text`      | Translate text — offline (Ollama) or OpenAI                  |
-| `summarize_text`      | Summarize text: brief / medium / detailed                    |
-| `correct_text`        | Correct grammar and punctuation (Ollama/OpenAI)              |
-| `write_in_style`      | Compose text in the user's personal writing style            |
+**Alarms & reminders:**
+
+- Set and manage alarms. Reminders run through the Windows Task Scheduler -- they arrive even when ELLA is not open.
+- "Ella, set an alarm for 7 AM." -- "Ella, what reminders do I have?"
+
+**Documents:**
+
+- Create Word documents and text files. ELLA can also read existing files (.docx, .pdf, .xlsx, .html).
+- Dictate into an open Word document -- ELLA automatically corrects typos.
+- "Ella, create a Word document with a shopping list." -- "Ella, what does the file Contract.pdf say?"
+
+**App macros (setups):**
+
+- Define groups of apps that launch together. For example, "Start work" opens browser, Outlook, and Word all at once.
+- Setups can also contain actions: set volume, enable dark mode, copy text to clipboard.
+- "Ella, launch my work setup."
 
 ---
 
-## Document Index
+## 3. Files & Folders
 
-| Tool                   | What it does                                             |
-| ---------------------- | -------------------------------------------------------- |
-| `index_documents`      | Index folders for local full-text search with embeddings |
-| `search_documents`     | Semantic search across indexed documents                 |
-| `list_indexed_folders` | List all indexed folders                                 |
+ELLA finds, opens, copies, and organizes your files.
 
----
+**What you can do:**
 
-## Communication & Calendar
+- **Search** -- search all drives by filename. Uses the Windows Search Index for fast results.
+- **Open** -- open files and folders, optionally with a specific app.
+- **Manage** -- rename, copy, move, create folders, delete files (to recycle bin, never permanently).
+- **Find duplicates** -- detect duplicate files and save storage space.
+- **Document index** -- index folders for full-text search. After that you can search by content, not just filenames.
 
-| Tool                        | What it does                               |
-| --------------------------- | ------------------------------------------ |
-| `read_emails`               | Fetch unread Outlook emails                |
-| `mark_email`                | Mark an Outlook email as read / archive it |
-| `read_calendar`             | Read the Outlook calendar                  |
-| `create_appointment`        | Create an Outlook appointment              |
-| `read_gmail`                | Read Gmail (OAuth 2.0)                     |
-| `mark_gmail`                | Mark/archive Gmail messages                |
-| `read_google_calendar`      | Read Google Calendar                       |
-| `create_google_appointment` | Create a Google Calendar appointment       |
+> "Ella, find all PDFs with 'invoice' in the name." -- "Ella, show me the Downloads folder." -- "Ella, are there duplicate files on D:?"
 
 ---
 
-## Network & Security
+## 4. Email & Calendar
 
-| Tool               | What it does                                            |
-| ------------------ | ------------------------------------------------------- |
-| `scan_network`     | ARP scan: all devices on the home network with IP + MAC |
-| `list_connections` | Active TCP connections + listening ports + process name |
-| `list_devices`     | Connected hardware (USB, cameras, drives)               |
-| `get_wifi_info`    | Wi-Fi name, signal strength, transmission rate          |
-| `fetch_url`        | Fetch a webpage and extract its text                    |
+ELLA reads your emails, creates drafts, and manages your calendar -- for Outlook and Google.
 
----
+**What you can do:**
 
-## Web & Knowledge
+- Retrieve and have unread emails read aloud.
+- Mark emails as read or archive them.
+- Create email drafts in Outlook. ELLA never sends automatically -- you always have control.
+- View calendar appointments and create new ones.
+- Works with **Microsoft Outlook** (local) and **Gmail / Google Calendar** (via OAuth sign-in).
 
-| Tool           | What it does                                   |
-| -------------- | ---------------------------------------------- |
-| `search_web`   | Web search (DuckDuckGo, no API key required)   |
-| `web_search`   | Second web search route (fallback)             |
-| `get_weather`  | Weather for any location (no API key required) |
-| `get_location` | Retrieve the stored user location              |
-| `get_datetime` | Exact time, date, and timezone                 |
+> "Ella, do I have new emails?" -- "Ella, write an email to Max about the project plan." -- "Ella, what's on the calendar tomorrow?"
 
 ---
 
-## Processes & Services
+## 5. System & Hardware
 
-| Tool              | What it does                                                           |
-| ----------------- | ---------------------------------------------------------------------- |
-| `list_processes`  | Running processes sorted by CPU/RAM                                    |
-| `kill_process`    | Terminate a process _(system-critical processes locked, confirmation)_ |
-| `list_services`   | List Windows services                                                  |
-| `control_service` | Start / stop / restart a service                                       |
+Ask ELLA how your computer is doing -- or let her clean up.
 
----
+**Overview:**
 
-## Productivity & Tasks
+- Check system status: CPU, RAM, disk, GPU, network, temperature, battery, boot time.
+- Detailed info on GPU, RAM slots, storage devices, audio devices, and USB devices.
+- List installed programs and startup entries.
+- Search the Windows Event Log for errors and warnings.
 
-| Tool              | What it does                              |
-| ----------------- | ----------------------------------------- |
-| `add_task`        | Add a task to the persistent to-do list   |
-| `list_tasks`      | Show open or completed tasks              |
-| `complete_task`   | Mark a task as completed                  |
-| `delete_task`     | Delete a task                             |
-| `set_alarm`       | Set an alarm (DB-based, worker check)     |
-| `list_alarms`     | Show active alarms                        |
-| `delete_alarm`    | Delete an alarm                           |
-| `set_reminder`    | Set a reminder via Windows Task Scheduler |
-| `list_reminders`  | Show active reminders                     |
-| `delete_reminder` | Delete a reminder                         |
+**Clean up & control:**
+
+- Delete temporary files, empty the recycle bin, free unused RAM.
+- Set or mute the volume by voice.
+- Toggle dark/light mode.
+- Read or write the clipboard and view the history of the last 20 entries.
+- Shut down, restart, or put the PC to sleep.
+- Format or rename USB drives (with confirmation prompt, system drives locked).
+
+> "Ella, how is my computer doing?" -- "Ella, set the volume to 30%." -- "Ella, clean up."
 
 ---
 
-## Clipboard & Volume
+## 6. Desktop Automation
 
-| Tool            | What it does                                      |
-| --------------- | ------------------------------------------------- |
-| `get_clipboard` | Read the clipboard (+ history of last 20 entries) |
-| `set_clipboard` | Write text to the clipboard                       |
-| `set_volume`    | Set system volume or mute                         |
+ELLA can remote-control your desktop -- launch apps, move windows, click and type.
 
----
+**What you can do:**
 
-## Music & Media
+- **Launch apps** -- by name or path.
+- **Control windows** -- focus, minimize, maximize, close.
+- **Mouse & keyboard** -- click at coordinates, type text, perform drag & drop.
+- **Click elements** -- ELLA reads the screen via OCR and clicks on visible text or buttons.
+- **Watch the screen** -- monitor the screen for up to 30 seconds and report changes.
+- **Multi-monitor** -- open apps on a specific display.
+- **Printers** -- list printers, print documents, manage print jobs.
+- **Cameras** -- list connected cameras and take photos.
 
-| Tool              | What it does                                           |
-| ----------------- | ------------------------------------------------------ |
-| `play_music`      | Search music library (artist/album/title), open player |
-| `control_media`   | Control media: Play / Pause / Next / Prev / Stop       |
-| `get_now_playing` | Retrieve the currently playing track (WinRT)           |
-
----
-
-## Screen & Vision
-
-| Tool               | What it does                                                           |
-| ------------------ | ---------------------------------------------------------------------- |
-| `take_screenshot`  | Screenshot + AI analysis (GPT-4o Vision)                               |
-| `describe_screen`  | Describe screen contents (GPT-4o Vision)                               |
-| `describe_image`   | Analyze an image (GPT-4o Vision)                                       |
-| `describe_webpage` | Load and describe a webpage                                            |
-| `read_screen`      | Read text from the screen — locally, offline (Windows.Media.Ocr WinRT) |
-| `watch_screen`     | Monitor the screen for up to 30 s, report changes (OCR diff)           |
-| `click_element`    | Click a UI element by visible text — semantically via OCR (3-pass)     |
+> "Ella, open Chrome and Word side by side." -- "Ella, click the 'Save' button." -- "Ella, open Excel on the second monitor."
 
 ---
 
-## Cameras
+## 7. Web & Knowledge
 
-| Tool            | What it does                                      |
-| --------------- | ------------------------------------------------- |
-| `list_cameras`  | List all connected cameras                        |
-| `capture_photo` | Take a photo (optionally with GPT-4o description) |
+ELLA searches the web, translates, summarizes, and corrects text.
 
----
+**Web search:**
 
-## Printers
+- Searches via DuckDuckGo -- no API key required, no user data transmitted.
+- Can fetch web pages and extract the text.
+- Check the weather for any location.
 
-| Tool               | What it does                 |
-| ------------------ | ---------------------------- |
-| `list_printers`    | List all printers            |
-| `print_document`   | Send a document to a printer |
-| `get_print_jobs`   | Show current print jobs      |
-| `cancel_print_job` | Cancel a print job           |
+**Text processing:**
 
----
+- **Translate** -- into any language, locally via Ollama or through OpenAI.
+- **Summarize** -- brief, medium, or detailed.
+- **Correct** -- check grammar and punctuation.
+- **Write in your style** -- ELLA learns your writing style from your email history and composes text the way you would.
 
-## Monitors
-
-| Tool                  | What it does                      |
-| --------------------- | --------------------------------- |
-| `list_monitors`       | List all connected displays       |
-| `open_app_on_monitor` | Open an app on a specific monitor |
+> "Ella, search for the best potato soup recipes." -- "Ella, translate this into French." -- "Ella, summarize this text in 3 sentences."
 
 ---
 
-## Mouse & Keyboard
+## 8. Security & Privacy
 
-| Tool         | What it does                                                                      |
-| ------------ | --------------------------------------------------------------------------------- |
-| `move_mouse` | Move the mouse to a position _(no click)_                                         |
-| `click_at`   | Click at coordinates _(confirmation required, security-sensitive windows locked)_ |
-| `drag_drop`  | Drag & drop from A to B _(confirmation required)_                                 |
-| `send_keys`  | Send keyboard input to a window (WScript.Shell SendKeys)                          |
+ELLA is built to be secure. Your data stays with you.
 
----
+**The E.L.L.A. Directive -- four inviolable rules** (independent open-source project, MIT license):
 
-## Windows & Apps
+1. **No harm** -- ELLA must not cause physical, financial, psychological, or data-related harm.
+2. **No concealment** -- ELLA never hides what she does, what she can do, or the system status.
+3. **No surveillance** -- no monitoring without your explicit knowledge and active consent.
+4. **No data sharing** -- your data is never shared with third parties unless you explicitly agree.
 
-| Tool             | What it does                                                                 |
-| ---------------- | ---------------------------------------------------------------------------- |
-| `open_app`       | Open an app by name                                                          |
-| `launch_app`     | Launch an app by name or path _(confirmation required, system paths locked)_ |
-| `control_window` | Window: focus / minimize / maximize / close                                  |
-| `homework_mode`  | Activate/deactivate secured child mode (PIN-protected)                       |
-| `pause_ella`     | Pause ELLA (1–120 minutes)                                                   |
+**Additional safeguards:**
 
----
-
-## Chess
-
-| Tool                | What it does                                            |
-| ------------------- | ------------------------------------------------------- |
-| `open_chess_window` | Start a chess game in a dedicated window (4 themes, AI) |
+- **107 security rules** -- active automatically on startup. Protect system files, passwords, critical processes.
+- **Confirmation required** -- before deleting, clicking, executing commands, or closing windows, ELLA asks first.
+- **Password managers locked** -- mouse tools do not work in 1Password, KeePass, Bitwarden, PayPal, or banking windows.
+- **Sensitive data redacted** -- API keys, IBANs, passwords, and credit card numbers are automatically removed before storage.
+- **Local first** -- all AI processing runs preferably on your machine. OpenAI is only used when you allow it and provide your own key.
+- **Offline mode** -- blocks all network tools. Note: German text-to-speech (Edge TTS) still requires an internet connection; English, Spanish, and French run locally via Kokoro.
+- **Create your own rules** -- you can specifically allow or block individual tools.
 
 ---
 
-## Shell
+## 9. Learning & Memory
 
-| Tool          | What it does                                                                |
-| ------------- | --------------------------------------------------------------------------- |
-| `run_command` | Execute a PowerShell command _(confirmation required, 60+ locked patterns)_ |
+ELLA remembers what matters to you -- and gets better over time.
 
----
+**What you can do:**
 
-## Always Active — Without a Tool Call
+- **Long-term memory** -- ELLA stores important information permanently. "My favorite restaurant is Trattoria Roma." -- she remembers that.
+- **Knowledge graph** -- ELLA recognizes connections. If you say "Max is my brother" and later "Max's birthday is March 15th", she links both together.
+- **Self-learning** -- when you rate a response with thumbs up, ELLA learns from it and gives similar answers in that style in the future.
+- **Proactive messages** -- ELLA speaks up on her own when something important happens: disk almost full, new device connected, appointment in 15 minutes.
+- **Adaptive notifications** -- if you dismiss a proactive message 5 times, ELLA automatically mutes that category.
+- **End of day & comeback** -- after a break, ELLA summarizes what changed. At the end of the day she reminds you of open tasks.
+- **Reflection** -- ELLA regularly reflects on collected experiences and recognizes patterns in your behavior.
+- **Stress detection** -- optional: ELLA analyzes your voice and gives gentle hints when you sound stressed.
 
-| Feature                         | What it does                                                                   |
-| ------------------------------- | ------------------------------------------------------------------------------ |
-| **Wakeword "ella"**             | Voice activation via openWakeWord + ONNX (local, offline)                      |
-| **Kokoro TTS**                  | Neural speech output for EN/FR/ES (local, ONNX q8, offline)                    |
-| **Edge TTS**                    | Speech output for German (Microsoft servers, text is transmitted)              |
-| **Dictation mode**              | Speech is transcribed and typed into the active Windows window (system-wide)   |
-| **Stop interrupt**              | Stop words (stop, halt, be quiet…) immediately cancel TTS playback             |
-| **Follow-up window**            | 8 s after TTS, wakeword mode allows speech without repeating the wakeword      |
-| **Proactive messages**          | ELLA writes into the chat on her own initiative (SSE `proactive_message`)      |
-| **Proactive approval memory**   | Learns which notifications are wanted; auto-mute after 5× dismiss              |
-| **Clipboard pattern detection** | IBAN, tracking number, phone, URL, email — polling every 3 s                   |
-| **Background worker**           | Disk/RAM/Ollama alerts, PnP, ARP, TCP, firewall/Wi-Fi/DNS — every 60 s         |
-| **Conversation compression**    | Two-stage: rule-based (no LLM) + Ollama summary after 16 messages              |
-| **Window context**              | Active window title as context (opt-in, sensitive titles filtered)             |
-| **Knowledge graph**             | Automatic triple extraction from conversations; hybrid recall (cosine + graph) |
-| **Self-learning**               | Positive feedback (thumbs up) saves Q&A as few-shot examples                   |
-| **User profiles**               | Multiple profiles, PIN-protected (PBKDF2 + salt, 100k iterations)              |
-| **Feedback buttons**            | Thumbs up/down on each response (DB only, never in LLM context)                |
-| **System tray**                 | Balloon alerts with severity sound (warning / error / info / device)           |
-| **Onboarding**                  | 6-step flow (name, directive, hardware scan, voice, location)                  |
-| **Comeback briefing**           | What changed while you were away                                               |
-| **Meeting prep / end of day**   | Automatically shows due tasks + calendar                                       |
-| **Break reminder**              | Reminds the user to take breaks based on work patterns                         |
-| **Rhythm analysis**             | Daily at 12:00 — evaluates usage patterns                                      |
-| **Duplicate scan**              | Automatically every Sunday at 10:00                                            |
-| **Redaction**                   | Sensitive data (API keys, IBANs, passwords) is redacted before storage         |
-| **Stress detection**            | Optional voice analysis (RMS/ZCR/pitch) adds hints to memories                 |
-| **Appearances**                 | 3 themes: Calm (default), HUD (technical/cyan), Show (presentation)            |
-| **Gesture control**             | MediaPipe-based hand gestures for control (experimental)                       |
-| **Token optimization**          | Tool selector (~12 instead of 111 tools per request) + result compression      |
+> "Ella, what do you know about me?" -- "Ella, forget that I like coffee." -- "Ella, what changed since I was away?"
 
 ---
 
-## Security Architecture (the Directive)
+## 10. Entertainment
 
-```text
-Directive Layer → DIRECTIVE_DENY → Deny Rules → Allow Rules → Tool Execution
-```
+ELLA is also there for your downtime.
 
-| Prohibition    | What it means                                                  |
-| -------------- | -------------------------------------------------------------- |
-| **harm**       | No physical, financial, psychological, or data-related harm    |
-| **conceal**    | No concealment of actions, capabilities, or system states      |
-| **surveil**    | No surveillance without explicit knowledge and active consent  |
-| **exfiltrate** | No sharing of data with third parties without explicit consent |
+**Chess:**
 
-- **107 default rules** (IDs 1–107) — set automatically on startup
-- Audit log of every Directive rejection in the `directive_audit` table
-- Confirmation required for destructive actions (click, drag, shell, rename, close window)
-- Password manager windows locked for mouse tools (1Password, KeePass, Bitwarden, PayPal, bank sites…)
-- System paths locked for file tools (`C:\Windows`, `C:\Program Files`…)
-- 60+ shell patterns locked (Invoke-Expression, Remove-Item, Invoke-WebRequest…)
+- Play a game against ELLA in a dedicated window with four visual themes.
+- ELLA comments on moves, reflects after the game, and remembers your skill level.
+- Interrupted games can be resumed.
+
+**Music:**
+
+- Search your music library by artist, album, or title and play tracks.
+- Control playback: play, pause, next track, previous track, stop.
+- Show the currently playing track.
+
+> "Ella, let's play chess." -- "Ella, play music by Beethoven." -- "Ella, next track."
 
 ---
 
-## API Security
+## 11. Accessibility
 
-| Measure          | Detail                                                |
-| ---------------- | ----------------------------------------------------- |
-| Loopback binding | Express binds to `127.0.0.1` — local access only      |
-| Per-start token  | `randomBytes(32)` on every Electron launch            |
-| CORS             | Only `http://localhost:5173` allowed                  |
-| Cloud gateway    | All OpenAI calls via `openaiRequest()` — logged       |
-| Redaction        | API keys, IBANs, credit cards redacted before storage |
+ELLA adapts to different needs.
+
+**Blind mode:**
+
+- Speech output is forced -- every response is read aloud.
+- Responses contain no Markdown (no tables, lists, or formatting that interferes with screen readers).
+- Audio tones signal states (loading, done, error).
+- A greeting is automatically read aloud on startup.
+
+**Deaf mode:**
+
+- Speech output and the microphone button are completely hidden.
+- A visual banner indicates the active mode.
+- ELLA does not mention voice features in her responses.
+
+> Configurable under Settings -> Accessibility.
 
 ---
 
-## Numbers
+## 12. HUD & Appearance
 
-| Metric         | Value                                                                |
-| -------------- | -------------------------------------------------------------------- |
-| Tools (active) | **111** _(+ 1 locked by Directive: `delete_files`)_                  |
-| Test cases     | **389 passing** (Vitest unit + integration)                          |
-| Default rules  | **107** (IDs 1–107)                                                  |
-| Git tags       | v1.0 → v1.5.6                                                        |
-| LLM backends   | Ollama (local) + OpenAI API (optional, own key)                      |
-| LLM modes      | Auto (local first) · OpenAI (cloud preferred) · Ollama (local only)  |
-| Database       | MariaDB, local, no cloud access                                      |
-| Network        | See [Network connections](network.md) for the full transparency page |
+Three visual styles -- from subtle to technical.
+
+**Calm (default):**
+
+- Dark, quiet design. Ideal for everyday use.
+
+**HUD:**
+
+- Technical heads-up display with cyan, violet, or amber accent colors.
+- Shows configurable widgets: system status, monitors, tasks, emails, music, clock, routines, and Directive rules.
+- The orb in the center visualizes ELLA's state: ready, listening, thinking, speaking, cloud access, or offline.
+- Three-column layout with widgets on the left and right of the orb.
+
+**Show (presentation):**
+
+- Fullscreen mode showing only the orb and the last response.
+- Sensitive content (emails, files, network data) is automatically displayed as "[private]".
+- Ideal for demos or when someone is watching.
+
+**More details:**
+
+- Widgets are configurable -- choose in settings which panels appear on the left and right.
+- Performance throttling: animations are automatically reduced while ELLA is thinking.
+- All styles respect "Reduce motion" from the Windows settings.
+
+> Configurable under Settings -> Appearance.
+
+---
+
+## Child Mode (Homework Mode)
+
+A PIN-protected mode that restricts access to certain features. Only the PIN ends the mode -- no automatic time limit, no workaround possible.
+
+> "Ella, activate homework mode."
+
+---
+
+## Network & Local Home Network
+
+ELLA can analyze your local network -- even in offline mode.
+
+- List all devices on the home network (IP, MAC address).
+- Show active connections and open ports.
+- Retrieve Wi-Fi information (name, signal strength).
+- List connected hardware.
+
+> "Ella, what devices are on my network?" -- "Ella, how strong is my Wi-Fi signal?"
+
+---
+
+## Shell Commands
+
+For advanced users: ELLA can execute PowerShell commands. Confirmation is required before every execution. Over 60 dangerous command patterns are blocked.
+
+> "Ella, run 'Get-Process | Sort-Object CPU -Descending | Select -First 10'."
+
+---
+
+## How ELLA Thinks
+
+ELLA runs locally via Ollama (qwen2.5:14b). Optionally you can add your own OpenAI key -- then ELLA uses cloud AI as a supplement or fallback. Three modes are available:
+
+- **Automatic** -- local first, cloud only when needed.
+- **Local only (Ollama)** -- no internet connection required for AI.
+- **Cloud preferred (OpenAI)** -- faster responses, requires your own API key.
+
+Your data only leaves your machine if you explicitly allow it.

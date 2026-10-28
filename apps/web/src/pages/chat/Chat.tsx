@@ -137,6 +137,7 @@ const Chat: React.FC = () => {
   const ttsQueueAbortRef = useRef<AbortController | null>(null);
   // true while TTS audio is playing — prevents STT echo loop in Freihand mode
   const ttsSpeakingRef = useRef(false);
+  const ttsOfflineHintRef = useRef(false);
   const [ttsActive, setTtsActive] = useState(false);
   useEffect(() => {
     ttsEnabledRef.current = ttsEnabled;
@@ -208,11 +209,26 @@ const Chat: React.FC = () => {
         ttsSpeakingRef.current = true;
         setTtsActive(true);
         await audio.play();
-      } catch {
-        // silent fail — kein Fallback auf andere TTS-Engine
+      } catch (err) {
+        if (
+          !ttsOfflineHintRef.current &&
+          err instanceof Error &&
+          err.message.includes("503")
+        ) {
+          ttsOfflineHintRef.current = true;
+          setMessages((p) => [
+            ...p,
+            {
+              role: "assistant",
+              content: t("chat.tts_offline_hint"),
+              proactive: true,
+              proactiveCategory: "system_hint",
+            },
+          ]);
+        }
       }
     },
-    [stopCurrentAudio],
+    [stopCurrentAudio, t],
   );
 
   // Web Audio API — kurze Töne für Blind-Modus-Feedback
@@ -1432,7 +1448,9 @@ const Chat: React.FC = () => {
   const hudHintText = loading
     ? toolStatus || null
     : isListeningNow && listenRemainingMs != null
-      ? t("hud.hint_followup_full", { sec: Math.ceil(listenRemainingMs / 1000) })
+      ? t("hud.hint_followup_full", {
+          sec: Math.ceil(listenRemainingMs / 1000),
+        })
       : null;
 
   const exitShow = useCallback(() => {

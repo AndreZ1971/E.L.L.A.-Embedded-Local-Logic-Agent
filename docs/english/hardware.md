@@ -1,169 +1,145 @@
-# Hardware — Development Machine "Dante-Home"
+# E.L.L.A. -- Hardware Guide
+
+Version 1.5.7 -- Last updated: 2026-10-28
 
 ---
 
-## Specifications
+## Summary
 
-| Component | Specification                  | Relevance for E.L.L.A.                                                  |
-| --------- | ------------------------------ | ----------------------------------------------------------------------- |
-| CPU       | Intel Core i3, 12th generation | Sufficient for Node.js + Express. Ollama on CPU: 5–15 sec/response      |
-| RAM       | 32 GB DDR4/5                   | llama3.1:8b needs ~5 GB — plenty of headroom for OS + browser + Node.js |
-| GPU       | NVIDIA GTX 1060 (6 GB VRAM)    | GPU inference active: llama3.1:8b fits with ~5 GB into VRAM             |
-| Drive C:  | (Primary, Windows)             | Operating system, code editor, Node.js, npm — no AI overhead            |
-| Drive E:  | 238 GB, internal               | "Brain" — Ollama models + MariaDB                                       |
-| Drive Z:  | 34 GB, internal                | Code & projects (incl. E.L.L.A.)                                        |
-| Drive H:  | External                       | Media — not suitable for AI infrastructure                              |
+ELLA runs on most Windows machines from the last 5 years. For the best experience, we recommend a **dedicated graphics card with at least 10 GB of video memory (VRAM)**. ELLA also works without a dedicated graphics card -- in that case, the processor handles the AI computation, which is slower.
+
+> **What is VRAM?** VRAM (Video RAM) is the memory on your graphics card. The AI model is loaded entirely into this memory. The more VRAM available, the larger and better models ELLA can use.
 
 ---
 
-## Drive Architecture
+## System Requirements
 
-### Why a dedicated E: for AI?
+### Minimum (works, but slow)
 
-**Problem:** C: was completely full (0 bytes free). Ollama downloads failed. Windows was unable to create temporary files.
+| Component        | Requirement                                 |
+| ---------------- | ------------------------------------------- |
+| Operating system | Windows 10/11 (64-bit)                      |
+| Processor        | Intel Core i3 / AMD Ryzen 3 (or comparable) |
+| Memory           | 16 GB RAM                                   |
+| Graphics card    | Not strictly required (see below)           |
+| Disk space       | 20 GB free                                  |
 
-**Solution:** E: (238 GB, internal) is dedicated exclusively to everything related to AI infrastructure.
+With this configuration ELLA works, but the AI responds noticeably slower -- especially without a graphics card. An OpenAI key (optional, paid) can significantly improve response speed because the computation then happens in the cloud.
 
-**Principle:** Clear physical separation of concerns.
+### Recommended (smooth experience)
 
-```text
-C: — Operating system, apps, development tools
-     Nothing that grows or is hard to remove
+| Component        | Requirement                                                   |
+| ---------------- | ------------------------------------------------------------- |
+| Operating system | Windows 10/11 (64-bit)                                        |
+| Processor        | Intel Core i5 / AMD Ryzen 5 (or better)                       |
+| Memory           | 32 GB RAM                                                     |
+| Graphics card    | NVIDIA with 10-12 GB VRAM (e.g. RTX 3060 12GB, RTX 2060 12GB) |
+| Disk space       | 40 GB free (SSD recommended)                                  |
 
-E: — "Brain" — everything that consumes and grows in storage
-     ├─ E:\Ollama\models\   — LLM models (grow with each new model)
-     └─ E:\MariaDB\         — Database server + data (grows with usage)
-
-Z: — Code & projects
-     Small, no binary overhead
-```
-
----
-
-## Ollama on E:
-
-### Configuration
-
-Ollama stores models at `C:\Users\<User>\.ollama\models` by default. The `OLLAMA_MODELS` environment variable overrides this path.
-
-```powershell
-# User scope (no admin required, applies to interactive sessions):
-[System.Environment]::SetEnvironmentVariable(
-  "OLLAMA_MODELS",
-  "E:\Ollama\models",
-  "User"
-)
-
-# Machine scope (admin required, applies system-wide including services):
-[System.Environment]::SetEnvironmentVariable(
-  "OLLAMA_MODELS",
-  "E:\Ollama\models",
-  "Machine"
-)
-```
-
-**Important:** The variable must be set **before** Ollama starts. Models already downloaded to `C:` can be moved manually to `E:\Ollama\models`.
-
-### Installed Models
-
-| Model         | Size    | Type       | Purpose                                     |
-| ------------- | ------- | ---------- | ------------------------------------------- |
-| `llama3.1:8b` | ~4.7 GB | Generalist | Standard fallback when no OpenAI key is set |
-
-### Starting Ollama
-
-```powershell
-# Interactive (tray app):
-ollama serve
-
-# Test a model:
-ollama run llama3.1:8b "Hallo, wer bist du?"
-
-# Show available models:
-ollama list
-
-# Pull an additional model:
-ollama pull llama3.2:3b    # Smaller, faster, less precise
-ollama pull mistral:7b     # Alternative to llama, good for code
-```
+With this configuration ELLA responds quickly and all local features work without delay.
 
 ---
 
-## MariaDB on E:
+## With and Without a Graphics Card
 
-### Installation Paths
+### With an NVIDIA Graphics Card (GPU Mode)
 
-```text
-E:\MariaDB\server\          — Binaries (mariadbd.exe, mysql.exe, ...)
-E:\MariaDB\server\bin\      — Executable files
-E:\MariaDB\data\            — Database files (InnoDB, logs, ...)
-```
+If your machine has an NVIDIA graphics card with enough VRAM, the AI model runs directly on the graphics card. This is the fastest option -- ELLA responds within a few seconds.
 
-### Windows Service
+**Your graphics card needs at least 10 GB of VRAM** to fully load the default model (qwen2.5:14b, 14 billion parameters). With less VRAM, part of the computation is offloaded to the processor, which is slower.
 
-MariaDB runs as a Windows service with autostart.
+> **What are parameters?** An AI model consists of billions of learned numerical values -- the "parameters." More parameters generally mean better language understanding and more precise answers, but also require more memory.
 
-```powershell
-# Service status
-Get-Service MariaDB
+**VRAM guidelines:**
 
-# Start / stop (admin)
-net start MariaDB
-net stop MariaDB
+| Graphics card                 | VRAM   | Experience with ELLA                                  |
+| ----------------------------- | ------ | ----------------------------------------------------- |
+| RTX 4060 Ti 16GB              | 16 GB  | Excellent -- plenty of headroom                       |
+| RTX 3060 12GB / RTX 2060 12GB | 12 GB  | Very good -- recommended configuration                |
+| RTX 3060 8GB / RTX 2060 6GB   | 6-8 GB | Limited -- smaller model needed or mixed CPU/GPU mode |
+| GTX 1060 6GB                  | 6 GB   | Only usable with a smaller model                      |
 
-# Direct DB connection (admin)
-"E:\MariaDB\server\bin\mysql.exe" -u root -p
+> **Note:** AMD graphics cards (Radeon) are experimentally supported by Ollama on Windows via Vulkan. Results may vary depending on the model. Without working GPU acceleration, the processor takes over automatically.
 
-# ella user
-"E:\MariaDB\server\bin\mysql.exe" -u ella -p ella
-```
+### Without a Graphics Card (CPU Mode)
 
----
+Without a suitable graphics card, the processor (CPU) computes the AI responses. This works but is considerably slower -- depending on the processor, roughly 3-10 seconds before a response starts, compared to under 2 seconds with a GPU.
 
-## GPU Acceleration (Active)
+**Tip:** With an **OpenAI key** (optional, your own key), ELLA can send computations over the internet. The calculation then happens on OpenAI servers and is very fast regardless of your hardware. However, conversation data is transmitted to OpenAI in that case.
 
-GPU: **GTX 1060 (6 GB VRAM)** — CUDA 13.0, driver 582.28.
+### With an OpenAI Key (Cloud Mode)
 
-| Mode          | Measured rate | VRAM usage | Status   |
-| ------------- | ------------- | ---------- | -------- |
-| CPU           | ~3–5 t/s      | —          | Previous |
-| GPU (GTX1060) | **14.6 t/s**  | 5.8 GB     | Active ✓ |
+If you enter your own OpenAI API key, ELLA can optionally or additionally use OpenAI for chat responses. In this case, local hardware matters less -- even an older laptop without a graphics card delivers fast answers.
 
-**Model fit:** llama3.1:8b occupies ~5.8 GB of the 6 GB — runs entirely in VRAM.
-
-**Configuration:**
-
-```powershell
-# Set OLLAMA_MODELS to E:\Ollama (user scope, persistent):
-[System.Environment]::SetEnvironmentVariable("OLLAMA_MODELS", "E:\Ollama", "User")
-
-# Restart Ollama — detects CUDA automatically
-# Models are located in E:\Ollama\blobs and E:\Ollama\manifests
-```
-
-**Note:** With only ~200 MB of VRAM headroom, the system runs stably but tightly. Other GPU-intensive applications (games, etc.) cannot run concurrently with Ollama.
+| Mode           | Speed                    | Privacy                          | Hardware requirement |
+| -------------- | ------------------------ | -------------------------------- | -------------------- |
+| Local (Ollama) | GPU: fast, CPU: slower   | Everything stays on your machine | GPU recommended      |
+| Cloud (OpenAI) | Always fast              | Data is sent to OpenAI           | Low                  |
+| Auto           | Automatically picks best | Mixed                            | GPU recommended      |
 
 ---
 
-## Swap File (Virtual Memory)
+## Does ELLA Work on My Laptop?
 
-**Question:** Can a larger swap file relieve pressure on RAM or VRAM?
+**Yes** -- ELLA runs on any Windows laptop with at least 16 GB of RAM. The experience depends on whether your laptop has a dedicated graphics card:
 
-**Answer:**
+| Laptop type                                 | Experience                                |
+| ------------------------------------------- | ----------------------------------------- |
+| Gaming laptop with NVIDIA GPU (10+ GB VRAM) | Very good -- like a desktop               |
+| Laptop with smaller NVIDIA GPU (4-8 GB)     | OK -- slower AI mode or smaller model     |
+| Laptop without a dedicated graphics card    | Works, but slow -- OpenAI key recommended |
 
-- **For RAM:** Marginally helpful. With 32 GB of RAM, swapping is very unlikely. A larger swap file only helps if RAM is actually full.
-- **For VRAM:** Not helpful. GPU VRAM cannot be extended via the swap file. If a model does not fit in VRAM, Ollama automatically falls back to CPU.
-
-**Current setting:** Windows manages the swap file automatically — this is the correct setting for the available RAM.
+**Battery note:** AI computation uses a lot of energy. On a laptop, we recommend plugging in while using ELLA.
 
 ---
 
-## Performance Assessment
+## Flash Attention -- Automatic Acceleration
 
-| Task                      | Performance         | Bottleneck      |
-| ------------------------- | ------------------- | --------------- |
-| Node.js API (Express)     | Very good           | —               |
-| MariaDB queries           | Very good           | —               |
-| Ollama (GPU, llama3.1:8b) | **Good (14.6 t/s)** | VRAM bandwidth  |
-| OpenAI GPT-4o             | Very good (1–3 s)   | Network latency |
-| React dev server (Vite)   | Very good           | —               |
+ELLA automatically enables **Flash Attention** -- an optimization that makes processing your requests up to 12 times faster. You do not need to configure anything; the feature is active by default.
+
+> **What is Flash Attention?** A technique that optimizes how the AI model processes your text. Instead of holding all text in memory at once, it is processed in smaller chunks more efficiently. This saves memory and speeds up responses.
+
+Additionally, ELLA uses **KV cache optimization**, which reduces video memory usage without noticeably affecting response quality.
+
+---
+
+## Disk Space
+
+ELLA requires disk space for the following components:
+
+| Component              | Size (approx.) | Note                             |
+| ---------------------- | -------------- | -------------------------------- |
+| ELLA installation      | 300 MB         | Program files + bundled services |
+| AI model (qwen2.5:14b) | 8.4 GB         | Downloaded on first launch       |
+| Memory model           | 274 MB         | For memories and search          |
+| Voice model (Kokoro)   | 80 MB          | For local text-to-speech         |
+| Database               | 50-500 MB      | Grows with usage                 |
+| **Total (initial)**    | **~10 GB**     |                                  |
+
+The largest share is the AI model. It is downloaded once on first launch.
+
+---
+
+## Common Hardware Questions
+
+### Can I choose a smaller AI model?
+
+Yes. In Settings under **LLM** you can enter a different model that you have loaded in Ollama. Smaller models (e.g. with 3 or 7 billion parameters) need less VRAM and respond faster, but understand complex requests less well.
+
+### My machine only has 8 GB of RAM -- will that work?
+
+Not recommended. The AI model alone needs several GB of working memory. With 8 GB RAM, too little remains for Windows and ELLA at the same time. 16 GB is the minimum; 32 GB is recommended.
+
+### Do I need an SSD?
+
+Not strictly, but recommended. An SSD significantly speeds up ELLA's startup and AI model loading.
+
+### Can I use ELLA and games at the same time?
+
+If the GPU is fully occupied by the AI model, no VRAM remains for games. With high-VRAM cards (16+ GB), simultaneous use is possible. Otherwise, we recommend quitting ELLA via the tray icon before gaming.
+
+---
+
+_E.L.L.A. v1.5.7 -- Proprietary -- All rights reserved_
+
+_Further documentation: [FAQ](faq.md) -- [Network](netzwerk.md) -- [User Manual](bedienungsanleitung.md)_

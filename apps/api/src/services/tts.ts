@@ -1,5 +1,6 @@
 import { EdgeTTS } from "@andresaya/edge-tts";
 import { isKokoroReady, synthesizeKokoro } from "./kokoro.js";
+import { getSettings } from "./settings.js";
 
 const FEMALE_VOICES: Record<string, string> = {
   de: "de-DE-KatjaNeural",
@@ -59,22 +60,26 @@ async function synthesizeMsEdge(
 // Kokoro only for languages with proper voice quality — German uses MsEdgeTTS/Katja
 const KOKORO_LANGS = new Set(["en", "fr", "es"]);
 
-export function activeTtsEngine(lang: string): "Kokoro" | "Edge TTS" {
-  return isKokoroReady() && KOKORO_LANGS.has(lang) ? "Kokoro" : "Edge TTS";
+export function activeTtsEngine(lang: string): "Kokoro" | "Edge TTS" | "off" {
+  if (isKokoroReady() && KOKORO_LANGS.has(lang)) return "Kokoro";
+  if (getSettings().offlineMode) return "off";
+  return "Edge TTS";
 }
 
 export async function synthesize(
   text: string,
   options: TTSOptions = {},
-): Promise<TTSResult> {
+): Promise<TTSResult | null> {
   const lang = options.lang ?? "de";
+  const { offlineMode } = getSettings();
   if (isKokoroReady() && KOKORO_LANGS.has(lang)) {
     try {
       return await synthesizeKokoro(text, lang);
     } catch {
-      // fall through to MsEdgeTTS
+      // fall through to MsEdgeTTS (if allowed)
     }
   }
+  if (offlineMode) return null;
   return synthesizeMsEdge(text, options);
 }
 
