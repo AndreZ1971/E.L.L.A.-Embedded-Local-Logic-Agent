@@ -269,7 +269,8 @@ const Chat: React.FC = () => {
           body: JSON.stringify({ text: clean }),
           signal: abort.signal,
         });
-        if (!res.ok || abort.signal.aborted) break;
+        if (abort.signal.aborted) break;
+        if (!res.ok) continue;
         const blob = await res.blob();
         if (abort.signal.aborted) break;
         const url = URL.createObjectURL(blob);
@@ -280,8 +281,6 @@ const Chat: React.FC = () => {
         await new Promise<void>((resolve) => {
           audio.onended = () => {
             URL.revokeObjectURL(url);
-            ttsSpeakingRef.current = false;
-            setTtsActive(false);
             resolve();
           };
           audio.onerror = () => {
@@ -296,10 +295,23 @@ const Chat: React.FC = () => {
             resolve();
           });
         });
+        if (!abort.signal.aborted) {
+          const pauseMs = ttsQueueRef.current.length > 0 ? 150 : 400;
+          await new Promise<void>((resolve) => {
+            const timer = setTimeout(resolve, pauseMs);
+            const onAbort = () => {
+              clearTimeout(timer);
+              resolve();
+            };
+            abort.signal.addEventListener("abort", onAbort, { once: true });
+          });
+        }
       } catch {
         // skip sentence on error
       }
     }
+    ttsSpeakingRef.current = false;
+    setTtsActive(false);
     const fu2 = Date.now() + FOLLOW_UP_MS;
     followUpUntilRef.current = fu2;
     setFollowUpUntil(fu2);
@@ -675,15 +687,28 @@ const Chat: React.FC = () => {
               setDirectiveDeny(null);
               // Stream TTS: enqueue complete sentences as they arrive
               sentenceBuffer += ev.text;
-              const sentenceRe = /[^.!?]*[.!?]+(?:\s|$)/g;
-              let m: RegExpExecArray | null;
-              let consumed = 0;
-              while ((m = sentenceRe.exec(sentenceBuffer)) !== null) {
-                const s = m[0].trim();
+              // Split at real sentence boundaries only:
+              // - period after 2+ word chars, optionally followed by )]/"/» (not E.L.L.A. or z.B.)
+              // - ! or ? (always sentence-ending)
+              // - newline after 60+ chars of buffer (list items without punctuation)
+              const splitRe = /(?:\w{2,}[)\]"'»"]*[.]|[!?]+)\s/g;
+              let splitMatch: RegExpExecArray | null;
+              let lastSplit = 0;
+              while ((splitMatch = splitRe.exec(sentenceBuffer)) !== null) {
+                const splitAt = splitMatch.index + splitMatch[0].length;
+                const s = sentenceBuffer.slice(lastSplit, splitAt).trim();
                 if (s.length >= 8) enqueueTTS(s);
-                consumed = m.index + m[0].length;
+                lastSplit = splitAt;
               }
-              if (consumed > 0) sentenceBuffer = sentenceBuffer.slice(consumed);
+              if (lastSplit > 0)
+                sentenceBuffer = sentenceBuffer.slice(lastSplit);
+              // Fallback: split at newlines when buffer grows large (lists without punctuation)
+              if (sentenceBuffer.length > 80 && sentenceBuffer.includes("\n")) {
+                const nlIdx = sentenceBuffer.lastIndexOf("\n");
+                const chunk = sentenceBuffer.slice(0, nlIdx).trim();
+                if (chunk.length >= 8) enqueueTTS(chunk);
+                sentenceBuffer = sentenceBuffer.slice(nlIdx + 1);
+              }
             } else if (ev.type === "tool") {
               setToolStatus(toolLabel(ev.name));
               if (!usedToolsRef.current.includes(ev.name))
@@ -1432,7 +1457,9 @@ const Chat: React.FC = () => {
   const hudHintText = loading
     ? toolStatus || null
     : isListeningNow && listenRemainingMs != null
-      ? t("hud.hint_followup_full", { sec: Math.ceil(listenRemainingMs / 1000) })
+      ? t("hud.hint_followup_full", {
+          sec: Math.ceil(listenRemainingMs / 1000),
+        })
       : null;
 
   const exitShow = useCallback(() => {
@@ -1448,7 +1475,7 @@ const Chat: React.FC = () => {
     const lastAssistant = isShow
       ? [...messages].reverse().find((m) => m.role === "assistant")
       : null;
-    const tail = isShow ? [] : messages.slice(-12);
+    const tail = isShow ? [] : messages.slice(-8);
 
     return (
       <div
@@ -1535,8 +1562,7 @@ const Chat: React.FC = () => {
                 </span>
                 {m.content
                   .replace(/\*\*([^*]+)\*\*/g, "$1")
-                  .replace(/`([^`]+)`/g, "$1")
-                  .substring(0, 200)}
+                  .replace(/`([^`]+)`/g, "$1")}
                 {m.usedTools?.map((tool) => (
                   <span
                     key={tool}
@@ -1550,10 +1576,7 @@ const Chat: React.FC = () => {
           {streaming && (
             <div className="hud-subtitle">
               <span className="hud-subtitle-prefix">E.L.L.A. ›</span>
-              {(isShow ? redactForShow(streaming) : streaming).substring(
-                0,
-                200,
-              )}
+              {isShow ? redactForShow(streaming) : streaming}
             </div>
           )}
           {loading && !streaming && !toolStatus && (

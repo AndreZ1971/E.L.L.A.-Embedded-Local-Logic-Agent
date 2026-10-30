@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft lokal via Ollama (qwen2.5:14b), optional mit OpenAI-API (eigener Key).
 
-**Aktueller Stand: v1.5.7**
+**Aktueller Stand: v1.5.8**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -279,6 +279,18 @@ database/
 - **resolveAppearance-Tests:** 9 Tests für Prioritätslogik (blind > homework > reduced_motion > wanted)
 - **393 Tests — alle grün** (Vitest Unit + Integration, inkl. 4 hudWidgets + 9 resolveAppearance-Tests)
 
+### v1.5.8 — TTS-Satz-Erkennung & Sprachausgabe-Qualität
+
+- **Bug: ELLA verschluckt Sätze beim Vorlesen** — Die Satz-Erkennungs-Regex `/[^.!?]*[.!?]+(?:\s|$)/g` splittete an **jedem** Punkt gefolgt von Whitespace. Bei `E.L.L.A.`, `z.B.`, `d.h.`, URLs und Versionsnummern entstanden winzige Fragmente (z.B. `A.` = 2 Zeichen), die vom `length >= 8`-Filter verworfen wurden. Der `consumed`-Pointer fraß den umgebenden Text mit — bis zu **46% des Antworttextes** gingen verloren, ohne dass der Nutzer einen Fehler sah
+- **Fix: Intelligente Satz-Erkennung** (`Chat.tsx` Zeile 693): Neue Regex `/(?:\w{2,}[)\]"'»"]*[.]|[!?]+)\s/g` — Punkt nur nach echten Wörtern (≥2 Buchstaben) als Satzende; optional vorangestellte Klammern/Anführungszeichen (`)`/`]`/`"`/`'`/`»`) werden erkannt; `!` und `?` weiterhin immer Satzende; Einzelbuchstaben-Punkte (`E.`, `L.`, `A.`, `B.`) werden **nicht** als Satzgrenze behandelt
+- **Fix: Klammern/Anführungszeichen vor Punkt** — Sätze wie `(siehe oben).` oder `"fertig".` werden jetzt korrekt als Satzende erkannt, statt im Buffer stecken zu bleiben
+- **Fix: Newline-Fallback für Aufzählungen** (`Chat.tsx` Zeile 703–708): Wenn der Satz-Buffer über 80 Zeichen wächst und Zeilenumbrüche enthält (typisch: Bullet-Listen ohne Satzzeichen), wird am letzten `\n` gesplittet — verhindert dass lange Listen als ein Riesenblock akkumulieren und von `cleanTextForTTS()` bei 400 Zeichen abgeschnitten werden
+- **Fix: TTS-Queue-Resilienz** (`Chat.tsx` Zeile 272): Ein einzelner fehlgeschlagener `/api/speech/synthesize`-Call brach die **gesamte** TTS-Queue ab (`break`) — alle nachfolgenden Sätze wurden stumm übersprungen. Jetzt: `continue` statt `break` — der fehlgeschlagene Satz wird übersprungen, alle weiteren werden normal gesprochen; Abbruch nur noch bei explizitem Interrupt (`abort.signal`)
+- **Adaptive TTS-Pausen** (`Chat.tsx` Zeile 297–306): 150ms Pause zwischen Sätzen wenn weitere in der Queue warten, 400ms wenn Queue leer (natürlicher Atemrhythmus); Pause ist interruptierbar via AbortController (Stop-Interrupt kompatibel); TTS-Slot bleibt während der Pause gehalten (`ttsSpeakingRef.current = true`) — verhindert Echo-Loop im Freihand-Modus
+- **HUD: Volltext-Anzeige** — `.substring(0, 200)` Limit für HUD-Untertitel und Streaming-Anzeige entfernt; `.hud-chat-bottom` max-height von 220px auf 300px erhöht; Message-Slice von `-12` auf `-8` reduziert
+- **Datenschutzerklärung ella-agent.de aktualisiert** — Neuer Abschnitt 3 (Webanalyse / Web Analytics) in DE und EN eingefügt: beschreibt Plausible Analytics (selbst gehostet, keine Cookies, keine Nutzerprofile) und eigenen Seitenaufrufe-Zähler (SHA-256 IP-Hash, tägliche Rotation, 16-Zeichen-Truncation); Abschnitt 2 (Überblick) angepasst; alle Folgeabschnitte umnummeriert (13 Abschnitte gesamt)
+- **393 Tests — alle grün** (Vitest Unit + Integration)
+
 ### v1.5.7 — Performance & Tool-Call-Robustheit
 
 - **Ollama 0.40.12:** Upgrade von 0.24.0 → 0.40.12 — verbessertes Tool-Calling, schnellere Inferenz
@@ -435,12 +447,11 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/tags"
 https://github.com/AndreZ1971/E.L.L.A.git
 ```
 
-
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (Claude Code ToolBox)
 
-_Last synced: 2026-10-28T20:45:26.912Z._
+_Last synced: 2026-10-30T16:44:08.064Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).
