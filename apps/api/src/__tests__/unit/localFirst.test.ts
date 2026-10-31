@@ -47,6 +47,8 @@ vi.mock("../../services/eventBus.js", () => ({
 
 vi.mock("../../services/memory.js", () => ({
   listMemories: vi.fn().mockResolvedValue([]),
+  listMemoriesPaged: vi.fn().mockResolvedValue({ memories: [], total: 0 }),
+  remember: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 vi.mock("../../services/proactive.js", () => ({

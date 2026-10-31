@@ -528,6 +528,7 @@ export default function Chess() {
   const onDrop = useCallback(
     (sourceSquare: string, targetSquare: string): boolean => {
       if (status !== "active" || thinking) return false;
+      const prevFen = chess.fen();
       const move = chess.move({
         from: sourceSquare,
         to: targetSquare,
@@ -541,7 +542,6 @@ export default function Chess() {
         setSavedAt(null);
         setStatus("over");
         setResult(chess.isCheckmate() ? "Du gewinnst!" : "Remis");
-        // ELLA reflektiert auch über Partien, die durch Spielerzug enden
         if (gameId) {
           void apiFetch("/api/chess/reflect", {
             method: "POST",
@@ -569,7 +569,13 @@ export default function Chess() {
               status: string;
               winner: string | null;
             }) => {
-              if (!d.ok) return;
+              if (!d.ok) {
+                // Rollback: Board zurücksetzen auf Stand vor dem Zug
+                chess.load(prevFen);
+                setFen(prevFen);
+                setMoves((m) => m.slice(0, -1));
+                return;
+              }
               if (d.ellaFen) {
                 chess.load(d.ellaFen);
                 setFen(d.ellaFen);
@@ -586,7 +592,6 @@ export default function Chess() {
                       ? "Du gewinnst!"
                       : "Remis",
                 );
-                // ELLA reflektiert nach Spielende (Schachmatt durch ELLA / Remis)
                 void apiFetch("/api/chess/reflect", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -598,7 +603,10 @@ export default function Chess() {
             },
           )
           .catch(() => {
-            /* weiter */
+            // Netzwerk-Fehler: Rollback
+            chess.load(prevFen);
+            setFen(prevFen);
+            setMoves((m) => m.slice(0, -1));
           })
           .finally(() => setThinking(false));
       } else {
@@ -942,7 +950,7 @@ export default function Chess() {
               <span style={{ color: C.green, fontWeight: 500 }}>Dein Zug</span>
               {moves.length > 0 && (
                 <span style={{ color: C.muted, fontSize: "0.68rem" }}>
-                  · Zug {Math.ceil(moves.length / 2) + 1}
+                  · Zug {Math.floor(moves.length / 2) + 1}
                 </span>
               )}
             </>

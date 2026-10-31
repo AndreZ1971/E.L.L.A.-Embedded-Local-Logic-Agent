@@ -2,7 +2,7 @@
 
 Lokaler Windows KI-Assistent als Electron-Desktop-App. Läuft lokal via Ollama (qwen2.5:14b), optional mit OpenAI-API (eigener Key).
 
-**Aktueller Stand: v1.5.8**
+**Aktueller Stand: v1.5.9**
 
 > _ELLA passt sich dem Nutzer an und wächst mit ihren Herausforderungen._
 
@@ -278,6 +278,23 @@ database/
 - **4 hudWidgets-Tests:** Migration, Malformed-Fallback, Custom-Config, Patch-Erhalt
 - **resolveAppearance-Tests:** 9 Tests für Prioritätslogik (blind > homework > reduced_motion > wanted)
 - **393 Tests — alle grün** (Vitest Unit + Integration, inkl. 4 hudWidgets + 9 resolveAppearance-Tests)
+
+### v1.5.9 — Schach-Bugfixes
+
+- **Fix: Move-Format-Mismatch** (`chess.ts`): `parseMoveInput()` konvertiert UCI/LAN-Strings (`e2e4`, `e7e8q`) in `{from, to, promotion}`-Objekte bevor sie an `chess.move()` übergeben werden — kein Verlassen auf undokumentiertes LAN-Parsing mehr
+- **Fix: Board-Desync bei Backend-Fehler** (`Chess.tsx`): FEN wird vor dem Spielerzug gespeichert; bei `!d.ok` oder Netzwerk-Fehler: Rollback auf vorherigen FEN + Moves — Board und Backend bleiben synchron
+- **Fix: ELLA-Zug null-check** (`chess.ts`): `chess.move(ellaMove)` wird jetzt in try/catch gewrappt; bei ungültigem Zug (LLM-Halluzination trotz Fallback) bleibt die Partie aktiv statt zu crashen
+- **Fix: `getWinner()` Hardcoding** (`chess.ts`): Neuer Parameter `playerColor` — Winner-Logik nicht mehr an Weiß=Spieler gebunden; funktioniert jetzt korrekt bei beliebiger Farbwahl
+- **Fix: Schach-Memory ohne Embedding** (`chess.ts`): `reflectOnGame()` nutzt jetzt `remember()` statt direktes `INSERT INTO memories ... embedding=''` — Erinnerungen bekommen echte Embeddings und sind per Cosine-Similarity auffindbar
+- **Fix: Profil-Isolation gebrochen** (`chess.ts`): `ellaThinks()` nutzt jetzt `listMemoriesPaged({ profileId })` statt `listMemories()` — Schach-Erinnerungen sind profil-isoliert
+- **Fix: `allMoves`-Berechnung fragil** (`chess.ts`): Nutzt `ellaMoveResult.san` statt `chess.history().at(-1)` — robust bei FEN-Reload
+- **Fix: `ellaThinks` Regex SAN/UCI-Mix** (`chess.ts`): Regex bereinigt auf reine UCI-Zeichen (`a-h`, `1-8`, `q`, `r`, `b`, `n`) — keine SAN-Artefakte (`+`, `=`, `#`, `x`) mehr
+- **Fix: Zugnummer off-by-one** (`Chess.tsx`): `Math.ceil(moves.length / 2) + 1` → `Math.floor(moves.length / 2) + 1` — korrekte Schach-Zugnummer
+- **Fix: `chess_games` fehlte in `schema.sql`** (`database/schema.sql`): Tabelle ergänzt — Neuinstallation über SQL-Schema funktioniert jetzt
+- **Fix: `profile_id` fehlte in `memories`-Tabelle in `schema.sql`** (`database/schema.sql`): Spalte `profile_id INT NULL` + Index ergänzt — Frischinstall ohne `migrate.ts` wirft keinen `Unknown column`-Fehler mehr bei profil-gefilterten Memory-Aufrufen
+- **Fix: Schach-Erinnerungen nie zurückgelesen** (`chess.ts`): Such-String `"schach chess ♟"` wurde von LIKE als zusammenhängender Ausdruck gesucht und fand nie etwas — geändert auf `"♟ Schach-Erkenntnis"`, matcht den realen Speicher-Präfix; ELLA erinnert sich jetzt tatsächlich an vergangene Partien
+- **Unused Import entfernt** (`chess.ts`): `CloudBlockedError` war importiert aber nie verwendet
+- **393 Tests — alle grün** (Vitest Unit + Integration)
 
 ### v1.5.8 — TTS-Satz-Erkennung & Sprachausgabe-Qualität
 

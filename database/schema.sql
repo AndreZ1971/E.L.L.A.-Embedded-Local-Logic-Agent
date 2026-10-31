@@ -28,10 +28,12 @@ CREATE TABLE IF NOT EXISTS memories (
   content    TEXT NOT NULL,
   embedding  MEDIUMTEXT NOT NULL,
   source     VARCHAR(255),
+  profile_id INT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_memories_type ON memories (type);
+CREATE INDEX IF NOT EXISTS idx_memories_type    ON memories (type);
+CREATE INDEX IF NOT EXISTS idx_memories_profile ON memories (profile_id);
 CREATE INDEX IF NOT EXISTS idx_session_messages_session ON session_messages (session_id);
 
 -- tool_name: '*' = gilt für alle Tools, sonst spezifischer Tool-Name
@@ -172,4 +174,17 @@ CREATE TABLE IF NOT EXISTS learning_examples (
   use_count       INT          NOT NULL DEFAULT 0,
   created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_learning_profile (profile_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS chess_games (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  profile_id   INT          NULL,
+  fen          VARCHAR(120) NOT NULL DEFAULT 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+  moves        JSON         NULL,
+  status       ENUM('active','checkmate','stalemate','draw','resigned') NOT NULL DEFAULT 'active',
+  player_color ENUM('white','black') NOT NULL DEFAULT 'white',
+  moves_count  INT          NOT NULL DEFAULT 0,
+  winner       ENUM('player','ella','draw') NULL,
+  created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

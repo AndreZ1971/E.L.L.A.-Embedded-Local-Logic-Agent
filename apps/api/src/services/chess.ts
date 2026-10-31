@@ -2,9 +2,9 @@ import { Chess } from "chess.js";
 import { pool } from "../config/database.js";
 import { getSettings, cloudAllowed, cloudFirst } from "./settings.js";
 import { env } from "../config/env.js";
-import { listMemories } from "./memory.js";
+import { remember, listMemoriesPaged } from "./memory.js";
 import { sendProactiveMessage } from "./proactive.js";
-import { openaiRequest, CloudBlockedError } from "./openai.js";
+import { openaiRequest } from "./openai.js";
 import type { ResultSetHeader } from "mysql2";
 
 export interface ChessGame {
@@ -84,10 +84,11 @@ export async function applyPlayerMove(
 
   const chess = new Chess(game.fen);
 
-  // Spielerzug validieren
+  // Spielerzug validieren — LAN (e2e4), SAN (e4) und Objekt-Form unterstützen
   let playerMove;
   try {
-    playerMove = chess.move(move);
+    const parsed = parseMoveInput(move);
+    playerMove = chess.move(parsed);
   } catch {
     return {
       ok: false,
@@ -112,7 +113,7 @@ export async function applyPlayerMove(
   // Spielende nach Spielerzug prüfen
   if (chess.isGameOver()) {
     const status = getGameStatus(chess);
-    const winner = getWinner(status, "white");
+    const winner = getWinner(status, game.playerColor, game.playerColor);
     await saveGameState(gameId, playerFen, newMoves, status, winner);
     return { ok: true, playerFen, status, winner };
   }
@@ -124,12 +125,26 @@ export async function applyPlayerMove(
     return { ok: true, playerFen, status: "active", winner: null };
   }
 
-  const ellaMoveResult = chess.move(ellaMove);
-  const ellaFen = chess.fen();
-  const allMoves = [...newMoves, chess.history().at(-1) ?? ellaMove];
+  let ellaMoveResult;
+  try {
+    ellaMoveResult = chess.move(ellaMove);
+  } catch {
+    // ELLA-Zug ungültig trotz Validierung — Partie bleibt aktiv
+    await saveGameState(gameId, playerFen, newMoves, "active", null);
+    return { ok: true, playerFen, status: "active", winner: null };
+  }
+  if (!ellaMoveResult) {
+    await saveGameState(gameId, playerFen, newMoves, "active", null);
+    return { ok: true, playerFen, status: "active", winner: null };
+  }
 
+  const ellaFen = chess.fen();
+  const allMoves = [...newMoves, ellaMoveResult.san];
+
+  const ellaColor = game.playerColor === "white" ? "black" : "white";
   const status = chess.isGameOver() ? getGameStatus(chess) : "active";
-  const winner = status !== "active" ? getWinner(status, "black") : null;
+  const winner =
+    status !== "active" ? getWinner(status, ellaColor, game.playerColor) : null;
 
   await saveGameState(gameId, ellaFen, allMoves, status, winner);
 
@@ -138,7 +153,7 @@ export async function applyPlayerMove(
     chess,
     ellaMoveResult,
     status,
-    chess.history().at(-1) ?? ellaMove,
+    ellaMoveResult.san,
     allMoves,
   ).then((comment) => {
     sendProactiveMessage(comment, "info", "chess");
@@ -147,7 +162,7 @@ export async function applyPlayerMove(
   return {
     ok: true,
     playerFen,
-    ellaMove: chess.history().at(-1) ?? ellaMove,
+    ellaMove: ellaMoveResult.san,
     ellaFen,
     status,
     winner,
@@ -245,11 +260,7 @@ Kein Ergebnis-Kommentar — nur eine strategische Beobachtung.`;
     }
 
     if (reflection.trim()) {
-      await pool.execute(
-        `INSERT INTO memories (profile_id, type, content, embedding)
-         VALUES (?, 'system', ?, '')`,
-        [profileId, `♟ Schach-Erkenntnis: ${reflection.trim()}`],
-      );
+      await remember("system", `♟ Schach-Erkenntnis: ${reflection.trim()}`);
     }
   } catch {
     // Reflexion ist optional — Fehler still ignorieren
@@ -260,24 +271,20 @@ Kein Ergebnis-Kommentar — nur eine strategische Beobachtung.`;
 
 async function ellaThinks(
   chess: Chess,
-  _profileId: number | null,
+  profileId: number | null,
   moveHistory: string[],
 ): Promise<string | null> {
   const legalMoves = chess.moves({ verbose: true }).map((m) => m.lan);
   if (!legalMoves.length) return null;
 
-  // Schach-Erinnerungen laden
-  const memories = await listMemories("system", 50);
-  const chessMemories = memories
-    .filter(
-      (m) =>
-        m.content.toLowerCase().includes("schach") ||
-        m.content.toLowerCase().includes("chess") ||
-        m.content.includes("♟"),
-    )
-    .slice(0, 8)
-    .map((m) => `- ${m.content}`)
-    .join("\n");
+  // Schach-Erinnerungen laden (profil-isoliert)
+  const { memories } = await listMemoriesPaged({
+    type: "system",
+    search: "♟ Schach-Erkenntnis",
+    limit: 8,
+    profileId,
+  });
+  const chessMemories = memories.map((m) => `- ${m.content}`).join("\n");
 
   const boardAscii = chess.ascii();
   const lastMoves = moveHistory.slice(-6).join(", ");
@@ -366,10 +373,11 @@ Antworte mit GENAU EINEM Zug aus der Liste. Nur der Zug, nichts anderes.`;
       }
 
       // Zug aus Antwort extrahieren: erstes Wort/Token
+      // UCI-Format: nur a-h, 1-8, Promotion-Buchstaben (q/r/b/n)
       const candidate = response
         .split(/\s/)[0]
         .toLowerCase()
-        .replace(/[^a-h1-8qrkbnpx+=#-]/g, "");
+        .replace(/[^a-h1-8qrbn]/g, "");
       if (legalMoves.includes(candidate)) return candidate;
 
       // Auch in der Volltext-Antwort nach einem legalen Zug suchen
@@ -395,8 +403,10 @@ function getGameStatus(chess: Chess): ChessGame["status"] {
 function getWinner(
   status: ChessGame["status"],
   lastMoved: "white" | "black",
+  playerColor: "white" | "black",
 ): ChessGame["winner"] {
-  if (status === "checkmate") return lastMoved === "white" ? "player" : "ella";
+  if (status === "checkmate")
+    return lastMoved === playerColor ? "player" : "ella";
   if (status === "stalemate" || status === "draw") return "draw";
   return null;
 }
@@ -517,6 +527,24 @@ Kein Rat an den Gegner, kein Hinweis auf deine nächsten Züge. Frisch, lebendig
   } catch {
     return fallback;
   }
+}
+
+// LAN-String (e2e4, e7e8q) in Objekt-Form umwandeln für chess.js
+function parseMoveInput(
+  move: string,
+): string | { from: string; to: string; promotion?: string } {
+  const lan = move.trim().toLowerCase();
+  // UCI/LAN-Format: 4 oder 5 Zeichen (e2e4, e7e8q)
+  if (/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(lan)) {
+    const obj: { from: string; to: string; promotion?: string } = {
+      from: lan.slice(0, 2),
+      to: lan.slice(2, 4),
+    };
+    if (lan.length === 5) obj.promotion = lan[4];
+    return obj;
+  }
+  // SAN oder anderes Format — chess.js direkt versuchen lassen
+  return move;
 }
 
 async function saveGameState(
