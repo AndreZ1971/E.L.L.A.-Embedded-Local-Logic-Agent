@@ -8,7 +8,7 @@
 
 **Ein persönlicher KI-Assistent für Windows — vollständig offline, vollständig deiner.**
 
-[![Version](https://img.shields.io/badge/version-1.5.0-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A./releases)
+[![Version](https://img.shields.io/badge/version-1.6.4-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A./releases)
 [![Plattform](https://img.shields.io/badge/plattform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows)](https://ella-agent.de)
 [![Lizenz](https://img.shields.io/badge/lizenz-Proprietär-ff6500?style=flat-square)](LICENSE)
 [![Directive](https://img.shields.io/badge/Directive-v1.0.0%20%E2%80%94%20versiegelt-3ecf8e?style=flat-square)](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
@@ -23,7 +23,7 @@
 
 E.L.L.A. ist ein persönlicher KI-Assistent der vollständig auf deinem Windows-PC läuft. Keine Cloud. Kein Abo. Keine Daten die deinen Rechner verlassen.
 
-ELLA versteht natürliche Sprache und kann deinen Computer bedienen — Apps starten, Dateien suchen, E-Mails lesen, Termine verwalten, Medien steuern, das System überwachen und vieles mehr. Mit 90 Tools, persistentem Vektorspeicher-Gedächtnis, einem Knowledge-Graph, proaktivem Monitoring, Self-Learning und einer eingebauten Ethik-Schicht ist E.L.L.A. kein Chatbot. Sie ist ein Agent.
+ELLA versteht natürliche Sprache und kann deinen Computer bedienen — Apps starten, Dateien suchen, E-Mails lesen, Termine verwalten, Medien steuern, das System überwachen und vieles mehr. Mit 90+ Tools, persistentem Vektorspeicher-Gedächtnis, einem Knowledge-Graph, LoRA Fine-Tuning, proaktivem Monitoring, Self-Learning und einer eingebauten Ethik-Schicht ist E.L.L.A. kein Chatbot. Sie ist ein Agent.
 
 > _"Ich wollte nur einen Assistenten der unter dieser Directive arbeiten kann."_
 > — Andre Zabel, Mai 2026
@@ -85,9 +85,17 @@ Subjekt/Prädikat/Objekt-Triples mit Hybrid-Recall. D3 Force-Directed Graph sema
 
 Ein vollständiges Schach-Fenster mit 4 Brett-Themes, einer Schach-KI, Zug-Kommentar via TTS und persistentem Spielstand. Kein Demo — ein echtes Feature das zeigt was E.L.L.A. kann: eigenständige Fenster, eine Sub-KI und persistenten Zustand gleichzeitig verwalten.
 
-### 🧬 Self-Learning Loop
+### 🧬 Self-Learning & LoRA Fine-Tuning
 
-Positives Feedback (Daumen hoch) erzeugt goldene Q&A-Paare. Diese werden als Few-Shot-Beispiele in zukünftige Gespräche injiziert — E.L.L.A. lernt aus Erfahrung, lokal.
+Positives Feedback erzeugt goldene Q&A-Paare als Few-Shot-Beispiele. LoRA Fine-Tuning baut ein persönliches Modell aus deiner Interaktions-Historie — vollständig lokales Training, keine Cloud.
+
+### 📊 HUD Widget-System
+
+Modulare Dashboard-Widgets: Gedächtnis-Status, LoRA-Trainingsfortschritt, Vektor-Index-Gesundheit, System-Stats — alles live im Chat-Overlay.
+
+### 🎙️ Spracherkennung (STT)
+
+Lokale Spracherkennung via Whisper (Xenova/whisper-small). Vollständig offline-Transkription mit Qualitäts-Upgrade in v1.6.2.
 
 ### 🖐️ Gestensteuerung
 
@@ -133,7 +141,7 @@ Der Installer enthält alles: Node.js, MariaDB und Ollama als portable Binaries.
 
 | Datei                     | Beschreibung                |
 | ------------------------- | --------------------------- |
-| `E.L.L.A.Setup.1.5.0.exe` | Windows-Installer (NSIS)    |
+| `E.L.L.A.Setup.1.6.4.exe` | Windows-Installer (NSIS)    |
 | `SHA256SUMS.txt`          | Prüfsummen zur Verifikation |
 
 ---

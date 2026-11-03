@@ -4,6 +4,39 @@ All notable changes to E.L.L.A. are documented here.
 
 ---
 
+## [1.6.4] — November 2026
+
+### New Features
+
+- **LoRA Fine-Tuning Pipeline** — data pipeline, training scripts, personal model integration, worker automation, settings UI, HUD widget
+- **MariaDB VECTOR Index** — native vector index for boundless similarity search without scan limits
+- **HUD Widget-System** — modular dashboard widgets: memory, LoRA training, vector index health, system stats
+- **Speech-to-Text (STT) Upgrade** — Whisper-based local transcription (Xenova/whisper-small), quality improvements
+- **Memory Quality** — knowledge graph hygiene, duplicate cleanup, vector index status display
+- **DB Resilience** — onboarding guard, DB fallback, migration error tolerance
+- **Model Auto-Download** — automatic Ollama model pull on tier switch with availability validation
+- **Active Model in System Prompt** — LLM always knows which model it is
+
+### Bug Fixes
+
+- 23 GELB (medium) findings resolved across backend, frontend, DevOps and a11y
+- Whisper model fixed (Xenova/whisper-small) — resolves 500 errors on speech input
+- Migration error on repeated start — case-insensitive error filter
+- Chess: 12 fixes (move format, board desync, memory, profile isolation)
+- TTS: sentence detection rewrite — no more swallowed sentences
+- Markdown rendering in HUD mode and chat line breaks
+- Disk warning threshold raised to 98%, rate-limited to 30 min intervals
+- Fallback to base model when personal model lacks tool support
+- Exact model match in Ollama health checks (no more substring collisions)
+
+### Technical
+
+- Tests: 640 green (Vitest Unit + Integration)
+- Security hardening: supply chain, code analysis, refactoring
+- AWS test secrets as runtime concat (bypasses GitHub Secret Scanner)
+
+---
+
 ## [1.5.0] — October 2026
 
 ### New Features

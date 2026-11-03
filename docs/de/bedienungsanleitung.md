@@ -1,6 +1,6 @@
 ﻿# E.L.L.A. â€” Bedienungsanleitung
 
-Version 1.5.0
+Version 1.6.4
 
 ---
 
@@ -19,7 +19,7 @@ Ich brauche das alles nicht â€” Ollama lÃ¤uft lokal, die KI lÃ¤uft loka
 
 ### Installation
 
-1. `E.L.L.A Setup 1.5.0.exe` ausfÃ¼hren
+1. `E.L.L.A Setup 1.6.4.exe` ausfÃ¼hren
 2. Installationspfad wÃ¤hlen (Standard: `C:\Programme\E.L.L.A`)
 3. Der Installer richtet alles automatisch ein â€” MariaDB, Ollama, Node.js. Nichts weiter installieren.
 
@@ -1276,5 +1276,31 @@ ELLA erfasst Session-Dauer, erkennt Pausen und weiss wann du zuletzt interagiert
 
 ---
 
-_E.L.L.A. v1.5.0 - Embedded Local Logic Agent_
+---
+
+## Neu in v1.6.x
+
+### LoRA Fine-Tuning
+
+ELLA baut ein persoenliches Sprachmodell aus deiner Interaktions-Historie. Vollstaendig lokales Training — keine Daten verlassen deinen Rechner. Das HUD zeigt den Trainingsfortschritt live.
+
+### HUD Widget-System
+
+Modulare Dashboard-Widgets im Chat-Overlay: Gedaechtnis-Status, LoRA-Trainingsfortschritt, Vektor-Index-Gesundheit, System-Stats.
+
+### Spracherkennung (STT)
+
+Lokale Spracherkennung via Whisper (Xenova/whisper-small). Vollstaendig offline-Transkription — verbesserte Qualitaet in v1.6.2.
+
+### MariaDB VECTOR-Index
+
+Nativer Vektor-Index fuer grenzenlose Aehnlichkeitssuche. Keine Scan-Limits mehr beim Gedaechtnis-Abruf.
+
+### 640 Tests
+
+Umfassende Test-Abdeckung aller Features — Unit- und Integrationstests via Vitest.
+
+---
+
+_E.L.L.A. v1.6.4 - Embedded Local Logic Agent_
 _Entwickelt fuer Windows 10/11 (x64)_

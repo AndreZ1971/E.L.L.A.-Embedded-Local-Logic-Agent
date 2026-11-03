@@ -1,6 +1,6 @@
-# E.L.L.A. — Fähigkeiten (v1.5.0)
+# E.L.L.A. — Fähigkeiten (v1.6.4)
 
-90 aktive Tools. Alles per natürlicher Sprache.
+90+ aktive Tools. Alles per natürlicher Sprache.
 
 ---
 
@@ -232,6 +232,8 @@
 | **Knowledge-Graph**               | D3-Visualisierung mit Subjekt/Prädikat/Objekt-Triples                   |
 | **Multi-Agenten-Pipeline**        | Parallele Agenten mit Live-Streaming                                    |
 | **Self-Learning Loop**            | Positives Feedback → Few-Shot-Injection in zukünftige Gespräche         |
+| **LoRA Fine-Tuning**              | Persönliches Modell-Training aus Interaktions-Historie (lokal)          |
+| **HUD-Widgets**                   | Modulares Dashboard: Gedächtnis, LoRA, Vektor-Index, System-Stats       |
 | **Gestensteuerung**               | Handerkennung via MediaPipe Hands (Stufe 1)                             |
 | **Zeitbewusstsein**               | Session-Dauer, Pausen-Erkennung, letzte Interaktion                     |
 | **Comeback-Briefing**             | Was hat sich verändert während du weg warst                             |
@@ -241,10 +243,10 @@
 
 ## Zahlen
 
-| Kennzahl         | Wert                                                               |
-| ---------------- | ------------------------------------------------------------------ |
-| Tools (aktiv)    | **90**                                                             |
-| Tests            | **261 grün**                                                       |
-| LLM-Backends     | Ollama llama3.1:8b · qwen2.5:7b (lokal) + OpenAI GPT-4o (optional) |
-| Datenbank        | MariaDB, lokal, kein Cloud-Zugriff                                 |
-| Netzwerk-Ausgang | Nur auf expliziten Nutzer-Befehl                                   |
+| Kennzahl         | Wert                                                                             |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Tools (aktiv)    | **90+**                                                                          |
+| Tests            | **640 grün**                                                                     |
+| LLM-Backends     | Ollama llama3.1:8b · qwen2.5:7b (lokal) + OpenAI GPT-4o (optional) + LoRA-Modell |
+| Datenbank        | MariaDB mit VECTOR-Index, lokal, kein Cloud-Zugriff                              |
+| Netzwerk-Ausgang | Nur auf expliziten Nutzer-Befehl                                                 |

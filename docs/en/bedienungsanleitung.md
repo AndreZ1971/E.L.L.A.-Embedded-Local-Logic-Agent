@@ -1,6 +1,6 @@
 ﻿# E.L.L.A. â€” User Manual
 
-Version 1.5.0
+Version 1.6.4
 
 ---
 
@@ -19,7 +19,7 @@ I don't need any of that â€” Ollama runs locally, the AI runs locally, your
 
 ### Installation
 
-1. Run `E.L.L.A Setup 1.5.0.exe`
+1. Run `E.L.L.A Setup 1.6.4.exe`
 2. Choose an installation path (default: `C:\Program Files\E.L.L.A`)
 3. The installer sets everything up automatically â€” MariaDB, Ollama, Node.js. Nothing else to install.
 
@@ -1276,5 +1276,31 @@ E.L.L.A. tracks session duration, detects pauses, and knows when you last intera
 
 ---
 
-_E.L.L.A. v1.5.0 - Embedded Local Logic Agent_
+---
+
+## New in v1.6.x
+
+### LoRA Fine-Tuning
+
+E.L.L.A. builds a personal language model from your interaction history. Fully local training — no data leaves your machine. The HUD shows training progress live.
+
+### HUD Widget-System
+
+Modular dashboard widgets in the chat overlay: memory status, LoRA training progress, vector index health, system stats.
+
+### Speech-to-Text (STT)
+
+Local speech recognition via Whisper (Xenova/whisper-small). Fully offline transcription — improved quality in v1.6.2.
+
+### MariaDB VECTOR Index
+
+Native vector index for boundless similarity search. No more scan limits on memory recall.
+
+### 640 Tests
+
+Comprehensive test coverage across all features — unit and integration tests via Vitest.
+
+---
+
+_E.L.L.A. v1.6.4 - Embedded Local Logic Agent_
 _Developed for Windows 10/11 (x64)_

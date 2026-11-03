@@ -1,6 +1,6 @@
-# E.L.L.A. — Capabilities (v1.5.0)
+# E.L.L.A. — Capabilities (v1.6.4)
 
-90 active tools. Everything through natural language.
+90+ active tools. Everything through natural language.
 
 ---
 
@@ -232,6 +232,8 @@
 | **Knowledge Graph**               | D3 visualization with subject/predicate/object triples         |
 | **Multi-agent pipeline**          | Parallel agents with live streaming                            |
 | **Self-Learning Loop**            | Positive feedback → few-shot injection in future conversations |
+| **LoRA Fine-Tuning**              | Personal model training from interaction history (local)       |
+| **HUD Widgets**                   | Modular dashboard: memory, LoRA, vector index, system stats    |
 | **Gesture Control**               | Hand gesture recognition via MediaPipe Hands (Stage 1)         |
 | **Time Awareness**                | Session duration, pause detection, last interaction tracking   |
 | **Comeback briefing**             | What changed while you were away                               |
@@ -241,10 +243,10 @@
 
 ## By the Numbers
 
-| Metric           | Value                                                              |
-| ---------------- | ------------------------------------------------------------------ |
-| Tools (active)   | **90**                                                             |
-| Tests            | **261 passing**                                                    |
-| LLM backends     | Ollama llama3.1:8b · qwen2.5:7b (local) + OpenAI GPT-4o (optional) |
-| Database         | MariaDB, local, no cloud access                                    |
-| Network outbound | Only on explicit user command                                      |
+| Metric           | Value                                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| Tools (active)   | **90+**                                                                                  |
+| Tests            | **640 passing**                                                                          |
+| LLM backends     | Ollama llama3.1:8b · qwen2.5:7b (local) + OpenAI GPT-4o (optional) + LoRA personal model |
+| Database         | MariaDB with VECTOR index, local, no cloud access                                        |
+| Network outbound | Only on explicit user command                                                            |
