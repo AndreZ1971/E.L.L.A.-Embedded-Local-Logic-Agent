@@ -251,12 +251,12 @@ Danach öffnet sich der Chat — fertig.
 
 In den Einstellungen unter „Sprache":
 
-| Modus        | Beschreibung                                        |
-| ------------ | --------------------------------------------------- |
-| **Aus**      | Kein automatisches Zuhören                          |
-| **Manuell**  | Nur per Mikrofon-Button im Chat                     |
-| **Wakeword** | Sag „Ella" — Ella hört dann zu und antwortet        |
-| **Immer**    | Kontinuierliches Zuhören — Ella hört dauerhaft mit  |
+| Modus        | Beschreibung                                       |
+| ------------ | -------------------------------------------------- |
+| **Aus**      | Kein automatisches Zuhören                         |
+| **Manuell**  | Nur per Mikrofon-Button im Chat                    |
+| **Wakeword** | Sag „Ella" — Ella hört dann zu und antwortet       |
+| **Immer**    | Kontinuierliches Zuhören — Ella hört dauerhaft mit |
 
 **Tipp:** Im Wakeword-Modus kannst du nach einer Antwort 8 Sekunden lang direkt weitersprechen, ohne erneut „Ella" zu sagen.
 
@@ -297,16 +297,16 @@ Im Blind-Modus, Hausaufgaben-Modus oder bei Bewegungseinschränkungen schaltet E
 
 Links und rechts neben dem Chat zeigen konfigurierbare Panels Live-Daten. Auswählbar unter Einstellungen → Erscheinungsbild:
 
-| Widget        | Zeigt                                         |
-| ------------- | --------------------------------------------- |
-| **System**    | CPU, RAM, Festplatte, Temperatur              |
-| **Monitore**  | Angeschlossene Bildschirme                    |
-| **Routinen**  | Deine Setups mit nächster Ausführungszeit     |
-| **Directive** | Die 4 Grundregeln                             |
-| **Uhr**       | Digitale Uhrzeit                              |
-| **Aufgaben**  | Offene Aufgaben mit Prioritätsfarben          |
-| **E-Mail**    | Letzte E-Mails mit Ungelesen-Zähler           |
-| **Musik**     | Aktuell gespielter Titel                      |
+| Widget        | Zeigt                                     |
+| ------------- | ----------------------------------------- |
+| **System**    | CPU, RAM, Festplatte, Temperatur          |
+| **Monitore**  | Angeschlossene Bildschirme                |
+| **Routinen**  | Deine Setups mit nächster Ausführungszeit |
+| **Directive** | Die 4 Grundregeln                         |
+| **Uhr**       | Digitale Uhrzeit                          |
+| **Aufgaben**  | Offene Aufgaben mit Prioritätsfarben      |
+| **E-Mail**    | Letzte E-Mails mit Ungelesen-Zähler       |
+| **Musik**     | Aktuell gespielter Titel                  |
 
 ---
 

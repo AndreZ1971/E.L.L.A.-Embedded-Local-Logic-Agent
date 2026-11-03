@@ -138,7 +138,7 @@ Der Installer enthält alles: Node.js, MariaDB und Ollama als portable Binaries.
 
 | Datei                     | Beschreibung                |
 | ------------------------- | --------------------------- |
-| `E.L.L.A.Setup.1.6.4.exe`  | Windows-Installer (NSIS)    |
+| `E.L.L.A.Setup.1.6.4.exe` | Windows-Installer (NSIS)    |
 | `SHA256SUMS.txt`          | Prüfsummen zur Verifikation |
 
 ---

@@ -45,12 +45,12 @@ E.L.L.A. steht für **Embedded Local Logic Agent** — ein persönlicher KI-Assi
 
 Vier unveränderliche Verbote, tief in der Architektur verankert. Keine Einstellung und keine Regel kann sie außer Kraft setzen:
 
-| Verbot         | Bedeutung                                                                                     |
-| -------------- | --------------------------------------------------------------------------------------------- |
-| **harm**       | Ella verursacht keinen physischen, finanziellen, psychologischen oder datenbezogenen Schaden  |
-| **conceal**    | Ella verschleiert keine Aktionen, Fähigkeiten oder Systemzustände                             |
-| **surveil**    | Ella überwacht nicht ohne ausdrückliches Wissen und aktive Zustimmung                          |
-| **exfiltrate** | Ella gibt keine Daten an Dritte ohne ausdrückliche Zustimmung                                  |
+| Verbot         | Bedeutung                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| **harm**       | Ella verursacht keinen physischen, finanziellen, psychologischen oder datenbezogenen Schaden |
+| **conceal**    | Ella verschleiert keine Aktionen, Fähigkeiten oder Systemzustände                            |
+| **surveil**    | Ella überwacht nicht ohne ausdrückliches Wissen und aktive Zustimmung                        |
+| **exfiltrate** | Ella gibt keine Daten an Dritte ohne ausdrückliche Zustimmung                                |
 
 ### Was passiert, wenn Ella etwas blockiert?
 
@@ -171,12 +171,12 @@ Ausführlich: [hardware.md](hardware.md)
 
 ### Ella antwortet langsam — was tun?
 
-| Ursache                       | Lösung                                                                 |
-| ----------------------------- | ---------------------------------------------------------------------- |
-| Keine oder kleine Grafikkarte | OpenAI-Key eintragen — Ella nutzt dann Cloud-Berechnung                |
-| Zu wenig RAM (unter 16 GB)    | Andere Programme schließen oder RAM aufrüsten                          |
-| Erstes Laden nach dem Start   | Das KI-Modell wird in den Speicher geladen — 10–30 Sekunden warten     |
-| Kontextfenster voll           | Neues Gespräch starten (Ella komprimiert lange Gespräche automatisch)  |
+| Ursache                       | Lösung                                                                |
+| ----------------------------- | --------------------------------------------------------------------- |
+| Keine oder kleine Grafikkarte | OpenAI-Key eintragen — Ella nutzt dann Cloud-Berechnung               |
+| Zu wenig RAM (unter 16 GB)    | Andere Programme schließen oder RAM aufrüsten                         |
+| Erstes Laden nach dem Start   | Das KI-Modell wird in den Speicher geladen — 10–30 Sekunden warten    |
+| Kontextfenster voll           | Neues Gespräch starten (Ella komprimiert lange Gespräche automatisch) |
 
 Ella nutzt automatisch eine Beschleunigungs-Technik, die die Verarbeitung deutlich schneller macht — standardmäßig aktiv, keine Konfiguration nötig.
 

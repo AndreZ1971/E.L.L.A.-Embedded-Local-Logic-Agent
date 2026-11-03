@@ -1,4 +1,4 @@
-# E.L.L.A. -- User Manual
+# E.L.L.A. — User Manual
 
 Version 1.6.4
 
@@ -6,318 +6,69 @@ Version 1.6.4
 
 ## What is E.L.L.A.?
 
-E.L.L.A. stands for _Embedded Local Logic Agent_ -- your personal AI assistant for Windows. ELLA runs directly on your own machine. No subscription, no privacy fine print. Install and go.
+E.L.L.A. stands for _Embedded Local Logic Agent_ — your personal AI assistant for Windows. It runs directly on your own machine. No subscription, no privacy fine print. Install and go.
 
-The AI runs locally via Ollama -- your data stays on your computer. For some optional features (German voice output, multi-agents, image recognition) you can configure your own OpenAI key -- details at [Network connections](network.md).
-
----
-
-## 1. First Launch
-
-### Installation
-
-1. Run the setup file
-2. Choose an installation path (default: `C:\Program Files\E.L.L.A`)
-3. The installer sets everything up automatically -- nothing else to install
-
-### Onboarding
-
-On first launch, ELLA guides you through setup in six steps:
-
-1. **Language** -- German or English for the interface
-2. **Terms of use** -- accept the EULA and the ELLA Directive
-3. **Hardware scan** -- ELLA detects your system and suggests a suitable language model. You confirm the choice -- no download without your consent
-4. **Voice selection** -- 4 female voices in German, English, Spanish, and French. Each voice can be previewed
-5. **Location** -- for weather and local information (optional, can be skipped)
-6. **License activation** -- enter your license key (`ELLA-XXXX-XXXX-XXXX-XXXX`)
-
-After that the chat opens -- done.
+The AI runs locally via Ollama — your data stays on your machine. But before we talk about _what_ Ella can do, let's talk about _what guides her_. Because that's what sets her apart from every other assistant.
 
 ---
 
-## 2. Chat -- How Do I Talk to ELLA?
+## The Directive — the Framework
 
-Just write in plain language. No commands, no special syntax. ELLA understands natural language.
+Ella operates under four immutable ground rules. They are embedded in the architecture, cannot be disabled — and everything Ella does happens _within_ this framework:
 
-**Examples:**
+1. **No harm** — physical, financial, psychological, or data-related
+2. **No concealment** — every action and every capability is visible to you
+3. **No surveillance** — not without your knowledge and your consent
+4. **No data exfiltration** — not without your explicit consent
 
-- "What's the weather like tomorrow?"
-- "Open Chrome and Spotify"
-- "Summarize this PDF"
-- "How much storage space is left?"
+### How You See the Framework in Action
 
-### What You See in the Chat
+The Directive isn't abstract — you see it in every conversation:
 
-- **Tool chips:** Below each response, ELLA briefly shows which tool she used -- full transparency over every action
-- **Provider chip:** Bottom-left in the chat, a green chip shows whether the local AI or the cloud is currently active
-- **Directive banner:** When ELLA declines a request, a red banner appears with the reason
-- **Feedback buttons:** Thumbs up or thumbs down below each response -- ELLA learns from your feedback and adapts permanently
-
-### Memory
-
-ELLA remembers things across conversations. You can teach her explicitly:
-
-- "Remember: I don't drink coffee in the morning"
-- "What do you know about me?"
-- "Forget the note about coffee"
-
-ELLA also recognizes connections: If you say "My son's name is Max" and later "Max goes to Einstein High", ELLA can answer the question "What school does my son go to?"
+- **Tool chips** — below every response, Ella briefly shows which tool she used. Full transparency over every action.
+- **Provider chip** — bottom left, a chip shows whether the local AI or the cloud is currently active.
+- **Directive banner** — if Ella declines a request, a red banner appears with the reason.
 
 ---
 
-## 3. Voice Control
+## What E.L.L.A. Does for You
 
-### Voice Modes
+Everything below runs locally on your machine — and under the Directive above. You talk to Ella in plain language, no commands, no special syntax.
 
-In Settings under "Voice" you'll find four modes:
+### Conversation & Memory
 
-| Mode         | Description                                       |
-| ------------ | ------------------------------------------------- |
-| **Off**      | No automatic listening                            |
-| **Manual**   | Microphone button in the chat only                |
-| **Wakeword** | Say "Ella" -- ELLA then listens and responds      |
-| **Always**   | Continuous listening -- ELLA listens all the time |
-
-**Tip:** In wakeword mode you can continue speaking for 8 seconds after a response without saying "Ella" again.
-
-### Stop Command
-
-While ELLA is speaking, you can interrupt her at any time. Just say "Stop", "Quiet", "Shut up", or "Be quiet" -- voice output stops immediately.
-
-### Dictation Mode
-
-In dictation mode, your speech is transcribed and typed directly into the active window on your screen -- whether it's Word, a browser, or an email program.
-
-**Activate:**
-
-- Settings -> Voice -> set mode to "Dictation"
-- Or: keyboard shortcut `Ctrl+Alt+Space` (configurable in Settings)
-
-ELLA listens, converts speech to text, and types it into the active window. Optionally, spell correction can be enabled before insertion. Your clipboard is not overwritten in the process.
-
-### Voice Output
-
-ELLA speaks in four languages: German, English, Spanish, and French.
-
-- **English, French, and Spanish** use a local voice (Kokoro); if Kokoro is unavailable, Edge TTS is used as fallback (internet connection required)
-- **German** uses Microsoft Edge TTS -- the spoken text is sent to Microsoft servers
-
-You choose the voice during onboarding or later under Settings -> Voice.
-
----
-
-## 4. Settings
-
-All settings are accessible via the gear icon.
-
-### AI Provider
-
-| Mode               | Description                                      |
-| ------------------ | ------------------------------------------------ |
-| **Ollama (local)** | Everything runs on your machine. Default setting |
-| **OpenAI**         | Cloud-based. Requires your own OpenAI API key    |
-| **Auto**           | Local first, OpenAI as fallback when needed      |
-
-### Language Model
-
-ELLA suggests a model suited to your hardware during onboarding. You can change it anytime:
-
-- **Predefined models:** Small, Standard, or Large -- depending on your machine's power
-- **Custom model:** Any model installed in Ollama appears as a selectable option. You can also enter any model name
-
-### Voice and Language
-
-- **Spoken language:** DE / EN / ES / FR -- determines the voice and pronunciation
-- **Stress detection:** Optional -- ELLA detects tension in your voice and responds more empathetically (opt-in, off by default)
-
-### Appearance
-
-Three visual styles:
-
-- **Calm** (default) -- Quiet, dark design. Classic sidebar
-- **HUD** -- Technical layout with data panels, top bar instead of sidebar, and a central orb as visualization
-- **Show** -- Presentation mode in fullscreen. Shows only the orb and the last response. Sensitive data (emails, file paths) is automatically hidden
-
-**Accent colors in HUD mode:** Cyan, Violet, or Amber.
-
-Switch: Settings -> Appearance.
-
-In blind mode, homework mode, or when reduced motion is enabled on the system, ELLA automatically falls back to Calm.
-
-### Programs
-
-ELLA can open and control installed programs. Under Settings -> Programs you see all detected apps.
-
-- **Program not found?** Use the search field or add it manually via the "Browse" button
-- Newly installed programs appear automatically after a scan
-
-### Setups (App Macros)
-
-A setup opens and closes multiple programs at once -- like pressing a single button.
-
-- **Create:** Settings -> Setups -> New. Or in chat: "Create a setup called Home Office: open Teams, Outlook, and Chrome"
-- **Run:** "Load my work setup" or the "Run now" button in Settings
-- **Actions:** Each setup can include additional actions (change volume, toggle dark mode, translate text, and more)
-
-### Rules
-
-You can control ELLA's behavior with custom rules:
-
-- "Create a rule: ELLA must not send emails"
-- "Rule: no alarms between 10pm and 7am"
-
-Rules can be managed in Settings.
-
-### Cloud Transparency
-
-All requests to OpenAI are counted and shown as a tile on the dashboard. You can always see how often the cloud was used today.
-
-### Offline Mode
-
-Under Settings -> Offline Mode you can block most internet services:
-
-- Web search, weather, location, and webpage analysis blocked
-- No OpenAI
-- License verification uses the local cache
-- Local network features (devices on WiFi, connections) remain available
-
-Note: In offline mode, only Kokoro TTS is available (English, French, Spanish). German voice output (Edge TTS) is disabled in offline mode.
-
----
-
-## 5. HUD Mode
-
-HUD mode turns ELLA into a technical dashboard with live data.
-
-### Activate
-
-Settings -> Appearance -> select HUD.
-
-### What Changes?
-
-- **Top bar** instead of sidebar -- with logo, navigation, and status chips (LOCAL / OFFLINE / CLOUD)
-- **Central orb** -- an animated circle that visualizes ELLA's state (ready, listening, thinking, speaking, cloud, offline)
-- **Widget columns** -- left and right of the chat, configurable panels show live data
-
-### Widgets
-
-In Settings (Appearance tab) you can choose which widgets appear on the left and right. Available widgets:
-
-| Widget        | Shows                                   |
-| ------------- | --------------------------------------- |
-| **System**    | CPU, RAM, VRAM, disk, temperature       |
-| **Monitors**  | Connected displays                      |
-| **Routines**  | Your setups with next execution time    |
-| **Directive** | The 4 core rules of the ELLA Directive  |
-| **Clock**     | Digital clock                           |
-| **Tasks**     | Open tasks (max 5) with priority colors |
-| **Email**     | Last 4 emails with unread count         |
-| **Music**     | Currently playing track                 |
-
-### Performance
-
-ELLA automatically throttles animations while thinking -- so your machine is not slowed down. This throttling can be toggled under Settings -> Appearance.
-
----
-
-## 6. Homework Mode
-
-Homework mode is a PIN-secured kiosk mode -- designed for situations where only certain programs should be allowed.
-
-### How It Works
-
-1. Say: "Activate homework mode" or go to Settings
-2. Set a PIN
-3. From now on, only approved programs can be accessed
-
-### Ending It
-
-Only with the PIN. There is no automatic expiry -- the mode stays active until the correct PIN is entered.
-
-If the PIN is lost, there is an emergency reset.
-
----
-
-## 7. Accessibility
-
-### Blind Mode
-
-Optimized for screen readers and blind users:
-
-- Voice output is always active -- every response is read aloud
-- No markdown formatting (bullet points, bold text, etc.) -- only clear, linear text
-- Audio tones signal state changes (ready, thinking, responding)
-- All buttons and input fields have descriptive labels for screen readers
-- Welcome announcement when the app loads
-
-### Deaf Mode
-
-Optimized for deaf users:
-
-- Voice output and the microphone button are completely hidden
-- A visual banner in the chat shows that the mode is active
-- ELLA does not mention voice features in her responses
-
-Both modes are found under Settings -> Accessibility.
-
----
-
-## 8. Proactive Messages
-
-ELLA sometimes reaches out on her own -- without you asking. This happens for example when:
-
-- A drive drops below 10% free space
-- RAM is sustained high
-- A USB device is plugged in or removed
-- An alarm triggers
-- An IBAN, tracking number, or phone number is detected in the clipboard
-- A calendar appointment starts in 15 minutes
-- Open tasks remain in the evening
-- You have been working for a long time without a break
-
-### Muting
-
-Every proactive message has two buttons:
-
-- **Dismiss** -- close this individual message
-- **Mute** -- permanently suppress this type of message
-
-After dismissing the same category 5 times, ELLA mutes it automatically.
-
-System-critical notifications (alarms, scheduled setups) cannot be muted.
-
----
-
-## 9. Playing Chess
-
-ELLA can play chess -- in a dedicated window with four visual themes.
+Just start typing:
 
 ```
-"Let's play chess"
-"Open the chess board"
+"What's the weather like tomorrow?"
+"Open Chrome and Spotify"
+"Summarize this PDF"
+"How much disk space is left?"
 ```
 
-- **4 Themes** -- Classic, Neon, Marble, and Midnight. Each with its own color scheme, glow effect, and particle background
-- **AI opponent** -- ELLA picks her move from the legal options and comments on the game live
-- **Pause and resume** -- Interrupt games anytime. When reopening, a "Continue" button appears
-- **Reflection** -- After the game ends, ELLA stores insights and plays better next time
-- **Captured pieces** -- Displayed with material advantage above and below the board
+Ella remembers things across conversations. You can teach her specifically:
 
----
+```
+"Remember: I don't drink coffee in the morning"
+"What do you know about me?"
+"Forget the note about the coffee"
+```
 
-## 10. Files and Documents
+She also recognizes connections: Say "My son's name is Max" and later "Max goes to Einstein High School", and Ella can answer the question "What school does my son go to?"
 
-### Searching for Files
+Every response also has **thumbs up / down** — Ella learns from your feedback and adapts permanently.
+
+### Files & Documents
+
+**Search:**
 
 ```
 "Search for the file Proposal"
-"Find all PDFs with the word Invoice"
+"Find all PDFs containing the word Invoice"
 "Where is my resume?"
 ```
 
-ELLA searches all drives -- using the Windows Search Index for fast results.
-
-### Opening, Copying, Renaming, Deleting Files
+**Open, copy, rename, delete:**
 
 ```
 "Open C:\Documents\Report.docx"
@@ -326,116 +77,72 @@ ELLA searches all drives -- using the Windows Search Index for fast results.
 "Delete the file temp_backup.zip"
 ```
 
-### Reading and Understanding Documents
-
-ELLA can read Word documents, PDFs, Excel spreadsheets, HTML, and text files:
+**Read and understand** — Word, PDF, Excel, HTML, text files:
 
 ```
-"What does this PDF say?"
+"What's in this PDF?"
 "Summarize the Word document"
 "Read me the Excel spreadsheet"
 ```
 
-### Creating Documents and Dictating
+**Create and dictate:**
 
 ```
 "Create a new Word document called Minutes"
 "Dictate into the document Report: Dear Sir or Madam..."
 ```
 
-### Full-Text Search in Your Documents
-
-ELLA can index folders and make their contents searchable:
+**Full-text search across your documents** and **find duplicates:**
 
 ```
 "Index my Documents folder"
 "Search my indexed documents for tax notice"
+"Search for duplicate files"
 ```
 
-### Finding Duplicate Files
-
-```
-"Find duplicate files"
-"How much space am I wasting on duplicates?"
-```
-
----
-
-## 11. Email and Calendar
-
-### Outlook
-
-ELLA works directly with Outlook:
-
-**Reading emails:**
-
-```
-"Show me my unread emails"
-"What did Klaus write?"
-```
-
-**Composing emails:**
-
-```
-"Write a draft to Klaus: meeting tomorrow at 2pm?"
-```
-
-ELLA opens a draft in Outlook -- the email is not sent automatically.
-
-**Calendar:**
-
-```
-"What's on my calendar this week?"
-"Create an appointment: dentist, Friday at 10am"
-```
-
-### Gmail and Google Calendar
-
-ELLA also supports Gmail and Google Calendar via a one-time sign-in (OAuth):
-
-```
-"Show me my Gmail emails"
-"What's on my Google Calendar today?"
-"Appointment in Google Calendar: doctor, Monday 9am"
-```
-
-Setup is found in the Settings.
-
----
-
-## 12. Keyboard Shortcuts
-
-| Shortcut         | Function                                         |
-| ---------------- | ------------------------------------------------ |
-| `Ctrl+Alt+Space` | Toggle dictation mode (configurable in Settings) |
-| `Esc`            | Exit presentation mode (Show)                    |
-
----
-
-## More Features
-
-### Writing and Translating Text
+### Writing & Translating
 
 ```
 "Write me a professional cover letter for the position of..."
 "Translate this to German"
-"Summarize this text"
 "Correct this text"
 ```
 
-ELLA can also learn your personal writing style and compose texts that sound like you.
+Ella can also learn your personal writing style and compose texts in your style.
 
-### System and Performance
+### Email & Calendar
+
+Ella works directly with **Outlook**:
 
 ```
-"How is my system running right now?"
-"How much space is left on C?"
+"Show me my unread emails"
+"What did Klaus write?"
+"Draft an email to Klaus: Meeting tomorrow at 2 PM?"
+"What's on my calendar this week?"
+"Create an appointment: Dentist, Friday 10 AM"
+```
+
+Emails are opened as **drafts** — nothing is sent automatically.
+
+**Gmail and Google Calendar** work too, via a one-time sign-in:
+
+```
+"Show me my Gmail messages"
+"Google Calendar event: Doctor, Monday 9 AM"
+```
+
+### System, Performance & Hardware
+
+```
+"How is my system running?"
 "How hot is my CPU?"
-"Free the RAM"
-"Clean up temp files"
+"Free up the RAM"
+"Clean up the temp files"
+"What graphics card do I have?"
+"Which USB devices are connected?"
 ```
 
-### Music and Media
+### Music & Media
 
 ```
 "Play something by Coldplay"
@@ -444,33 +151,16 @@ ELLA can also learn your personal writing style and compose texts that sound lik
 "What's playing right now?"
 ```
 
-### Tasks and Reminders
+### Tasks & Reminders
 
 ```
-"Add the task 'File taxes'"
+"Add the task 'Do taxes' to my list"
 "Show me my open tasks"
-"Set an alarm for 7:30"
-"Remind me tomorrow at 3pm: call the doctor"
+"Set an alarm for 7:30 AM"
+"Remind me tomorrow at 3 PM: Call the doctor"
 ```
 
-### Network
-
-```
-"Who's on my network?"
-"Show me active connections"
-"What's my WiFi status?"
-```
-
-### Internet and Search
-
-```
-"Search for the current Bitcoin price"
-"What's the weather like today?"
-```
-
-Web search runs via DuckDuckGo -- no tracking.
-
-### Programs and Window Control
+### Controlling Apps & Windows
 
 ```
 "Open Chrome"
@@ -480,153 +170,240 @@ Web search runs via DuckDuckGo -- no tracking.
 "Shut down the computer"
 ```
 
-### Multi-Agents
-
-The most powerful feature: Multiple AI agents work simultaneously on a task -- faster and more thorough.
-
-Requires an OpenAI key. Two predefined pipelines:
-
-- **Morning Briefing** -- calendar appointments, open tasks, and weather at a glance
-- **System Report** -- storage, RAM, top processes, and network status
-
-You'll find Multi-Agents as a separate page in the navigation.
-
-### Hardware Information
+### Network & Internet
 
 ```
-"What graphics card do I have?"
-"How much RAM is installed?"
-"What USB devices are connected?"
-"Which monitors are connected?"
+"Who's on my network?"
+"What's my Wi-Fi status?"
+"Search for the current Bitcoin price"
 ```
 
-### Printers
+Web search runs through DuckDuckGo — no tracking.
+
+### Printer & Camera
 
 ```
 "What printers do I have?"
 "Print the document"
-"Show me active print jobs"
-```
-
-### Camera
-
-```
-"What cameras are connected?"
+"Which cameras are connected?"
 "Take a photo"
 ```
 
 ### Desktop Automation
 
-ELLA can read your screen, control mouse and keyboard:
+Ella can read your screen and control mouse and keyboard:
 
 ```
-"What does my screen say?"
+"What's on my screen?"
 "Click the OK button"
 "Send Ctrl+C to the active window"
 ```
 
----
+### Playing Chess
 
-## Personal Model (LoRA Fine-Tuning)
+A dedicated window with four visual themes:
 
-ELLA can learn from your feedback and create a personal AI model. When you give a thumbs up (👍) in the chat, ELLA saves that question-answer pair as a learning example. Once enough examples are collected, ELLA can train her own model.
+```
+"Let's play chess"
+"Open the chessboard"
+```
 
-### How it works
+- **4 Themes** — Classic, Neon, Marble and Midnight
+- **AI opponent** — Ella picks her move and commentates the game live
+- **Pause and resume** — a "Continue" button appears the next time you open it
+- **Reflection** — after the game ends, Ella stores insights and improves
 
-1. **Give feedback:** Thumbs up answers you like. ELLA stores these as golden examples.
-2. **Threshold:** At least 50 learning examples total and 20 new ones since the last training are needed.
-3. **Start training:** Go to Settings -> Personal Model, enable the toggle, and click "Train now". Training takes 10--30 minutes depending on your hardware.
-4. **Automatic switch:** After training, ELLA automatically switches to your personal model. You'll notice the difference -- responses better match your style.
+### Multiple Agents at Once
 
-### Requirements
+For bigger tasks, Ella runs multiple agents in parallel — faster and more thorough. Two ready-made workflows:
 
-- GPU with at least 12 GB VRAM (e.g., RTX 2060 12GB, RTX 3060, RTX 4070)
-- Python environment is set up automatically on first training
-- Training runs entirely locally -- no cloud needed
+- **Morning briefing** — calendar events, open tasks, and weather at a glance
+- **System report** — disk space, RAM, top processes, and network status
 
-### In HUD mode
-
-The Fine-Tuning widget shows the current status:
-
-- **Blue dot:** Collecting examples
-- **Cyan dot:** Enough examples, training possible
-- **Amber pulsing:** Training in progress
-- **Green dot:** Personal model is active
-
-### Settings
-
-- **Enable personal model:** Toggle under Settings -> Personal Model
-- **Status:** Shows number of learning examples, new since last training, date of last training
-- **Manual training:** "Train now" button (only visible when enabled and enough examples are available)
+Found as a dedicated page in the navigation. (Requires your own OpenAI key.)
 
 ---
 
-## Vector Memory
+## First Start
 
-Starting with version 1.6.0, ELLA uses a native vector index in MariaDB for memory search. This means ELLA can search through **all** memories, not just the most recent 500. Searches are faster and find the most relevant entries even with large memory stores.
+### Installation
 
-The vector index is set up automatically on first start (requires MariaDB 11.6 or newer). Older versions fall back to the previous JS-based search.
+Run the setup file, confirm the default path, done. The installer includes everything — you don't need to install anything else.
 
-In HUD mode, the Memory widget shows the status: **VEC** (vector index active, range ∞) or **JS** (fallback, range ≤ 500).
+### Onboarding
+
+On first launch, Ella guides you through setup in six steps:
+
+1. **Language** — German or English for the interface
+2. **Terms of use** — Accept the EULA and the E.L.L.A. Directive
+3. **Hardware scan** — Ella detects your machine and suggests a suitable language model. You confirm — no download without your consent
+4. **Choose a voice** — four voices in German, English, Spanish, and French, each with a preview
+5. **Location** — for weather and local info (optional)
+6. **License activation** — enter your license key
+
+After that, the chat opens — done.
 
 ---
 
-## User Profiles
+## Speaking & Listening
 
-Multiple people can use ELLA on the same machine -- each profile has its own memory and its own history. Profiles can optionally be protected with a PIN.
+### Voice Modes
 
-Settings -> Profiles.
+In Settings under "Voice":
+
+| Mode         | Description                                      |
+| ------------ | ------------------------------------------------ |
+| **Off**      | No automatic listening                           |
+| **Manual**   | Microphone button in chat only                   |
+| **Wakeword** | Say "Ella" — Ella then listens and responds      |
+| **Always**   | Continuous listening — Ella listens at all times |
+
+**Tip:** In wakeword mode, you can keep talking for 8 seconds after a response without saying "Ella" again.
+
+### Stop Command
+
+While Ella is speaking, you can interrupt her at any time: "Stop", "Quiet", "Be quiet", or "Shut up" — speech output stops immediately.
+
+### Dictation Mode
+
+Your speech is transcribed and typed directly into the active window — whether Word, a browser, or email.
+
+- Activate: Settings → Voice → "Dictation", or keyboard shortcut `Ctrl+Alt+Space`
+- Optional spell-check before insertion
+- Your clipboard is not overwritten in the process
+
+### Voice Output — Being Honest About What Runs Locally
+
+Ella speaks in four languages:
+
+- **English, French, and Spanish** run **fully locally** via Kokoro. (If Kokoro is temporarily unavailable, Edge TTS is used as a fallback — which requires internet.)
+- **German (Katja)** currently runs via Microsoft Edge TTS — the spoken text is transmitted to Microsoft.
+
+Why do we state this so clearly? Because the Directive demands "no concealment." We're working on a fully local German voice — until then, we name the one path that goes outside by name.
 
 ---
 
-## The ELLA Directive
+## Appearances
 
-Four absolute core rules -- anchored in the architecture, not disableable:
+Three visual styles, switchable under Settings → Appearance:
 
-1. **No harm** -- physical, financial, psychological, or data-related
-2. **No concealment** -- all actions and capabilities are transparent
-3. **No surveillance** -- without your knowledge and consent
-4. **No data sharing** -- without your explicit consent
+- **Calm** (default) — a quiet, dark design with a classic sidebar
+- **HUD** — technical layout with data panels, top bar, and a central orb showing Ella's state (ready, listening, thinking, speaking). Accent colors: Cyan, Violet, or Amber
+- **Show** — presentation mode in full screen. Shows only the orb and the latest response; sensitive data (emails, file paths) is automatically hidden
 
-When ELLA declines a request because of the Directive, a red banner appears in the chat with the reason.
+In blind mode, homework mode, or with reduced motion preferences, Ella automatically switches back to Calm.
+
+### Widgets in HUD Mode
+
+Configurable panels on the left and right of the chat display live data. Selectable under Settings → Appearance:
+
+| Widget        | Shows                                |
+| ------------- | ------------------------------------ |
+| **System**    | CPU, RAM, disk, temperature          |
+| **Monitors**  | Connected displays                   |
+| **Routines**  | Your setups with next execution time |
+| **Directive** | The 4 ground rules                   |
+| **Clock**     | Digital clock                        |
+| **Tasks**     | Open tasks with priority colors      |
+| **Email**     | Recent emails with unread count      |
+| **Music**     | Currently playing track              |
+
+---
+
+## Special Modes
+
+### Homework Mode
+
+A PIN-secured kiosk mode — for situations where only certain programs should be allowed.
+
+1. Say "Activate homework mode" or go to settings
+2. Set a PIN
+3. From now on, only approved programs are accessible
+
+Exiting requires the PIN. If lost, there's an emergency reset.
+
+### Accessibility
+
+**Blind mode** — speech output always active, no Markdown (plain text only), audio tones for state changes, descriptive labels for screen readers.
+
+**Deaf mode** — speech output and microphone hidden, visual banner in chat, no mention of voice features.
+
+Both under Settings → Accessibility.
+
+---
+
+## Proactive Messages
+
+Ella sometimes speaks up on her own — for example when:
+
+- A drive drops below 10% free space
+- RAM is persistently overloaded
+- A USB device is connected or disconnected
+- An alarm triggers or an appointment starts in 15 minutes
+- An IBAN, tracking number, or phone number is detected in the clipboard
+- Open tasks remain in the evening
+- You've been working for a long time without a break
+
+Every proactive message has two buttons: **Dismiss** (close this message) and **Mute** (permanently suppress this type). After dismissing the same category 5 times, Ella automatically mutes it. System-critical notifications (alarms, scheduled setups) cannot be muted.
+
+---
+
+## Settings Overview
+
+All settings via the gear icon.
+
+- **AI provider** — everything runs locally by default (Ollama). Optionally, add your own OpenAI key and choose between "local", "OpenAI", or "Auto" (local first, cloud as fallback).
+- **Language model** — Ella suggests a model suited to your hardware during onboarding. You can switch at any time.
+- **Voice & language** — DE / EN / ES / FR. Optional stress detection (opt-in, off by default).
+- **Programs** — all detected apps; add missing ones via search field or "Browse."
+- **Setups (app macros)** — open and close multiple programs at once. Create via chat: "Create a setup called Home Office: open Teams, Outlook, and Chrome." Run: "Load my work setup."
+- **Rules** — define your own behavior: "Create a rule: Ella may not send emails" or "Rule: no alarms between 10 PM and 7 AM."
+- **Profiles** — multiple people on the same machine, each profile with its own memory and history, optionally PIN-protected.
+- **Cloud transparency** — every OpenAI request is counted and displayed on the dashboard.
+- **Offline mode** — blocks web search, weather, location, webpage analysis, and OpenAI. Local network features remain available. Note: German voice output (Edge TTS) still requires internet even here; English, French, and Spanish run locally.
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut         | Function                                         |
+| ---------------- | ------------------------------------------------ |
+| `Ctrl+Alt+Space` | Toggle dictation mode (configurable in settings) |
+| `Esc`            | Exit presentation mode (Show)                    |
 
 ---
 
 ## Privacy
 
-- All data stays on your machine -- no usage data sent to third parties
+- All data stays on your machine — no usage data sent to third parties
 - No telemetry, no tracking
 - Ollama and the database run locally
-- German voice output via Edge TTS: the spoken text is sent to Microsoft servers (only exception during standard operation)
-- OpenAI features (image recognition, multi-agents, speech recognition) only when you have configured your own key
+- German voice output via Edge TTS: the spoken text is sent to Microsoft (only exception in default operation)
+- OpenAI features only when you've configured your own key
 - Full transparency: [Network connections](network.md)
 
 ---
 
-## Frequently Asked Questions
+## Quick Help for Problems
 
-**ELLA isn't responding?**
-Ollama may not be running. The orange banner at the top of the chat indicates this. Wait briefly or switch to OpenAI in Settings.
+**Ella isn't responding?**
+Ollama might not be running — the orange banner at the top of the chat indicates this. Wait briefly or switch to OpenAI in settings.
 
-**Can I use ELLA offline?**
-Yes, the core (chat, tools, memory) runs on your machine. Only German voice output (Edge TTS), weather, Gmail/Google Calendar, and OpenAI features need internet. Offline mode blocks web search, weather, cloud AI (OpenAI), and German voice output. Gmail and Google Calendar remain available in offline mode.
+**Can I use Ella offline?**
+Yes. The core (chat, tools, memory) runs locally. Only German voice output, weather, Gmail/Google Calendar, and OpenAI features require internet.
 
-**How do I change the language model?**
-Settings -> LLM -> choose a model or enter a custom name.
+**Ella declined something — why?**
+Either one of your own rules or the Directive applies. The red banner explains the reason. You can adjust your own rules in settings.
 
-**How do I add a program ELLA can't find?**
-Settings -> Programs -> search field or Browse button.
-
-**ELLA declined something -- why?**
-Either one of your custom rules is active or the ELLA Directive applies. The red banner explains the reason. Custom rules can be adjusted in Settings.
-
-**How do I clear the memory?**
-"Forget everything about me" -- or individual entries: "Show me your memory" and then "Forget entry number X".
+**Delete memory?**
+"Forget everything about me" — or individually: "Show me your memory", then "Forget entry no. X."
 
 **What does cloud usage cost?**
-ELLA itself is a one-time purchase. If you use an OpenAI key, the standard OpenAI API costs apply. In Auto mode, the cloud is used only as a fallback -- most requests run locally.
+Ella itself is a one-time purchase. If you use an OpenAI key, the standard OpenAI API costs apply. In auto mode, the cloud only runs as a fallback — most requests stay local.
+
+_Detailed answers can be found in the [FAQ](faq.md)._
 
 ---
 
-_E.L.L.A. v1.6.4 -- Embedded Local Logic Agent_
+_E.L.L.A. v1.6.4 — Embedded Local Logic Agent_
 _Built for Windows 10/11 (x64)_
