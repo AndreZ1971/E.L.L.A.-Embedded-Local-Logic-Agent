@@ -1,0 +1,1674 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E.L.L.A.</title>
+    <meta
+      name="description"
+      content="Embedded Local Logic Agent — KI-Assistent für Windows. Lokal. Privat. 111 Tools."
+    />
+    <meta property="og:title" content="E.L.L.A. — Embedded Local Logic Agent" />
+    <meta
+      property="og:description"
+      content="KI-Assistent für Windows. Lokal. Privat. Keine Cloud."
+    />
+    <meta
+      property="og:url"
+      content="https://andrez1971.github.io/E.L.L.A.-Embedded-Local-Logic-Agent/"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #0f1117;
+        --bg2: #161926;
+        --bg3: #1e2235;
+        --accent: #7c6af7;
+        --accent2: #a78bfa;
+        --text: #e2e8f0;
+        --muted: #8a9ab8;
+        --border: #2a3050;
+        --green: #3ecf8e;
+        --orange: #ff6500;
+        --radius: 12px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a {
+        color: var(--accent2);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      /* ── NAV ── */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(15, 17, 23, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 0 clamp(1.5rem, 5vw, 4rem);
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .nav-logo {
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 0.05em;
+        color: var(--accent2);
+        text-decoration: none;
+      }
+      .nav-logo span {
+        color: var(--muted);
+        font-weight: 400;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        list-style: none;
+        font-size: 0.875rem;
+        color: var(--muted);
+      }
+      .nav-links a {
+        color: var(--muted);
+        transition: color 0.15s;
+      }
+      .nav-links a:hover {
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .nav-cta {
+        background: var(--accent);
+        color: #fff;
+        font-size: 0.875rem;
+        font-weight: 600;
+        padding: 0.45rem 1.1rem;
+        border-radius: 8px;
+        white-space: nowrap;
+        transition: background 0.15s;
+        text-decoration: none;
+      }
+      .nav-cta:hover {
+        background: var(--accent2);
+        text-decoration: none;
+      }
+
+      /* ── LANG TOGGLE ── */
+      .lang-toggle {
+        display: flex;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+      .lang-btn {
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        padding: 0.25rem 0.55rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transition: all 0.15s;
+      }
+      .lang-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      /* ── LAYOUT ── */
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 clamp(1.5rem, 5vw, 4rem);
+      }
+
+      section {
+        padding: 5rem 0;
+      }
+      section:first-of-type {
+        padding-top: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Space Grotesk", sans-serif;
+        text-wrap: balance;
+        line-height: 1.2;
+      }
+
+      /* ── HERO ── */
+      .hero {
+        padding: 6rem 0 5rem;
+        text-align: center;
+      }
+
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 0.35rem 0.9rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 2rem;
+      }
+      .hero-badge .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 6px var(--green);
+      }
+
+      .hero h1 {
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 1.25rem;
+      }
+
+      .hero h1 .name {
+        background: linear-gradient(135deg, var(--accent2) 0%, #c4b5fd 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero-sub {
+        font-size: clamp(1rem, 2vw, 1.2rem);
+        color: var(--muted);
+        max-width: 540px;
+        margin: 0 auto 1.5rem;
+      }
+
+      .hero-quote {
+        font-size: 0.9rem;
+        font-style: italic;
+        color: var(--muted);
+        max-width: 480px;
+        margin: 0 auto 2.5rem;
+        opacity: 0.85;
+      }
+      .hero-quote .author {
+        display: block;
+        font-style: normal;
+        font-size: 0.8rem;
+        margin-top: 0.35rem;
+        color: var(--accent2);
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 0.8rem 2rem;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        text-decoration: none;
+      }
+      .btn-primary:hover {
+        background: var(--accent2);
+        transform: translateY(-1px);
+        text-decoration: none;
+      }
+
+      .btn-secondary {
+        background: var(--bg3);
+        color: var(--text);
+        font-weight: 500;
+        font-size: 1rem;
+        padding: 0.8rem 2rem;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: border-color 0.15s;
+        text-decoration: none;
+      }
+      .btn-secondary:hover {
+        border-color: var(--accent);
+        text-decoration: none;
+      }
+
+      .btn-discord {
+        background: #5865f2;
+        color: #fff;
+        font-weight: 500;
+        font-size: 1rem;
+        padding: 0.8rem 2rem;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        text-decoration: none;
+      }
+      .btn-discord:hover {
+        background: #4752c4;
+        transform: translateY(-1px);
+        text-decoration: none;
+      }
+
+      .hero-lab {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-top: 1rem;
+      }
+
+      /* ── STATS ── */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        margin-bottom: 5rem;
+      }
+      .stat {
+        background: var(--bg2);
+        padding: 1.5rem;
+        text-align: center;
+      }
+      .stat-num {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent2);
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        margin-bottom: 0.35rem;
+      }
+      .stat-label {
+        font-size: 0.8rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      /* ── SECTION HEADERS ── */
+      .section-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+      }
+      .section-title {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        font-weight: 700;
+        margin-bottom: 1rem;
+      }
+      .section-sub {
+        color: var(--muted);
+        max-width: 620px;
+        margin-bottom: 3rem;
+      }
+
+      /* ── DIRECTIVE ── */
+      .directive-block {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2.5rem;
+      }
+
+      .prohibition-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .prohibition {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.25rem;
+      }
+      .prohibition .num {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.4rem;
+      }
+      .prohibition h3 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+      }
+      .prohibition p {
+        font-size: 0.8125rem;
+        color: var(--muted);
+      }
+
+      /* ── FEATURE GRID ── */
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.25rem;
+      }
+
+      .feature-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        transition: border-color 0.2s;
+      }
+      .feature-card:hover {
+        border-color: var(--accent);
+      }
+
+      .feature-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--bg3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+      }
+
+      .feature-card h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+      }
+      .feature-card p {
+        font-size: 0.875rem;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      /* ── MORNING STORY ── */
+      .morning-block {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2.5rem;
+        position: relative;
+      }
+      .morning-block blockquote {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: var(--text);
+        font-style: italic;
+        border-left: 3px solid var(--accent);
+        padding-left: 1.25rem;
+        margin: 1rem 0;
+      }
+      .morning-block .morning-footer {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 1.25rem;
+      }
+
+      /* ── TOOLS TABLE ── */
+      .tool-categories {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.75rem;
+      }
+      .tool-cat {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .tool-cat-icon {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+      }
+      .tool-cat-name {
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+      .tool-cat-count {
+        margin-left: auto;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--accent2);
+        background: var(--bg3);
+        padding: 0.15rem 0.5rem;
+        border-radius: 100px;
+      }
+
+      /* ── VOICE TRANSPARENCY ── */
+      .voice-block {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2rem;
+        margin-top: 1.5rem;
+      }
+      .voice-block h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      .voice-block p {
+        font-size: 0.875rem;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .voice-local {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .voice-online {
+        color: var(--orange);
+        font-weight: 600;
+      }
+
+      /* ── DOWNLOAD ── */
+      .download-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2rem;
+      }
+      .download-card h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .download-card .version {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 1.25rem;
+      }
+      .download-card .checksum {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 0.75rem;
+      }
+      .download-card .checksum code {
+        font-family: monospace;
+        background: var(--bg3);
+        padding: 0.15rem 0.4rem;
+        border-radius: 4px;
+        word-break: break-all;
+      }
+
+      .req-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+      .req-item {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+      }
+      .req-item .req-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-bottom: 0.2rem;
+      }
+      .req-item .req-val {
+        font-weight: 500;
+      }
+
+      /* ── DOCS ── */
+      .doc-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+      .doc-link {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text);
+        transition: border-color 0.15s;
+        text-decoration: none;
+      }
+      .doc-link:hover {
+        border-color: var(--accent);
+        text-decoration: none;
+      }
+      .doc-link-icon {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+      }
+      .doc-link-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      .doc-link-sub {
+        font-size: 0.775rem;
+        color: var(--muted);
+        margin-top: 0.15rem;
+      }
+
+      /* ── COMMUNITY ── */
+      .community-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1.25rem;
+      }
+      .community-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        text-decoration: none;
+        color: var(--text);
+        transition: border-color 0.2s;
+      }
+      .community-card:hover {
+        border-color: var(--accent);
+        text-decoration: none;
+      }
+      .community-card h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+      }
+      .community-card p {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 2.5rem 0;
+        color: var(--muted);
+        font-size: 0.825rem;
+      }
+      .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .footer-links {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+      }
+      .footer-links a {
+        color: var(--muted);
+      }
+      .footer-links a:hover {
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      /* ── I18N ── */
+      [data-de],
+      [data-en] {
+        display: none;
+      }
+      body.de [data-de] {
+        display: revert;
+      }
+      body.en [data-en] {
+        display: revert;
+      }
+      span[data-de],
+      span[data-en] {
+        display: none;
+      }
+      body.de span[data-de] {
+        display: inline;
+      }
+      body.en span[data-en] {
+        display: inline;
+      }
+
+      @media (max-width: 640px) {
+        .nav-links {
+          display: none;
+        }
+        .hero {
+          padding: 4rem 0 3rem;
+        }
+        section {
+          padding: 3.5rem 0;
+        }
+      }
+    </style>
+  </head>
+  <body class="de">
+    <nav>
+      <a class="nav-logo" href="#">E.L.L.A.<span> v1.6.4</span></a>
+      <ul class="nav-links">
+        <li><a href="#directive">Directive</a></li>
+        <li><a href="#tools">Tools</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#download">Download</a></li>
+        <li><a href="#community">Community</a></li>
+      </ul>
+      <div style="display: flex; align-items: center; gap: 0.75rem">
+        <div class="lang-toggle">
+          <button class="lang-btn active" onclick="setLang('de')">DE</button>
+          <button class="lang-btn" onclick="setLang('en')">EN</button>
+        </div>
+        <a
+          class="nav-cta"
+          href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases/latest"
+        >
+          Download
+        </a>
+      </div>
+    </nav>
+
+    <main>
+      <div class="container">
+        <!-- HERO -->
+        <section class="hero">
+          <div class="hero-badge">
+            <span class="dot"></span>
+            <span data-de>v1.6.4 — 111 Werkzeuge</span>
+            <span data-en>v1.6.4 — 111 tools</span>
+          </div>
+          <h1>
+            <span class="name">E.L.L.A.</span><br />
+            <span data-de>Dein lokaler KI-Assistent</span>
+            <span data-en>Your local AI assistant</span>
+          </h1>
+          <p class="hero-sub">
+            <span data-de
+              >Embedded Local Logic Agent — läuft komplett auf deinem
+              Windows-PC. Kein Abo. Keine Cloud. Keine Kompromisse beim
+              Datenschutz.</span
+            >
+            <span data-en
+              >Embedded Local Logic Agent — runs entirely on your Windows PC. No
+              subscription. No cloud. No privacy compromises.</span
+            >
+          </p>
+          <p class="hero-quote">
+            <span data-de
+              >&laquo;Ich wollte nur einen Assistenten, der unter dieser
+              Directive arbeiten kann.&raquo;</span
+            >
+            <span data-en
+              >&laquo;I just wanted an assistant that can work under this
+              Directive.&raquo;</span
+            >
+            <span class="author">— Andre Zabel, Mai 2026</span>
+          </p>
+          <div class="hero-actions">
+            <a
+              class="btn-primary"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases/latest"
+            >
+              ↓ <span data-de>Installer herunterladen</span
+              ><span data-en>Download installer</span>
+            </a>
+            <a class="btn-discord" href="https://discord.gg/SFEqcG6ezg">
+              <span data-de>Discord beitreten</span
+              ><span data-en>Join Discord</span>
+            </a>
+            <a
+              class="btn-secondary"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent"
+            >
+              GitHub
+            </a>
+          </div>
+          <div class="hero-lab">
+            <span data-de
+              >&#x1F9EA; <strong>Aus dem Labor:</strong> E.L.L.A. Phone
+              l&auml;uft intern auf Android — E.L.L.A. Home ist in
+              Entwicklung.</span
+            >
+            <span data-en
+              >&#x1F9EA; <strong>From the lab:</strong> E.L.L.A. Phone runs
+              internally on Android — E.L.L.A. Home is in development.</span
+            >
+          </div>
+        </section>
+
+        <!-- STATS -->
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-num">111</div>
+            <div class="stat-label">
+              <span data-de>Werkzeuge</span><span data-en>Tools</span>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">640</div>
+            <div class="stat-label">Tests</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">0</div>
+            <div class="stat-label">
+              <span data-de>Cloud-Zwang</span
+              ><span data-en>Cloud required</span>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">4</div>
+            <div class="stat-label">
+              <span data-de>Verbote (Directive)</span
+              ><span data-en>Prohibitions</span>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">DE&nbsp;/&nbsp;EN</div>
+            <div class="stat-label">
+              <span data-de>Sprachen</span><span data-en>Languages</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DIRECTIVE — comes first, like the README -->
+        <section id="directive">
+          <p class="section-label">The E.L.L.A. Directive</p>
+          <div class="directive-block">
+            <h2 class="section-title" style="margin-bottom: 0.75rem">
+              <span data-de>Der Rahmen, nicht ein Feature</span>
+              <span data-en>The framework, not a feature</span>
+            </h2>
+            <p
+              style="color: var(--muted); max-width: 620px; font-size: 0.95rem"
+            >
+              <span data-de
+                >Vier hardcodierte Verbote, die kein Prompt, keine Regel und
+                keine Einstellung umgehen kann. Das sind keine Regeln, die man
+                abschaltet — es sind architektonische Unm&ouml;glichkeiten.
+                <strong>Kein Codepfad f&uuml;hrt zu ihnen.</strong></span
+              >
+              <span data-en
+                >Four hardcoded prohibitions that no prompt, no rule and no
+                setting can bypass. These aren't rules you turn off — they are
+                architectural impossibilities.
+                <strong>No code path leads to them.</strong></span
+              >
+            </p>
+            <div class="prohibition-list">
+              <div class="prohibition">
+                <div class="num">I — harm</div>
+                <h3>
+                  <span data-de>Kein Schaden</span><span data-en>No harm</span>
+                </h3>
+                <p>
+                  <span data-de
+                    >Kein physischer, finanzieller oder digitaler Schaden am
+                    Nutzer oder Dritten.</span
+                  ><span data-en
+                    >No physical, financial or digital harm to the user or third
+                    parties.</span
+                  >
+                </p>
+              </div>
+              <div class="prohibition">
+                <div class="num">II — conceal</div>
+                <h3>
+                  <span data-de>Kein Verschweigen</span
+                  ><span data-en>No concealment</span>
+                </h3>
+                <p>
+                  <span data-de
+                    >Keine Verschleierung oder T&auml;uschung durch versteckte
+                    Informationen.</span
+                  ><span data-en
+                    >No obfuscation or deception through hidden
+                    information.</span
+                  >
+                </p>
+              </div>
+              <div class="prohibition">
+                <div class="num">III — surveil</div>
+                <h3>
+                  <span data-de>Keine &Uuml;berwachung</span
+                  ><span data-en>No surveillance</span>
+                </h3>
+                <p>
+                  <span data-de
+                    >Keine Profilbildung ohne ausdr&uuml;ckliche, aktive
+                    Zustimmung. Ged&auml;chtnissystem ist lokal.</span
+                  ><span data-en
+                    >No profiling without explicit, active consent. Memory
+                    system is local.</span
+                  >
+                </p>
+              </div>
+              <div class="prohibition">
+                <div class="num">IV — exfiltrate</div>
+                <h3>
+                  <span data-de>Keine Exfiltration</span
+                  ><span data-en>No exfiltration</span>
+                </h3>
+                <p>
+                  <span data-de
+                    >Keine Daten&uuml;bertragung an externe Server ohne
+                    explizite Anforderung. LLM l&auml;uft lokal.</span
+                  ><span data-en
+                    >No data transmission to external servers without explicit
+                    request. LLM runs locally.</span
+                  >
+                </p>
+              </div>
+            </div>
+            <p
+              style="
+                margin-top: 1.25rem;
+                font-size: 0.8rem;
+                color: var(--muted);
+              "
+            >
+              <span data-de
+                >Versiegelt auf GitHub und Blockchain (OriginStamp).</span
+              >
+              <span data-en
+                >Sealed on GitHub and blockchain (OriginStamp).</span
+              >
+              →
+              <a href="https://github.com/AndreZ1971/The-E.L.L.A.-Directive-"
+                >The-E.L.L.A.-Directive-</a
+              >
+            </p>
+          </div>
+        </section>
+
+        <!-- TOOLS -->
+        <section id="tools">
+          <p class="section-label">
+            <span data-de>111 Werkzeuge — alle unter der Directive</span>
+            <span data-en>111 tools — all under the Directive</span>
+          </p>
+          <h2 class="section-title">
+            <span data-de>Vollst&auml;ndige Systemsteuerung per Sprache</span>
+            <span data-en>Full system control by voice</span>
+          </h2>
+          <p class="section-sub">
+            <span data-de
+              >Jedes Werkzeug l&auml;uft lokal und kann die vier Verbote nicht
+              verletzen — der Unterschied zwischen F&auml;higkeiten sammeln und
+              F&auml;higkeiten verantworten.</span
+            >
+            <span data-en
+              >Every tool runs locally and cannot violate the four prohibitions
+              — the difference between collecting capabilities and being
+              responsible for them.</span
+            >
+          </p>
+          <div class="tool-categories">
+            <div class="tool-cat">
+              <span class="tool-cat-icon">📁</span
+              ><span class="tool-cat-name"
+                ><span data-de>Dateien &amp; Ordner</span
+                ><span data-en>Files &amp; Folders</span></span
+              ><span class="tool-cat-count">11</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">✍️</span
+              ><span class="tool-cat-name"
+                ><span data-de>Dokumente &amp; RAG</span
+                ><span data-en>Documents &amp; RAG</span></span
+              ><span class="tool-cat-count">8</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">📧</span
+              ><span class="tool-cat-name"
+                ><span data-de>Kommunikation</span
+                ><span data-en>Communication</span></span
+              ><span class="tool-cat-count">8</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🖥️</span
+              ><span class="tool-cat-name"
+                ><span data-de>System &amp; Hardware</span
+                ><span data-en>System &amp; Hardware</span></span
+              ><span class="tool-cat-count">20</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🧠</span
+              ><span class="tool-cat-name"
+                ><span data-de>Ged&auml;chtnis</span
+                ><span data-en>Memory</span></span
+              ><span class="tool-cat-count">7</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">👁️</span
+              ><span class="tool-cat-name"
+                ><span data-de>Bildschirm &amp; Vision</span
+                ><span data-en>Screen &amp; Vision</span></span
+              ><span class="tool-cat-count">4</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🖱️</span
+              ><span class="tool-cat-name"
+                ><span data-de>Maus &amp; Tastatur</span
+                ><span data-en>Mouse &amp; Keyboard</span></span
+              ><span class="tool-cat-count">4</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🎵</span
+              ><span class="tool-cat-name"
+                ><span data-de>Medien</span><span data-en>Media</span></span
+              ><span class="tool-cat-count">3</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🌐</span
+              ><span class="tool-cat-name"
+                ><span data-de>Netzwerk</span><span data-en>Network</span></span
+              ><span class="tool-cat-count">5</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🖨️</span
+              ><span class="tool-cat-name"
+                ><span data-de>Peripherie</span
+                ><span data-en>Peripherals</span></span
+              ><span class="tool-cat-count">4</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">✅</span
+              ><span class="tool-cat-name"
+                ><span data-de>Produktivit&auml;t</span
+                ><span data-en>Productivity</span></span
+              ><span class="tool-cat-count">7</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🪟</span
+              ><span class="tool-cat-name"
+                ><span data-de>Fenster &amp; Apps</span
+                ><span data-en>Windows &amp; Apps</span></span
+              ><span class="tool-cat-count">6</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">⚙️</span
+              ><span class="tool-cat-name"
+                ><span data-de>Prozesse &amp; Dienste</span
+                ><span data-en>Processes &amp; Services</span></span
+              ><span class="tool-cat-count">4</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">🔍</span
+              ><span class="tool-cat-name"
+                ><span data-de>Web &amp; Wissen</span
+                ><span data-en>Web &amp; Knowledge</span></span
+              ><span class="tool-cat-count">4</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">📋</span
+              ><span class="tool-cat-name"
+                ><span data-de>Clipboard &amp; Audio</span
+                ><span data-en>Clipboard &amp; Audio</span></span
+              ><span class="tool-cat-count">3</span>
+            </div>
+            <div class="tool-cat">
+              <span class="tool-cat-icon">💻</span
+              ><span class="tool-cat-name">Shell (PowerShell)</span
+              ><span class="tool-cat-count">1</span>
+            </div>
+          </div>
+          <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--muted)">
+            →
+            <a
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/en/capabilities.md"
+              ><span data-de>Vollst&auml;ndige Werkzeugliste</span
+              ><span data-en>Full tool list</span></a
+            >
+          </p>
+        </section>
+
+        <!-- WHAT MAKES ELLA UNIQUE -->
+        <section id="features">
+          <p class="section-label">
+            <span data-de>Was E.L.L.A. einzigartig macht</span>
+            <span data-en>What makes E.L.L.A. unique</span>
+          </p>
+          <h2 class="section-title">
+            <span data-de
+              >Die Werkzeuge kann man nachbauen. Das hier nicht.</span
+            >
+            <span data-en>The tools can be rebuilt. This cannot.</span>
+          </h2>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div class="feature-icon">🧠</div>
+              <h3>
+                <span data-de>Lokale KI — du w&auml;hlst das Modell</span
+                ><span data-en>Local AI — you choose the model</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Das LLM l&auml;uft &uuml;ber Ollama auf deinem Rechner.
+                  Welches Modell ist deine Entscheidung — jederzeit wechseln,
+                  mischen oder eigenes einsetzen. OpenAI ist Opt-in, offen
+                  kommuniziert.</span
+                ><span data-en
+                  >The LLM runs via Ollama on your machine. Which model is your
+                  choice — switch, mix or use your own at any time. OpenAI is
+                  opt-in, openly communicated.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">📈</div>
+              <h3>
+                <span data-de>Sie lernt und ver&auml;ndert sich</span
+                ><span data-en>She learns and evolves</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Jedes &bdquo;Daumen hoch&ldquo; wird ein goldenes Beispiel
+                  f&uuml;r k&uuml;nftige Gespr&auml;che. E.L.L.A. ver&auml;ndert
+                  sich mit jeder Nutzung — lokal, auf deinem Rechner.</span
+                ><span data-en
+                  >Every "thumbs up" becomes a golden example for future
+                  conversations. E.L.L.A. evolves with every use — locally, on
+                  your machine.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🕸️</div>
+              <h3>Knowledge Graph</h3>
+              <p>
+                <span data-de
+                  >Subjekt/Pr&auml;dikat/Objekt-Triples bilden eine visuelle
+                  Karte dessen, was E.L.L.A. wei&szlig; — inklusive indexierter
+                  Dokumente.</span
+                ><span data-en
+                  >Subject/predicate/object triples form a visual map of what
+                  E.L.L.A. knows — including indexed documents.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">⚡</div>
+              <h3>Multi-Agenten-Pipeline</h3>
+              <p>
+                <span data-de
+                  >Parallele und sequenzielle Agenten mit Live-SSE-Streaming.
+                  Eingebaut: Morgenbriefing und System-Report.</span
+                ><span data-en
+                  >Parallel and sequential agents with live SSE streaming.
+                  Built-in: morning briefing and system report.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">♟️</div>
+              <h3><span data-de>Schach</span><span data-en>Chess</span></h3>
+              <p>
+                <span data-de
+                  >Echtes Fenster, vier Brett-Themes, eigene Schach-KI,
+                  Zug-Kommentar via TTS. Kein Demo — Beweis, dass E.L.L.A.
+                  Sub-KI und Zustand verwaltet.</span
+                ><span data-en
+                  >Real window, four board themes, built-in chess AI, move
+                  commentary via TTS. Not a demo — proof E.L.L.A. manages sub-AI
+                  and state.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🖐️</div>
+              <h3>
+                <span data-de>Gesten · HUD · Diktat</span
+                ><span data-en>Gestures · HUD · Dictation</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Handerkennung via MediaPipe, drei Erscheinungsbilder (Calm /
+                  HUD / Show), systemweites Diktat per Whisper ins aktive
+                  Fenster.</span
+                ><span data-en
+                  >Hand recognition via MediaPipe, three appearances (Calm / HUD
+                  / Show), system-wide dictation via Whisper into the active
+                  window.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">👁️</div>
+              <h3>
+                <span data-de>Proaktive Intelligenz</span
+                ><span data-en>Proactive intelligence</span>
+              </h3>
+              <p>
+                <span data-de
+                  >RAM-, Festplatten-, Temperatur-Alerts, neue USB-Ger&auml;te,
+                  Comeback-Briefing, Meeting-Prep, Tagesabschluss. 14
+                  Kategorien, Auto-Mute nach 5× Wegwischen.</span
+                ><span data-en
+                  >RAM, disk, temperature alerts, new USB devices, comeback
+                  briefing, meeting prep, daily summary. 14 categories,
+                  auto-mute after 5 dismissals.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">🔒</div>
+              <h3>
+                <span data-de>Offline-Modus &amp; Datenschw&auml;rzung</span
+                ><span data-en>Offline mode &amp; data redaction</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Offline-Modus sperrt alle Netzwerk-Tools. API-Keys, IBANs,
+                  Passw&ouml;rter werden automatisch geschw&auml;rzt, bevor sie
+                  gespeichert werden.</span
+                ><span data-en
+                  >Offline mode locks all network tools. API keys, IBANs,
+                  passwords are automatically redacted before being
+                  stored.</span
+                >
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">📧</div>
+              <h3>
+                <span data-de>Mail &amp; Kalender</span
+                ><span data-en>Mail &amp; Calendar</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Outlook und Gmail (OAuth 2.0), Kalender verwalten (Outlook +
+                  Google). E.L.L.A. sendet niemals automatisch.</span
+                ><span data-en
+                  >Outlook and Gmail (OAuth 2.0), manage calendars (Outlook +
+                  Google). E.L.L.A. never sends automatically.</span
+                >
+              </p>
+            </div>
+          </div>
+
+          <!-- Voice transparency block -->
+          <div class="voice-block">
+            <h3>
+              <span data-de
+                >🎙️ Stimme — offen gesagt, was lokal l&auml;uft und was
+                nicht</span
+              >
+              <span data-en
+                >🎙️ Voice — honestly stated, what runs locally and what
+                doesn't</span
+              >
+            </h3>
+            <p>
+              <span data-de
+                >Das Wakeword &bdquo;ella&ldquo; l&auml;uft offline.
+                <span class="voice-local"
+                  >Englisch, Franz&ouml;sisch und Spanisch sind vollst&auml;ndig
+                  lokal</span
+                >
+                &uuml;ber Kokoro.
+                <span class="voice-online"
+                  >Die deutsche Stimme Katja l&auml;uft derzeit &uuml;ber
+                  Microsoft Edge TTS — also online.</span
+                >
+                Warum sagen wir das so deutlich? Weil die Directive
+                &bdquo;conceal&ldquo; verbietet. Wir arbeiten an einer
+                vollst&auml;ndig lokalen Katja.</span
+              >
+              <span data-en
+                >The wakeword "ella" runs offline.
+                <span class="voice-local"
+                  >English, French and Spanish are fully local</span
+                >
+                via Kokoro.
+                <span class="voice-online"
+                  >The German voice Katja currently runs via Microsoft Edge TTS
+                  — i.e. online.</span
+                >
+                Why do we say this so clearly? Because the Directive forbids
+                "conceal". We're working on a fully local Katja.</span
+              >
+            </p>
+          </div>
+        </section>
+
+        <!-- A MORNING WITH ELLA -->
+        <section>
+          <p class="section-label">
+            <span data-de>Ein Morgen mit E.L.L.A.</span>
+            <span data-en>A morning with E.L.L.A.</span>
+          </p>
+          <div class="morning-block">
+            <h2 class="section-title" style="margin-bottom: 0.5rem">
+              <span data-de>Einfach da — ohne Dashboard</span>
+              <span data-en>Simply there — no dashboard needed</span>
+            </h2>
+            <blockquote>
+              <span data-de
+                >Du setzt dich an den Rechner. E.L.L.A. hat still mitgedacht:
+                <em
+                  >&bdquo;Guten Morgen. Dein erster Termin ist um 10 Uhr — ich
+                  hab die Mail dazu schon ge&ouml;ffnet. Die Festplatte C: ist
+                  bei 91 %, soll ich dir die gr&ouml;&szlig;ten Brocken zeigen?
+                  Und gestern Abend kam ein neues USB-Ger&auml;t dazu, nur zur
+                  Info.&ldquo;</em
+                ></span
+              >
+              <span data-en
+                >You sit down at your PC. E.L.L.A. has been quietly thinking:
+                <em
+                  >"Good morning. Your first meeting is at 10 — I've already
+                  opened the email about it. Drive C: is at 91%, want me to show
+                  you the biggest files? And last night a new USB device was
+                  connected, just so you know."</em
+                ></span
+              >
+            </blockquote>
+            <p class="morning-footer">
+              <span data-de
+                >Kein Dashboard, das du &ouml;ffnen musstest. Keine Cloud, die
+                mitgelesen hat. Sie war einfach da — und hat dir nichts
+                verschwiegen.</span
+              >
+              <span data-en
+                >No dashboard you had to open. No cloud listening in. She was
+                simply there — and hid nothing from you.</span
+              >
+            </p>
+          </div>
+        </section>
+
+        <!-- DOWNLOAD -->
+        <section id="download">
+          <p class="section-label">Download</p>
+          <h2 class="section-title">v1.6.4</h2>
+          <p class="section-sub">
+            <span data-de
+              >Der Installer enth&auml;lt alles: Node.js, MariaDB und Ollama als
+              portable Binaries. F&uuml;r die Aktivierung wird ein
+              Lizenzschl&uuml;ssel ben&ouml;tigt.</span
+            >
+            <span data-en
+              >The installer includes everything: Node.js, MariaDB and Ollama as
+              portable binaries. A license key is required for activation.</span
+            >
+          </p>
+
+          <div class="download-card" style="margin-bottom: 2rem">
+            <h3>E.L.L.A Setup 1.6.4.exe</h3>
+            <div class="version">
+              ~1.6 GB · Windows 10/11 x64 ·
+              <span data-de>Enth&auml;lt Ollama-Konfigurator</span
+              ><span data-en>Includes Ollama configurator</span>
+            </div>
+            <a
+              class="btn-primary"
+              style="display: inline-flex"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases/latest"
+            >
+              ↓ <span data-de>Jetzt herunterladen</span
+              ><span data-en>Download now</span>
+            </a>
+            <div class="checksum">
+              SHA256:
+              <code
+                >4668BFB1FC20320EB0B71D83B62C24641DC2DA436A4173C6E29E124A5568ACF2</code
+              >
+            </div>
+          </div>
+
+          <p class="section-label" style="margin-bottom: 1rem">
+            <span data-de>Systemanforderungen</span
+            ><span data-en>System requirements</span>
+          </p>
+          <div class="req-list">
+            <div class="req-item">
+              <div class="req-label">OS</div>
+              <div class="req-val">Windows 10 / 11 x64</div>
+            </div>
+            <div class="req-item">
+              <div class="req-label">RAM</div>
+              <div class="req-val">
+                16 GB
+                <span style="color: var(--muted); font-size: 0.8rem"
+                  >(<span data-de>32 GB empfohlen</span
+                  ><span data-en>32 GB recommended</span>)</span
+                >
+              </div>
+            </div>
+            <div class="req-item">
+              <div class="req-label">GPU</div>
+              <div class="req-val">NVIDIA GTX 1060 6 GB+</div>
+            </div>
+            <div class="req-item">
+              <div class="req-label">VRAM</div>
+              <div class="req-val">
+                6 GB
+                <span style="color: var(--muted); font-size: 0.8rem"
+                  >(<span data-de>8 GB+ empfohlen</span
+                  ><span data-en>8 GB+ recommended</span>)</span
+                >
+              </div>
+            </div>
+            <div class="req-item">
+              <div class="req-label">
+                <span data-de>Speicher</span><span data-en>Storage</span>
+              </div>
+              <div class="req-val">
+                10 GB
+                <span style="color: var(--muted); font-size: 0.8rem"
+                  >(<span data-de>20 GB empfohlen</span
+                  ><span data-en>20 GB recommended</span>)</span
+                >
+              </div>
+            </div>
+            <div class="req-item">
+              <div class="req-label">Internet</div>
+              <div class="req-val">
+                <span data-de>Nur Lizenzaktivierung</span
+                ><span data-en>License activation only</span>
+              </div>
+            </div>
+          </div>
+          <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--muted)">
+            →
+            <a
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/en/hardware.md"
+              ><span data-de>Vollst&auml;ndiger Hardware-Guide</span
+              ><span data-en>Full hardware guide</span></a
+            >
+          </p>
+        </section>
+
+        <!-- DOCS -->
+        <section id="docs">
+          <p class="section-label">
+            <span data-de>Dokumentation</span><span data-en>Documentation</span>
+          </p>
+          <h2 class="section-title">
+            <span data-de>Alles nachlesen</span>
+            <span data-en>Read everything</span>
+          </h2>
+          <div class="doc-links">
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/bedienungsanleitung.md"
+            >
+              <span class="doc-link-icon">📖</span>
+              <div>
+                <div class="doc-link-text">Bedienungsanleitung</div>
+                <div class="doc-link-sub">Deutsch · v1.6.4</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/en/bedienungsanleitung.md"
+            >
+              <span class="doc-link-icon">📖</span>
+              <div>
+                <div class="doc-link-text">User Manual</div>
+                <div class="doc-link-sub">English · v1.6.4</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/faq.md"
+            >
+              <span class="doc-link-icon">❓</span>
+              <div>
+                <div class="doc-link-text">FAQ</div>
+                <div class="doc-link-sub">Deutsch · 17 Themen</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/en/faq.md"
+            >
+              <span class="doc-link-icon">❓</span>
+              <div>
+                <div class="doc-link-text">FAQ</div>
+                <div class="doc-link-sub">English · 17 topics</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/capabilities.md"
+            >
+              <span class="doc-link-icon">🔧</span>
+              <div>
+                <div class="doc-link-text">
+                  <span data-de>Alle Werkzeuge</span
+                  ><span data-en>All Tools</span>
+                </div>
+                <div class="doc-link-sub">111 Tools · DE/EN</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/directive.md"
+            >
+              <span class="doc-link-icon">🛡️</span>
+              <div>
+                <div class="doc-link-text">The E.L.L.A. Directive</div>
+                <div class="doc-link-sub">v1.0.0 · DE/EN</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/hardware.md"
+            >
+              <span class="doc-link-icon">💻</span>
+              <div>
+                <div class="doc-link-text">
+                  <span data-de>Hardware-Guide</span
+                  ><span data-en>Hardware Guide</span>
+                </div>
+                <div class="doc-link-sub">GPU · RAM · VRAM</div>
+              </div>
+            </a>
+            <a
+              class="doc-link"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/CHANGELOG.md"
+            >
+              <span class="doc-link-icon">📋</span>
+              <div>
+                <div class="doc-link-text">Changelog</div>
+                <div class="doc-link-sub">v1.0 → v1.6.4</div>
+              </div>
+            </a>
+          </div>
+        </section>
+
+        <!-- COMMUNITY -->
+        <section id="community">
+          <p class="section-label">Community</p>
+          <h2 class="section-title">
+            <span data-de>Mitmachen</span>
+            <span data-en>Get involved</span>
+          </h2>
+          <div class="community-grid">
+            <a class="community-card" href="https://discord.gg/SFEqcG6ezg">
+              <h3>Discord</h3>
+              <p>
+                <span data-de
+                  >Direkt mit dem Entwickler und anderen Nutzern reden. Offene
+                  Sprechstunde jeden Montag um 19 Uhr.</span
+                >
+                <span data-en
+                  >Talk directly with the developer and other users. Open office
+                  hours every Monday at 7 PM.</span
+                >
+              </p>
+            </a>
+            <a
+              class="community-card"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/discussions"
+            >
+              <h3>
+                <span data-de>Diskussionen</span
+                ><span data-en>Discussions</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Fragen, Ideen, zeig deine E.L.L.A. — alles auf GitHub
+                  Discussions.</span
+                >
+                <span data-en
+                  >Questions, ideas, show your E.L.L.A. — all on GitHub
+                  Discussions.</span
+                >
+              </p>
+            </a>
+            <a
+              class="community-card"
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/issues/new/choose"
+            >
+              <h3>
+                <span data-de>Fehler melden</span
+                ><span data-en>Report a bug</span>
+              </h3>
+              <p>
+                <span data-de
+                  >Bitte niemals deinen Lizenzschl&uuml;ssel in einem Issue
+                  posten.</span
+                >
+                <span data-en
+                  >Please never post your license key in an issue.</span
+                >
+              </p>
+            </a>
+          </div>
+        </section>
+      </div>
+      <!-- /container -->
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-inner">
+          <span
+            >© 2026 Andre Zabel, Berlin ·
+            <a href="https://ella-agent.de">ella-agent.de</a></span
+          >
+          <div class="footer-links">
+            <a
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent"
+              >GitHub</a
+            >
+            <a href="https://discord.gg/SFEqcG6ezg">Discord</a>
+            <a
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/docs/de/eula.md"
+              >EULA</a
+            >
+            <a
+              href="https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/blob/main/SECURITY.md"
+              >Security</a
+            >
+            <a href="mailto:contact@ella-agent.de">Kontakt</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      function setLang(lang) {
+        document.body.className = lang;
+        document.documentElement.lang = lang;
+        document.querySelectorAll(".lang-btn").forEach((btn) => {
+          btn.classList.toggle(
+            "active",
+            btn.textContent.trim().toLowerCase() === lang,
+          );
+        });
+        try {
+          localStorage.setItem("ella-lang", lang);
+        } catch (e) {}
+      }
+      try {
+        const saved = localStorage.getItem("ella-lang");
+        if (saved === "en") setLang("en");
+      } catch (e) {}
+    </script>
+  </body>
+</html>
