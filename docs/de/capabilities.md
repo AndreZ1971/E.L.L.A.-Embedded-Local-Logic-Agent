@@ -1,252 +1,302 @@
-# E.L.L.A. — Fähigkeiten (v1.6.4)
+# E.L.L.A. -- Was kann ich für dich tun?
 
-90+ aktive Tools. Alles per natürlicher Sprache.
+Stand: v1.6.4 -- 90+ Fähigkeiten, 640 Tests bestanden
 
----
-
-## Gedächtnis & Konfiguration
-
-| Tool             | Was es tut                                                            |
-| ---------------- | --------------------------------------------------------------------- |
-| `remember`       | Informationen dauerhaft speichern (ML-Embedding, Cosinus-Ähnlichkeit) |
-| `forget`         | Eine Erinnerung per ID löschen                                        |
-| `list_memories`  | Alles anzeigen was ELLA über den Nutzer weiß                          |
-| `create_setup`   | Eine benannte App-Gruppe anlegen (z.B. "Arbeit starten")              |
-| `load_setup`     | Alle Apps aus einem gespeicherten Setup starten                       |
-| `update_setting` | ELLA-Einstellungen per Sprache ändern                                 |
-| `create_rule`    | Erlaubnis-/Verbotsregeln für Tools erstellen                          |
+E.L.L.A. ist dein lokaler KI-Assistent für Windows. Sie läuft direkt auf deinem Rechner, versteht Sprache und Text, und hilft dir bei allem -- von einfachen Fragen bis zur Steuerung deines gesamten Desktops.
 
 ---
 
-## System & Festplatten
+## 1. Gespräch & Sprache
 
-| Tool                 | Was es tut                                                      |
-| -------------------- | --------------------------------------------------------------- |
-| `get_disk_usage`     | Freier/belegter Speicher je Laufwerk                            |
-| `get_system_info`    | CPU, GPU, RAM, Computername                                     |
-| `get_system_status`  | Alles auf einmal: Disk + RAM + Netzwerk + Alerts + Boot-Zeit    |
-| `clean_temp`         | Temporäre Dateien löschen                                       |
-| `empty_recycle_bin`  | Papierkorb leeren                                               |
-| `free_ram`           | Ungenutzten RAM freigeben                                       |
-| `shutdown_system`    | PC herunterfahren / neu starten / Schlafmodus                   |
-| `format_drive`       | USB-/externe Laufwerke formatieren _(Bestätigung erforderlich)_ |
-| `rename_drive`       | Volume-Label ändern _(Systemlaufwerke gesperrt)_                |
-| `list_programs`      | Alle installierten Programme auflisten                          |
-| `list_autostart`     | Autostart-Einträge anzeigen                                     |
-| `get_battery_status` | Ladestand, ob geladen wird, geschätzte Restlaufzeit             |
-| `get_temperatures`   | CPU/ACPI-Thermalzonen in °C                                     |
-| `get_event_log`      | Windows-Fehler/Warnungen aus dem Ereignisprotokoll              |
-| `toggle_dark_mode`   | Dark Mode / Light Mode umschalten                               |
-| `get_gpu_info`       | GPU-Modell, VRAM, Auslastung                                    |
-| `get_ram_details`    | RAM-Slots, Typ, Taktrate                                        |
-| `get_drive_details`  | Laufwerkstyp, Gesundheit, S.M.A.R.T.                            |
-| `get_audio_devices`  | Angeschlossene Audiogeräte                                      |
-| `get_usb_devices`    | Angeschlossene USB-Geräte                                       |
+ELLA versteht dich per Text und per Stimme. Du kannst einfach "Ella" sagen -- sie hört zu, antwortet und spricht zurück. In vier Sprachen.
+
+**Was geht:**
+
+- **Wakeword "Ella"** -- sag einfach ihren Namen, und sie hört zu. Läuft auf deinem Rechner, kein Server nötig.
+- **Sprachsteuerung** -- stelle Fragen, gib Anweisungen, führe Gespräche. Per Mikrofon oder Textfeld.
+- **Sprachausgabe (TTS)** -- ELLA liest ihre Antworten vor. Lokal per Kokoro (neuronale Stimme) oder Microsoft Edge TTS als Fallback.
+- **Vier Stimmen** -- Deutsch, Englisch, Spanisch und Französisch. Wählbar im Onboarding oder in den Einstellungen.
+- **Diktat-Modus** -- ELLA hört zu und tippt das Gesprochene direkt ins aktive Fenster. Funktioniert systemweit -- in Word, im Browser, überall. Per Hotkey aktivierbar.
+- **Sofort unterbrechen** -- sag "Stopp", "Halt" oder "Sei still", und ELLA hört sofort auf zu sprechen.
+- **Nachfrage ohne Wakeword** -- nach einer Antwort hast du 8 Sekunden Zeit, direkt weiterzusprechen, ohne erneut "Ella" sagen zu müssen.
+
+> Probier's aus: "Ella, wie wird das Wetter morgen?" -- "Ella, schreib das auf Englisch."
 
 ---
 
-## Dateien & Ordner
+## 2. Produktivität
 
-| Tool                   | Was es tut                                                  |
-| ---------------------- | ----------------------------------------------------------- |
-| `search_files`         | Alle Laufwerke nach Dateien durchsuchen                     |
-| `open_file`            | Datei öffnen (optional: mit App)                            |
-| `explore_folder`       | Ordner im Windows Explorer öffnen                           |
-| `read_file_content`    | Inhalt einer Textdatei lesen                                |
-| `rename_file`          | Datei/Ordner umbenennen _(mit Bestätigung)_                 |
-| `copy_file`            | Datei kopieren _(mit Bestätigung, Systempfade gesperrt)_    |
-| `create_folder`        | Ordner anlegen (inkl. Unterordner)                          |
-| `delete_file`          | Datei/Ordner in den Papierkorb _(kein permanentes Löschen)_ |
-| `find_duplicates`      | Doppelte Dateien nach Hash finden                           |
-| `index_documents`      | Ordner für semantische Suche indizieren                     |
-| `search_documents`     | Semantische Suche über indizierte Dokumente (RAG)           |
-| `list_indexed_folders` | Alle indizierten Ordner mit Statistik anzeigen              |
+Aufgaben, Erinnerungen, Wecker, Dokumente -- ELLA verwaltet deinen Alltag.
 
----
+**Aufgaben:**
 
-## Dokumente & Schreiben
+- Aufgaben anlegen, anzeigen, abhaken oder löschen. Alles bleibt in deiner lokalen Datenbank gespeichert.
+- "Ella, erinnere mich morgen um 9 an den Zahnarzt." -- "Ella, was steht noch auf meiner Liste?"
 
-| Tool                  | Was es tut                                               |
-| --------------------- | -------------------------------------------------------- |
-| `create_document`     | Neues Word-Dokument oder TXT erstellen                   |
-| `dictate_to_document` | Diktat in Word schreiben, KI korrigiert Tippfehler       |
-| `compose_email`       | Outlook-Entwurf öffnen _(sendet nicht automatisch)_      |
-| `write_for_me`        | Text im persönlichen Stil des Nutzers schreiben          |
-| `translate_text`      | Text übersetzen — offline (Ollama) oder OpenAI           |
-| `summarize_text`      | Text zusammenfassen: kurz / mittel / ausführlich         |
-| `correct_text`        | Grammatik und Zeichensetzung korrigieren                 |
-| `write_in_style`      | Text im persönlichen Schreibstil des Nutzers formulieren |
+**Wecker & Erinnerungen:**
+
+- Wecker stellen und verwalten. Erinnerungen laufen über den Windows Aufgabenplaner -- sie kommen auch, wenn ELLA gerade nicht offen ist.
+- "Ella, stelle einen Wecker für 7 Uhr." -- "Ella, welche Erinnerungen habe ich?"
+
+**Dokumente:**
+
+- Word-Dokumente und Textdateien erstellen lassen. ELLA kann auch bestehende Dateien lesen (.docx, .pdf, .xlsx, .html).
+- In ein geöffnetes Word-Dokument diktieren -- ELLA korrigiert dabei Tippfehler automatisch.
+- "Ella, erstelle ein Word-Dokument mit einer Einkaufsliste." -- "Ella, was steht in der Datei Vertrag.pdf?"
+
+**App-Makros (Setups):**
+
+- Definiere Gruppen von Apps, die zusammen gestartet werden. Zum Beispiel "Arbeit starten" öffnet Browser, Outlook und Word auf einen Schlag.
+- Setups können auch Aktionen enthalten: Lautstärke setzen, Dunkel-Modus einschalten, Text in die Zwischenablage kopieren.
+- "Ella, starte mein Arbeits-Setup."
 
 ---
 
-## Kommunikation & Kalender
+## 3. Dateien & Ordner
 
-| Tool                        | Was es tut                                         |
-| --------------------------- | -------------------------------------------------- |
-| `read_emails`               | Ungelesene Outlook-E-Mails abrufen                 |
-| `mark_email`                | Outlook-E-Mail als gelesen markieren / archivieren |
-| `read_calendar`             | Outlook-Kalender lesen                             |
-| `create_appointment`        | Outlook-Termin anlegen                             |
-| `read_gmail`                | Gmail (OAuth 2.0) lesen                            |
-| `mark_gmail`                | Gmail markieren / archivieren                      |
-| `read_google_calendar`      | Google Kalender lesen                              |
-| `create_google_appointment` | Google Kalender-Termin anlegen                     |
+ELLA findet, öffnet, kopiert und organisiert deine Dateien.
 
----
+**Was geht:**
 
-## Netzwerk & Sicherheit
+- **Suchen** -- alle Laufwerke nach Dateinamen durchsuchen. Nutzt den Windows Search Index für schnelle Ergebnisse.
+- **Öffnen** -- Dateien und Ordner öffnen, optional mit einer bestimmten App.
+- **Verwalten** -- umbenennen, kopieren, verschieben, Ordner anlegen, Dateien löschen (in den Papierkorb, nicht permanent).
+- **Duplikate finden** -- doppelte Dateien erkennen und Speicherplatz sparen.
+- **Dokumenten-Index** -- Ordner für die Volltextsuche indexieren. Danach kannst du nach Inhalten suchen, nicht nur nach Dateinamen.
 
-| Tool               | Was es tut                                               |
-| ------------------ | -------------------------------------------------------- |
-| `scan_network`     | ARP-Scan: alle Geräte im Heimnetz mit IP + MAC           |
-| `list_connections` | Aktive TCP-Verbindungen + lauschende Ports + Prozessname |
-| `list_devices`     | Angeschlossene Hardware (USB, Kameras, Laufwerke)        |
-| `get_wifi_info`    | WLAN-Name, Signalstärke, Übertragungsrate                |
-| `fetch_url`        | Webseite abrufen und Text extrahieren                    |
+> "Ella, finde alle PDFs mit 'Rechnung' im Namen." -- "Ella, zeig mir den Downloads-Ordner." -- "Ella, gibt es doppelte Dateien auf D:?"
 
 ---
 
-## Web & Wissen
+## 4. E-Mail & Kalender
 
-| Tool           | Was es tut                               |
-| -------------- | ---------------------------------------- |
-| `search_web`   | Web-Suche (DuckDuckGo, kein API-Key)     |
-| `get_weather`  | Wetter für beliebigen Ort (kein API-Key) |
-| `get_location` | Gespeicherten Nutzer-Standort abrufen    |
-| `get_datetime` | Exakte Uhrzeit, Datum, Zeitzone          |
+ELLA liest deine E-Mails, erstellt Entwürfe und verwaltet deinen Kalender -- für Outlook und Google.
 
----
+**Was geht:**
 
-## Prozesse & Dienste
+- Ungelesene E-Mails abrufen und vorlesen lassen.
+- E-Mails als gelesen markieren oder archivieren.
+- E-Mail-Entwürfe in Outlook erstellen. ELLA sendet nie automatisch -- du hast immer die Kontrolle.
+- Kalendertermine anzeigen und neue anlegen.
+- Funktioniert mit **Microsoft Outlook** (lokal) und **Gmail / Google Calendar** (per OAuth-Anmeldung).
 
-| Tool              | Was es tut                                                |
-| ----------------- | --------------------------------------------------------- |
-| `list_processes`  | Laufende Prozesse nach CPU/RAM sortiert                   |
-| `kill_process`    | Prozess beenden _(systemkritische gesperrt, Bestätigung)_ |
-| `list_services`   | Windows-Dienste auflisten                                 |
-| `control_service` | Dienst starten / stoppen / neu starten                    |
+> "Ella, habe ich neue E-Mails?" -- "Ella, schreibe eine E-Mail an Max zum Thema Projektplan." -- "Ella, was steht morgen im Kalender?"
 
 ---
 
-## Produktivität & Aufgaben
+## 5. System & Hardware
 
-| Tool              | Was es tut                                      |
-| ----------------- | ----------------------------------------------- |
-| `add_task`        | Aufgabe zur persistenten To-do-Liste hinzufügen |
-| `list_tasks`      | Offene oder erledigte Aufgaben anzeigen         |
-| `complete_task`   | Aufgabe als erledigt markieren                  |
-| `delete_task`     | Aufgabe löschen                                 |
-| `set_reminder`    | Erinnerung per Windows Task Scheduler setzen    |
-| `list_reminders`  | Aktive Erinnerungen anzeigen                    |
-| `delete_reminder` | Erinnerung löschen                              |
+Frag ELLA, wie es deinem Rechner geht -- oder lass sie aufraumen.
 
----
+**Überblick:**
 
-## Zwischenablage & Lautstärke
+- Systemstatus abrufen: CPU, RAM, Festplatte, GPU, Netzwerk, Temperatur, Akku, Startzeit.
+- Detailinfos zu GPU, RAM-Slots, Speichergeräten, Audio-Geräten und USB-Geräten.
+- Installierte Programme und Autostart-Einträge auflisten.
+- Windows-Ereignisprotokoll nach Fehlern und Warnungen durchsuchen.
 
-| Tool            | Was es tut                                            |
-| --------------- | ----------------------------------------------------- |
-| `get_clipboard` | Zwischenablage lesen (+ Historie letzter 20 Einträge) |
-| `set_clipboard` | Text in Zwischenablage schreiben                      |
-| `set_volume`    | Systemlautstärke setzen oder stumm schalten           |
+**Aufraumen & Steuern:**
 
----
+- Temporäre Dateien löschen, Papierkorb leeren, ungenutzten RAM freigeben.
+- Lautstärke per Sprache setzen oder stummschalten.
+- Dunkel-/Hellmodus umschalten.
+- Zwischenablage lesen, beschreiben und Historie der letzten 20 Einträge einsehen.
+- PC herunterfahren, neu starten oder in den Schlafmodus versetzen.
+- USB-Laufwerke formatieren oder umbenennen (mit Sicherheitsabfrage, Systemlaufwerke gesperrt).
 
-## Musik & Medien
-
-| Tool              | Was es tut                                                        |
-| ----------------- | ----------------------------------------------------------------- |
-| `play_music`      | Musikbibliothek durchsuchen (Künstler/Album/Titel), Player öffnen |
-| `control_media`   | Medien steuern: Play / Pause / Next / Prev / Stop                 |
-| `get_now_playing` | Aktuell spielenden Titel abrufen                                  |
+> "Ella, wie geht es meinem Rechner?" -- "Ella, stell die Lautstärke auf 30%." -- "Ella, räume mal auf."
 
 ---
 
-## Bildschirm & Vision
+## 6. Desktop-Automation
 
-| Tool              | Was es tut                                               |
-| ----------------- | -------------------------------------------------------- |
-| `take_screenshot` | Screenshot + KI-Analyse (GPT-4o Vision)                  |
-| `read_screen`     | Text vom Bildschirm lesen — lokal, offline (Windows OCR) |
-| `watch_screen`    | Bildschirm bis 30 s beobachten, Änderungen melden        |
-| `click_element`   | Auf UI-Element klicken per sichtbarem Text (OCR)         |
+ELLA kann deinen Desktop fernsteuern -- Apps starten, Fenster verschieben, klicken und tippen.
 
----
+**Was geht:**
 
-## Maus & Tastatur
+- **Apps starten** -- per Name oder Pfad.
+- **Fenster steuern** -- fokussieren, minimieren, maximieren, schließen.
+- **Maus & Tastatur** -- an Koordinaten klicken, Text eintippen, Drag & Drop ausführen.
+- **Elemente anklicken** -- ELLA liest den Bildschirm per OCR und klickt auf sichtbare Texte oder Buttons.
+- **Bildschirm beobachten** -- bis zu 30 Sekunden lang den Bildschirm überwachen und Änderungen melden.
+- **Multi-Monitor** -- Apps auf einem bestimmten Bildschirm öffnen.
+- **Drucker** -- Drucker auflisten, Dokumente drucken, Druckaufträge verwalten.
+- **Kameras** -- angeschlossene Kameras auflisten und Fotos aufnehmen.
 
-| Tool         | Was es tut                                          |
-| ------------ | --------------------------------------------------- |
-| `move_mouse` | Maus an Position bewegen _(kein Klick)_             |
-| `click_at`   | An Koordinaten klicken _(Bestätigung erforderlich)_ |
-| `drag_drop`  | Drag & Drop von A nach B _(Bestätigung)_            |
-| `send_keys`  | Tastatureingaben an Fenster senden                  |
+> "Ella, öffne Chrome und Word nebeneinander." -- "Ella, klick auf den Button 'Speichern'." -- "Ella, öffne Excel auf dem zweiten Monitor."
 
 ---
 
-## Fenster & Apps
+## 7. Web & Wissen
 
-| Tool                  | Was es tut                                                      |
-| --------------------- | --------------------------------------------------------------- |
-| `open_app`            | App per Name öffnen                                             |
-| `launch_app`          | App per Name oder Pfad starten _(Systempfade gesperrt)_         |
-| `control_window`      | Fenster: fokussieren / minimieren / maximieren / schließen      |
-| `homework_mode`       | Gesicherten Kindermodus aktivieren/deaktivieren (PIN-geschützt) |
-| `pause_ella`          | ELLA pausieren (1–120 Minuten)                                  |
-| `open_chess_window`   | Schach-Fenster öffnen                                           |
-| `list_monitors`       | Alle verbundenen Monitore mit Auflösung auflisten               |
-| `open_app_on_monitor` | App auf einem bestimmten Monitor öffnen                         |
+ELLA durchsucht das Web, übersetzt, fasst zusammen und korrigiert Texte.
 
----
+**Websuche:**
 
-## Peripherie
+- Sucht über DuckDuckGo -- kein API-Key nötig, keine Nutzerdaten übertragen.
+- Kann Webseiten abrufen und den Text extrahieren.
+- Wetter für jeden Ort abfragen.
 
-| Tool              | Was es tut                                           |
-| ----------------- | ---------------------------------------------------- |
-| `control_webcam`  | Bild oder Video von angeschlossener Webcam aufnehmen |
-| `control_printer` | Drucker auflisten, Dokumente drucken                 |
+**Texte bearbeiten:**
+
+- **Übersetzen** -- in jede Sprache, lokal per Ollama oder über OpenAI.
+- **Zusammenfassen** -- kurz, mittel oder ausführlich.
+- **Korrigieren** -- Grammatik und Zeichensetzung prüfen.
+- **Im eigenen Stil schreiben** -- ELLA lernt deinen Schreibstil aus deiner E-Mail-Historie und formuliert Texte so, wie du es tun würdest.
+
+> "Ella, suche nach den besten Rezepten für Kartoffelsuppe." -- "Ella, übersetze das ins Französische." -- "Ella, fasse diesen Text in 3 Sätzen zusammen."
 
 ---
 
-## Shell
+## 8. Sicherheit & Privatsphäre
 
-| Tool          | Was es tut                                                        |
-| ------------- | ----------------------------------------------------------------- |
-| `run_command` | PowerShell-Befehl ausführen _(Bestätigung, 60+ gesperrte Muster)_ |
+ELLA ist sicher gebaut. Deine Daten bleiben bei dir.
 
----
+**Die E.L.L.A. Directive -- vier unumstößliche Regeln** (eigenständiges Open-Source-Projekt, MIT-Lizenz):
 
-## Immer aktiv — ohne Tool-Aufruf
+1. **Kein Schaden** -- ELLA darf keinen physischen, finanziellen, psychologischen oder datenbezogenen Schaden verursachen.
+2. **Keine Verschleierung** -- ELLA versteckt nie, was sie tut, was sie kann oder wie der Systemstatus ist.
+3. **Keine Überwachung** -- keine Überwachung ohne dein ausdrückliches Wissen und deine aktive Zustimmung.
+4. **Keine Datenweitergabe** -- deine Daten werden nie an Dritte weitergegeben, es sei denn, du stimmst ausdrücklich zu.
 
-| Feature                           | Was es tut                                                              |
-| --------------------------------- | ----------------------------------------------------------------------- |
-| **Wakeword "ella"**               | Sprachaktivierung via openWakeWord + ONNX (lokal, offline)              |
-| **Kokoro TTS**                    | Neuronale Sprachausgabe (offline, kein Python)                          |
-| **Proaktive Nachrichten**         | ELLA schreibt von sich aus in den Chat (14 Kategorien)                  |
-| **Proaktives Approval-Memory**    | Auto-Mute nach 5x Wegwischen; Mute-Button an jeder Nachricht            |
-| **Clipboard-Mustererkennung**     | IBAN, Paketnummer, Telefon, URL, E-Mail — Polling alle 3 s              |
-| **Background Worker**             | Disk/RAM/Alerts, USB, Netzwerk — alle 60 s                              |
-| **Gesprächskompression**          | Regelbasierte Pre-Compression (kein LLM nötig) + lokale Zusammenfassung |
-| **Fenster-Kontext**               | Aktives Fenster als Kontext (opt-in, sensible Titel gefiltert)          |
-| **Nutzerprofile**                 | Mehrere Profile, PIN-geschützt                                          |
-| **Knowledge-Graph**               | D3-Visualisierung mit Subjekt/Prädikat/Objekt-Triples                   |
-| **Multi-Agenten-Pipeline**        | Parallele Agenten mit Live-Streaming                                    |
-| **Self-Learning Loop**            | Positives Feedback → Few-Shot-Injection in zukünftige Gespräche         |
-| **LoRA Fine-Tuning**              | Persönliches Modell-Training aus Interaktions-Historie (lokal)          |
-| **HUD-Widgets**                   | Modulares Dashboard: Gedächtnis, LoRA, Vektor-Index, System-Stats       |
-| **Gestensteuerung**               | Handerkennung via MediaPipe Hands (Stufe 1)                             |
-| **Zeitbewusstsein**               | Session-Dauer, Pausen-Erkennung, letzte Interaktion                     |
-| **Comeback-Briefing**             | Was hat sich verändert während du weg warst                             |
-| **Meeting-Prep / Tagesabschluss** | Automatisch fällige Aufgaben + Kalender                                 |
+**Weitere Schutzmaßnahmen:**
+
+- **107 Sicherheitsregeln** -- automatisch beim Start aktiv. Schützen Systemdateien, Passwörter, kritische Prozesse.
+- **Bestätigungspflicht** -- vor dem Löschen, Klicken, Ausführen von Befehlen oder Schließen von Fenstern fragt ELLA nach.
+- **Passwort-Manager gesperrt** -- Maus-Tools funktionieren nicht in 1Password, KeePass, Bitwarden, PayPal oder Bank-Fenstern.
+- **Sensible Daten schwärzen** -- API-Keys, IBANs, Passwörter und Kreditkartennummern werden vor dem Speichern automatisch entfernt.
+- **Lokal zuerst** -- alle KI-Verarbeitung läuft bevorzugt auf deinem Rechner. OpenAI wird nur genutzt, wenn du es erlaubst und einen eigenen Key hinterlegst.
+- **Offline-Modus** -- sperrt alle Netzwerk-Tools. Beachte: Die deutsche Sprachausgabe (Edge TTS) benötigt weiterhin eine Internetverbindung; Englisch, Spanisch und Französisch laufen lokal über Kokoro.
+- **Eigene Regeln erstellen** -- du kannst Tools gezielt erlauben oder verbieten.
 
 ---
 
-## Zahlen
+## 9. Lernen & Gedächtnis
 
-| Kennzahl         | Wert                                                                             |
-| ---------------- | -------------------------------------------------------------------------------- |
-| Tools (aktiv)    | **90+**                                                                          |
-| Tests            | **640 grün**                                                                     |
-| LLM-Backends     | Ollama llama3.1:8b · qwen2.5:7b (lokal) + OpenAI GPT-4o (optional) + LoRA-Modell |
-| Datenbank        | MariaDB mit VECTOR-Index, lokal, kein Cloud-Zugriff                              |
-| Netzwerk-Ausgang | Nur auf expliziten Nutzer-Befehl                                                 |
+ELLA merkt sich, was dir wichtig ist -- und wird mit der Zeit besser.
+
+**Was geht:**
+
+- **Langzeitgedächtnis** -- ELLA speichert wichtige Informationen dauerhaft. "Mein Lieblingsrestaurant ist die Trattoria Roma." -- das merkt sie sich.
+- **Knowledge Graph** -- ELLA erkennt Zusammenhänge. Wenn du sagst "Max ist mein Bruder" und später "Max hat Geburtstag am 15. März", verknüpft sie beides.
+- **Self-Learning** -- wenn du eine Antwort mit Daumen hoch bewertest, lernt ELLA daraus und gibt ähnliche Antworten künftig in diesem Stil.
+- **Proaktive Nachrichten** -- ELLA meldet sich von selbst, wenn etwas Wichtiges passiert: Festplatte fast voll, neues Gerät verbunden, Termin in 15 Minuten.
+- **Lernende Benachrichtigungen** -- wenn du eine proaktive Nachricht 5-mal wegklickst, stellt ELLA diese Kategorie automatisch stumm.
+- **Tagesabschluss & Comeback** -- nach einer Pause fasst ELLA zusammen, was sich verändert hat. Am Ende des Tages erinnert sie an offene Aufgaben.
+- **Reflexion** -- ELLA reflektiert regelmäßig über gesammelte Erfahrungen und erkennt Muster in deinem Verhalten.
+- **Stresserkennung** -- optional: ELLA analysiert deine Stimme und gibt sanfte Hinweise, wenn du gestresst klingst.
+
+> "Ella, was weißt du über mich?" -- "Ella, vergiss dass ich Kaffee mag." -- "Ella, was hat sich verändert, seit ich weg war?"
+
+---
+
+## 10. Unterhaltung
+
+Auch zum Zeitvertreib ist ELLA da.
+
+**Schach:**
+
+- Spiele eine Partie gegen ELLA in einem eigenen Fenster mit vier visuellen Themes.
+- ELLA kommentiert Züge, reflektiert nach dem Spiel und merkt sich deine Spielstärke.
+- Unterbrochene Partien können fortgesetzt werden.
+
+**Musik:**
+
+- Musikbibliothek nach Künstler, Album oder Titel durchsuchen und abspielen.
+- Wiedergabe steuern: Play, Pause, Nächster Titel, Vorheriger Titel, Stopp.
+- Aktuell spielenden Titel anzeigen lassen.
+
+> "Ella, lass uns Schach spielen." -- "Ella, spiel Musik von Beethoven." -- "Ella, nächster Titel."
+
+---
+
+## 11. Barrierefreiheit
+
+ELLA passt sich an unterschiedliche Bedürfnisse an.
+
+**Blind-Modus:**
+
+- Sprachausgabe wird erzwungen -- jede Antwort wird vorgelesen.
+- Antworten enthalten kein Markdown (keine Tabellen, Listen oder Formatierung, die ein Screenreader stört).
+- Audio-Töne signalisieren Zustände (Laden, Fertig, Fehler).
+- Begrüssung beim Starten wird automatisch vorgelesen.
+
+**Gehörlosenmodus:**
+
+- Sprachausgabe und Mikrofon-Button werden komplett ausgeblendet.
+- Visueller Banner zeigt den aktiven Modus an.
+- ELLA erwähnt in ihren Antworten keine Sprachfunktionen.
+
+> Einstellbar unter Einstellungen -> Barrierefreiheit.
+
+---
+
+## 12. HUD & Erscheinungsbild
+
+Drei visuelle Stile -- von dezent bis technisch.
+
+**Calm (Standard):**
+
+- Dunkles, ruhiges Design. Ideal für den täglichen Einsatz.
+
+**HUD:**
+
+- Technisches Heads-Up-Display mit Cyan-, Violett- oder Bernstein-Akzent.
+- Zeigt konfigurierbare Widgets: Systemstatus, Monitore, Aufgaben, E-Mails, Musik, Uhr, Routinen und Directive-Regeln.
+- Der Orb in der Mitte visualisiert ELLAs Zustand: bereit, hört zu, denkt nach, spricht, Cloud-Zugriff oder offline.
+- Drei-Spalten-Layout mit Widgets links und rechts vom Orb.
+
+**Show (Präsentation):**
+
+- Vollbild-Modus mit nur dem Orb und der letzten Antwort.
+- Sensible Inhalte (E-Mails, Dateien, Netzwerkdaten) werden automatisch als "[privat]" angezeigt.
+- Ideal für Demos oder wenn jemand zuschaut.
+
+**Weitere Details:**
+
+- Widgets sind konfigurierbar -- ziehe per Einstellungen, welche Panels links und rechts erscheinen.
+- Performance-Drosselung: Animationen werden während des Nachdenkens automatisch reduziert.
+- Alle Stile respektieren "Reduzierte Bewegung" aus den Windows-Einstellungen.
+
+> Einstellbar unter Einstellungen -> Aussehen.
+
+---
+
+## Kindermodus (Hausaufgaben-Modus)
+
+Ein PIN-geschützter Modus, der den Zugriff auf bestimmte Funktionen einschränkt. Nur die PIN beendet den Modus -- kein automatisches Zeitlimit, keine Umgehung möglich.
+
+> "Ella, aktiviere den Hausaufgaben-Modus."
+
+---
+
+## Netzwerk & lokales Heimnetz
+
+ELLA kann dein lokales Netzwerk analysieren -- auch im Offline-Modus.
+
+- Alle Geräte im Heimnetz auflisten (IP, MAC-Adresse).
+- Aktive Verbindungen und offene Ports anzeigen.
+- WLAN-Informationen abrufen (Name, Signalstärke).
+- Angeschlossene Hardware auflisten.
+
+> "Ella, welche Geräte sind in meinem Netzwerk?" -- "Ella, wie stark ist mein WLAN-Signal?"
+
+---
+
+## Shell-Befehle
+
+Für fortgeschrittene Nutzer: ELLA kann PowerShell-Befehle ausführen. Vor jeder Ausführung wird eine Bestätigung eingeholt. Über 60 gefährliche Befehlsmuster sind gesperrt.
+
+> "Ella, führe 'Get-Process | Sort-Object CPU -Descending | Select -First 10' aus."
+
+---
+
+## Wie ELLA denkt
+
+ELLA läuft lokal über Ollama (qwen2.5:14b). Optional kannst du einen eigenen OpenAI-Key hinterlegen -- dann nutzt ELLA Cloud-KI als Ergänzung oder Fallback. Drei Modi stehen zur Wahl:
+
+- **Automatisch** -- lokal zuerst, Cloud nur bei Bedarf.
+- **Nur lokal (Ollama)** -- keine Internetverbindung für KI nötig.
+- **Cloud bevorzugt (OpenAI)** -- schnellere Antworten, erfordert eigenen API-Key.
+
+Deine Daten verlassen deinen Rechner nur, wenn du es ausdrücklich erlaubst.

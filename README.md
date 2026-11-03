@@ -1,216 +1,147 @@
-<div align="center">
+# E.L.L.A. -- Embedded Local Logic Agent
 
-<img src="https://ella-agent.de/assets/ella-logo.png" alt="E.L.L.A." width="120"/>
+> _ELLA adapts to the user and grows with her challenges._
 
-# E.L.L.A.
-
-### Embedded Local Logic Agent
-
-**A personal AI assistant for Windows — fully offline, fully yours.**
-
-[![Version](https://img.shields.io/badge/version-1.6.4-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A./releases)
-[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows)](https://ella-agent.de)
-[![License](https://img.shields.io/badge/license-Proprietary-ff6500?style=flat-square)](LICENSE)
-[![Directive](https://img.shields.io/badge/Directive-v1.0.0%20%E2%80%94%20sealed-3ecf8e?style=flat-square)](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
-
-[**Download**](https://github.com/AndreZ1971/E.L.L.A./releases/latest) · [**Website**](https://ella-agent.de) · [**Deutsch**](README.de.md) · [**Directive**](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
-
-</div>
+**Version 1.6.4** | Windows 10/11 (x64) | [ella-agent.de](https://ella-agent.de) | [Deutsche Version](README.de.md)
 
 ---
 
 ## What is E.L.L.A.?
 
-E.L.L.A. is a personal AI assistant that runs entirely on your Windows PC. No cloud. No subscription. No data leaving your machine.
+E.L.L.A. is a personal AI assistant that runs as a desktop app directly on your Windows machine. The AI runs on your hardware -- no subscription, no telemetry. ELLA manages your system, learns your habits, remembers conversations, and acts proactively on your behalf.
 
-It understands natural language and can operate your computer — launch apps, search files, read emails, manage your calendar, control media, monitor your system, and much more. With 90+ tools, a persistent vector memory, a knowledge graph, LoRA fine-tuning, proactive monitoring, self-learning, and a built-in ethics layer, E.L.L.A. is not a chatbot. It is an agent.
-
-> _"I just wanted an assistant that works under this Directive."_
-> — Andre Zabel, May 2026
+At its core, ELLA uses a local language model (Ollama, model qwen2.5:14b). Optionally, you can add your own OpenAI key for advanced features like image recognition, writing style analysis, or the multi-agent pipeline.
 
 ---
 
-## Key Features
+## What Can ELLA Do?
 
-### 🧠 Local AI — No Cloud Required
+### Productivity
 
-The LLM runs on your machine via [Ollama](https://ollama.com) (`llama3.1:8b`, `qwen2.5:7b` and more). Every conversation, every memory, every tool call stays local. OpenAI GPT-4o is an optional fallback — explicitly opt-in only.
+- **90+ tools:** Search and open files, create and read documents (Word, PDF, Excel, HTML), manage tasks, set alarms, create reminders, play music, launch programs
+- **Email and calendar:** Read Outlook and Gmail, manage appointments, create drafts -- ELLA never sends automatically
+- **Dictation mode:** Speech is transcribed and typed directly into the active window -- system-wide, not just inside ELLA
+- **Desktop automation:** Launch apps, control windows, send keystrokes, operate the mouse
+- **Personal macros:** Save frequently used workflows as setup actions and run them with one click
 
-### 🔒 The E.L.L.A. Directive
+### Intelligent Memory
 
-Four hardcoded prohibitions that no prompt, rule, or setting can override:
+- **Knowledge graph:** ELLA automatically extracts relationships from conversations and understands connections -- not just text similarity
+- **Learning from feedback:** Thumbs up/down permanently improves future responses
+- **Proactive learning:** ELLA remembers which notifications you want and which you don't -- after five dismissals, a category is automatically muted
 
-| Prohibition    | What it means                                                          |
-| -------------- | ---------------------------------------------------------------------- |
-| **harm**       | No physical, financial, or digital damage to the user or third parties |
-| **conceal**    | No hiding, delaying, or distorting information to deceive              |
-| **surveil**    | No tracking or profiling without explicit, active consent              |
-| **exfiltrate** | No sending user data to external servers without explicit request      |
+### Voice and Speech Input
 
-These are not rules. They are architectural impossibilities — no code path leads to them. [→ Full Directive](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
+- **Wakeword:** Say "ELLA" -- she listens locally, no cloud service involved
+- **Four languages:** German, English, French, Spanish -- with female voices
+- **Stress detection:** Optionally analyzes your voice and adjusts her tone (opt-in)
+- **Follow-up:** After a response, you can continue speaking for 8 seconds without repeating the wakeword
 
-### 🛠️ 90 Tools
+### Monitoring and Proactivity
 
-Full system control through natural language:
+- **Background monitoring:** Disk space, RAM, network, USB devices -- ELLA warns before problems arise
+- **Clipboard detection:** IBANs, tracking numbers, phone numbers, URLs are automatically recognized
+- **Comeback briefing:** What happened while you were away?
+- **Daily summary:** End-of-day recap with due tasks
 
-- **Files & Folders** — search, open, copy, rename, find duplicates
-- **Documents** — create Word files, dictate, summarize, translate, correct, semantic search (RAG)
-- **Communication** — read Outlook + Gmail, manage calendar (Outlook + Google)
-- **System** — processes, services, disk usage, temperatures, event log, GPU, RAM details
-- **Memory** — persistent vector memory with ML embeddings, knowledge graph triples
-- **Screen & Vision** — screenshot + GPT-4o analysis, local OCR, screen watching
-- **Mouse & Keyboard** — click, drag, send keystrokes (with confirmation)
-- **Media** — music library, media controls, now-playing detection
-- **Network** — ARP scan, TCP connections, WiFi info, port monitoring
-- **Peripherals** — webcam control, printer control, multi-monitor support
-- **Productivity** — tasks, reminders, clipboard history, setups
+### Chess
 
-[→ Full capabilities list](docs/en/capabilities.md)
+- **Visual chessboard:** Dedicated window with four themes and 3D pieces
+- **Learning AI:** ELLA stores insights from every game and comments live
+- **Pause and resume:** Games can be interrupted and continued later
 
-### 🧩 Multi-Agent Pipeline
+### Accessibility
 
-Parallel and sequential agent pipelines with live SSE streaming. Built-in pipelines: Morning Briefing (calendar + tasks + weather) and System Report (performance + network + processes).
+- **Blind mode:** Text-to-speech enforced, audio feedback, full screen reader support
+- **Deaf mode:** Purely visual, no audio elements
 
-### 🕸️ Knowledge Graph
+### HUD Mode
 
-Subject/predicate/object triples with hybrid recall. D3 force-directed graph of semantic connections between memories — real relations as labeled edges, including indexed documents. Visual map of what E.L.L.A. knows and how it relates.
-
-### 🎙️ Voice — Fully Local
-
-- **Wakeword "ella"** — via openWakeWord + ONNX, offline
-- **Kokoro TTS** — neural voice synthesis, Node.js, no Python required
-- **Multilingual** — DE / EN / ES / FR voices
-
-### 🎲 Chess
-
-A full chess window with 4 board themes, a chess AI, move commentary via TTS, and game state persistence. Not a demo — a real feature that demonstrates E.L.L.A.'s ability to manage independent windows, a sub-AI, and persistent state simultaneously.
-
-### 🧬 Self-Learning & LoRA Fine-Tuning
-
-Positive feedback creates golden Q&A pairs injected as few-shot examples. LoRA fine-tuning builds a personal model from your interaction history — fully local training, no cloud.
-
-### 📊 HUD Widget-System
-
-Modular dashboard widgets: memory status, LoRA training progress, vector index health, system stats — all live in the chat overlay.
-
-### 🎙️ Speech-to-Text (STT)
-
-Local speech recognition via Whisper (Xenova/whisper-small). Fully offline transcription with quality upgrade in v1.6.2.
-
-### 🖐️ Gesture Control
-
-Hand gesture recognition via MediaPipe Hands (Stage 1). Control E.L.L.A. without touching the keyboard.
-
-### 👁️ Proactive Intelligence
-
-E.L.L.A. monitors and writes to the chat unprompted when something matters:
-
-- RAM, disk, temperature alerts
-- New USB devices
-- Suspicious network connections
-- Clipboard pattern recognition (IBAN, tracking numbers, URLs)
-- Comeback briefing after absence
-- Meeting prep, end-of-day summary, break reminders
-- 14 approval categories with auto-mute after 5 dismissals
-- Mute buttons on every proactive message
+- **Three appearances:** Standard (dark), HUD (technical, with widgets), and presentation mode (fullscreen, showing only the orb and the last response)
+- **Widgets:** System status, monitors, tasks, emails, music, routines -- freely configurable
+- **Orb:** Animated visualization with six states (ready, listening, thinking, speaking, cloud, offline)
 
 ---
 
 ## System Requirements
 
-| Component | Minimum              | Recommended                   |
-| --------- | -------------------- | ----------------------------- |
-| OS        | Windows 10 64-bit    | Windows 11 64-bit             |
-| RAM       | 16 GB                | 32 GB                         |
-| GPU       | NVIDIA GTX 1060 6 GB | RTX 3060 or better            |
-| VRAM      | 6 GB                 | 8 GB+                         |
-| Storage   | 10 GB free           | 20 GB free (models + DB)      |
-| CPU       | Any modern x64       | Intel 12th Gen+ / Ryzen 5000+ |
+| Component        | Minimum                     | Recommended                            |
+| ---------------- | --------------------------- | -------------------------------------- |
+| Operating system | Windows 10/11 (x64)         | Windows 11                             |
+| RAM              | 8 GB                        | 16 GB                                  |
+| Disk space       | 15 GB free                  | 20 GB free                             |
+| GPU              | Not strictly required       | NVIDIA with 8+ GB VRAM (e.g. RTX 3060) |
+| Internet         | For initial setup & license | Then optional (usable offline)         |
 
-> **GPU required for real-time inference.** Without a CUDA-capable GPU, Ollama falls back to CPU (3–5 tokens/sec vs. 14+ tokens/sec with GPU).
-
-[→ Full hardware guide](docs/en/hardware.md)
+**Without a GPU,** ELLA runs on the CPU -- slower, but functional. With an NVIDIA graphics card from the RTX 20 series or newer (CUDA 13) and at least 10 GB VRAM, the language model runs significantly faster.
 
 ---
 
-## Download
+## Installation
 
-**[→ Latest Release](https://github.com/AndreZ1971/E.L.L.A./releases/latest)**
+**Prerequisites: none.** The installer includes everything.
 
-The installer bundles everything: Node.js, MariaDB, and Ollama as portable binaries. No separate installation required. A license key is required for activation.
+1. Download the installer from [ella-agent.de](https://ella-agent.de)
+2. Run the installer and follow the prompts
+3. On first launch: choose language (DE/EN), accept EULA, enter license key, select model, complete onboarding -- done
 
-| File                      | Description                |
-| ------------------------- | -------------------------- |
-| `E.L.L.A.Setup.1.6.4.exe` | Windows installer (NSIS)   |
-| `SHA256SUMS.txt`          | Checksums for verification |
+The installer contains all required components (database, language model runtime, server) -- you don't need to install or configure anything separately.
+
+**License key:** Available at [ella-agent.de](https://ella-agent.de). One-time purchase, no subscription.
+
+---
+
+## Network and Privacy
+
+ELLA operates locally at its core. Network connections exist only for:
+
+1. **License check at startup** -- offline-tolerant, uses cache when there is no internet
+2. **German text-to-speech** -- uses Microsoft Edge TTS (internet required; English, French, and Spanish run locally)
+3. **Online features** you actively use (web search, weather, email)
+4. **OpenAI API** only with your own key, if you choose to set one up
+5. **One-time model downloads** on first use
+
+No telemetry. No tracking. No usage data sent to third parties.
+
+Details: [Network documentation](docs/english/network.md)
+
+---
+
+## The E.L.L.A. Directive
+
+The E.L.L.A. Directive is an ethical framework anchored in the architecture -- not configurable, not disableable. Four prohibitions always apply:
+
+1. **No harm** -- physical, financial, psychological, or data-related
+2. **No concealment** -- all actions are logged and traceable
+3. **No surveillance** -- without your knowledge and active consent
+4. **No data exfiltration** -- without your explicit permission
+
+Additionally, a rule engine with over 100 rules protects against unintended actions. Critical operations (e.g. formatting a drive, terminating processes) always require confirmation.
+
+The Directive is an independent open-source project (MIT license): [github.com/AndreZ1971/The-E.L.L.A.-Directive-](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
 
 ---
 
 ## Documentation
 
-| Document        | DE                                  | EN                                  |
-| --------------- | ----------------------------------- | ----------------------------------- |
-| Getting Started | [→](docs/de/bedienungsanleitung.md) | [→](docs/en/bedienungsanleitung.md) |
-| Capabilities    | [→](docs/de/capabilities.md)        | [→](docs/en/capabilities.md)        |
-| The Directive   | [→](docs/de/directive.md)           | [→](docs/en/directive.md)           |
-| FAQ             | [→](docs/de/faq.md)                 | [→](docs/en/faq.md)                 |
-| Hardware Guide  | [→](docs/de/hardware.md)            | [→](docs/en/hardware.md)            |
-| Changelog       | [→](CHANGELOG.md)                   | [→](CHANGELOG.md)                   |
+| Document                                                        | Content                       |
+| --------------------------------------------------------------- | ----------------------------- |
+| [User Manual (EN)](docs/english/bedienungsanleitung.md)         | Full user manual in English   |
+| [Bedienungsanleitung (DE)](docs/deutsch/bedienungsanleitung.md) | Full user manual in German    |
+| [Network (EN)](docs/english/network.md)                         | Network connections explained |
+| [Netzwerk (DE)](docs/deutsch/netzwerk.md)                       | Which connections ELLA makes  |
+| [CHANGELOG](CHANGELOG.md)                                       | All versions at a glance      |
 
 ---
 
-## Architecture Overview
+## License and Contact
 
-```
-┌─────────────────────────────────────────────────────┐
-│                    E.L.L.A.                         │
-│  ┌──────────┐  ┌──────────┐  ┌────────────────────┐ │
-│  │  Chat UI │  │  Voice   │  │  Proactive Worker  │ │
-│  │ (React)  │  │ (Kokoro) │  │  (60s background)  │ │
-│  └────┬─────┘  └────┬─────┘  └─────────┬──────────┘ │
-│       └─────────────┴──────────────────┘            │
-│                      │                              │
-│         ┌────────────▼────────────┐                 │
-│         │     Directive Layer     │  ← 4 prohibitions│
-│         │  harm · conceal ·       │    hardcoded,    │
-│         │  surveil · exfiltrate   │    no bypass     │
-│         └────────────┬────────────┘                 │
-│                      │                              │
-│         ┌────────────▼────────────┐                 │
-│         │      Tool Selector      │  ← 12 of 90     │
-│         │   (token-optimized)     │    per request   │
-│         └────────────┬────────────┘                 │
-│                      │                              │
-│    ┌─────────────────┼─────────────────┐            │
-│    ▼                 ▼                 ▼            │
-│ Ollama           OpenAI            90 Tools         │
-│ (local, offline) (opt-in only)    (system control)  │
-│                                                     │
-│    ┌────────────────────────────────────────────┐   │
-│    │  MariaDB (local) · Vector Memory · Audit   │   │
-│    └────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────┘
-```
+**License:** Proprietary. One-time purchase, no subscription. License key required.
+
+**Website:** [ella-agent.de](https://ella-agent.de)
+
+**Source code:** [github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent](https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent) (public, for reference)
 
 ---
 
-## Privacy
-
-E.L.L.A. is built on a single principle: **the intelligence lives on your machine, not in a cloud.**
-
-- All LLM inference runs locally (Ollama)
-- All memory stored in local MariaDB — never synced
-- Network access only on explicit user command
-- No telemetry, no analytics, no usage tracking
-- The Directive's `exfiltrate` prohibition is hardcoded — no update can remove it
-
----
-
-## License
-
-E.L.L.A. is proprietary software. A license key is required for use.  
-Source code is not distributed. This repository contains documentation only.
-
-© 2026 Andre Zabel. All rights reserved.
-
-[→ EULA](docs/en/eula.md) · [→ SECURITY.md](SECURITY.md)
+_E.L.L.A. -- All rights reserved._

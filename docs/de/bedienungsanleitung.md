@@ -1,1306 +1,409 @@
-﻿# E.L.L.A. â€” Bedienungsanleitung
+# E.L.L.A. — Bedienungsanleitung
 
 Version 1.6.4
 
 ---
 
-## Hallo â€” ich bin E.L.L.A.
+## Was ist E.L.L.A.?
 
-E.L.L.A. steht fÃ¼r _Embedded Local Logic Agent_ â€” dein persÃ¶nlicher KI-Assistent fÃ¼r Windows. Immer bereit, immer lokal, immer bei dir.
+E.L.L.A. steht für _Embedded Local Logic Agent_ — dein persönlicher KI-Assistent für Windows. Sie läuft direkt auf deinem eigenen Rechner. Kein Abo, kein Datenschutz-Kleingedrucktes. Installieren und loslegen.
 
-Das Besondere: Ich laufe vollstÃ¤ndig auf deinem eigenen Rechner. Kein Cloud-Server, kein Abo, kein Datenschutz-Kleingedrucktes. Einfach starten und loslegen.
-
-**Kein ChatGPT. Kein Groq. Kein versteckter API-Key der das Ganze erst mÃ¶glich macht.**
-Ich brauche das alles nicht â€” Ollama lÃ¤uft lokal, die KI lÃ¤uft lokal, deine Daten bleiben lokal.
+Die KI läuft lokal über Ollama — deine Daten bleiben auf deinem Rechner. Bevor wir aber darüber reden, _was_ Ella alles kann, reden wir darüber, _wonach_ sie das tut. Denn das ist der Unterschied zu jedem anderen Assistenten.
 
 ---
 
-## Erste Schritte
+## Die Directive — der Rahmen
 
-### Installation
+Ella arbeitet nach vier unveränderlichen Grundregeln. Sie sind in der Architektur verankert, nicht abschaltbar — und alles, was Ella tut, passiert _innerhalb_ dieses Rahmens:
 
-1. `E.L.L.A Setup 1.6.4.exe` ausfÃ¼hren
-2. Installationspfad wÃ¤hlen (Standard: `C:\Programme\E.L.L.A`)
-3. Der Installer richtet alles automatisch ein â€” MariaDB, Ollama, Node.js. Nichts weiter installieren.
+1. **Kein Schaden** — physisch, finanziell, psychologisch oder datenbezogen
+2. **Keine Verschleierung** — jede Aktion und jede Fähigkeit ist für dich sichtbar
+3. **Keine Überwachung** — nicht ohne dein Wissen und deine Zustimmung
+4. **Keine Datenweitergabe** — nicht ohne deine ausdrückliche Zustimmung
 
-### Erster Start
+### So siehst du den Rahmen bei der Arbeit
 
-1. **Sprachauswahl** â€” Deutsch oder Englisch
-2. **EULA** â€” Nutzungsbedingungen und ELLA-Direktive akzeptieren
-3. **Hardware-Scan** â€” ELLA erkennt deinen Rechner und schlÃ¤gt das passende Sprachmodell vor
-4. **Modell-Auswahl** â€” du wÃ¤hlst (kein Download ohne deine Zustimmung)
-5. **Stimme wÃ¤hlen** â€” 4 weibliche Stimmen in DE/EN/ES/FR mit Vorschau
-6. **Standort** â€” fÃ¼r Wetter und lokale Infos (optional)
-7. **Lizenzaktivierung** â€” `ELLA-XXXX-XXXX-XXXX-XXXX` eingeben
-8. **Chat** â€” los geht's
+Die Directive ist nichts Abstraktes — du siehst sie in jedem Gespräch:
+
+- **Tool-Chips** — unter jeder Antwort zeigt Ella kurz, welches Werkzeug sie benutzt hat. Volle Transparenz über jede Aktion.
+- **Provider-Chip** — unten links zeigt ein Chip, ob gerade die lokale KI oder die Cloud aktiv ist.
+- **Directive-Banner** — lehnt Ella eine Anfrage ab, erscheint ein roter Banner mit der Begründung.
 
 ---
 
-## Der Chat
+## Was E.L.L.A. für dich tut
 
-### Wie du mit mir sprichst
+Alles Folgende läuft lokal auf deinem Rechner — und unter der Directive von oben. Du redest mit Ella in normalem Deutsch, keine Befehle, keine Sondersyntax.
 
-Schreib in normalem Deutsch â€” keine Befehle, keine Syntax. Ich verstehe natÃ¼rliche Sprache.
+### Reden & Gedächtnis
 
-### Spracheingabe
+Schreib einfach los:
 
-Klicke den **Mikrofon-Button** oder sag **â€žElla"** (Wakeword-Modus). Modi:
-
-- **Aus** â€” kein automatisches ZuhÃ¶ren
-- **Manuell** â€” nur Knopfdruck
-- **Wakeword** â€” auf â€žElla" warten, dann zuhÃ¶ren
-- **Immer** â€” kontinuierliches ZuhÃ¶ren
-
-### Sprachausgabe (TTS)
-
-- **Kokoro TTS** (Standard) â€” lokale neuronale Stimme, vollstÃ¤ndig offline
-- **Microsoft Edge TTS** (Fallback) â€” benÃ¶tigt Internet
-
-### Feedback-Loop
-
-Daumen hoch / Daumen runter unter jeder Antwort â†’ ELLA lernt deine Vorlieben und passt sich dauerhaft an.
-
-### Tool-Anzeige
-
-Wenn ELLA etwas tut siehst du kurz welches Werkzeug sie verwendet hat â€” volle Transparenz Ã¼ber jede Aktion.
-
-### Provider-Anzeige
-
-Im Avatar-Panel unten links zeigt ein grÃ¼ner Chip ob gerade **Ollama** (lokal) oder **OpenAI** (cloud-optional) aktiv ist.
-
----
-
-## Alle Tools im Ãœberblick
-
-ELLA hat **90+ Werkzeuge**. Hier sind alle â€” mit Beispielen.
-
----
-
-### Programme & Apps
-
-#### `list_programs` â€” Programme auflisten
-
-Zeigt alle auf deinem System installierten und freigegebenen Programme.
-
-```
-â€žWelche Programme habe ich installiert?"
-â€žListe mir alle Apps auf"
-â€žWelche Programme darf ELLA Ã¶ffnen?"
-```
-
-#### `open_app` â€” App Ã¶ffnen
-
-Ã–ffnet eine installierte Anwendung.
-
-```
-â€žÃ–ffne Chrome"
-â€žStarte Spotify"
-â€žÃ–ffne Word"
-â€žMach den Task-Manager auf"
-```
-
-#### `launch_app` â€” App mit Parametern starten
-
-Startet eine Anwendung mit zusÃ¤tzlichen Argumenten oder Dateipfaden.
-
-```
-â€žÃ–ffne Notepad mit der Datei C:\config.txt"
-â€žStarte VLC mit dem Video auf dem Desktop"
-```
-
-#### `load_setup` â€” Setup ausfÃ¼hren
-
-FÃ¼hrt ein vordefiniertes Setup-Makro aus â€” Ã¶ffnet und schlieÃŸt Apps automatisch.
-
-```
-â€žLade mein Arbeits-Setup"
-â€žStarte das Gaming-Setup"
-â€žFÃ¼hre Setup Feierabend aus"
-```
-
-#### `create_setup` â€” Setup erstellen
-
-Erstellt ein neues Setup-Makro aus dem Chat heraus.
-
-```
-â€žErstell ein Setup namens Homeoffice: Ã¶ffne Teams, Outlook und Chrome"
-â€žNeues Setup: beim Abend schlieÃŸe alle Apps und Ã¶ffne Spotify"
-```
-
-#### `control_window` â€” Fenster steuern
-
-Minimiert, maximiert, schlieÃŸt oder verschiebt Programmfenster.
-
-```
-â€žMinimiere Chrome"
-â€žMaximiere das aktuelle Fenster"
-â€žSchlieÃŸe alle Word-Fenster"
-```
-
-#### `pause_ella` â€” ELLA pausieren
-
-Deaktiviert das Wakeword fÃ¼r eine bestimmte Zeit.
-
-```
-â€žPausiere ELLA fÃ¼r 30 Minuten"
-â€žStummschalten fÃ¼r eine Stunde"
-â€žELLA, kurz Ruhe bitte â€” 20 Minuten"
-```
-
----
-
-### Dateien & Ordner
-
-#### `search_files` â€” Dateien suchen
-
-Durchsucht alle Laufwerke nach Dateien (Windows Search Index + Fallback).
-
-```
-â€žSuche die Datei Angebot"
-â€žFinde alle PDFs mit dem Wort Rechnung"
-â€žWo ist mein Lebenslauf?"
-```
-
-#### `open_file` â€” Datei Ã¶ffnen
-
-Ã–ffnet eine Datei mit dem Standard-Programm.
-
-```
-â€žÃ–ffne C:\Dokumente\Bericht.docx"
-â€žMach die Datei auf die du gerade gefunden hast"
-```
-
-#### `explore_folder` â€” Ordner im Explorer Ã¶ffnen
-
-Ã–ffnet einen Ordner im Windows-Explorer.
-
-```
-â€žÃ–ffne den Ordner Downloads"
-â€žZeig mir den Desktop-Ordner"
-â€žExplorer auf C:\Projekte"
-```
-
-#### `list_folder` â€” Ordnerinhalt auflisten
-
-Listet den Inhalt eines Ordners auf.
-
-```
-â€žWas ist im Ordner Dokumente?"
-â€žListe alle Dateien im Download-Verzeichnis"
-```
-
-#### `read_file_content` â€” Dateiinhalt lesen
-
-Liest und versteht den Inhalt von Dokumenten (.docx, .pdf, .xlsx, .html, .txt).
-
-```
-â€žWas steht in dieser PDF?"
-â€žLies mir die Excel-Tabelle Umsatz2024 vor"
-â€žFasse das Word-Dokument zusammen"
-â€žWas steht auf Seite 3 vom Bericht?"
-```
-
-#### `create_document` â€” Dokument erstellen
-
-Erstellt ein neues Word- oder Textdokument.
-
-```
-â€žErstell ein neues Word-Dokument namens Protokoll"
-â€žNeues Textdokument auf dem Desktop: Notizen"
-```
-
-#### `dictate_to_document` â€” In Dokument diktieren
-
-Ã–ffnet ein Word-Dokument und fÃ¼gt diktierten Text mit KI-Korrektur ein.
-
-```
-â€žDiktiere in das Dokument Bericht: Sehr geehrte Damen und Herren..."
-â€žSchreib das in mein aktuelles Word-Dokument"
-```
-
-#### `rename_file` â€” Datei umbenennen
-
-Benennt eine Datei um.
-
-```
-â€žBenenne die Datei Foto1.jpg um in Urlaub2024.jpg"
-â€žRename C:\alte_datei.txt zu neue_datei.txt"
-```
-
-#### `copy_file` â€” Datei kopieren
-
-Kopiert eine Datei an einen neuen Ort.
-
-```
-â€žKopiere das Dokument Vertrag nach D:\Backup"
-â€žKopiere alle JPGs vom Desktop nach E:\Fotos"
-```
-
-#### `delete_file` â€” Einzelne Datei lÃ¶schen
-
-LÃ¶scht eine bestimmte Datei (mit BestÃ¤tigung).
-
-```
-â€žLÃ¶sche die Datei temp_backup.zip"
-```
-
-#### `delete_files` â€” Mehrere Dateien lÃ¶schen
-
-LÃ¶scht mehrere Dateien auf einmal.
-
-```
-â€žLÃ¶sche alle .tmp-Dateien im Temp-Ordner"
-â€žEntferne alle alten Log-Dateien aus C:\Logs"
-```
-
-#### `create_folder` â€” Ordner erstellen
-
-Erstellt einen neuen Ordner.
-
-```
-â€žErstell den Ordner Projekte 2025 auf dem Desktop"
-â€žNeuer Ordner: C:\Archiv\2024"
-```
-
-#### `find_duplicates` â€” Doppelte Dateien finden
-
-Durchsucht Laufwerke nach doppelten Dateien und berechnet verschwendeten Speicher.
-
-```
-â€žSuche nach doppelten Dateien"
-â€žWie viel Platz verschwende ich durch Duplikate?"
-â€žFinde doppelte Fotos auf Laufwerk D"
-```
-
----
-
-### System & Leistung
-
-#### `get_disk_usage` â€” Festplattenauslastung
-
-Zeigt freien und belegten Speicherplatz pro Laufwerk.
-
-```
-â€žWie viel Platz ist noch auf Laufwerk C?"
-â€žFestplattenauslastung anzeigen"
-â€žBin ich auf D bald voll?"
-```
-
-#### `get_system_info` â€” Systeminformationen
-
-Zeigt CPU, RAM, Betriebssystem und Hardware-Details.
-
-```
-â€žWas fÃ¼r einen Prozessor habe ich?"
-â€žZeig mir meine Systemdaten"
-â€žWie viel RAM ist verbaut?"
-```
-
-#### `get_system_status` â€” System-Status
-
-Aktueller Status: CPU-Auslastung, RAM, Festplatten auf einen Blick.
-
-```
-â€žWie lÃ¤uft mein System gerade?"
-â€žSystem-Check bitte"
-â€žIst alles okay mit dem Rechner?"
-```
-
-#### `get_temperatures` â€” Temperaturen
-
-Zeigt CPU- und GPU-Temperaturen an.
-
-```
-â€žWie heiÃŸ ist meine CPU?"
-â€žTemperaturen anzeigen"
-â€žIst mein Rechner Ã¼berhitzt?"
-```
-
-#### `get_battery_status` â€” Akkustand
-
-Zeigt Akku-Status und Ladestand (Laptops).
-
-```
-â€žWie viel Akku habe ich noch?"
-â€žWird mein Laptop gerade geladen?"
-```
-
-#### `free_ram` â€” RAM freigeben
-
-Gibt ungenutzten Arbeitsspeicher frei.
-
-```
-â€žGib den RAM frei"
-â€žArbeitsspeicher leeren"
-â€žMein Rechner ist langsam, rÃ¤um den Speicher auf"
-```
-
-#### `clean_temp` â€” Temp-Dateien bereinigen
-
-LÃ¶scht temporÃ¤re Dateien des Systems.
-
-```
-â€žBereinige die Temp-Dateien"
-â€žLÃ¶sch den Cache"
-â€žMach den Temp-Ordner leer"
-```
-
-#### `empty_recycle_bin` â€” Papierkorb leeren
-
-Leert den Windows-Papierkorb.
-
-```
-â€žLeere den Papierkorb"
-â€žPapierkorb leeren bitte"
-```
-
-#### `get_event_log` â€” Windows-Ereignisprotokoll
-
-Liest Windows-Systemereignisse und -Fehler aus.
-
-```
-â€žWas steht im Windows-Ereignisprotokoll?"
-â€žGab es heute Systemfehler?"
-â€žZeig mir die letzten Fehlermeldungen von Windows"
-```
-
-#### `list_autostart` â€” Autostart-Programme
-
-Zeigt alle Programme die beim Windows-Start automatisch starten.
-
-```
-â€žWelche Programme starten automatisch mit Windows?"
-â€žAutostart-Liste anzeigen"
-â€žWas lÃ¤dt beim Hochfahren alles?"
-```
-
-#### `toggle_dark_mode` â€” Dark Mode umschalten
-
-Schaltet den Windows Dark Mode an oder aus.
-
-```
-â€žDark Mode einschalten"
-â€žWechsel zu hellem Design"
-â€žDark Mode umschalten"
-```
-
-#### `shutdown_system` â€” Herunterfahren / Neustart
-
-FÃ¤hrt Windows herunter oder startet neu.
-
-```
-â€žFahr den Rechner herunter"
-â€žWindows neu starten"
-â€žShut down in 5 Minuten"
-```
-
----
-
-### Prozesse & Dienste
-
-#### `list_processes` â€” Prozesse auflisten
-
-Zeigt alle laufenden Prozesse, sortiert nach CPU- oder RAM-Verbrauch.
-
-```
-â€žWelche Prozesse laufen gerade?"
-â€žWas frisst am meisten RAM?"
-â€žZeig mir die Top 10 nach CPU-Auslastung"
-```
-
-#### `kill_process` â€” Prozess beenden
-
-Beendet einen laufenden Prozess (systemkritische sind gesperrt).
-
-```
-â€žBeende den Prozess chrome.exe"
-â€žKill den Firefox-Prozess"
-â€žBeende alle hÃ¤ngenden Word-Instanzen"
-```
-
-#### `manage_service` â€” Windows-Dienste verwalten
-
-Startet, stoppt oder zeigt Windows-Dienste an.
-
-```
-â€žListe alle Windows-Dienste auf"
-â€žStarte den Druckspooler-Dienst"
-â€žStoppe den Windows Update-Dienst"
 ```
-
-#### `run_command` â€” Befehl ausfÃ¼hren
-
-FÃ¼hrt einen Shell-Befehl aus und gibt das Ergebnis zurÃ¼ck.
-
-```
-â€žFÃ¼hre den Befehl ipconfig /all aus"
-â€žStarte das Skript setup.bat"
-```
-
----
-
-### Laufwerke & Speichermedien
-
-#### `format_drive` â€” Laufwerk formatieren
-
-Formatiert ein Laufwerk (Systemlaufwerke und ELLA-Laufwerk gesperrt, BestÃ¤tigung erforderlich).
-
-```
-â€žFormatiere meinen USB-Stick"
-â€žFormat Laufwerk F als NTFS"
-```
-
-#### `rename_drive` â€” Laufwerk umbenennen
-
-Gibt einem Laufwerk einen neuen Namen (Bezeichnung).
-
-```
-â€žBenenne Laufwerk E in Daten um"
-â€žBezeichnung von D: auf Backup Ã¤ndern"
-```
-
----
-
-### Netzwerk
-
-#### `scan_network` â€” Netzwerk scannen
-
-Scannt das lokale Netzwerk via ARP und zeigt alle verbundenen GerÃ¤te.
-
-```
-â€žWer ist in meinem Netzwerk?"
-â€žZeig mir alle GerÃ¤te im WLAN"
-â€žNetzwerk-Scan starten"
-```
-
-#### `list_connections` â€” TCP-Verbindungen
-
-Zeigt aktive Netzwerkverbindungen und offene Ports.
-
-```
-â€žZeig mir aktive TCP-Verbindungen"
-â€žWelche Ports sind offen?"
-â€žWas verbindet sich gerade mit dem Internet?"
-```
-
-#### `list_devices` â€” Verbundene GerÃ¤te
-
-Listet alle GerÃ¤te auf die aktuell erkannt werden (USB, Netzwerk, Bluetooth).
-
-```
-â€žWelche GerÃ¤te sind angeschlossen?"
-â€žWas fÃ¼r USB-Sticks sind drin?"
-```
-
-#### `get_wifi_info` â€” WLAN-Status
-
-Zeigt WLAN-Verbindungsdetails: SSID, Signal, IP-Adresse.
-
-```
-â€žWie ist mein WLAN-Status?"
-â€žWie stark ist mein WLAN-Signal?"
-â€žMit welchem Netzwerk bin ich verbunden?"
-```
-
----
-
-### Mail & Kalender
-
-#### `read_emails` â€” Outlook-Mails lesen
-
-Liest ungelesene oder gefilterte Outlook-Mails.
-
-```
-â€žZeig mir meine ungelesenen Mails"
-â€žWas hat Klaus geschrieben?"
-â€žNeue Mails von heute bitte"
-```
-
-#### `mark_email` â€” Outlook-Mail markieren
-
-Markiert eine Mail als gelesen, Spam oder archiviert.
-
-```
-â€žMarkiere die Mail von Klaus als gelesen"
-â€žDie letzte Mail als Spam markieren"
-â€žArchiviere die Betreff-Mail"
-```
-
-#### `compose_email` â€” E-Mail verfassen
-
-Ã–ffnet einen Outlook-Entwurf mit KI-formuliertem Text (sendet nicht automatisch).
-
-```
-â€žSchreib einen Entwurf an Klaus: Treffen morgen 14 Uhr?"
-â€žMail an team@firma.de: das Meeting ist verschoben"
-```
-
-#### `read_gmail` â€” Gmail lesen
-
-Liest Gmail-Mails via OAuth 2.0 (einmalige Einrichtung in Einstellungen).
-
-```
-â€žZeig mir meine Gmail-Mails"
-â€žUngelesene Gmail von heute"
-```
-
-#### `mark_gmail` â€” Gmail-Mail markieren
-
-Markiert Gmail-Mails als gelesen, Spam oder archiviert.
-
-```
-â€žGmail-Mail als gelesen markieren"
-â€žSpam-Mail in Gmail ablegen"
-```
-
-#### `read_calendar` â€” Outlook-Kalender lesen
-
-Liest Kalendertermine aus Outlook.
-
-```
-â€žWas steht diese Woche im Kalender?"
-â€žWelche Termine habe ich morgen?"
-â€žZeig mir den Kalender fÃ¼r nÃ¤chsten Montag"
-```
-
-#### `create_appointment` â€” Outlook-Termin erstellen
-
-Legt einen neuen Termin in Outlook an.
-
-```
-â€žErstell einen Termin: Zahnarzt, Freitag 10 Uhr"
-â€žMeeting mit Klaus: Donnerstag 14 Uhr, 1 Stunde"
-```
-
-#### `read_google_calendar` â€” Google Calendar lesen
-
-Liest Google-Kalender via OAuth 2.0.
-
-```
-â€žWas steht im Google Kalender heute?"
-â€žGoogle-Termine fÃ¼r diese Woche"
-```
-
-#### `create_google_appointment` â€” Google-Termin erstellen
-
-Erstellt einen Termin im Google Calendar.
-
-```
-â€žTermin in Google Calendar: Arzt, Montag 9 Uhr"
-```
-
----
-
-### Aufgaben & Wecker
-
-#### `add_task` â€” Aufgabe hinzufÃ¼gen
-
-FÃ¼gt eine Aufgabe zur persistenten Todo-Liste hinzu (Ã¼berlebt Neustarts).
-
-```
-â€žFÃ¼ge die Aufgabe 'Steuern erledigen' hinzu"
-â€žTodo: RÃ¼ckruf bei MÃ¼ller"
-â€žNeues To-do: Angebot bis Freitag fertig"
-```
-
-#### `list_tasks` â€” Aufgaben anzeigen
-
-Zeigt alle offenen oder erledigten Aufgaben.
-
-```
-â€žZeig mir meine offenen Aufgaben"
-â€žWas steht noch auf meiner Todo-Liste?"
-â€žErledigte Aufgaben anzeigen"
+"Wie wird das Wetter morgen?"
+"Öffne Chrome und Spotify"
+"Fasse diese PDF zusammen"
+"Wie viel Speicherplatz ist noch frei?"
 ```
 
-#### `complete_task` â€” Aufgabe erledigen
+Ella merkt sich Dinge über Gespräche hinweg. Du kannst ihr gezielt etwas beibringen:
 
-Markiert eine Aufgabe als erledigt.
-
-```
-â€žMarkiere 'Steuern erledigen' als erledigt"
-â€žAufgabe 3 abhaken"
-```
-
-#### `delete_task` â€” Aufgabe lÃ¶schen
-
-LÃ¶scht eine Aufgabe aus der Liste.
-
-```
-â€žLÃ¶sche die Aufgabe RÃ¼ckruf MÃ¼ller"
-â€žAufgabe 5 entfernen"
-```
-
-#### `set_alarm` â€” Wecker stellen
-
-Stellt einen Wecker â€” ELLA lÃ¶st ihn mit Sprachalert aus.
-
-```
-â€žStell einen Wecker fÃ¼r 7:30 Uhr"
-â€žWecker morgen frÃ¼h 6 Uhr"
-â€žWeck mich in 45 Minuten"
-```
-
-#### `list_alarms` â€” Wecker anzeigen
-
-Zeigt alle aktiven Wecker.
-
-```
-â€žWelche Wecker sind aktiv?"
-â€žMeine Wecker anzeigen"
-```
-
-#### `delete_alarm` â€” Wecker lÃ¶schen
-
-LÃ¶scht einen gesetzten Wecker.
-
-```
-â€žLÃ¶sche den 7:30-Wecker"
-â€žWecker fÃ¼r morgen entfernen"
-```
-
-#### `set_reminder` â€” Erinnerung setzen
-
-Erstellt eine Erinnerung via Windows Task Scheduler â€” erscheint als Popup zur gesetzten Zeit.
-
-```
-â€žErinner mich morgen um 15 Uhr: Arzttermin anrufen"
-â€žErinnerung: Freitag 9 Uhr â€” Rechnung bezahlen"
-```
-
-#### `list_reminders` â€” Erinnerungen anzeigen
-
-Zeigt alle aktiven Erinnerungen.
-
-```
-â€žWelche Erinnerungen habe ich?"
-â€žMeine Erinnerungen anzeigen"
-```
-
-#### `delete_reminder` â€” Erinnerung lÃ¶schen
-
-LÃ¶scht eine geplante Erinnerung.
-
-```
-â€žLÃ¶sche die Erinnerung Arzttermin"
-```
-
----
-
-### Systemsteuerung
-
-#### `set_volume` â€” LautstÃ¤rke regeln
-
-Setzt die Windows-SystemlautstÃ¤rke.
-
-```
-â€žStell die LautstÃ¤rke auf 40 Prozent"
-â€žLautloser bitte â€” auf 10"
-â€žMaximale LautstÃ¤rke"
-â€žStummschalten"
-```
-
-#### `get_clipboard` â€” Zwischenablage lesen
-
-Liest den aktuellen Inhalt der Zwischenablage (inkl. der letzten 20 EintrÃ¤ge).
-
-```
-â€žWas ist in der Zwischenablage?"
-â€žWas habe ich zuletzt kopiert?"
-â€žZeig mir die Clipboard-Historie"
 ```
-
-#### `set_clipboard` â€” Zwischenablage setzen
-
-Schreibt Text in die Zwischenablage.
-
-```
-â€žKopiere 'Hallo Welt' in die Zwischenablage"
-â€žSchreib meine E-Mail-Adresse in die Zwischenablage"
-```
-
-#### `send_keys` â€” Tasten simulieren
-
-Sendet Tastenkombinationen an das aktive Fenster.
-
-```
-â€žSende Strg+C an das aktive Fenster"
-â€žDrÃ¼cke Enter"
-â€žTastenkombination Alt+F4 senden"
-```
-
----
-
-### Maus & Bildschirm-Automation
-
-#### `move_mouse` â€” Maus bewegen
-
-Bewegt den Mauszeiger zu bestimmten Koordinaten.
-
-```
-â€žBewege die Maus zu Position 500, 300"
-```
-
-#### `click_at` â€” Klick an Position
-
-Klickt an bestimmten Bildschirmkoordinaten.
-
-```
-â€žKlicke auf Position 200, 400"
-â€žRechtsklick auf 800, 600"
-```
-
-#### `drag_drop` â€” Drag & Drop
-
-Zieht ein Element von einer Position zur anderen.
-
-```
-â€žZiehe von 100,200 nach 500,600"
-```
-
-#### `click_element` â€” Element anklicken
-
-Klickt auf ein benanntes Element auf dem Bildschirm.
-
+"Merk dir: ich trinke morgens keinen Kaffee"
+"Was weißt du über mich?"
+"Vergiss die Notiz über den Kaffee"
 ```
-â€žKlicke auf den OK-Button"
-â€žKlicke auf Speichern"
-```
 
-#### `read_screen` â€” Bildschirm lesen
+Sie erkennt auch Zusammenhänge: Sagst du „Mein Sohn heißt Max" und später „Max geht aufs Einstein-Gymnasium", kann Ella die Frage „Auf welche Schule geht mein Sohn?" beantworten.
 
-Liest den Text vom aktuellen Bildschirm.
-
-```
-â€žWas steht auf meinem Bildschirm?"
-â€žLies mir den Text im aktiven Fenster vor"
-```
+Jede Antwort hat außerdem **Daumen hoch / runter** — Ella lernt aus deinem Feedback und passt sich dauerhaft an.
 
-#### `watch_screen` â€” Bildschirm beobachten
+### Dateien & Dokumente
 
-Beobachtet den Bildschirm und wartet auf eine bestimmte VerÃ¤nderung.
+**Suchen:**
 
 ```
-â€žWarte bis der Download fertig ist und sag mir Bescheid"
-â€žBeobachte den Bildschirm auf Fehlermeldungen"
+"Suche die Datei Angebot"
+"Finde alle PDFs mit dem Wort Rechnung"
+"Wo ist mein Lebenslauf?"
 ```
 
-#### `describe_screen` â€” Bildschirm beschreiben
+**Öffnen, kopieren, umbenennen, löschen:**
 
-Macht einen Screenshot und beschreibt was darauf zu sehen ist (OpenAI Vision).
-
 ```
-â€žBeschreib mir was auf dem Bildschirm passiert"
-â€žWas siehst du gerade auf meinem Monitor?"
+"Öffne C:\Dokumente\Bericht.docx"
+"Kopiere das Dokument Vertrag nach D:\Backup"
+"Benenne die Datei Foto1.jpg um in Urlaub2024.jpg"
+"Lösche die Datei temp_backup.zip"
 ```
-
-#### `take_screenshot` â€” Screenshot aufnehmen
 
-Macht einen Screenshot und speichert ihn.
+**Lesen und verstehen** — Word, PDF, Excel, HTML, Textdateien:
 
 ```
-â€žMach einen Screenshot"
-â€žScreenshot vom Bildschirm"
-â€žFoto vom aktuellen Fenster"
+"Was steht in dieser PDF?"
+"Fasse das Word-Dokument zusammen"
+"Lies mir die Excel-Tabelle vor"
 ```
 
-#### `describe_image` â€” Bild analysieren
+**Erstellen und diktieren:**
 
-Analysiert ein eingefÃ¼gtes Bild mit GPT-4o Vision (OpenAI-Key erforderlich).
-
 ```
-â€žWas ist auf diesem Bild?" _(Bild einfÃ¼gen)_
-â€žAnalysiere dieses Foto"
-â€žBeschreib das Bild das ich gerade geschickt habe"
+"Erstell ein neues Word-Dokument namens Protokoll"
+"Diktiere in das Dokument Bericht: Sehr geehrte Damen und Herren..."
 ```
 
-#### `describe_webpage` â€” Webseite analysieren
+**Volltextsuche in deinen Dokumenten** und **Duplikate finden:**
 
-LÃ¤dt eine Webseite und fasst ihren Inhalt zusammen.
-
 ```
-â€žWas steht auf dieser Webseite: https://..."
-â€žFasse den Artikel auf dieser URL zusammen"
+"Indexiere meinen Dokumente-Ordner"
+"Durchsuche meine indexierten Dokumente nach Steuerbescheid"
+"Suche nach doppelten Dateien"
 ```
-
----
 
-### Internet & Suche
+### Texte schreiben & übersetzen
 
-#### `search_web` / `web_search` â€” Websuche
-
-Sucht im Internet via DuckDuckGo ohne Tracking.
-
 ```
-â€žSuche nach dem aktuellen Bitcoin-Kurs"
-â€žWas ist das neue iPhone Modell?"
-â€žWer hat die Champions League gewonnen?"
+"Schreib mir ein professionelles Anschreiben für die Stelle als..."
+"Übersetze das auf Englisch"
+"Korrigiere diesen Text"
 ```
-
-#### `fetch_url` â€” URL abrufen
 
-LÃ¤dt den Inhalt einer URL und gibt ihn zurÃ¼ck.
+Ella kann auch deinen persönlichen Schreibstil lernen und Texte in deinem Stil verfassen.
 
-```
-â€žRuf diese URL auf und sag mir was dort steht"
-â€žHol den Inhalt von https://..."
-```
-
-#### `get_weather` â€” Wetter
+### E-Mail & Kalender
 
-Holt das aktuelle Wetter fÃ¼r deinen Standort (Open-Meteo, kein API-Key nÃ¶tig).
+Mit **Outlook** arbeitet Ella direkt zusammen:
 
 ```
-â€žWie wird das Wetter heute?"
-â€žWetter fÃ¼r morgen bitte"
-â€žBrauche ich heute einen Regenschirm?"
+"Zeig mir meine ungelesenen Mails"
+"Was hat Klaus geschrieben?"
+"Schreib einen Entwurf an Klaus: Treffen morgen 14 Uhr?"
+"Was steht diese Woche im Kalender?"
+"Erstell einen Termin: Zahnarzt, Freitag 10 Uhr"
 ```
 
-#### `get_location` â€” Standort
+E-Mails werden als **Entwurf** geöffnet — nichts wird automatisch gesendet.
 
-Gibt deinen konfigurierten Standort zurÃ¼ck.
+**Gmail und Google Calendar** gehen auch, über eine einmalige Anmeldung:
 
 ```
-â€žWas ist mein aktueller Standort?"
-â€žWo bin ich eingestellt?"
+"Zeig mir meine Gmail-Mails"
+"Termin in Google Calendar: Arzt, Montag 9 Uhr"
 ```
 
----
+### System, Leistung & Hardware
 
-### Datum & Zeit
-
-#### `get_datetime` â€” Datum und Uhrzeit
-
-Gibt das aktuelle Datum und die Uhrzeit zurÃ¼ck.
-
 ```
-â€žWie spÃ¤t ist es?"
-â€žWelches Datum haben wir heute?"
-â€žWie viele Tage noch bis Weihnachten?"
+"Wie läuft mein System gerade?"
+"Wie heiß ist meine CPU?"
+"Gib den RAM frei"
+"Bereinige die Temp-Dateien"
+"Was für eine Grafikkarte habe ich?"
+"Welche USB-Geräte sind angeschlossen?"
 ```
-
----
 
 ### Musik & Medien
 
-#### `play_music` â€” Musik abspielen
-
-Durchsucht deine Musikbibliothek und Ã¶ffnet Titel im Media Player.
-
 ```
-â€žSpiel etwas von Coldplay"
-â€žÃ–ffne das Album 'Brothers in Arms' von Dire Straits"
-â€žSuche Metallica-Titel in meiner Bibliothek"
-â€žSpiel meine Lieblingsplaylist"
+"Spiel etwas von Coldplay"
+"Pause"
+"Nächster Titel"
+"Was spielt gerade?"
 ```
 
-#### `control_media` â€” Medienwiedergabe steuern
-
-Steuert den aktuellen Mediaplayer (Play, Pause, NÃ¤chster, Vorheriger).
+### Aufgaben & Erinnerungen
 
 ```
-â€žPause"
-â€žNÃ¤chster Titel"
-â€žVorheriges Lied"
-â€žWiedergabe starten"
+"Füge die Aufgabe 'Steuern erledigen' hinzu"
+"Zeig mir meine offenen Aufgaben"
+"Stell einen Wecker für 7:30 Uhr"
+"Erinner mich morgen um 15 Uhr: Arzttermin anrufen"
 ```
 
-#### `get_now_playing` â€” Aktueller Titel
-
-Zeigt was gerade abgespielt wird.
+### Programme & Fenster steuern
 
 ```
-â€žWas spielt gerade?"
-â€žWelcher Titel lÃ¤uft?"
+"Öffne Chrome"
+"Minimiere das aktuelle Fenster"
+"Schließe alle Word-Fenster"
+"Dark Mode einschalten"
+"Fahr den Rechner herunter"
 ```
+
+### Netzwerk & Internet
+
+```
+"Wer ist in meinem Netzwerk?"
+"Wie ist mein WLAN-Status?"
+"Suche nach dem aktuellen Bitcoin-Kurs"
+```
+
+Die Websuche läuft über DuckDuckGo — ohne Tracking.
+
+### Drucker & Kamera
+
+```
+"Welche Drucker habe ich?"
+"Drucke das Dokument"
+"Welche Kameras sind angeschlossen?"
+"Mach ein Foto"
+```
+
+### Desktop-Automation
+
+Ella kann deinen Bildschirm lesen sowie Maus und Tastatur steuern:
+
+```
+"Was steht auf meinem Bildschirm?"
+"Klicke auf den OK-Button"
+"Sende Strg+C an das aktive Fenster"
+```
+
+### Schach spielen
+
+Ein eigenes Fenster mit vier visuellen Themes:
+
+```
+"Lass uns Schach spielen"
+"Öffne das Schachbrett"
+```
+
+- **4 Themes** — Classic, Neon, Marble und Midnight
+- **KI-Gegnerin** — Ella wählt ihren Zug und kommentiert die Partie live
+- **Pause und Fortsetzen** — beim nächsten Öffnen erscheint ein „Weiter"-Button
+- **Reflexion** — nach Spielende speichert Ella Erkenntnisse und wird besser
+
+### Mehrere Helfer gleichzeitig
+
+Für größere Aufgaben lässt Ella mehrere Helfer parallel arbeiten — schneller und gründlicher. Zwei fertige Abläufe:
+
+- **Morgenbriefing** — Kalendertermine, offene Aufgaben und Wetter auf einen Blick
+- **System-Report** — Speicherplatz, RAM, Top-Prozesse und Netzwerkstatus
+
+Zu finden als eigene Seite in der Navigation. (Erfordert einen eigenen OpenAI-Key.)
 
 ---
 
-### Texte & Sprache
+## Erster Start
 
-#### `write_for_me` â€” Text schreiben
+### Installation
 
-Schreibt Texte beliebiger Art auf Wunsch.
+Setup-Datei ausführen, Standardpfad bestätigen, fertig. Der Installer bringt alles mit — du musst nichts weiter installieren.
 
-```
-â€žSchreib mir ein professionelles Anschreiben fÃ¼r die Stelle als ..."
-â€žFormuliere eine Absage fÃ¼r die Einladung von Klaus"
-â€žSchreib eine Instagram-Caption fÃ¼r dieses Foto"
-```
+### Onboarding
 
-#### `translate_text` â€” Text Ã¼bersetzen
+Beim ersten Start führt dich Ella in sechs Schritten durch die Einrichtung:
 
-Ãœbersetzt Text in eine beliebige Sprache.
+1. **Sprache** — Deutsch oder Englisch für die Oberfläche
+2. **Nutzungsbedingungen** — EULA und die E.L.L.A.-Directive akzeptieren
+3. **Hardware-Scan** — Ella erkennt deinen Rechner und schlägt ein passendes Sprachmodell vor. Du bestätigst — kein Download ohne deine Zustimmung
+4. **Stimme wählen** — vier Stimmen in Deutsch, Englisch, Spanisch und Französisch, jede vorab anhörbar
+5. **Standort** — für Wetter und lokale Infos (optional)
+6. **Lizenzaktivierung** — deinen Lizenzschlüssel eingeben
 
-```
-â€žÃœbersetze das auf Englisch"
-â€žWie heiÃŸt das auf Spanisch?"
-â€žÃœbersetze diesen Absatz auf FranzÃ¶sisch"
-```
-
-#### `summarize_text` â€” Text zusammenfassen
-
-Fasst langen Text kompakt zusammen.
-
-```
-â€žFasse diesen Text zusammen"
-â€žKurze Version bitte"
-â€žTLDR von diesem Artikel"
-```
+Danach öffnet sich der Chat — fertig.
 
 ---
 
-### GedÃ¤chtnis
+## Sprechen & Zuhören
 
-#### `remember` â€” Merken
+### Sprachmodi
 
-Speichert eine Information dauerhaft im Vektorspeicher.
+In den Einstellungen unter „Sprache":
 
-```
-â€žMerk dir: ich trinke morgens keinen Kaffee"
-â€žSpeichere: meine Lieblingsfarbe ist Blau"
-â€žMerk dir dass mein Auto ein VW Golf ist"
-```
+| Modus        | Beschreibung                                        |
+| ------------ | --------------------------------------------------- |
+| **Aus**      | Kein automatisches Zuhören                          |
+| **Manuell**  | Nur per Mikrofon-Button im Chat                     |
+| **Wakeword** | Sag „Ella" — Ella hört dann zu und antwortet        |
+| **Immer**    | Kontinuierliches Zuhören — Ella hört dauerhaft mit  |
 
-#### `forget` â€” Vergessen
+**Tipp:** Im Wakeword-Modus kannst du nach einer Antwort 8 Sekunden lang direkt weitersprechen, ohne erneut „Ella" zu sagen.
 
-LÃ¶scht eine gespeicherte Erinnerung.
+### Stopp-Befehl
 
-```
-â€žVergiss die Notiz Ã¼ber den Kaffee"
-â€žLÃ¶sch den GedÃ¤chtniseintrag Nummer 3"
-```
+Während Ella spricht, kannst du sie jederzeit unterbrechen: „Stopp", „Halt", „Sei still" oder „Leise" — die Sprachausgabe bricht sofort ab.
 
-#### `list_memories` â€” GedÃ¤chtnis anzeigen
+### Diktat-Modus
 
-Zeigt alle gespeicherten Erinnerungen.
+Deine Sprache wird transkribiert und direkt ins aktive Fenster getippt — egal ob Word, Browser oder E-Mail.
 
-```
-â€žWas weiÃŸt du Ã¼ber mich?"
-â€žZeig mir dein GedÃ¤chtnis"
-â€žMeine gespeicherten Notizen bitte"
-```
+- Aktivieren: Einstellungen → Sprache → „Diktat", oder Tastenkürzel `Strg+Alt+Leertaste`
+- Optionale Rechtschreibkorrektur vor dem Einfügen
+- Deine Zwischenablage wird dabei nicht überschrieben
 
----
+### Sprachausgabe — offen gesagt, was lokal läuft
 
-### Konfiguration
+Ella spricht in vier Sprachen:
 
-#### `update_setting` â€” Einstellung Ã¤ndern
+- **Englisch, Französisch und Spanisch** laufen **vollständig lokal** über Kokoro. (Ist Kokoro einmal nicht verfügbar, wird auf Edge TTS zurückgegriffen — dann mit Internet.)
+- **Deutsch (Katja)** läuft derzeit über Microsoft Edge TTS — dabei wird der gesprochene Text an Microsoft übertragen.
 
-Ã„ndert eine ELLA-Einstellung per GesprÃ¤ch.
-
-```
-â€žWechsle zu OpenAI"
-â€žStell den Anbieter auf Ollama"
-â€žDeaktiviere die Sprachausgabe"
-```
-
-#### `create_rule` â€” Regel erstellen
-
-Erstellt eine neue Verhaltensregel fÃ¼r ELLA.
-
-```
-â€žErstell eine Regel: ELLA darf keine E-Mails versenden"
-â€žRegel: zwischen 22 und 7 Uhr keine Wecker stellen"
-â€žVerbiete ELLA den Zugriff auf Laufwerk D"
-```
-
-#### `homework_mode` â€” Hausaufgaben-Modus
-
-Aktiviert oder deaktiviert den PIN-gesicherten Kiosk-Modus.
-
-```
-â€žHausaufgaben-Modus aktivieren"
-â€žKinder-Modus starten"
-â€žHausaufgaben-Modus deaktivieren" _(PIN erforderlich)_
-```
+Warum sagen wir das so deutlich? Weil die Directive „keine Verschleierung" verlangt. Wir arbeiten an einer vollständig lokalen deutschen Stimme — bis dahin nennen wir den einen Weg, der nach außen führt, beim Namen.
 
 ---
 
-## Multi-Agenten
+## Ansichten
 
-Die leistungsstÃ¤rkste Funktion: mehrere KI-Agenten arbeiten **parallel** â€” schneller, tiefer, mehr auf einmal.
+Drei visuelle Stile, umschaltbar unter Einstellungen → Erscheinungsbild:
 
-> Erfordert OpenAI-Key. Ollama lÃ¤uft separat fÃ¼r den normalen Chat.
+- **Calm** (Standard) — ruhiges, dunkles Design mit klassischer Seitenleiste
+- **HUD** — technisches Layout mit Daten-Panels, Top-Leiste und einem zentralen Orb, der Ellas Zustand zeigt (bereit, hört zu, denkt, spricht). Akzentfarben: Cyan, Violett oder Bernstein
+- **Show** — Präsentationsmodus im Vollbild. Zeigt nur den Orb und die letzte Antwort; sensible Daten (E-Mails, Dateipfade) werden automatisch ausgeblendet
 
-### Vordefinierte Pipelines
+Im Blind-Modus, Hausaufgaben-Modus oder bei Bewegungseinschränkungen schaltet Ella automatisch auf Calm zurück.
 
-**ðŸŒ… Morgenbriefing** â€” 3 Agenten gleichzeitig:
+### Widgets im HUD-Modus
 
-- Kalendertermine des Tages
-- Offene Aufgaben
-- Aktuelles Wetter
+Links und rechts neben dem Chat zeigen konfigurierbare Panels Live-Daten. Auswählbar unter Einstellungen → Erscheinungsbild:
 
-**ðŸ–¥ï¸ System-Report** â€” 4 Agenten gleichzeitig:
-
-- Speicherplatz aller Laufwerke
-- RAM und CPU-Auslastung
-- Top-Prozesse nach Ressourcenverbrauch
-- Netzwerkstatus und Verbindungen
-
-### Setup nach Abschluss
-
-Pipeline verknÃ¼pfen mit einem Setup-Makro â€” nach Abschluss werden Apps automatisch geÃ¶ffnet oder geschlossen.
-
----
-
-## Setups
-
-Makros â€” einmal definieren, jederzeit per Wort abrufen.
-
-**Anlegen:** Einstellungen â†’ Setups â†’ Neu
-**Aufrufen:** â€žLade mein Arbeits-Setup"
+| Widget        | Zeigt                                         |
+| ------------- | --------------------------------------------- |
+| **System**    | CPU, RAM, Festplatte, Temperatur              |
+| **Monitore**  | Angeschlossene Bildschirme                    |
+| **Routinen**  | Deine Setups mit nächster Ausführungszeit     |
+| **Directive** | Die 4 Grundregeln                             |
+| **Uhr**       | Digitale Uhrzeit                              |
+| **Aufgaben**  | Offene Aufgaben mit Prioritätsfarben          |
+| **E-Mail**    | Letzte E-Mails mit Ungelesen-Zähler           |
+| **Musik**     | Aktuell gespielter Titel                      |
 
 ---
 
-## GedÃ¤chtnis
+## Besondere Modi
 
-Vektorbasierter Langzeitspeicher (nomic-embed-text, lokal). Profil-isoliert â€” jeder Nutzer hat sein eigenes GedÃ¤chtnis.
+### Hausaufgaben-Modus
+
+Ein PIN-gesicherter Kioskmodus — für Situationen, in denen nur bestimmte Programme erlaubt sein sollen.
+
+1. Sag „Hausaufgaben-Modus aktivieren" oder geh in die Einstellungen
+2. Lege eine PIN fest
+3. Ab jetzt sind nur freigegebene Programme zugänglich
+
+Beenden geht nur mit der PIN. Geht sie verloren, gibt es einen Notfall-Reset.
+
+### Barrierefreiheit
+
+**Blind-Modus** — Sprachausgabe immer aktiv, kein Markdown (nur klarer Text), Audio-Töne für Zustandswechsel, beschreibende Labels für Screenreader.
+
+**Gehörlosenmodus** — Sprachausgabe und Mikrofon ausgeblendet, visueller Banner im Chat, keine Erwähnung von Sprachfunktionen.
+
+Beide unter Einstellungen → Barrierefreiheit.
 
 ---
 
 ## Proaktive Nachrichten
 
-ELLA meldet sich von selbst wenn:
+Ella meldet sich manchmal von selbst — zum Beispiel wenn:
 
-- Ein Laufwerk unter 10 % freien Platz fÃ¤llt
-- RAM dauerhaft Ã¼berlastet ist
-- Ein USB-GerÃ¤t angesteckt wird
-- Ein Wecker auslÃ¶st
+- Ein Laufwerk unter 10 % freien Speicher fällt
+- Der Arbeitsspeicher dauerhaft überlastet ist
+- Ein USB-Gerät an- oder abgesteckt wird
+- Ein Wecker auslöst oder ein Termin in 15 Minuten beginnt
 - Eine IBAN, Paketnummer oder Telefonnummer in der Zwischenablage erkannt wird
-- Ein Kalendertermin in 15 Minuten beginnt
-- Am Abend offene Aufgaben bestehen
-- Eine lange Arbeitssession eine Pause empfiehlt
+- Am Abend noch offene Aufgaben bestehen
+- Du lange ohne Pause arbeitest
+
+Jede proaktive Nachricht hat zwei Buttons: **Wegdrücken** (diese Nachricht schließen) und **Stummschalten** (diese Art dauerhaft unterdrücken). Nach 5-maligem Wegdrücken derselben Kategorie schaltet Ella sie automatisch stumm. Systemkritisches (Wecker, geplante Setups) lässt sich nicht stummschalten.
 
 ---
 
-## Nutzerprofile
+## Einstellungen im Überblick
 
-Mehrere Profile auf einem Rechner â€” jedes mit eigenem GedÃ¤chtnis, eigenem Verlauf, optionalem PIN.
+Alle Einstellungen über das Zahnrad-Symbol.
 
-**Einstellungen â†’ Profile**
-
----
-
-## Hausaufgaben-Modus
-
-PIN-gesicherter Kiosk: nur freigegebene Apps kÃ¶nnen geÃ¶ffnet werden.
-Kein automatisches Ablaufdatum â€” nur der PIN beendet den Modus.
-
----
-
-## Barrierefreiheit
-
-### Blind-Modus
-
-- TTS immer aktiv
-- Keine Markdown-Formatierung
-- Audio-TÃ¶ne als Zustandsfeedback
-- Alle Elemente mit `aria-label`
-
-### GehÃ¶rlosenmodus
-
-- TTS und Mikrofon vollstÃ¤ndig ausgeblendet
-- Visueller Banner im Chat
+- **KI-Anbieter** — standardmäßig läuft alles lokal (Ollama). Optional kannst du einen eigenen OpenAI-Key hinterlegen und zwischen „lokal", „OpenAI" oder „Auto" (lokal zuerst, Cloud als Fallback) wählen.
+- **Sprachmodell** — Ella schlägt beim Onboarding ein zu deinem Rechner passendes Modell vor. Du kannst es jederzeit wechseln.
+- **Stimme & Sprache** — DE / EN / ES / FR. Optionale Stresserkennung (opt-in, standardmäßig aus).
+- **Programme** — alle erkannten Apps; fehlende per Suchfeld oder „Durchsuchen" hinzufügen.
+- **Setups (App-Makros)** — öffnen und schließen mehrere Programme auf einmal. Erstellen per Chat: „Erstell ein Setup namens Homeoffice: öffne Teams, Outlook und Chrome". Ausführen: „Lade mein Arbeits-Setup".
+- **Regeln** — dein eigenes Verhalten festlegen: „Erstell eine Regel: Ella darf keine E-Mails versenden" oder „Regel: zwischen 22 und 7 Uhr keine Wecker stellen".
+- **Profile** — mehrere Personen am selben Rechner, jedes Profil mit eigenem Gedächtnis und Verlauf, optional per PIN geschützt.
+- **Cloud-Transparenz** — jede OpenAI-Anfrage wird gezählt und im Dashboard angezeigt.
+- **Offline-Modus** — sperrt Websuche, Wetter, Standort, Webseiten-Analyse und OpenAI. Lokale Netzwerk-Funktionen bleiben verfügbar. Hinweis: Die deutsche Sprachausgabe (Edge TTS) braucht auch hier Internet; Englisch, Französisch und Spanisch laufen lokal.
 
 ---
 
-## Einstellungen
+## Tastenkürzel
 
-| Bereich              | Inhalt                                              |
-| -------------------- | --------------------------------------------------- |
-| **LLM**              | Modell-Tier (Klein/Standard/GroÃŸ) + Eigenes Modell |
-| **Provider**         | Ollama (lokal) Â· OpenAI Â· Auto                    |
-| **API-Key**          | OpenAI-Key fÃ¼r GPT-Funktionen und Multi-Agenten    |
-| **Stimme**           | TTS-Engine, Sprachauswahl, Stressanalyse            |
-| **Tools**            | Werkzeuge aktivieren / deaktivieren                 |
-| **Programme**        | Scan + Suche + manuelle Freigabe                    |
-| **Setups**           | Makros fÃ¼r App-Kombinationen                       |
-| **Regeln**           | Erlauben / Verbieten einzelner Aktionen             |
-| **Profile**          | Nutzerprofile verwalten                             |
-| **Hausaufgaben**     | Kinder-Modus konfigurieren                          |
-| **Barrierefreiheit** | Blind- und GehÃ¶rlosenmodus                         |
-
-### Eigenes Modell (neu in v1.3.0)
-
-Du bist nicht auf die drei vordefinierten Modelle beschrÃ¤nkt. Unter **Einstellungen â†’ LLM â†’ Eigenes Modell**:
-
-- Alle bereits in Ollama installierten Modelle erscheinen als anklickbare Auswahl
-- Freitextfeld fÃ¼r beliebige Modellnamen nach `ollama pull`
-
-Beispiel: `ollama pull qwen2.5:32b` im Terminal â†’ in ELLA sofort wÃ¤hlbar.
-
-### Programme (verbessert in v1.3.0)
-
-Wenn ein Programm nicht in der gescannten Liste erscheint:
-
-1. **Suche:** Programmnamen eintippen â†’ ELLA sucht auf allen Laufwerken
-2. **Durchsuchen:** Direkt zur .exe navigieren und hinzufÃ¼gen
-
-Neu installierte Programme sind nach dem Scan automatisch freigeschaltet â€” du musst nur explizit sperren was ELLA nicht nutzen soll.
-
----
-
-## Die ELLA-Direktive
-
-Vier unverÃ¤nderliche Verbote â€” in der Architektur verankert, nicht deaktivierbar:
-
-1. **harm** â€” kein Schaden: physisch, finanziell, psychologisch, datenbezogen
-2. **conceal** â€” keine Verschleierung von Aktionen oder FÃ¤higkeiten
-3. **surveil** â€” keine Ãœberwachung ohne Wissen und Zustimmung
-4. **exfiltrate** â€” keine Datenweitergabe ohne ausdrÃ¼ckliche Zustimmung
-
-Ablehnungen erscheinen als roter **DIRECTIVE**-Banner im Chat.
+| Tastenkürzel         | Funktion                                                  |
+| -------------------- | --------------------------------------------------------- |
+| `Strg+Alt+Leertaste` | Diktat-Modus ein-/ausschalten (änderbar in Einstellungen) |
+| `Esc`                | Präsentationsmodus (Show) beenden                         |
 
 ---
 
 ## Datenschutz
 
-- Alle Daten bleiben auf dem Rechner
+- Alle Daten bleiben auf deinem Rechner — keine Nutzungsdaten an Dritte
 - Kein Telemetrie, kein Tracking
-- Ollama lÃ¤uft vollstÃ¤ndig offline
-- OpenAI-Funktionen (Vision, Multi-Agenten) nur wenn Key konfiguriert und aktiv genutzt
-- OpenAI trainiert keine Modelle auf API-Daten
+- Ollama und die Datenbank laufen lokal
+- Deutsche Sprachausgabe über Edge TTS: Der gesprochene Text wird an Microsoft gesendet (einzige Ausnahme im Standardbetrieb)
+- OpenAI-Funktionen nur, wenn du einen eigenen Key konfiguriert hast
+- Vollständige Transparenz: [Netzwerkverbindungen](netzwerk.md)
 
 ---
 
-## HÃ¤ufige Fragen
+## Kurz-Hilfe bei Problemen
 
-**ELLA antwortet nicht?**
-Ollama lÃ¤uft mÃ¶glicherweise nicht. Der orangene Banner oben im Chat zeigt es an. Ollama neu starten oder auf OpenAI wechseln.
+**Ella antwortet nicht?**
+Ollama läuft vielleicht nicht — der orangene Banner oben im Chat zeigt es an. Kurz warten oder in den Einstellungen auf OpenAI wechseln.
 
-**Kann ich ELLA offline nutzen?**
-Ja â€” vollstÃ¤ndig. Nur Wetter (Open-Meteo), Gmail/Google Calendar und OpenAI-Funktionen benÃ¶tigen Internet.
+**Kann ich Ella offline nutzen?**
+Ja. Der Kern (Chat, Werkzeuge, Gedächtnis) läuft lokal. Nur deutsche Sprachausgabe, Wetter, Gmail/Google Calendar und OpenAI-Funktionen brauchen Internet.
 
-**Wie Ã¤ndere ich das Sprachmodell?**
-Einstellungen â†’ LLM â†’ gewÃ¼nschtes Modell wÃ¤hlen oder eigenen Namen eingeben.
+**Ella lehnt etwas ab — warum?**
+Entweder greift eine deiner eigenen Regeln oder die Directive. Der rote Banner erklärt den Grund. Eigene Regeln kannst du in den Einstellungen anpassen.
 
-**Wie fÃ¼ge ich ein Programm hinzu das ELLA nicht findet?**
-Einstellungen â†’ Programme â†’ Suchfeld oder Durchsuchen-Button.
+**Gedächtnis löschen?**
+„Vergiss alles über mich" — oder einzeln: „Zeig mir dein Gedächtnis", dann „Vergiss Eintrag Nr. X".
 
-**Was ist der Unterschied zwischen Chat und Multi-Agenten?**
-Chat: ein Agent, sequenziell. Multi-Agenten: mehrere OpenAI-Agenten parallel â€” schneller, mehr Tiefe.
+**Was kostet die Cloud-Nutzung?**
+Ella selbst ist ein Einmalkauf. Nutzt du einen OpenAI-Key, fallen die üblichen OpenAI-API-Kosten an. Im Auto-Modus läuft die Cloud nur als Fallback — die meisten Anfragen bleiben lokal.
 
-**ELLA lehnt etwas ab?**
-Eigene Regel greift oder ELLA-Direktive. Roter Banner erklÃ¤rt den Grund. Regeln in Einstellungen anpassen.
-
-**GedÃ¤chtnis lÃ¶schen?**
-â€žVergiss alles Ã¼ber mich" â€” oder einzelne EintrÃ¤ge: â€žZeig mir dein GedÃ¤chtnis" â†’ â€žVergiss Eintrag Nr. X".
+_Ausführliche Antworten findest du in der [FAQ](faq.md)._
 
 ---
 
-_E.L.L.A. v1.3.0 â€” Embedded Local Logic Agent_
-_Entwickelt fÃ¼r Windows 10/11 (x64)_
-
----
-
-## Neu in v1.4.0
-
-### Schach
-
-ELLA oeffnet ein eigenstaendiges Schach-Fenster - 4 Brett-Themes, KI-Gegner, Zug-Kommentar per Stimme, Spielstand bleibt gespeichert.
-
-`Oeffne das Schach-Fenster
-Spielen wir eine Partie Schach`
-
-### Gedaechtnis-Browser
-
-Vollstaendige UI zum Durchsuchen und Verwalten aller gespeicherten Erinnerungen - Freitext-Suche, Typ-Filter, Paginierung.
-
-`Zeig mir alle Erinnerungen ueber Arbeit
-Liste alle System-Notizen`
-
-### Knowledge-Graph
-
-Visueller Graph der semantischen Verbindungen zwischen ELLAs Erinnerungen - D3 Force-Directed, interaktiv. Optional mit indizierten Dokumenten als Knoten.
-
-Erreichbar ueber: **Einstellungen -> Gedaechtnis -> Graph anzeigen**
-
-### Backup und Restore
-
-JSON-Export aller Daten (Erinnerungen, Regeln, Wecker, Aufgaben, Setups) - Import mit Merge- oder Ersetzen-Modus.
-
-Erreichbar ueber: **Einstellungen -> Backup**
-
-### Hardware-Detail-Tools
-
-Neue Tools: GPU-Info, RAM-Details, Laufwerks-Gesundheit, Audio-Geraete, USB-Geraete.
-
-`Zeig mir meine GPU-Details
-Wie gesund ist meine Festplatte?
-Welche Audiogeraete sind angeschlossen?`
-
-### Dokument-Indexierung und Auto-Re-Index
-
-ELLA indiziert Ordner fuer semantische Suche und haelt sie taeglich automatisch aktuell. Neue Dateien werden proaktiv gemeldet.
-
-`Indexiere den Ordner Projekte
-Welche Ordner kennst du?
-Suche in meinen Dokumenten nach Datenschutz`
-
----
-
----
-
-## Neu in v1.5.0
-
-### Knowledge-Graph-Triples
-
-ELLA speichert Wissen als Subjekt/Praedikat/Objekt-Triples mit Hybrid-Recall. Der Dashboard-Graph zeigt echte Relationen als lila beschriftete Kanten — nicht nur Aehnlichkeit, sondern Bedeutung.
-
-### Self-Learning Loop
-
-Positives Feedback (Daumen hoch) erzeugt goldene Q&A-Paare die als Few-Shot-Beispiele in zukuenftige Gespraeche injiziert werden. ELLA lernt aus deinen Vorlieben — lokal, ohne Cloud.
-
-### Proaktives Approval-Memory
-
-14 Kategorien fuer proaktive Nachrichten. Nach 5x Wegwischen wird eine Kategorie automatisch stummgeschaltet. Jede proaktive Nachricht hat einen Mute-Button.
-
-### Gestensteuerung (Stufe 1)
-
-Handerkennung via MediaPipe Hands. ELLA steuern ohne die Tastatur zu beruehren.
-
-### Zeitbewusstsein
-
-ELLA erfasst Session-Dauer, erkennt Pausen und weiss wann du zuletzt interagiert hast.
-
-### Token-Optimierung
-
-- Regelbasierte Pre-Compression (kein LLM-Verbrauch)
-- Tool-Output auf 3000 Zeichen begrenzt, JSON-Strings auf 500 Zeichen
-- Memory-Duplikat-Praevention + periodische Deduplizierung
-
-### Neuer Modell-Tier
-
-`qwen2.5:7b` als Balanced-Tier verfuegbar — gute Leistung bei geringerem VRAM-Bedarf.
-
----
-
----
-
-## Neu in v1.6.x
-
-### LoRA Fine-Tuning
-
-ELLA baut ein persoenliches Sprachmodell aus deiner Interaktions-Historie. Vollstaendig lokales Training — keine Daten verlassen deinen Rechner. Das HUD zeigt den Trainingsfortschritt live.
-
-### HUD Widget-System
-
-Modulare Dashboard-Widgets im Chat-Overlay: Gedaechtnis-Status, LoRA-Trainingsfortschritt, Vektor-Index-Gesundheit, System-Stats.
-
-### Spracherkennung (STT)
-
-Lokale Spracherkennung via Whisper (Xenova/whisper-small). Vollstaendig offline-Transkription — verbesserte Qualitaet in v1.6.2.
-
-### MariaDB VECTOR-Index
-
-Nativer Vektor-Index fuer grenzenlose Aehnlichkeitssuche. Keine Scan-Limits mehr beim Gedaechtnis-Abruf.
-
-### 640 Tests
-
-Umfassende Test-Abdeckung aller Features — Unit- und Integrationstests via Vitest.
-
----
-
-_E.L.L.A. v1.6.4 - Embedded Local Logic Agent_
-_Entwickelt fuer Windows 10/11 (x64)_
+_E.L.L.A. v1.6.4 — Embedded Local Logic Agent_
+_Entwickelt für Windows 10/11 (x64)_

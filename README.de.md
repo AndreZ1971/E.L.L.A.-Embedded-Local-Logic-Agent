@@ -8,12 +8,12 @@
 
 **Ein persönlicher KI-Assistent für Windows — vollständig offline, vollständig deiner.**
 
-[![Version](https://img.shields.io/badge/version-1.6.4-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A./releases)
+[![Version](https://img.shields.io/badge/version-1.6.4-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases)
 [![Plattform](https://img.shields.io/badge/plattform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows)](https://ella-agent.de)
 [![Lizenz](https://img.shields.io/badge/lizenz-Proprietär-ff6500?style=flat-square)](LICENSE)
 [![Directive](https://img.shields.io/badge/Directive-v1.0.0%20%E2%80%94%20versiegelt-3ecf8e?style=flat-square)](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
 
-[**Download**](https://github.com/AndreZ1971/E.L.L.A./releases/latest) · [**Website**](https://ella-agent.de) · [**English**](README.md) · [**Directive**](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
+[**Download**](https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases/latest) · [**Website**](https://ella-agent.de) · [**Discord**](https://discord.gg/SFEqcG6ezg) · [**English**](README.md) · [**Directive**](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
 
 </div>
 
@@ -21,24 +21,21 @@
 
 ## Was ist E.L.L.A.?
 
-E.L.L.A. ist ein persönlicher KI-Assistent der vollständig auf deinem Windows-PC läuft. Keine Cloud. Kein Abo. Keine Daten die deinen Rechner verlassen.
+E.L.L.A. ist ein persönlicher KI-Assistent, der vollständig auf deinem Windows-PC läuft. Keine Cloud. Kein Abo. Keine Daten, die deinen Rechner verlassen.
 
-ELLA versteht natürliche Sprache und kann deinen Computer bedienen — Apps starten, Dateien suchen, E-Mails lesen, Termine verwalten, Medien steuern, das System überwachen und vieles mehr. Mit 90+ Tools, persistentem Vektorspeicher-Gedächtnis, einem Knowledge-Graph, LoRA Fine-Tuning, proaktivem Monitoring, Self-Learning und einer eingebauten Ethik-Schicht ist E.L.L.A. kein Chatbot. Sie ist ein Agent.
+Sie versteht natürliche Sprache und bedient deinen Computer — doch bevor wir darüber reden, _was_ sie kann, reden wir darüber, _was sie niemals tut_. Denn das ist es, was E.L.L.A. von jedem anderen Assistenten unterscheidet.
 
-> _"Ich wollte nur einen Assistenten der unter dieser Directive arbeiten kann."_
+> _"Ich wollte nur einen Assistenten, der unter dieser Directive arbeiten kann."_
 > — Andre Zabel, Mai 2026
+
+> 🧪 **Aus dem Labor:** E.L.L.A. Phone läuft intern bereits auf Android – E.L.L.A. Home ist in Entwicklung.
+> → [Mehr in der Roadmap](ROADMAP.md#aus-dem-labor)
 
 ---
 
-## Kernfunktionen
+## Die Directive — der Rahmen, nicht ein Feature
 
-### 🧠 Lokale KI — Kein Cloud-Zwang
-
-Das LLM läuft auf deinem Rechner über [Ollama](https://ollama.com) (`llama3.1:8b`, `qwen2.5:7b` und mehr). Jedes Gespräch, jede Erinnerung, jeder Tool-Aufruf bleibt lokal. OpenAI GPT-4o ist ein optionaler Fallback — ausschließlich auf explizite Anforderung.
-
-### 🔒 Die E.L.L.A. Directive
-
-Vier hardcodierte Verbote die kein Prompt, keine Regel und keine Einstellung umgehen kann:
+Vier hardcodierte Verbote, die kein Prompt, keine Regel und keine Einstellung umgehen kann:
 
 | Verbot         | Bedeutung                                                                   |
 | -------------- | --------------------------------------------------------------------------- |
@@ -47,18 +44,22 @@ Vier hardcodierte Verbote die kein Prompt, keine Regel und keine Einstellung umg
 | **surveil**    | Keine Überwachung oder Profilbildung ohne ausdrückliche, aktive Zustimmung  |
 | **exfiltrate** | Keine Datenübertragung an externe Server ohne explizite Anforderung         |
 
-Das sind keine Regeln. Es sind architektonische Unmöglichkeiten — kein Codepfad führt zu ihnen. [→ Vollständige Directive](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
+Das sind keine Regeln, die man abschaltet. Es sind architektonische Unmöglichkeiten — **kein Codepfad führt zu ihnen.** Jedes Werkzeug, jede Erinnerung, jede Aktion auf den folgenden Seiten passiert _innerhalb_ dieses Rahmens.
 
-### 🛠️ 90 Tools
+[→ Die vollständige Directive](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
 
-Vollständige Systemsteuerung per natürlicher Sprache:
+---
+
+## 111 Werkzeuge — alle unter der Directive
+
+Vollständige Systemsteuerung per natürlicher Sprache. Jedes dieser Werkzeuge läuft lokal auf deinem Rechner und kann die vier Verbote oben nicht verletzen — das ist der Unterschied zwischen _Fähigkeiten sammeln_ und _Fähigkeiten verantworten_.
 
 - **Dateien & Ordner** — suchen, öffnen, kopieren, umbenennen, Duplikate finden
 - **Dokumente** — Word-Dateien erstellen, diktieren, zusammenfassen, übersetzen, korrigieren, semantische Suche (RAG)
 - **Kommunikation** — Outlook + Gmail lesen, Kalender verwalten (Outlook + Google)
 - **System** — Prozesse, Dienste, Festplattennutzung, Temperaturen, Ereignisprotokoll, GPU, RAM-Details
 - **Gedächtnis** — persistentes Vektorspeicher-Gedächtnis mit ML-Embeddings, Knowledge-Graph-Triples
-- **Bildschirm & Vision** — Screenshot + GPT-4o Analyse, lokales OCR, Bildschirmbeobachtung
+- **Bildschirm & Vision** — Screenshot-Analyse, lokales OCR, Bildschirmbeobachtung
 - **Maus & Tastatur** — klicken, ziehen, Tastatureingaben senden (mit Bestätigung)
 - **Medien** — Musikbibliothek, Mediensteuerung, aktuell spielenden Titel erkennen
 - **Netzwerk** — ARP-Scan, TCP-Verbindungen, WLAN-Info, Port-Monitoring
@@ -67,52 +68,48 @@ Vollständige Systemsteuerung per natürlicher Sprache:
 
 [→ Vollständige Fähigkeitenliste](docs/de/capabilities.md)
 
-### 🧩 Multi-Agenten-Pipeline
+---
 
-Parallele und sequenzielle Agenten-Pipelines mit Live-SSE-Streaming. Eingebaute Pipelines: Morgenbriefing (Kalender + Aufgaben + Wetter) und System-Report (Performance + Netzwerk + Prozesse).
+## Was E.L.L.A. einzigartig macht
 
-### 🕸️ Knowledge-Graph
+Die Werkzeuge oben kann man nachbauen. Was man nicht nachbauen kann, ist das hier:
 
-Subjekt/Prädikat/Objekt-Triples mit Hybrid-Recall. D3 Force-Directed Graph semantischer Verbindungen zwischen Erinnerungen — echte Relationen als beschriftete Kanten, inklusive indexierter Dokumente. Visuelle Karte von dem was E.L.L.A. weiß und wie es zusammenhängt.
+**Lokale KI — und du wählst das Modell.**
+Das LLM läuft auf deinem Rechner über [Ollama](https://ollama.com). Welches Modell — ist deine Entscheidung. Du kannst jederzeit wechseln, mischen oder sogar dein eigenes Modell einsetzen. E.L.L.A. legt dich auf nichts fest. OpenAI ist ein optionaler Fallback — Opt-in, standardmäßig aus, offen kommuniziert.
 
-### 🎙️ Stimme — Vollständig Lokal
+**Sie lernt und verändert sich.**
+Jedes „Daumen hoch" wird zu einem goldenen Beispiel, das in künftige Gespräche einfließt. Über die Modellwahl lässt sich E.L.L.A. spezialisieren — etwa aufs Programmieren. Ein Wrapper sammelt Fähigkeiten und bleibt, was er war. E.L.L.A. verändert sich mit jeder Nutzung — lokal, auf deinem Rechner. Das ist der Unterschied zwischen einem Werkzeug und einem Gegenüber, das mit dir wächst.
 
-- **Wakeword "ella"** — via openWakeWord + ONNX, offline
-- **Kokoro TTS** — neuronale Sprachsynthese, Node.js, kein Python erforderlich
-- **Mehrsprachig** — DE / EN / ES / FR Stimmen
+---
 
-### 🎲 Schach
+## Ein Morgen mit E.L.L.A.
 
-Ein vollständiges Schach-Fenster mit 4 Brett-Themes, einer Schach-KI, Zug-Kommentar via TTS und persistentem Spielstand. Kein Demo — ein echtes Feature das zeigt was E.L.L.A. kann: eigenständige Fenster, eine Sub-KI und persistenten Zustand gleichzeitig verwalten.
+> Du setzt dich an den Rechner. E.L.L.A. hat still mitgedacht:
+> _„Guten Morgen. Dein erster Termin ist um 10 Uhr — ich hab die Mail dazu schon geöffnet. Die Festplatte C: ist bei 91 %, soll ich dir die größten Brocken zeigen? Und gestern Abend kam ein neues USB-Gerät dazu, nur zur Info."_
+>
+> Kein Dashboard, das du öffnen musstest. Keine Cloud, die mitgelesen hat. Sie war einfach da — und hat dir nichts verschwiegen.
 
-### 🧬 Self-Learning & LoRA Fine-Tuning
+---
 
-Positives Feedback erzeugt goldene Q&A-Paare als Few-Shot-Beispiele. LoRA Fine-Tuning baut ein persönliches Modell aus deiner Interaktions-Historie — vollständig lokales Training, keine Cloud.
+## Was E.L.L.A. sonst noch kann
 
-### 📊 HUD Widget-System
+**🧠 Gedächtnis & Knowledge-Graph** — persistentes Vektorspeicher-Gedächtnis mit ML-Embeddings. Subjekt/Prädikat/Objekt-Triples bilden eine visuelle Karte dessen, was E.L.L.A. weiß und wie es zusammenhängt — inklusive indexierter Dokumente.
 
-Modulare Dashboard-Widgets: Gedächtnis-Status, LoRA-Trainingsfortschritt, Vektor-Index-Gesundheit, System-Stats — alles live im Chat-Overlay.
+**🧩 Multi-Agenten-Pipeline** — parallele und sequenzielle Agenten mit Live-SSE-Streaming. Eingebaut: Morgenbriefing (Kalender + Aufgaben + Wetter) und System-Report (Performance + Netzwerk + Prozesse).
 
-### 🎙️ Spracherkennung (STT)
+**🎙️ Stimme — offen gesagt, was lokal läuft und was nicht**
+Das Wakeword „ella" läuft offline. Die Sprachausgabe für **Englisch, Französisch und Spanisch erfolgt vollständig lokal** über Kokoro (neuronale Synthese, kein Python nötig). Die **deutsche Stimme Katja läuft derzeit über Microsoft Edge TTS — also online.**
+Warum sagen wir das so deutlich? Weil die Directive „conceal" verbietet. **Wir arbeiten an einer vollständig lokalen Katja** — bis dahin nennen wir den einen Weg, der (noch) nach außen führt, beim Namen.
 
-Lokale Spracherkennung via Whisper (Xenova/whisper-small). Vollständig offline-Transkription mit Qualitäts-Upgrade in v1.6.2.
+**🎲 Schach** — ein echtes Fenster mit vier Brett-Themes, eigener Schach-KI, Zug-Kommentar via TTS und persistentem Spielstand. Kein Demo — ein Beweis, dass E.L.L.A. eigenständige Fenster, eine Sub-KI und Zustand gleichzeitig verwaltet.
 
-### 🖐️ Gestensteuerung
+**🖐️ Gestensteuerung · 🖥️ HUD-Modus · 🎤 Diktat-Modus** — Handerkennung via MediaPipe (Stufe 1), drei Erscheinungsbilder (Calm / HUD / Show) und systemweites Diktat per Whisper direkt ins aktive Windows-Fenster.
 
-Handerkennung via MediaPipe Hands (Stufe 1). E.L.L.A. steuern ohne die Tastatur zu berühren.
+**🔇 Stop-Interrupt & Follow-Up** — „Stopp" oder „Sei still" während der Sprachausgabe unterbricht sofort; ein 8-Sekunden-Fenster erlaubt danach Rückfragen ohne Wakeword.
 
-### 👁️ Proaktive Intelligenz
+**🔒 Offline-Modus & Datenschwärzung** — der Offline-Modus sperrt alle Netzwerk-Tools und Cloud-Zugriffe. Sensible Daten (API-Keys, IBANs, Passwörter) werden automatisch geschwärzt, bevor sie in Erinnerungen oder Zwischenablage-Historie gespeichert werden.
 
-E.L.L.A. überwacht und schreibt von sich aus in den Chat wenn etwas wichtig ist:
-
-- RAM-, Festplatten-, Temperatur-Alerts
-- Neue USB-Geräte
-- Verdächtige Netzwerkverbindungen
-- Zwischenablage-Mustererkennung (IBAN, Paketnummern, URLs)
-- Comeback-Briefing nach Abwesenheit
-- Meeting-Prep, Tagesabschluss, Pause-Erinnerungen
-- 14 Approval-Kategorien mit Auto-Mute nach 5x Wegwischen
-- Mute-Buttons an jeder proaktiven Nachricht
+**👁️ Proaktive Intelligenz** — E.L.L.A. meldet sich von sich aus, wenn etwas wichtig ist: RAM-, Festplatten- und Temperatur-Alerts, neue USB-Geräte, verdächtige Netzwerkverbindungen, Comeback-Briefing nach Abwesenheit, Meeting-Prep und Tagesabschluss. 14 Approval-Kategorien, Auto-Mute nach 5× Wegwischen, Mute-Button an jeder Meldung.
 
 ---
 
@@ -135,18 +132,20 @@ E.L.L.A. überwacht und schreibt von sich aus in den Chat wenn etwas wichtig ist
 
 ## Download
 
-**[→ Neueste Version](https://github.com/AndreZ1971/E.L.L.A./releases/latest)**
+**[→ Neueste Version](https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases/latest)**
 
 Der Installer enthält alles: Node.js, MariaDB und Ollama als portable Binaries. Keine separate Installation erforderlich. Für die Aktivierung wird ein Lizenzschlüssel benötigt.
 
 | Datei                     | Beschreibung                |
 | ------------------------- | --------------------------- |
-| `E.L.L.A.Setup.1.6.4.exe` | Windows-Installer (NSIS)    |
+| `E.L.L.A.Setup.1.6.4.exe`  | Windows-Installer (NSIS)    |
 | `SHA256SUMS.txt`          | Prüfsummen zur Verifikation |
 
 ---
 
 ## Dokumentation
+
+Für Einsteiger die Bedienungsanleitung und die FAQ — für alles Technische (Directive-Durchsetzung, Fähigkeiten im Detail, Netzwerk) die entsprechenden Seiten:
 
 | Dokument            | DE                                  | EN                                  |
 | ------------------- | ----------------------------------- | ----------------------------------- |
@@ -155,6 +154,7 @@ Der Installer enthält alles: Node.js, MariaDB und Ollama als portable Binaries.
 | Die Directive       | [→](docs/de/directive.md)           | [→](docs/en/directive.md)           |
 | FAQ                 | [→](docs/de/faq.md)                 | [→](docs/en/faq.md)                 |
 | Hardware-Guide      | [→](docs/de/hardware.md)            | [→](docs/en/hardware.md)            |
+| Netzwerk            | [→](docs/de/netzwerk.md)            | [→](docs/en/network.md)             |
 | Changelog           | [→](CHANGELOG.md)                   | [→](CHANGELOG.md)                   |
 
 ---
@@ -168,6 +168,17 @@ E.L.L.A. basiert auf einem einzigen Prinzip: **Die Intelligenz lebt auf deinem R
 - Netzwerkzugriff nur auf expliziten Nutzerbefehl
 - Kein Telemetrie, keine Analyse, kein Nutzungs-Tracking
 - Das `exfiltrate`-Verbot der Directive ist hardcodiert — kein Update kann es entfernen
+
+---
+
+## Community
+
+- **[Discord](https://discord.gg/SFEqcG6ezg)** – direkt mit dem Entwickler und anderen Nutzern reden, offene Sprechstunde jeden Montag um 19 Uhr
+- **[Roadmap](ROADMAP.md)** – was gerade entsteht, was geplant ist und was bewusst nicht kommt
+- **[Diskussionen](https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/discussions)** – Fragen, Ideen, zeig deine E.L.L.A.
+- **[Fehler melden](https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/issues/new/choose)** – bitte niemals deinen Lizenzschlüssel posten
+
+⭐ _Gefällt dir E.L.L.A.? Ein Stern (oben rechts) hilft, dass andere sie finden._
 
 ---
 
