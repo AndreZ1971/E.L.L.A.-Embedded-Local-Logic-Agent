@@ -103,7 +103,7 @@ Warum sagen wir das so deutlich? Weil die Directive „conceal" verbietet. **Wir
 
 **🎲 Schach** — ein echtes Fenster mit vier Brett-Themes, eigener Schach-KI, Zug-Kommentar via TTS und persistentem Spielstand. Kein Demo — ein Beweis, dass E.L.L.A. eigenständige Fenster, eine Sub-KI und Zustand gleichzeitig verwaltet.
 
-**🖐️ Gestensteuerung · 🖥️ HUD-Modus · 🎤 Diktat-Modus** — Handerkennung via MediaPipe (Stufe 1), drei Erscheinungsbilder (Calm / HUD / Show) und systemweites Diktat per Whisper direkt ins aktive Windows-Fenster.
+**🖐️ Gestensteuerung · 🖥️ HUD-Modus · 🎤 Diktat-Modus** — Handerkennung via MediaPipe (Stufe 1), drei Erscheinungsbilder (Calm / HUD / Show) und systemweites Diktat direkt ins aktive Windows-Fenster.
 
 **🔇 Stop-Interrupt & Follow-Up** — „Stopp" oder „Sei still" während der Sprachausgabe unterbricht sofort; ein 8-Sekunden-Fenster erlaubt danach Rückfragen ohne Wakeword.
 

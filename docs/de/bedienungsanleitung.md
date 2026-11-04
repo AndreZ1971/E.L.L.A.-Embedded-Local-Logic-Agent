@@ -390,7 +390,7 @@ Alle Einstellungen über das Zahnrad-Symbol.
 Ollama läuft vielleicht nicht — der orangene Banner oben im Chat zeigt es an. Kurz warten oder in den Einstellungen auf OpenAI wechseln.
 
 **Kann ich Ella offline nutzen?**
-Ja. Der Kern (Chat, Werkzeuge, Gedächtnis) läuft lokal. Nur deutsche Sprachausgabe, Wetter, Gmail/Google Calendar und OpenAI-Funktionen brauchen Internet.
+Ja. Der Kern (Chat, Werkzeuge, Gedächtnis) läuft lokal. Internet brauchen: die Spracherkennung (Sprache zu Text), die deutsche Sprachausgabe, Wetter, Gmail/Google Calendar und die OpenAI-Funktionen.
 
 **Ella lehnt etwas ab — warum?**
 Entweder greift eine deiner eigenen Regeln oder die Directive. Der rote Banner erklärt den Grund. Eigene Regeln kannst du in den Einstellungen anpassen.

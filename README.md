@@ -105,7 +105,7 @@ Why do we state this so clearly? Because the Directive prohibits "concealment." 
 
 **🎲 Chess** — a real window with four board themes, its own chess AI, move commentary via TTS, and persistent game state. Not a demo — proof that E.L.L.A. can manage independent windows, a sub-AI, and state simultaneously.
 
-**🖐️ Gesture Control · 🖥️ HUD Mode · 🎤 Dictation Mode** — hand recognition via MediaPipe (Stage 1), three appearances (Calm / HUD / Show), and system-wide dictation via Whisper directly into the active Windows window.
+**🖐️ Gesture Control · 🖥️ HUD Mode · 🎤 Dictation Mode** — hand recognition via MediaPipe (Stage 1), three appearances (Calm / HUD / Show), and system-wide dictation directly into the active Windows window.
 
 **🔇 Stop-Interrupt & Follow-Up** — "Stop" or "Be quiet" during voice output interrupts immediately; an 8-second window allows follow-up questions without the wakeword afterward.
 

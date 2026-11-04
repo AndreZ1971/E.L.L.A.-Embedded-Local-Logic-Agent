@@ -93,7 +93,7 @@ PINs are stored with **PBKDF2 + Salt and 100,000 iterations** — an industry st
 
 ### Do I need internet?
 
-For **basic operation with English, French or Spanish voice output: no.** Chat, local speech recognition, music, file search, system control — everything runs offline.
+For **basic operation with English, French or Spanish voice output: no.** Chat, music, file search and system control run offline. The wakeword "ella" as well — but the actual speech recognition (speech to text) requires internet.
 
 Internet is required for: German voice output (Edge TTS), license verification at startup (works without thanks to caching), web search and weather, OpenAI features (only with your own key), Gmail and Google Calendar (only when connected) and the one-time downloads on first launch. All connections in detail: [network.md](network.md)
 
@@ -269,7 +269,7 @@ Four ways:
 
 ### Do I need internet for voice input?
 
-The default speech recognition requires internet. If you want to stay completely offline, you can switch to local speech recognition (Whisper) in the settings — no internet needed, but somewhat slower.
+Yes — speech recognition runs online. The default recognition requires internet but no OpenAI key. With your own OpenAI key, a higher-quality recognition is available. A fully offline voice input does not currently exist. The wakeword "ella" itself runs locally.
 
 ### Does Ella filter out background noise?
 
@@ -545,9 +545,10 @@ Diagnosis: `"Ella, what's your status?"`
 
 ### Speech recognition doesn't work
 
-1. Check microphone permission: Windows → Settings → Privacy → Microphone → Allow Ella
-2. Check voice mode: Settings → Mode → Voice set to "Wakeword" or "Manual"
-3. Alternatively: Type a command to check whether the issue is with speech recognition or the AI
+1. Check internet connection — speech recognition requires internet.
+2. Check microphone permission: Windows → Settings → Privacy → Microphone → Allow Ella
+3. Check voice mode: Settings → Mode → Voice set to "Wakeword" or "Manual"
+4. Alternatively: Type a command to check whether the issue is with speech recognition or the AI
 
 ### Kokoro voice doesn't work
 

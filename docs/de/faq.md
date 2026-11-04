@@ -93,7 +93,7 @@ PINs werden mit **PBKDF2 + Salt und 100.000 Iterationen** gespeichert — ein In
 
 ### Brauche ich Internet?
 
-Für den **Grundbetrieb mit englischer, französischer oder spanischer Sprachausgabe: nein.** Chat, lokale Spracheingabe, Musik, Dateisuche, Systemsteuerung — alles läuft offline.
+Für den **Grundbetrieb mit englischer, französischer oder spanischer Sprachausgabe: nein.** Chat, Musik, Dateisuche und Systemsteuerung laufen offline. Das Wakeword „ella" ebenfalls — die eigentliche Spracherkennung (Sprache zu Text) braucht aber Internet.
 
 Internet ist nötig für: deutsche Sprachausgabe (Edge TTS), Lizenzprüfung beim Start (geht dank Cache auch ohne), Web-Suche und Wetter, OpenAI-Funktionen (nur mit eigenem Key), Gmail und Google Calendar (nur wenn verbunden) sowie die einmaligen Downloads beim allerersten Start. Alle Verbindungen im Detail: [netzwerk.md](netzwerk.md)
 
@@ -269,7 +269,7 @@ Vier Wege:
 
 ### Brauche ich für die Spracheingabe Internet?
 
-Die Standard-Spracherkennung braucht Internet. Wenn du komplett offline bleiben möchtest, kannst du in den Einstellungen auf die lokale Spracherkennung (Whisper) umstellen — kein Internet nötig, aber etwas langsamer.
+Ja — die Spracherkennung läuft online. Die Standard-Erkennung braucht Internet, aber keinen OpenAI-Key. Mit eigenem OpenAI-Key steht eine hochwertigere Erkennung zur Verfügung. Eine vollständig offline Spracheingabe gibt es derzeit nicht. Das Wakeword „ella" selbst läuft dagegen lokal.
 
 ### Filtert Ella Störgeräusche heraus?
 
@@ -545,9 +545,10 @@ Diagnose: `"Ella, wie ist dein Status?"`
 
 ### Spracherkennung funktioniert nicht
 
-1. Mikrofon-Berechtigung prüfen: Windows → Einstellungen → Datenschutz → Mikrofon → Ella erlauben
-2. Sprachmodus prüfen: Einstellungen → Modus → Stimme auf „Wakeword" oder „Manuell"
-3. Alternativ: Befehl tippen, um zu prüfen, ob das Problem an der Spracherkennung oder der KI liegt
+1. Internetverbindung prüfen — die Spracherkennung braucht Internet.
+2. Mikrofon-Berechtigung prüfen: Windows → Einstellungen → Datenschutz → Mikrofon → Ella erlauben
+3. Sprachmodus prüfen: Einstellungen → Modus → Stimme auf „Wakeword" oder „Manuell"
+4. Alternativ: Befehl tippen, um zu prüfen, ob das Problem an der Spracherkennung oder der KI liegt
 
 ### Kokoro-Stimme funktioniert nicht
 
