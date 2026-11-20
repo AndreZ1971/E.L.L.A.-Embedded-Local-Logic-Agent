@@ -1,571 +1,593 @@
-# E.L.L.A. — Häufig gestellte Fragen (FAQ)
+# E.L.L.A. – Häufig gestellte Fragen (FAQ)
 
-Version 1.6.4 — Zuletzt aktualisiert: 2026-11-03
+Version 1.6.9
 
----
-
-## Inhaltsverzeichnis
-
-1. [Warum E.L.L.A.? Und ist das sicher?](#1-warum-ella--und-ist-das-sicher)
-2. [„Ella beobachtet meinen Rechner — ist das nicht Überwachung?"](#2-ella-beobachtet-meinen-rechner--ist-das-nicht-überwachung)
-3. [Hardware & Performance](#3-hardware--performance)
-4. [Lizenz & Kosten](#4-lizenz--kosten)
-5. [Installation & erster Start](#5-installation--erster-start)
-6. [KI-Modelle & Anbieter](#6-ki-modelle--anbieter)
-7. [Spracheingabe & Sprachausgabe](#7-spracheingabe--sprachausgabe)
-8. [Wakeword & Freihand-Modus](#8-wakeword--freihand-modus)
-9. [Musik & Medien](#9-musik--medien)
-10. [Dateien & Laufwerke](#10-dateien--laufwerke)
-11. [E-Mail & Kalender](#11-e-mail--kalender)
-12. [Gedächtnis & Lernen](#12-gedächtnis--lernen)
-13. [Nutzerprofile & PIN](#13-nutzerprofile--pin)
-14. [Barrierefreiheit](#14-barrierefreiheit)
-15. [Hausaufgaben-Modus](#15-hausaufgaben-modus)
-16. [Einstellungen & Updates](#16-einstellungen--updates)
-17. [Fehler & Fehlerbehebung](#17-fehler--fehlerbehebung)
+Jede Antwort steht für sich. Du kannst diese Datei zusammen mit der [Bedienungsanleitung](bedienungsanleitung.md) E.L.L.A. zu lesen geben – dann beantwortet sie diese Fragen direkt im Chat (siehe „Kann E.L.L.A. Fragen zu sich selbst beantworten?“).
 
 ---
 
-## 1. Warum E.L.L.A.? Und ist das sicher?
+## 1. Allgemein
 
 ### Was ist E.L.L.A.?
 
-E.L.L.A. steht für **Embedded Local Logic Agent** — ein persönlicher KI-Assistent für Windows, der vollständig auf deinem eigenen Rechner läuft. Ella versteht natürliche Sprache und bedient deinen Computer für dich: Apps starten, Dateien suchen, Musik abspielen, E-Mails verfassen, Termine nachschlagen, Wecker stellen und vieles mehr.
+E.L.L.A. steht für _Embedded Local Logic Agent_. Sie ist ein persönlicher KI-Assistent für Windows, der auf deinem eigenen Rechner läuft. Sie versteht normales Deutsch und erledigt Dinge am PC: Programme starten, Dateien suchen, Dokumente lesen, Musik abspielen, E-Mail-Entwürfe schreiben, Termine nachschlagen, Wecker stellen und vieles mehr.
 
 ### Was macht E.L.L.A. besonders?
 
-- **Unveränderliche Ethik:** Vier fest eingebaute Verbote (Schaden, Verschleierung, Überwachung, Datenweitergabe) kann keine Einstellung umgehen — der Rahmen, in dem alles andere passiert
-- **Läuft lokal:** Das KI-Modell läuft auf deinem Rechner — kein Cloud-Zwang. Deine Gespräche bleiben auf deinem PC
-- **Transparent:** Ella zeigt jede Aktion an und fragt bei sensiblen Dingen nach
-- **Lernt mit:** Ella merkt sich Gewohnheiten und Vorlieben über ein intelligentes Gedächtnis
-- **Handelt proaktiv:** Ella meldet sich von sich aus, wenn etwas wichtig ist
-- **Versteht natürliche Sprache:** Du sprichst mit Ella wie mit einem Menschen — kein Syntaxlernen nötig
+- **Läuft lokal:** Das Sprachmodell läuft auf deinem Rechner. Deine Gespräche bleiben auf deinem PC.
+- **Merkt sich Dinge:** E.L.L.A. hat ein Gedächtnis für Vorlieben, Personen, Orte und Projekte.
+- **Meldet sich von selbst:** Sie schreibt in den Chat, wenn etwas wichtig ist, zum Beispiel bei einem vollen Laufwerk.
+- **Zeigt, was sie tut:** Jede Aktion ist sichtbar. Vor folgenreichen Aktionen fragt sie nach.
+- **Feste Grundregeln:** Vier eingebaute Verbote (Schaden, Verschleierung, Überwachung, Datenweitergabe) lassen sich durch keine Einstellung abschalten.
 
-### Was ist die E.L.L.A. Directive?
+### Kann E.L.L.A. Fragen zu sich selbst beantworten?
 
-Vier unveränderliche Verbote, tief in der Architektur verankert. Keine Einstellung und keine Regel kann sie außer Kraft setzen:
-
-| Verbot         | Bedeutung                                                                                    |
-| -------------- | -------------------------------------------------------------------------------------------- |
-| **harm**       | Ella verursacht keinen physischen, finanziellen, psychologischen oder datenbezogenen Schaden |
-| **conceal**    | Ella verschleiert keine Aktionen, Fähigkeiten oder Systemzustände                            |
-| **surveil**    | Ella überwacht nicht ohne ausdrückliches Wissen und aktive Zustimmung                        |
-| **exfiltrate** | Ella gibt keine Daten an Dritte ohne ausdrückliche Zustimmung                                |
-
-### Was passiert, wenn Ella etwas blockiert?
-
-Ella zeigt im Chat einen **roten Banner** mit der Erklärung, warum die Aktion blockiert wurde. Diese Blockaden sind unveränderlich und können nicht umgangen werden — auch nicht durch Umformulierung.
-
-### Kann Ella meine Webcam oder mein Mikrofon ohne mein Wissen aktivieren?
-
-**Nein.** Die Directive verbietet Überwachung ohne ausdrückliches Wissen und aktive Zustimmung. Das Mikrofon wird nur aktiviert, wenn du es explizit anforderst (Wakeword, Mikrofon-Button oder Freihand-Modus, den du selbst eingeschaltet hast).
-
-### Kann Ella meine Passwörter lesen?
-
-Nein — Fenster von Passwort-Managern und Banking-Apps (1Password, KeePass, Bitwarden, PayPal, Banking-URLs etc.) sind für alle Maus- und Fenster-Werkzeuge gesperrt.
-
-### Werden sensible Daten aus dem Gedächtnis gefiltert?
-
-Ja — Ella erkennt automatisch sensible Muster (API-Schlüssel, Passwörter, IBANs, Kreditkartennummern) und schwärzt sie, bevor sie im Gedächtnis oder der Zwischenablage-Historie gespeichert werden.
-
-### Welche Daten gehen in die Cloud?
-
-**Standardmäßig: keine.** Im reinen lokalen Modus (Ollama) verlassen keine Gesprächsdaten deinen Rechner.
-
-**Ausnahme deutsche Sprachausgabe:** Der vorgelesene Text wird an Microsoft übertragen (Edge TTS). Für Englisch, Französisch und Spanisch wird die lokale Kokoro-Stimme verwendet (kein Internet nötig).
-
-Wenn du einen eigenen **OpenAI-Key** einträgst, werden diese Daten an OpenAI gesendet:
-
-- Der Gesprächsverlauf (Chat-Nachrichten)
-- Audio-Dateien bei Nutzung der OpenAI-Spracherkennung
-- Screenshots bei Nutzung der Bildanalyse
-- Multi-Agenten-Abläufe (laufen ausschließlich über OpenAI)
-
-**Nie** an externe Dienste gesendet (auch mit OpenAI-Key): Zwischenablage-Inhalte, Fenster-Kontext, Erinnerungen und Gedächtnis-Inhalte. Jede Cloud-Anfrage wird im Dashboard-Zähler protokolliert — du hast volle Transparenz.
-
-### Wo werden meine Daten gespeichert?
-
-Alle Daten bleiben lokal auf deinem Rechner — Gesprächsverlauf und Gedächtnis in einer lokalen Datenbank (MariaDB), Einstellungen und Tokens im ELLA-Ordner. Keine Cloud-Synchronisierung, keine Telemetrie, keine Nutzungsdaten an uns oder Dritte.
-
-### Wie sicher sind meine Profil-PINs?
-
-PINs werden mit **PBKDF2 + Salt und 100.000 Iterationen** gespeichert — ein Industriestandard für Passwort-Hashing. Selbst bei direktem Datenbankzugriff wäre das Knacken eines PINs sehr aufwendig.
-
-### Brauche ich Internet?
-
-Für den **Grundbetrieb mit englischer, französischer oder spanischer Sprachausgabe: nein.** Chat, Musik, Dateisuche und Systemsteuerung laufen offline. Das Wakeword „ella" ebenfalls — die eigentliche Spracherkennung (Sprache zu Text) braucht aber Internet.
-
-Internet ist nötig für: deutsche Sprachausgabe (Edge TTS), Lizenzprüfung beim Start (geht dank Cache auch ohne), Web-Suche und Wetter, OpenAI-Funktionen (nur mit eigenem Key), Gmail und Google Calendar (nur wenn verbunden) sowie die einmaligen Downloads beim allerersten Start. Alle Verbindungen im Detail: [netzwerk.md](netzwerk.md)
+Ja, wenn du ihr die Bedienungsanleitung und diese FAQ als Dokumente gibst. Lade die Dateien `bedienungsanleitung.md` und `faq.md` aus dem öffentlichen E.L.L.A.-Projekt bei GitHub (<https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/tree/main/docs/de>) und speichere sie auf deinem Rechner. Dort stehen immer die Fassungen zur neuesten Version. Öffne dann **Einstellungen → Tools → Lokales RAG – Dokument-Wissen** und klicke unter **Einzelne Dokumente** auf **Datei hinzufügen**. E.L.L.A. liest die Dateien ein und zieht bei Fragen zur Bedienung die passenden Stellen heran.
 
 ### Auf welchen Systemen läuft E.L.L.A.?
 
-Auf **Windows 10 und Windows 11 (64-Bit)**. Eine Mac- oder Linux-Version ist nicht geplant.
+Auf Windows 10 und Windows 11 mit 64 Bit. Eine Fassung für Mac oder Linux ist nicht geplant.
+
+### Brauche ich Internet?
+
+Für den Kern nicht: Chat, Gedächtnis, Dateisuche, Systemsteuerung, Musik und die lokale Spracherkennung laufen auf deinem Rechner.
+
+Internet brauchst du für:
+
+- die Lizenzprüfung beim Start (ohne Verbindung gilt die zuletzt gespeicherte Prüfung),
+- Websuche, Wetter, Standort und das Öffnen von Webseiten,
+- die deutsche Stimme von Microsoft (ohne Internet spricht die Windows-Stimme),
+- OpenAI, falls du einen eigenen Key eingetragen hast,
+- Gmail und Google Kalender, falls verbunden,
+- Plugins, die einen Dienst im Internet abfragen,
+- die Update-Prüfung (nur auf Knopfdruck),
+- den einmaligen Download des Sprachmodells beim ersten Start.
+
+Alle Verbindungen im Einzelnen: [Netzwerkverbindungen](netzwerk.md).
+
+### Welche Daten verlassen meinen Rechner?
+
+Im rein lokalen Betrieb verlassen keine Gesprächsinhalte deinen Rechner. Zwei Dinge solltest du wissen:
+
+- **Deutsche Stimme:** Der Text, den E.L.L.A. auf Deutsch vorliest, geht an Microsoft-Server. Im Offline-Modus spricht stattdessen die Windows-Stimme, und es wird nichts gesendet. Englisch, Französisch und Spanisch spricht eine lokale Stimme.
+- **Was du selbst anstößt:** Eine Websuche schickt den Suchbegriff an die Suchmaschine, ein Plugin die von dir bestätigten Werte an seinen Server.
+
+Wenn du einen **OpenAI-Key** einträgst und OpenAI nutzt, gehen deine Chat-Nachrichten an OpenAI – samt dem, was E.L.L.A. dafür heranzieht: passende Erinnerungen, gelesene Dokumente und Seiten, die sie im Browser liest. Dazu kommen Bilder bei der Bildanalyse und Tonaufnahmen, falls die Spracherkennung über OpenAI läuft. Jede dieser Anfragen wird gezählt und im Dashboard sowie im Feld „Cloud-Anfragen“ angezeigt.
 
 ---
 
-## 2. „Ella beobachtet meinen Rechner — ist das nicht Überwachung?"
-
-Das ist die häufigste Sorge — und die Antwort steckt in der Directive. Ella beobachtet, aber sie beobachtet **für dich, lokal, und sie gibt nichts nach außen.**
-
-### Schreibt Ella auch ohne Anfrage in den Chat?
-
-Ja — das ist eine Kernfunktion. Ella beobachtet deinen Rechner und informiert dich proaktiv:
-
-| Ereignis                         | Was Ella sagt                                        |
-| -------------------------------- | ---------------------------------------------------- |
-| 30 Min vor Termin                | Meeting-Vorbereitung, Dokumente anbieten             |
-| 18:00 Uhr                        | Tagesabschluss mit Aktivitäten und morgigen Terminen |
-| USB-Stick angeschlossen          | Laufwerk angesagt, Inhalt angeboten                  |
-| RAM über 85 %                    | Warnung + Aufräum-Angebot                            |
-| Festplatte über 90 % voll        | Warnung + Bereinigungsoptionen                       |
-| 30 Min inaktiv + Rückkehr        | Comeback-Briefing: Was hat sich verändert?           |
-| 90 Min ununterbrochen gearbeitet | Pause-Empfehlung                                     |
-| IBAN in Zwischenablage           | Kontext-Angebot                                      |
-
-### Und was davon verlässt meinen Rechner?
-
-**Nichts.** Diese Beobachtung läuft komplett lokal:
-
-- Das Lesen von RAM, Festplatte, USB-Geräten oder Zwischenablage passiert auf deinem Rechner und wird nirgendwohin gesendet — das verbietet das **exfiltrate**-Verbot.
-- Ella profiliert dich nicht heimlich — das verbietet das **surveil**-Verbot. Jede proaktive Meldung ist sichtbar, keine stille Datensammlung im Hintergrund.
-- Die Zwischenablage-Erkennung (IBAN, Paketnummer, Telefonnummer) ist reine Mustererkennung auf deinem Gerät, um dir ein Angebot zu machen — der Inhalt wandert nicht in die Cloud.
-
-Kurz: Ella sieht viel, damit sie dir helfen kann — aber was sie sieht, bleibt bei dir.
-
-### Kann ich die proaktiven Meldungen deaktivieren?
-
-Ja — einzeln oder alle:
-
-- **Einstellungen → Modus → Proaktive Intelligenz** ausschalten (alle)
-- **Einstellungen → Modus → Zwischenablage-Muster erkennen** separat deaktivierbar
-- Einzelne Kategorien per **Stummschalten-Button** an jeder Meldung. Nach 5-maligem Wegdrücken derselben Kategorie schaltet Ella sie automatisch stumm
-
----
-
-## 3. Hardware & Performance
+## 2. Hardware und Geschwindigkeit
 
 ### Welche Hardware brauche ich?
 
-Ella läuft auf den meisten Windows-Rechnern der letzten 5 Jahre. Für die beste Erfahrung empfehlen wir eine **NVIDIA-Grafikkarte mit mindestens 10 GB Videospeicher (VRAM)**.
-
-> **Was ist VRAM?** Der Arbeitsspeicher deiner Grafikkarte. Das KI-Modell wird komplett dort hinein geladen. Je mehr VRAM, desto größere und bessere Modelle kann Ella nutzen.
+E.L.L.A. läuft auf den meisten Windows-Rechnern der letzten Jahre. Am besten läuft sie mit einer NVIDIA-Grafikkarte, denn das Sprachmodell wird in den Speicher der Grafikkarte geladen.
 
 | Anforderung     | Minimum                     | Empfohlen                   |
 | --------------- | --------------------------- | --------------------------- |
-| Prozessor       | Intel Core i3 / AMD Ryzen 3 | Intel Core i5 / AMD Ryzen 5 |
-| Arbeitsspeicher | 16 GB RAM                   | 32 GB RAM                   |
-| Grafikkarte     | Nicht zwingend nötig        | NVIDIA mit 10–12 GB VRAM    |
-| Festplatte      | 20 GB frei                  | 40 GB frei (SSD empfohlen)  |
+| Prozessor       | Intel i3 (12. Gen) / AMD Ryzen 3 | Intel i5/i7 / AMD Ryzen 5/7   |
+| Arbeitsspeicher | 8 GB                             | 16 GB                         |
+| Grafikkarte     | NVIDIA GTX 1060 (6 GB VRAM)      | NVIDIA RTX 2060+ (12 GB VRAM) |
+| Festplatte      | 10 GB SSD                        | 20 GB SSD                     |
 
-Ausführlich: [hardware.md](hardware.md)
+Ohne passende Grafikkarte läuft E.L.L.A. auf dem Prozessor – langsamer, aber sie funktioniert. Die verbindlichen Angaben stehen auf [ella-agent.de](https://ella-agent.de). Mehr dazu: [Hardware](hardware.md).
 
-### Funktioniert Ella auf meinem Laptop?
+### Funktioniert E.L.L.A. auf meinem Laptop?
 
-**Ja** — auf jedem Windows-Laptop mit mindestens 16 GB RAM. Die Geschwindigkeit hängt von der Grafikkarte ab:
+Ja, ab 8 GB Arbeitsspeicher (16 GB empfohlen). Wie schnell sie antwortet, hängt von der Grafikkarte ab:
 
-- **Laptop mit NVIDIA-GPU (10+ GB VRAM):** sehr gut, wie ein Desktop
-- **Laptop mit kleinerer GPU (4–8 GB):** funktioniert, aber langsamer
-- **Laptop ohne Grafikkarte:** funktioniert, aber langsam — OpenAI-Key empfohlen
+- **Laptop mit starker NVIDIA-Grafikkarte:** läuft wie ein Desktop-Rechner.
+- **Laptop mit kleiner Grafikkarte:** funktioniert, antwortet aber langsamer.
+- **Laptop ohne eigene Grafikkarte:** funktioniert, ist aber langsam. Hier empfiehlt sich ein OpenAI-Key.
 
-**Tipp:** Mit einem OpenAI-Key kann Ella die Berechnung in die Cloud auslagern. Dann ist die lokale Hardware weniger wichtig.
+Beim ersten Start prüft E.L.L.A. deine Hardware und schlägt ein passendes Modell vor.
 
-### Ella antwortet langsam — was tun?
+### E.L.L.A. antwortet langsam – was tun?
 
-| Ursache                       | Lösung                                                                |
-| ----------------------------- | --------------------------------------------------------------------- |
-| Keine oder kleine Grafikkarte | OpenAI-Key eintragen — Ella nutzt dann Cloud-Berechnung               |
-| Zu wenig RAM (unter 16 GB)    | Andere Programme schließen oder RAM aufrüsten                         |
-| Erstes Laden nach dem Start   | Das KI-Modell wird in den Speicher geladen — 10–30 Sekunden warten    |
-| Kontextfenster voll           | Neues Gespräch starten (Ella komprimiert lange Gespräche automatisch) |
+| Ursache                       | Lösung                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| Keine oder kleine Grafikkarte | Kleineres Hardware-Profil wählen oder OpenAI nutzen (Einstellungen → LLM) |
+| Zu wenig Arbeitsspeicher      | Andere Programme schließen                                                |
+| Erste Antwort nach dem Start  | Das Modell wird erst in den Speicher geladen – kurz warten                |
+| Aufwendiges Erscheinungsbild  | Auf „Ruhig“ umstellen (Einstellungen → Aussehen)                          |
 
-Ella nutzt automatisch eine Beschleunigungs-Technik, die die Verarbeitung deutlich schneller macht — standardmäßig aktiv, keine Konfiguration nötig.
+### Warum bleibt E.L.L.A. beim Erscheinungsbild „Ruhig“?
+
+Reicht die Leistung des Rechners für HUD oder Aura nicht aus, bleibt E.L.L.A. bei „Ruhig“ und sagt dir das. Das ist Absicht: So bleibt sie bedienbar. Auch im Blind-Modus und im Hausaufgaben-Modus gilt immer „Ruhig“.
 
 ---
 
-## 4. Lizenz & Kosten
+## 3. Lizenz und Kosten
 
-### Was kostet Ella?
+### Was kostet E.L.L.A.?
 
-Ein Premium-Produkt mit Einmalkauf. Preis und aktuelle Angebote auf [ella-agent.de](https://ella-agent.de).
+E.L.L.A. ist ein Kaufprodukt. Preis und Angebote stehen auf [ella-agent.de](https://ella-agent.de).
 
 ### Wie funktioniert die Lizenz?
 
-Nach dem Kauf erhältst du einen Lizenzschlüssel im Format `ELLA-XXXX-XXXX-XXXX-XXXX`. Diesen gibst du beim ersten Start ein. Die Lizenz wird einmalig online geprüft und dann lokal zwischengespeichert — danach funktioniert Ella auch ohne Internet. Sie ist an deinen Rechner gebunden (anonymer Hardware-Fingerprint); beim Rechnerwechsel kannst du sie übertragen.
+Nach dem Kauf bekommst du einen Lizenzschlüssel der Form `ELLA-XXXX-XXXX-XXXX-XXXX`. Du gibst ihn beim ersten Start ein. Die Lizenz ist an deinen Rechner gebunden. E.L.L.A. prüft sie beim Start; ohne Internet gilt die zuletzt gespeicherte Prüfung.
 
-### Kommen laufende Kosten auf mich zu?
+### Kommen laufende Kosten dazu?
 
-Die lokale Nutzung (Ollama) verursacht **keine laufenden Kosten** (Strom ausgenommen). Optional kannst du einen eigenen OpenAI-Key eintragen — OpenAI rechnet dann nach Nutzung ab (wenige Cent pro Gespräch). Das ist keine Voraussetzung, sondern eine Erweiterung.
+Im lokalen Betrieb nicht. Wenn du einen eigenen OpenAI-Key nutzt, rechnet OpenAI die Nutzung mit dir ab. Die Höhe hängt vom gewählten Modell ab. Ein OpenAI-Key ist keine Voraussetzung.
 
 ---
 
-## 5. Installation & erster Start
+## 4. Installation und erster Start
 
-### Wie installiere ich Ella?
+### Wie installiere ich E.L.L.A.?
 
-1. Installationsdatei von ella-agent.de herunterladen und ausführen
-2. Standard-Installationspfad bestätigen
-3. Installation abwarten — alle Komponenten werden automatisch eingerichtet
-4. Ella über das Desktop-Symbol starten
+1. Die Datei `ELLA-Setup-<Version>.exe` ausführen.
+2. Den Installationsort wählen. Vorgabe ist `C:\Program Files\E.L.L.A`.
+3. Warten, bis die Installation fertig ist.
 
-Es ist nichts weiter nötig. Der Installer enthält alles.
+Der Installer bringt alles mit. Du musst nichts zusätzlich installieren. E.L.L.A. gibt es außerdem im Microsoft Store.
+
+### Warum dauert die Installation so lange?
+
+Der Installer liefert die Datenbank, Ollama und weitere Bausteine mit – zusammen rund 1 GB. Das Entpacken dauert einige Minuten.
+
+### Windows zeigt beim Installer einen Sicherheitshinweis. Ist das normal?
+
+Je nach Windows-Einstellung kann ein Hinweis erscheinen, bevor ein heruntergeladenes Programm startet. Prüfe, dass du die Datei von der offiziellen Quelle geladen hast, und bestätige dann.
 
 ### Was passiert beim allerersten Start?
 
-Ella führt dich durch ein kurzes Onboarding: Nutzungsbedingungen, Lizenzaktivierung, dein Name, die Directive, Hardware-Scan (Ella wählt ein passendes Modell) sowie Stimme & Standort. Beim ersten Start lädt Ella außerdem das KI-Modell herunter — das dauert je nach Internetgeschwindigkeit einige Minuten.
+E.L.L.A. führt dich durch die Einrichtung: Sprache der Oberfläche, Nutzungsbedingungen, Lizenzschlüssel, dein Name, die Directive, die Prüfung deiner Hardware mit Vorschlag für ein Sprachmodell, die Stimme und optional dein Standort.
 
-### Ella startet, zeigt aber einen orangenen Banner. Was tun?
+Danach lädt E.L.L.A. einmalig das gewählte Sprachmodell herunter. Das Standardmodell ist etwa 5 GB groß.
 
-Der häufigste Grund: Das KI-Modell wird noch geladen. Kurz warten — beim ersten Start wird es automatisch heruntergeladen. Verschwindet der Banner nach 2 Minuten nicht, Ella neu starten (Tray-Symbol → Beenden → Symbol doppelklicken).
+### Wie lange dauert der Download des Sprachmodells, und sehe ich den Fortschritt?
+
+Das hängt von deiner Internetverbindung ab. Ein Balken zeigt die geladene Menge, die Geschwindigkeit, die Prozentzahl und die geschätzte Restzeit. Bricht die Verbindung ab, macht E.L.L.A. an derselben Stelle weiter.
+
+### Beim Start meldet E.L.L.A., die Datenbank sei nicht gestartet. Was tun?
+
+Der Bildschirm nennt die Ursache und den nächsten Schritt. Klicke auf **Erneut prüfen**. Hilft das nicht, starte E.L.L.A. neu. Bleibt es dabei, steht die Ursache im Startprotokoll `%APPDATA%\ELLA\ella-startup.log`.
+
+### Im Chat steht ein orangefarbener Balken. Was bedeutet das?
+
+Das lokale Sprachmodell ist noch nicht bereit – meist wird es gerade geladen. Warte einen Moment. Verschwindet der Balken nicht, starte E.L.L.A. neu (Symbol im Infobereich → Beenden, dann neu starten).
 
 ---
 
-## 6. KI-Modelle & Anbieter
+## 5. Sprachmodelle und OpenAI
 
-### Welches Modell nutzt Ella — und welches ist das beste?
+### Welche Modelle nutzt E.L.L.A.?
 
-Ella nutzt ein lokales Sprachmodell über Ollama plus ein lokales Modell für das Gedächtnis. **Welches Sprachmodell am besten läuft, hängt stark von deiner Hardware ab — und ist ehrlicherweise eine Sache des Ausprobierens.**
-
-Als Orientierung:
-
-- Ein **kompaktes Llama-3-Modell** ist ein guter, schneller Standard — solide auf Deutsch und zuverlässig bei den Werkzeug-Aufrufen.
-- **Größere Modelle** können stärker sein, brauchen aber mehr VRAM und antworten langsamer.
-- Es kommen ständig neue Modelle heraus. Deshalb legt Ella dich auf keins fest: Du kannst **jederzeit wechseln oder dein eigenes Modell einsetzen.**
-
-Das Gedächtnis-Modell läuft immer vollständig lokal.
-
-### Kann ich ein anderes Ollama-Modell verwenden?
-
-Ja — unter **Einstellungen → LLM → Ollama-Modell** kannst du jedes Modell eintragen, das du in Ollama geladen hast. Kleinere Modelle antworten schneller, verstehen komplexe Anfragen aber weniger gut. Beim Onboarding schlägt Ella passend zu deiner Grafikkarte eine Auswahl vor.
+| Modell                      | Wofür                              | Läuft auf deinem Rechner? |
+| --------------------------- | ---------------------------------- | ------------------------- |
+| `llama3.1:8b` (über Ollama) | Chat und Werkzeuge                 | Ja                        |
+| `nomic-embed-text`          | Gedächtnis und Dokument-Wissen     | Ja                        |
+| Whisper                     | Spracherkennung                    | Ja                        |
+| OpenAI-Modell deiner Wahl   | Chat, Werkzeuge, Bilder (optional) | Nein, braucht Key         |
 
 ### Brauche ich einen OpenAI-Key?
 
-**Nein.** Ella funktioniert vollständig ohne OpenAI. Mit einem eigenen Key werden einige Funktionen besser oder überhaupt erst verfügbar: schnellere und präzisere Antworten, Screenshot- und Bildanalyse, Texte im persönlichen Schreibstil, hochwertigere Spracherkennung. Den Key trägst du unter **Einstellungen → LLM → OpenAI API-Key** ein.
+Nein. E.L.L.A. funktioniert ohne OpenAI. Ein Key lohnt sich, wenn dein Rechner für das lokale Modell zu schwach ist oder wenn du Funktionen nutzen willst, die mit OpenAI besser oder nur mit OpenAI gehen: Die Analyse von Bildern und Bildschirmfotos ist mit dem lokalen Standardmodell nur eingeschränkt möglich, und die Seite „Multi-Agenten“ läuft ausschließlich über OpenAI. Den Key trägst du unter **Einstellungen → LLM → OpenAI API-Key** ein.
 
 ### Was ist der Unterschied zwischen Ollama und OpenAI?
 
-|                 | Ollama (lokal)                  | OpenAI (Cloud)                         |
-| --------------- | ------------------------------- | -------------------------------------- |
-| Kosten          | Kostenlos                       | Pay-per-Use (wenige Cent pro Gespräch) |
-| Datenschutz     | Alles bleibt auf deinem Rechner | Daten gehen an OpenAI                  |
-| Geschwindigkeit | Abhängig von deiner Hardware    | Schnell und gleichmäßig                |
-| Bildanalyse     | Eingeschränkt                   | Immer verfügbar                        |
+|                 | Ollama (lokal)               | OpenAI (Cloud)                      |
+| --------------- | ---------------------------- | ----------------------------------- |
+| Kosten          | keine                        | Abrechnung nach Nutzung über OpenAI |
+| Daten           | bleiben auf deinem Rechner   | gehen an OpenAI                     |
+| Geschwindigkeit | hängt von deiner Hardware ab | gleichmäßig schnell                 |
+| Bildanalyse     | eingeschränkt                | verfügbar                           |
 
-### Was bedeutet „Provider: Auto"?
+### Was bedeutet die Einstellung „Auto“?
 
-Im Auto-Modus wählt Ella automatisch den besten verfügbaren Anbieter. Hat sie einen gültigen OpenAI-Key, nutzt sie OpenAI — sonst Ollama. Du kannst in den Einstellungen auch einen festen Anbieter erzwingen.
+E.L.L.A. versucht es zuerst lokal. OpenAI springt nur ein, wenn es lokal nicht geht und ein Key hinterlegt ist. Mit „Ollama (lokal)“ wird OpenAI nie benutzt, mit „OpenAI“ kommen die Antworten immer von OpenAI.
+
+### Welches OpenAI-Modell nutzt E.L.L.A., und kann ich es ändern?
+
+Du wählst es selbst unter **Einstellungen → LLM → OpenAI-Modelle**: ein Haupt-Modell für Chat, Werkzeuge und Bilder und ein Schnell-Modell für Hilfsaufgaben. Ohne eigene Auswahl gilt die Empfehlung `gpt-6-luna`. Mit **Prüfen** testest du, ob ein Modell Werkzeuge aufrufen, Bilder verstehen und fortlaufend antworten kann.
+
+### OpenAI schaltet gpt-4o ab. Betrifft mich das?
+
+OpenAI schaltet `gpt-4o` und `gpt-4o-mini` am 14.01.2027 ab. Ab Version 1.6.8 nutzt E.L.L.A. diese Modelle nicht mehr fest, sondern das von dir gewählte Modell. Wer eine ältere Version von E.L.L.A. mit OpenAI nutzt, sollte vor diesem Datum aktualisieren. Ist ein gewähltes Modell nicht mehr verfügbar, nutzt E.L.L.A. bis zum nächsten Start die Empfehlung und sagt dir das im Chat.
+
+### Kann ich ein anderes lokales Modell verwenden?
+
+Ja, unter **Einstellungen → LLM** wählst du ein anderes Hardware-Profil oder trägst den Namen eines eigenen Ollama-Modells ein. Achtung: Nicht jedes Modell kann Werkzeuge benutzen. Mit `llama3.1:8b` ist E.L.L.A. erprobt. Ein Modell ohne Werkzeug-Aufrufe kann chatten, aber nichts am PC erledigen.
+
+### Was ist das persönliche Modell?
+
+E.L.L.A. kann aus deinen Bewertungen ein eigenes Modell trainieren. Jede Antwort mit Daumen hoch wird ein Lernbeispiel. Ab 50 Beispielen kannst du unter **Einstellungen → Tools → Persönliches Modell** ein Training starten. Es läuft vollständig lokal und braucht eine Grafikkarte mit mindestens 12 GB Speicher.
 
 ---
 
-## 7. Spracheingabe & Sprachausgabe
+## 6. Sprechen und Zuhören
 
-### Wie spreche ich mit Ella?
+### Wie spreche ich mit E.L.L.A.?
 
-Vier Wege:
+- **Text:** Nachricht tippen und Enter drücken.
+- **Mikrofon-Knopf:** für eine einzelne Aufnahme.
+- **Wakeword:** „Ella“ sagen, dann den Wunsch.
+- **Freihand:** E.L.L.A. hört dauerhaft zu.
+- **Diktat:** Gesprochenes wird in das aktive Fenster getippt.
 
-1. **Text:** Nachricht tippen und Enter drücken
-2. **Mikrofon-Button:** einmalige Aufnahme per Klick
-3. **Wakeword:** „Ella" sagen — Ella hört dann auf deinen Befehl (muss aktiviert werden)
-4. **Freihand (Always-On):** Ella hört permanent zu
+Den Modus wählst du unter **Einstellungen → Tools → Spracheingabe**.
 
 ### Brauche ich für die Spracheingabe Internet?
 
-Ja — die Spracherkennung läuft online. Die Standard-Erkennung braucht Internet, aber keinen OpenAI-Key. Mit eigenem OpenAI-Key steht eine hochwertigere Erkennung zur Verfügung. Eine vollständig offline Spracheingabe gibt es derzeit nicht. Das Wakeword „ella" selbst läuft dagegen lokal.
+Nein. Die Spracherkennung läuft auf deinem Rechner. Auch das Wakeword wird lokal erkannt.
 
-### Filtert Ella Störgeräusche heraus?
+### Was ist der Unterschied zwischen Wakeword und Freihand?
 
-Ja. Wenn du sprichst und im Hintergrund Musik läuft, der Fernseher an ist oder du dich verhaspelst, erkennt Ella das und filtert es heraus — nur dein eigentlicher Befehl wird verarbeitet.
+Im **Wakeword-Modus** reagiert E.L.L.A. erst, wenn du „Ella“ sagst. Nach einer Antwort kannst du 8 Sekunden lang ohne Wakeword weitersprechen. Im **Freihand-Modus** hört sie dauerhaft zu und verarbeitet alles, was du sagst.
 
-**Beispiel:**
+### Hört E.L.L.A. immer zu – auch wenn ich telefoniere?
 
-- Was du sagst: _„äh ella äh öffne öffne mal den Explorer is this the real life"_
-- Was Ella versteht: _„Öffne den Explorer"_
+Nur im Freihand-Modus. Wenn du das nicht willst, nimm den Wakeword-Modus, „Manuell“ oder „Aus“. Du kannst auch sagen: „Ella, mach 30 Minuten Pause.“
 
-### Wie aktiviere ich die Sprachausgabe?
+### Wie unterbreche ich E.L.L.A. beim Sprechen?
 
-**Einstellungen → Modus → TTS** auf „An". Ella liest dann Antworten, Warnungen und proaktive Nachrichten vor.
+Sag „Stopp“, „Halt“, „Sei still“ oder „Leise“. Sie hört sofort auf.
 
-### Kann Ella auch ohne Internet sprechen?
+### Wie schalte ich die Sprachausgabe ein, und kann ich die Stimme ändern?
 
-Für **Englisch, Französisch und Spanisch ja** — über die lokale Stimme Kokoro, vollständig offline. Für **Deutsch (Katja)** wird derzeit noch Microsoft Edge TTS verwendet (Internet nötig, der Text wird an Microsoft übertragen). Eine vollständig lokale deutsche Stimme ist in Arbeit — und weil die Directive „keine Verschleierung" verlangt, sagen wir das offen.
+Unter **Einstellungen → LLM → Sprachausgabe**. E.L.L.A. spricht Deutsch, Englisch, Spanisch und Französisch:
 
-### Kann ich die Stimme ändern?
+| Sprache     | Stimme mit Internet | Stimme ohne Internet |
+| ----------- | ------------------- | -------------------- |
+| Deutsch     | Katja (Microsoft)   | Windows-Stimme       |
+| Englisch    | lokale Stimme       | lokale Stimme        |
+| Spanisch    | lokale Stimme       | lokale Stimme        |
+| Französisch | lokale Stimme       | lokale Stimme        |
 
-Ja — unter **Einstellungen → Stimme → Gesprächssprache**:
+### Kann E.L.L.A. ohne Internet sprechen?
 
-| Sprache  | Online-Stimme | Offline-Stimme (Kokoro) |
-| -------- | ------------- | ----------------------- |
-| Deutsch  | Katja         | (in Arbeit)             |
-| English  | Sonia         | Emma                    |
-| Español  | Elvira        | Dora                    |
-| Français | Denise        | Siwis                   |
+Ja. Englisch, Französisch und Spanisch spricht immer eine lokale Stimme. Deutsch spricht im Offline-Modus die in Windows eingebaute Stimme. Sie klingt weniger natürlich als die Microsoft-Stimme, dafür wird nichts gesendet.
 
-### Kann Ella erkennen, ob ich gestresst bin?
+### Wie diktiere ich in andere Programme?
 
-Ja — mit der optionalen **Stress-Erkennung** (Einstellungen → Stimme → Stimmanalyse aktivieren). Ella analysiert Tonhöhe, Tempo und Lautstärke und passt bei Anspannung ihren Ton an. Die Analyse läuft vollständig lokal — keine Audiodaten verlassen das Gerät. Standardmäßig aus.
+Schalte den Diktat-Modus ein, in den Einstellungen oder mit `Strg+Alt+Leertaste`. Was du sagst, tippt E.L.L.A. in das Fenster, das gerade aktiv ist. Der Inhalt deiner Zwischenablage bleibt erhalten.
 
----
+### Kann E.L.L.A. erkennen, ob ich angespannt bin?
 
-## 8. Wakeword & Freihand-Modus
-
-### Was ist der Unterschied?
-
-| Modus                    | Wie es funktioniert                                                            |
-| ------------------------ | ------------------------------------------------------------------------------ |
-| **Wakeword**             | Ella hört auf das Schlüsselwort „Ella" und reagiert dann auf den nächsten Satz |
-| **Freihand (Always-On)** | Ella hört permanent zu und schickt alles Gesagte direkt in den Chat            |
-| **Manuell**              | Du drückst den Mikrofon-Button — nur dann hört Ella zu                         |
-
-### Wie aktiviere ich das Wakeword?
-
-**Einstellungen → Modus → Stimme** auf „Wakeword". Das Wakeword läuft vollständig lokal — keine Audiodaten werden übertragen.
-
-### Wie pausiere ich das Wakeword?
-
-```
-"Ella, mach 30 Minuten Pause"
-"Pausiere für eine Stunde"
-```
-
-Ella deaktiviert das Wakeword und meldet sich nach Ablauf automatisch zurück.
-
-### Hört Ella immer zu — auch wenn ich privat telefoniere?
-
-Im **Freihand-Modus** ja. Möchtest du Privatsphäre: Nutze den **Wakeword-Modus** (Ella aktiviert sich nur nach dem Schlüsselwort) oder stelle auf **Manuell** oder **Aus**.
+Auf Wunsch ja: **Einstellungen → Tools → Stress-Erkennung**. E.L.L.A. wertet dann Tonhöhe, Tempo und Lautstärke aus und reagiert ruhiger. Die Auswertung läuft lokal. Die Funktion ist zunächst ausgeschaltet.
 
 ---
 
-## 9. Musik & Medien
+## 7. Erscheinungsbild
 
-### Wie sage ich Ella, wo meine Musik liegt?
+### Welche Erscheinungsbilder gibt es?
 
-**Einstellungen → Programme → Musikbibliothek** — Pfad zur Sammlung eintragen (z. B. `H:\Musik`) und **Speichern**.
+Vier, wählbar unter **Einstellungen → Aussehen**: **Ruhig** (schlicht und dunkel), **HUD** (technisch, mit Daten-Feldern), **Aura** (warme Pinnwand mit Zetteln) und **Präsentation** (Vollbild, nur Kugel und letzte Antwort).
 
-### Wie suche und steuere ich Musik?
+### Was zeigen die Felder im HUD und in Aura?
 
-```
-"Spiel etwas von Rammstein"
-"Öffne das Album Thriller von Michael Jackson"
-"Nächster Titel"
-"Pause"
-"Was läuft gerade?"
-```
+Du wählst selbst aus 13 Feldern: System, Monitore, Routinen, Directive, Uhr & Zeit, Aufgaben, E-Mails, Musik, Fine-Tuning, Gedächtnis, Cloud-Anfragen, Netzwerk und Hinweise. Passen nicht alle in eine Spalte, blätterst du per Klick.
 
-### Ella findet meine Musik nicht — was tun?
+### Wie hänge ich ein eigenes Bild an die Pinnwand?
 
-1. Pfad korrekt? → Einstellungen → Programme → Musikbibliothek
-2. Laufwerk in der Suchliste? → Einstellungen → Programme → Suchlaufwerke
-3. Nach jeder Änderung auf **Speichern** geklickt?
+Im Erscheinungsbild Aura gibt es über E.L.L.A. einen Zettel für ein Bild. Klicke auf „Bild wählen“. Das Bild bleibt auf deinem Rechner. Den Zettel schaltest du unter **Einstellungen → Aussehen → Bild über Ella** ein und aus.
+
+### Wie zeige ich meine Notizen an?
+
+Schalte unter **Einstellungen → Aussehen** die Option **Notizen unter Ella** ein. Die neuesten Notizen erscheinen dann unter E.L.L.A. – in HUD und Aura. Eine Notiz legst du mit „+“ an oder im Chat: „Mach eine Notiz: Blumen gießen.“
+
+### Was bedeutet die Farbe der Kugel?
+
+Die Kugel zeigt E.L.L.A.s Zustand: bereit, hört zu, denkt nach, spricht, nutzt die Cloud oder ist offline.
 
 ---
 
-## 10. Dateien & Laufwerke
+## 8. Programme, Browser und Plugins
 
-### Kann Ella auf allen Laufwerken suchen?
+### E.L.L.A. findet ein Programm nicht. Was tun?
 
-Ja — standardmäßig sucht Ella auf `C:\`. Weitere Laufwerke: **Einstellungen → Programme → Suchlaufwerke**.
+Öffne **Einstellungen → Programme**. Lass neu suchen, oder füge das Programm mit Name und Pfad von Hand hinzu. Das geht auch für Programme, die ohne Installation laufen.
 
-### Kann Ella Systemlaufwerke formatieren?
+### Wozu sind die Sterne in der Programmliste?
 
-**Nein** — ein hartes, unveränderliches Verbot. Immer gesperrt: `C:`, das Laufwerk mit der Ella-Installation und alle unter Einstellungen → Laufwerke → Geschützte Laufwerke eingetragenen.
+Mit dem Stern markierst du bis zu 15 Favoriten. Passt ein Name auf mehrere Programme, nimmt E.L.L.A. zuerst den Favoriten.
 
-### Kann Ella Dateien löschen?
+### Kann E.L.L.A. im Internet surfen?
 
-Ella verschiebt Dateien in den **Papierkorb** — ein permanentes Löschen ohne Papierkorb ist nicht möglich. Du kannst die Aktion immer rückgängig machen.
+Ja, wenn du die Browser-Steuerung einschaltest (**Einstellungen → Tools → Browser-Steuerung**). E.L.L.A. öffnet dann ein eigenes, sichtbares Fenster in Chrome, Edge oder Brave, ruft Seiten auf, liest sie, klickt und tippt.
+
+### Sieht E.L.L.A. im Browser meine Anmeldungen und Lesezeichen?
+
+Nein. Sie benutzt ein eigenes Browser-Profil. Dein normales Profil mit Anmeldungen, Lesezeichen und Verlauf bleibt unberührt.
+
+### Kann eine Webseite E.L.L.A. Befehle geben?
+
+Nein. E.L.L.A. klickt und tippt nur, was du in deiner Nachricht verlangt hast. Hat sie fremde Inhalte gelesen, darf sie in derselben Antwort nur noch lesen, nichts mehr ändern oder versenden. Passwortfelder füllt sie nie aus. Vor Käufen, Bestellungen, Löschungen und dem Absenden von Formularen fragt sie nach.
+
+### Warum klickt E.L.L.A. im Browser nicht?
+
+Nenne das Ziel mit seiner Beschriftung: „Klick auf Impressum.“ oder „Öffne den ersten Link im Artikel.“ Eine Bitte wie „klick auf das günstigste Angebot“ führt sie nicht aus, weil sie dafür den Seiteninhalt bewerten müsste.
+
+### Was ist ein Plugin?
+
+Ein Plugin bringt E.L.L.A. eine neue Auskunftsquelle bei, zum Beispiel Wechselkurse oder Feiertage. Es beschreibt eine Internet-Adresse und die Werte, die dorthin geschickt werden. Ein Plugin enthält kein Programm.
+
+### Wie bekomme ich ein Plugin?
+
+Am einfachsten baut E.L.L.A. es selbst. Nenne ihr Name, Stichwörter und eine Beispiel-Adresse, die im Browser funktioniert:
+
+> Bau mir ein Plugin für Wechselkurse. Stichwörter: Wechselkurs, Euro, Dollar, umrechnen. Die Adresse ist https://api.frankfurter.dev/v1/latest?amount=250&base=EUR&symbols=USD
+
+Danach öffnest du **Einstellungen → Plugins**, klickst auf **Neu einlesen**, prüfst das Plugin und schaltest es ein.
+
+### E.L.L.A. sagt, sie hat ein Plugin angelegt, aber ich sehe es nicht. Was tun?
+
+Klicke unter **Einstellungen → Plugins** auf **Neu einlesen**. Erscheint es dann nicht, wurde es nicht angelegt. Schreib den Wunsch noch einmal in einer einzigen Nachricht: das Wort „Plugin“, den Namen und die vollständige Adresse mit `https://` am Anfang.
+
+### Warum muss ich ein Plugin selbst einschalten?
+
+Damit niemand von außen – keine Webseite, kein Dokument, keine E-Mail – E.L.L.A. dazu bringen kann, Daten an einen fremden Server zu schicken. E.L.L.A. kann ein Plugin anlegen, aber nie einschalten. Vor dem Einschalten siehst du, an welchen Server Daten gehen und welche Werte übertragen werden.
+
+### Warum benutzt E.L.L.A. mein Plugin nicht?
+
+Prüfe drei Dinge: Ist das Plugin eingeschaltet? Kommt in deiner Frage eines seiner Stichwörter oder sein Name vor? Nennst du alle nötigen Werte („Was sind 250 Euro in Dollar?“)? Wurde die Plugin-Datei nach deiner Zustimmung verändert, ist das Plugin ausgeschaltet, bis du es neu prüfst.
+
+### Kann ich ein Plugin für einen Dienst mit Schlüssel bauen?
+
+Nicht über den Chat. Dienste mit Schlüssel oder Anmeldung richtest du über die Plugin-Datei von Hand ein. Der Aufbau steht in [Plugins](plugins.md).
+
+---
+
+## 9. Dateien, Dokumente und Musik
+
+### Kann E.L.L.A. auf allen Laufwerken suchen?
+
+Zunächst sucht sie auf `C:`. Weitere Laufwerke trägst du unter **Einstellungen → Programme → Suchlaufwerke** ein, zum Beispiel `C, D, E`.
+
+### Kann E.L.L.A. Dateien löschen?
+
+Ja, aber nur nach Rückfrage, und nur in den Papierkorb. Du kannst die Dateien von dort zurückholen.
+
+### Kann E.L.L.A. Laufwerke formatieren?
+
+Das Systemlaufwerk `C:` und das Laufwerk, auf dem E.L.L.A. installiert ist, sind immer gesperrt, ebenso Netzwerk- und CD-Laufwerke. Bei anderen Laufwerken fragt E.L.L.A. ausdrücklich nach.
+
+### Welche Dokumente kann E.L.L.A. lesen?
+
+Word-Dokumente, PDFs, Excel-Tabellen, HTML- und Textdateien. Sie öffnet die Datei wirklich und erfindet keine Inhalte.
+
+### Wie gebe ich E.L.L.A. meine Dokumente als Wissen?
+
+Unter **Einstellungen → Tools → Lokales RAG – Dokument-Wissen** fügst du Ordner oder einzelne Dateien hinzu (TXT, MD, DOCX, PDF, XLSX). E.L.L.A. liest sie im Hintergrund ein und meldet sich, wenn sie fertig ist. Danach zieht sie passende Stellen bei deinen Fragen automatisch heran.
+
+### Wie sage ich E.L.L.A., wo meine Musik liegt?
+
+Unter **Einstellungen → Programme → Musikbibliothek** trägst du den Ordner deiner Musiksammlung ein. Dort wählst du auch den Mediaplayer.
+
+### Wie steuere ich die Musik?
+
+„Spiel etwas von Rammstein.“ – „Pausiere die Musik.“ – „Nächstes Lied bitte.“ – „Was läuft gerade?“ – „Stell die Lautstärke auf 30.“ Im Feld „Musik“ (HUD und Aura) gibt es dafür auch Tasten.
 
 ### Wie finde ich doppelte Dateien?
 
-```
-"Suche doppelte Dateien auf meinen Laufwerken"
-"Welche Dateien habe ich doppelt auf E:?"
-```
-
-Ella vergleicht Dateien inhaltlich (nicht nur per Name) und zeigt, wie viel Platz du durch Löschen der Duplikate gewinnst.
+„Suche doppelte Dateien auf E:.“ E.L.L.A. vergleicht den Inhalt der Dateien, nicht nur die Namen.
 
 ---
 
-## 11. E-Mail & Kalender
+## 10. E-Mail und Kalender
 
-### Kann Ella meine E-Mails lesen? Ist das sicher?
+### Kann E.L.L.A. meine E-Mails lesen?
 
-Ja, aber nur wenn du es erlaubst. **Outlook** funktioniert automatisch, wenn installiert. **Gmail** verbindest du einmalig mit deinem Google-Konto (Einstellungen → Google).
+Ja, wenn du es willst. Mit Outlook geht das ohne Einrichtung, sofern Outlook installiert ist. Für Gmail verbindest du E.L.L.A. einmalig mit deinem Google-Konto.
 
-**Sicherheit:**
+### Kann E.L.L.A. E-Mails versenden?
 
-- Ella liest E-Mails nur auf deinem Rechner — im lokalen Modus werden keine Inhalte übertragen
-- Ella kann **keine E-Mails automatisch senden** — sie erstellt nur Entwürfe, die du selbst absendest
-- E-Mail-Inhalte fließen nicht ins Gedächtnis (es sei denn, du sagst ausdrücklich „merk dir das")
+Nein. Sie legt einen Entwurf in Outlook an. Das Absenden bleibt bei dir.
 
-### Welche Dienste werden unterstützt?
+### Wie verbinde ich Gmail und den Google Kalender?
 
-**Outlook** (automatisch, wenn installiert) und **Gmail** (einmalige Einrichtung über Google OAuth).
+1. In der [Google Cloud Console](https://console.cloud.google.com) eine App anlegen (OAuth 2.0, Typ „Desktop-App“).
+2. Client-ID und Secret kopieren.
+3. In E.L.L.A. unter **Einstellungen → Google & Profile** eintragen.
+4. „Mit Google verbinden“ klicken und im Browser bestätigen.
 
-### Wie verbinde ich Gmail?
+Der Zugang wird auf deinem Rechner gespeichert.
 
-1. In der [Google Cloud Console](https://console.cloud.google.com) eine App anlegen (OAuth 2.0, Typ: Desktop-App)
-2. Client-ID und Secret kopieren
-3. In Ella: **Einstellungen → Google → Client-ID + Secret eintragen**
-4. „Mit Google verbinden" klicken → Browser öffnet sich → Google-Konto wählen → Bestätigen
+### Kann E.L.L.A. Termine anlegen?
 
-Der Token wird lokal gespeichert und nie weitergegeben.
-
-### Kann Ella meinen Google Kalender bearbeiten?
-
-Ja — lesen und Termine erstellen:
-
-```
-"Was steht heute im Google Kalender?"
-"Erstelle einen Termin morgen um 14 Uhr: Zahnarzt"
-```
+Ja, in Outlook und im Google Kalender: „Erstell einen Termin morgen um 14 Uhr: Zahnarzt.“
 
 ---
 
-## 12. Gedächtnis & Lernen
+## 11. Gedächtnis und Lernen
 
-### Wie merkt sich Ella Dinge?
+### Wie merkt sich E.L.L.A. Dinge?
 
-Ella speichert Informationen nicht wortwörtlich, sondern als bedeutungsmäßige Muster. Stellst du später eine ähnliche Frage, findet Ella die passende Erinnerung — ähnlich wie menschliche Assoziationen.
+Sie speichert, was du ihr ausdrücklich sagst („Merk dir …“), und zieht aus Gesprächen wichtige Angaben über dich. Erinnerungen werden nach Bedeutung wiedergefunden, nicht nur nach dem Wortlaut. Auf der Seite **Gedächtnis** siehst du alle Einträge, sortiert nach Kategorien.
 
-```
-"Merk dir: Ich mag keine E-Mails am Freitagnachmittag"
-"Was weißt du über mich?"
-```
+### Kann ich Erinnerungen ansehen und löschen?
 
-### Kann ich Erinnerungen löschen?
+Ja: auf der Seite **Gedächtnis** oder im Chat – „Was weißt du über mich?“ und „Vergiss, dass …“.
 
-Ja:
+### Was ist der Unterschied zwischen einer Erinnerung und einer Notiz?
 
-```
-"Was weißt du über mich?"   → Erinnerung identifizieren
-"Vergiss Erinnerung 42"
-"Vergiss alles über mich"
-```
+Eine Notiz ist eine Erinnerung, die du ausdrücklich als Notiz anlegst: „Mach eine Notiz: …“. Notizen kannst du unter E.L.L.A. anzeigen lassen (HUD und Aura).
 
-### Lernt Ella durch Feedback?
+### Speichert E.L.L.A. Passwörter oder Kontonummern?
 
-Ja — die **Daumen-Buttons** unter jeder Antwort geben Ella Feedback. Daumen hoch speichert die Frage-Antwort-Kombination als positives Beispiel, das Ella bei ähnlichen Fragen künftig nutzt.
+Nein. Passwörter, Schlüssel, IBANs und Kreditkartennummern werden vor dem Speichern unkenntlich gemacht.
 
-### Lernt Ella meinen Schreibstil?
+### Lernt E.L.L.A. durch meine Bewertungen?
 
-Ja — mit OpenAI-Key. Bittest du Ella, einen Text „in deinem Stil" zu schreiben, analysiert sie vorhandene E-Mails und übernimmt Tonalität, typische Formulierungen und Satzbau.
+Ja. Daumen hoch speichert Frage und Antwort als gutes Beispiel. Bei ähnlichen Fragen orientiert sich E.L.L.A. daran. Das schaltest du unter **Einstellungen → Tools → Self-Learning** ein und aus.
 
-```
-"Schreib eine Absage an Herrn Müller in meinem Stil"
-```
+### Kann ich mein Gedächtnis sichern oder auf einen anderen Rechner mitnehmen?
+
+Ja, unter **Einstellungen → Backup**. Das Backup enthält Erinnerungen, Regeln, Wecker, Aufgaben und Setups.
 
 ---
 
-## 13. Nutzerprofile & PIN
+## 12. Wenn E.L.L.A. sich von selbst meldet
 
-### Was sind Nutzerprofile?
+### Schreibt E.L.L.A. auch ohne Anfrage?
 
-Mehrere Personen können Ella mit getrennten Gedächtnissen und Verläufen nutzen. Jedes Profil ist vollständig isoliert — ein Profil kann nicht auf das Gedächtnis eines anderen zugreifen.
+Ja. Sie meldet sich zum Beispiel bei einem fast vollen Laufwerk, bei überlastetem Arbeitsspeicher, wenn ein Gerät angesteckt wird, vor einem Termin, wenn ein Wecker klingelt oder wenn du lange ohne Pause arbeitest.
 
-### Wie lege ich ein Profil an?
+### Kann ich diese Meldungen abstellen?
 
-**Einstellungen → Profile → Neues Profil** — Name und Farbe wählen, optional PIN setzen.
+Ja, je Art: Jede Meldung hat den Knopf 🔇 („Diesen Hinweistyp stummschalten“). Drückst du dieselbe Art fünfmal weg, schaltet E.L.L.A. sie von selbst stumm. Im Feld „Hinweise“ (HUD und Aura) lässt du stumme Arten wieder zu. Wecker und geplante Setups lassen sich nicht stummschalten.
 
-### Was, wenn ich meinen Profil-PIN vergesse?
+### Liest E.L.L.A. meine Zwischenablage mit?
 
-Für Nutzerprofile ist ein Zurücksetzen nur mit direktem Datenbankzugriff möglich — wende dich dann an den Entwickler. Für den Hausaufgaben-Modus gibt es einen Notfall-Reset.
-
----
-
-## 14. Barrierefreiheit
-
-### Welche Modi gibt es?
-
-Unter **Einstellungen → Modus → Barrierefreiheit**:
-
-| Modus              | Für wen        | Was sich ändert                                                                 |
-| ------------------ | -------------- | ------------------------------------------------------------------------------- |
-| **Blind-Modus**    | Sehbehinderte  | TTS immer aktiv, Audio-Feedback, Antworten ohne Formatierung, Bildanalyse aktiv |
-| **Gehörlos-Modus** | Hörgeschädigte | Alle Audio-Ausgaben deaktiviert, nur Text                                       |
-
-### Was kann Ella für blinde Nutzer tun?
-
-Im Blind-Modus liest Ella alle Antworten automatisch vor, beschreibt den Bildschirminhalt, analysiert Bilder und liest Webseiten vor (dafür wird ein OpenAI-Key benötigt).
+Nur, wenn du den Zwischenablage-Verlauf unter **Einstellungen → Modus** einschaltest. Er ist zunächst aus. Solange er läuft, zeigt ein Balken im Chat das an.
 
 ---
 
-## 15. Hausaufgaben-Modus
+## 13. Sicherheit und Datenschutz
+
+### Wo liegen meine Daten?
+
+Auf deinem Rechner: Gesprächsverlauf und Gedächtnis in der lokalen Datenbank, die Einstellungen unter `%APPDATA%\ELLA`. Es gibt keinen Abgleich mit einer Cloud und keine Nutzungsdaten an den Hersteller oder Dritte.
+
+### Kann E.L.L.A. ohne mein Wissen Kamera, Mikrofon oder Bildschirm erfassen?
+
+Nein. Bildschirm, Kamera und Zwischenablage erfasst E.L.L.A. nur, wenn du sie direkt darum bittest – nie in einem selbst gewählten Folgeschritt. Das Mikrofon ist nur in dem Sprachmodus aktiv, den du gewählt hast. Laufende Erfassungen zeigt der Chat an.
+
+### Kann E.L.L.A. meine Passwörter lesen?
+
+Fenster von Passwort-Managern und Banking-Seiten sind für die Maus- und Fenster-Werkzeuge gesperrt. Im Browser füllt E.L.L.A. Passwortfelder nie aus und liest deren Inhalt nicht.
+
+### Wie sicher sind die PINs?
+
+PINs werden nicht im Klartext gespeichert, sondern mit einem anerkannten Verfahren (PBKDF2 mit Salt, 100.000 Durchläufe) verschlüsselt abgelegt. Nach fünf falschen Versuchen ist die Eingabe für eine Minute gesperrt.
+
+### Was sperrt der Offline-Modus?
+
+Websuche, Wetter, Standort, Webseiten, OpenAI, die Browser-Steuerung und die Update-Prüfung. Plugins funktionieren nur noch für Geräte im Heimnetz. Deutsch spricht die Windows-Stimme. Funktionen im eigenen Netz bleiben verfügbar. Du findest den Schalter unter **Einstellungen → Tools → Offline-Modus**.
+
+---
+
+## 14. Die Directive und eigene Regeln
+
+### Was ist die E.L.L.A. Directive?
+
+Vier Verbote, die fest eingebaut sind. Keine Einstellung und keine Regel hebt sie auf:
+
+| Verbot                    | Bedeutung                                                              |
+| ------------------------- | ---------------------------------------------------------------------- |
+| **Kein Schaden**          | kein körperlicher, finanzieller, seelischer Schaden, kein Datenverlust |
+| **Keine Verschleierung**  | alle Aktionen sind sichtbar und werden protokolliert                   |
+| **Keine Überwachung**     | keine Erfassung ohne dein Wissen und deine Zustimmung                  |
+| **Keine Datenweitergabe** | nichts geht ohne deine ausdrückliche Zustimmung an Dritte              |
+
+### Was passiert, wenn E.L.L.A. etwas ablehnt?
+
+Im Chat erscheint ein roter Hinweis mit der Begründung. Eine Ablehnung durch die Directive lässt sich nicht umgehen, auch nicht durch andere Formulierungen.
+
+### E.L.L.A. sagt „Diese Funktion ist deaktiviert“. Was tun?
+
+Das Werkzeug dafür ist ausgeschaltet. Unter **Einstellungen → Tools → Erlaubte Tools** hat jedes der 123 Werkzeuge einen Schalter. Schalte das Werkzeug ein und klicke auf **Speichern**.
+
+### Welche Werkzeuge sind ab Werk ausgeschaltet?
+
+Die Werkzeuge, mit denen E.L.L.A. deinen Rechner selbst bedient oder tief ins System eingreift: Tasten senden, Maus bewegen, klicken, ziehen, Bedienelemente anklicken, Fenster steuern, Programme direkt starten, Bildschirm lesen und beobachten, Befehle ausführen, Dienste steuern und mehrere Dateien auf einmal löschen. Die vollständige Liste steht in der Bedienungsanleitung, Kapitel 18. Browser-Steuerung, Plugins und der Zwischenablage-Verlauf haben eigene Schalter und sind ebenfalls zunächst aus.
+
+### Kann ich E.L.L.A. eigene Regeln geben?
+
+Ja, im Chat („Erstell eine Regel: keine Laufwerke formatieren“) oder unter **Einstellungen → Regeln**. Einzelne Werkzeuge schaltest du unter **Einstellungen → Tools → Erlaubte Tools** ab.
+
+---
+
+## 15. Profile, Hausaufgaben-Modus und Barrierefreiheit
+
+### Können mehrere Personen E.L.L.A. nutzen?
+
+Ja. Unter **Einstellungen → Google & Profile** legst du Profile an. Jedes Profil hat ein eigenes Gedächtnis. Ein Profil lässt sich mit einer PIN schützen.
 
 ### Was ist der Hausaufgaben-Modus?
 
-Ein PIN-gesicherter Modus für Kinder. Ella kann dann nur Apps aus einer vorher definierten Liste öffnen und antwortet nur auf schulbezogene Anfragen.
+Ein Modus für Kinder: Nur die freigegebenen Programme lassen sich öffnen. Browser-Steuerung und Plugins sind gesperrt. Du richtest ihn unter **Einstellungen → Modus** ein.
 
-### Wie aktiviere/deaktiviere ich ihn?
+### Wie beende ich den Hausaufgaben-Modus?
 
-```
-"Aktiviere den Hausaufgaben-Modus"    → Ella fragt nach dem PIN
-"Deaktiviere den Hausaufgaben-Modus"  → Ella fragt nach dem PIN
-```
+Nur mit der PIN. Der Modus läuft nicht von selbst ab.
 
-Der PIN muss vorher in den Einstellungen gesetzt werden. Bei vergessenem PIN: Einstellungen → Modus → Hausaufgaben-Modus → Notfall-Reset.
+### Ich habe die PIN des Hausaufgaben-Modus vergessen. Was tun?
 
----
+Ist der Modus **nicht** aktiv, löscht der Notschalter in den Einstellungen die PIN, und du legst eine neue fest. Er setzt außerdem einige Einstellungen auf sichere Vorgaben zurück und schaltet Browser-Steuerung und Plugins aus.
 
-## 16. Einstellungen & Updates
+Läuft der Modus gerade, ist der Notschalter gesperrt. Das ist Absicht: Sonst käme ein Kind ohne PIN aus dem Modus. Wende dich in diesem Fall an den Support (Kontakt unter **Einstellungen → Über E.L.L.A.**).
 
-### Wie öffne ich die Einstellungen?
+### Was macht der Notschalter?
 
-Über das **Zahnrad-Symbol** in der Navigation oder per „Öffne die Einstellungen".
+Der Notschalter oben in den Einstellungen setzt E.L.L.A. auf sichere Vorgaben zurück: lokales Standardmodell, Standard-Werkzeuge, Browser-Steuerung und alle Plugins aus. Die PIN des Hausaufgaben-Modus wird gelöscht. Programme, Setups und Regeln bleiben erhalten. Im laufenden Hausaufgaben-Modus ist er gesperrt.
 
-### Kann ich Ella per Gespräch konfigurieren?
+### Welche Hilfen gibt es für blinde und gehörlose Nutzer?
 
-Ja — vieles lässt sich direkt im Chat ändern:
+Unter **Einstellungen → Modus → Barrierefreiheit**:
 
-```
-"Erstell ein Setup namens Büro mit Chrome, Word und Teams"
-"Ändere die Stimme auf Englisch"
-"Verbiete Musikwiedergabe zwischen 22 und 7 Uhr"
-```
-
-### Warum werden Änderungen nicht übernommen?
-
-Du musst nach jeder Änderung auf **Speichern** klicken — Änderungen werden nicht automatisch gespeichert.
-
-### Wie aktualisiere ich Ella?
-
-Unter **Einstellungen → Über E.L.L.A.** prüft Ella, ob eine neue Version verfügbar ist, lädt den Installer und führt das Update durch — deine Einstellungen, Erinnerungen und Verläufe bleiben erhalten. Der Check sendet keine Nutzerdaten, nur die neueste Versionsnummer wird abgerufen.
+- **Blind-Modus:** Jede Antwort wird vorgelesen, Antworten kommen ohne Formatierung, Töne zeigen den Zustand an, alle Knöpfe sind für Bildschirmleser beschriftet.
+- **Gehörlosen-Modus:** Sprachausgabe und Mikrofon sind ausgeblendet, alles läuft über Text.
 
 ---
 
-## 17. Fehler & Fehlerbehebung
+## 16. Updates
 
-### Ella antwortet nicht
+### Wie aktualisiere ich E.L.L.A.?
 
-| Ursache                      | Lösung                                     |
-| ---------------------------- | ------------------------------------------ |
-| KI-Modell noch nicht geladen | Warten (orangener Banner zeigt Ladestatus) |
-| Datenbank nicht gestartet    | Ella neu starten                           |
-| OpenAI-Key ungültig          | Key in Einstellungen → LLM aktualisieren   |
-| API abgestürzt               | Ella neu starten                           |
+Öffne **Einstellungen → Über E.L.L.A.** und klicke auf **Jetzt prüfen**. Gibt es eine neue Version, klicke auf **Herunterladen** und danach auf **Neu starten und installieren**. Deine Daten und Einstellungen bleiben erhalten.
 
-Diagnose: `"Ella, wie ist dein Status?"`
+### Sucht E.L.L.A. von selbst nach Updates?
 
-### Spracherkennung funktioniert nicht
+Nein. Geprüft wird nur, wenn du auf den Knopf drückst. Dabei werden keine Daten über dich oder deinen Rechner übertragen.
 
-1. Internetverbindung prüfen — die Spracherkennung braucht Internet.
-2. Mikrofon-Berechtigung prüfen: Windows → Einstellungen → Datenschutz → Mikrofon → Ella erlauben
-3. Sprachmodus prüfen: Einstellungen → Modus → Stimme auf „Wakeword" oder „Manuell"
-4. Alternativ: Befehl tippen, um zu prüfen, ob das Problem an der Spracherkennung oder der KI liegt
+### Muss ich bei jedem Update den ganzen Installer laden?
 
-### Kokoro-Stimme funktioniert nicht
+Nein. E.L.L.A. lädt nur die Teile, die sich geändert haben. Dafür bewahrt sie eine Kopie des letzten Installers auf deinem Rechner auf (rund 1 GB).
 
-Läuft direkt in Ella — kein separates Programm nötig. Mögliche Ursachen: Stimmmodell lädt noch (kurz warten), oder ein dauerhaftes Problem → Ella neu starten. Bei anhaltenden Problemen wechselt Ella automatisch auf die Online-Stimme (Edge TTS).
+### Ich habe eine Version vor 1.6.9. Wie komme ich auf den neuesten Stand?
 
-### Google-Verbindung schlägt fehl
+Das Update im Programm gibt es ab Version 1.6.9. Lade den Installer für 1.6.9 oder neuer einmal von Hand und führe ihn aus. Deine Daten bleiben erhalten. Danach geht jedes weitere Update im Programm.
 
-- Client-ID und Secret korrekt eingegeben (keine Leerzeichen)?
-- In der Google Cloud Console: Anwendungstyp „Desktop App" (nicht „Web App")
-- Token löschen und neu verbinden (Einstellungen → Google → Verbindung trennen)
+### Ich habe E.L.L.A. aus dem Microsoft Store. Wie bekomme ich Updates?
 
-### Was bedeutet der rote „Directive"-Banner im Chat?
+Über den Store. Er installiert Updates von selbst oder über „Bibliothek → Updates abrufen“.
 
-Ella hat eine Aktion blockiert, weil sie gegen die Directive verstößt. Die Meldung erklärt warum. Diese Blockaden sind unveränderlich und können nicht umgangen werden.
+### Das Update schlägt fehl. Was tun?
+
+E.L.L.A. nennt den Grund: Verbindung unterbrochen, Datei beschädigt oder zu wenig Speicherplatz. Versuche es erneut. Klappt es weiterhin nicht, lade den Installer von Hand über den angezeigten Link.
 
 ---
 
-_E.L.L.A. v1.6.4 — Proprietär — Alle Rechte vorbehalten_
+## 17. Fehler beheben
 
-_Weitere Dokumentation: [Hardware-Leitfaden](hardware.md) — [Netzwerk](netzwerk.md) — [Bedienungsanleitung](bedienungsanleitung.md)_
+### E.L.L.A. antwortet nicht.
+
+| Ursache                         | Lösung                                            |
+| ------------------------------- | ------------------------------------------------- |
+| Sprachmodell noch nicht geladen | Warten – der orangefarbene Balken zeigt es an     |
+| Datenbank nicht gestartet       | „Erneut prüfen“ klicken oder E.L.L.A. neu starten |
+| OpenAI-Key ungültig             | Key unter Einstellungen → LLM prüfen              |
+
+Sag „Mach einen Selbsttest“ – E.L.L.A. prüft dann ihre wichtigsten Bausteine und nennt das Ergebnis.
+
+### Die Spracherkennung funktioniert nicht.
+
+1. Prüfe in Windows unter Datenschutz → Mikrofon, ob Apps auf das Mikrofon zugreifen dürfen.
+2. Prüfe unter **Einstellungen → Tools → Spracheingabe**, welcher Modus gewählt ist.
+3. Tippe deinen Wunsch zur Probe. So siehst du, ob es an der Spracherkennung liegt.
+
+### E.L.L.A. spricht nicht.
+
+Prüfe unter **Einstellungen → LLM → Sprachausgabe**, ob die Sprachausgabe eingeschaltet ist. Im Gehörlosen-Modus ist sie ausgeblendet. Für die deutsche Microsoft-Stimme brauchst du Internet; ohne Internet stellst du den Offline-Modus ein, dann spricht die Windows-Stimme.
+
+### Die Verbindung zu Google schlägt fehl.
+
+- Sind Client-ID und Secret ohne Leerzeichen eingetragen?
+- Ist in der Google Cloud Console der Typ „Desktop-App“ gewählt?
+- Lösche die Datei `%APPDATA%\ELLA\google-token.json` und verbinde neu.
+
+### Eine Einstellung wurde nicht übernommen.
+
+Viele Einstellungen gelten erst nach einem Klick auf **Speichern** unten auf der Seite.
+
+### Wo finde ich Angaben für eine Support-Anfrage?
+
+Unter **Einstellungen → Über E.L.L.A.** kopierst du die wichtigsten Angaben zu deinem System. Das Startprotokoll liegt unter `%APPDATA%\ELLA\ella-startup.log`.
+
+---
+
+_E.L.L.A. v1.6.9_
+
+_Weitere Dokumentation: [Bedienungsanleitung](bedienungsanleitung.md) – [Hardware](hardware.md) – [Netzwerkverbindungen](netzwerk.md) – [Plugins](plugins.md)_

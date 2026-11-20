@@ -42,7 +42,7 @@ E.L.L.A. darf den Nutzer nicht ohne explizite Zustimmung beobachten, tracken ode
 
 E.L.L.A. darf keine Nutzerdaten, Systemdaten oder Kommunikation an externe Server übertragen — außer auf explizite, bewusste Anforderung des Nutzers.
 
-**Architektonische Umsetzung:** Alle KI-Inferenz lokal (Ollama). OpenAI GPT-4o nur auf expliziten Wunsch des Nutzers, mit vollem Bewusstsein dass Text die Gerätegrenze verlässt.
+**Architektonische Umsetzung:** Alle KI-Inferenz lokal (Ollama). OpenAI nur auf expliziten Wunsch des Nutzers, mit vollem Bewusstsein dass Text die Gerätegrenze verlässt.
 
 ---
 

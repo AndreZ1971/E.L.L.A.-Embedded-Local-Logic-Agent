@@ -1,145 +1,121 @@
-# E.L.L.A. -- Hardware Guide
+# E.L.L.A. – Hardware Guide
 
-Version 1.5.7 -- Last updated: 2026-10-28
+Version 1.6.9
 
----
-
-## Summary
-
-ELLA runs on most Windows machines from the last 5 years. For the best experience, we recommend a **dedicated graphics card with at least 10 GB of video memory (VRAM)**. ELLA also works without a dedicated graphics card -- in that case, the processor handles the AI computation, which is slower.
-
-> **What is VRAM?** VRAM (Video RAM) is the memory on your graphics card. The AI model is loaded entirely into this memory. The more VRAM available, the larger and better models ELLA can use.
+The figures on [ella-agent.de](https://ella-agent.de) are binding. This guide explains them.
 
 ---
 
-## System Requirements
+## In short
 
-### Minimum (works, but slow)
+E.L.L.A. runs on most Windows computers of recent years. She runs best with an NVIDIA graphics card, because the language model is loaded into the memory of the graphics card. Without a suitable graphics card the processor does the work – that works, but is slower.
 
-| Component        | Requirement                                 |
-| ---------------- | ------------------------------------------- |
-| Operating system | Windows 10/11 (64-bit)                      |
-| Processor        | Intel Core i3 / AMD Ryzen 3 (or comparable) |
-| Memory           | 16 GB RAM                                   |
-| Graphics card    | Not strictly required (see below)           |
-| Disk space       | 20 GB free                                  |
-
-With this configuration ELLA works, but the AI responds noticeably slower -- especially without a graphics card. An OpenAI key (optional, paid) can significantly improve response speed because the computation then happens in the cloud.
-
-### Recommended (smooth experience)
-
-| Component        | Requirement                                                   |
-| ---------------- | ------------------------------------------------------------- |
-| Operating system | Windows 10/11 (64-bit)                                        |
-| Processor        | Intel Core i5 / AMD Ryzen 5 (or better)                       |
-| Memory           | 32 GB RAM                                                     |
-| Graphics card    | NVIDIA with 10-12 GB VRAM (e.g. RTX 3060 12GB, RTX 2060 12GB) |
-| Disk space       | 40 GB free (SSD recommended)                                  |
-
-With this configuration ELLA responds quickly and all local features work without delay.
+> **What is VRAM?** VRAM is the memory of the graphics card. The language model is loaded there. The more VRAM, the more smoothly E.L.L.A. answers.
 
 ---
 
-## With and Without a Graphics Card
+## System requirements
 
-### With an NVIDIA Graphics Card (GPU Mode)
+| Component        | Minimum                           | Recommended                   |
+| ---------------- | --------------------------------- | ----------------------------- |
+| Operating system | Windows 10/11 (64-bit)            | Windows 11                    |
+| Processor        | Intel i3 (12th gen) / AMD Ryzen 3 | Intel i5/i7 / AMD Ryzen 5/7   |
+| Memory           | 8 GB                              | 16 GB                         |
+| Graphics card    | NVIDIA GTX 1060 (6 GB VRAM)       | NVIDIA RTX 2060+ (12 GB VRAM) |
+| Storage          | 10 GB SSD                         | 20 GB SSD                     |
 
-If your machine has an NVIDIA graphics card with enough VRAM, the AI model runs directly on the graphics card. This is the fastest option -- ELLA responds within a few seconds.
+With the minimum configuration E.L.L.A. runs but answers more slowly. With the recommended configuration she answers smoothly.
 
-**Your graphics card needs at least 10 GB of VRAM** to fully load the default model (qwen2.5:14b, 14 billion parameters). With less VRAM, part of the computation is offloaded to the processor, which is slower.
-
-> **What are parameters?** An AI model consists of billions of learned numerical values -- the "parameters." More parameters generally mean better language understanding and more precise answers, but also require more memory.
-
-**VRAM guidelines:**
-
-| Graphics card                 | VRAM   | Experience with ELLA                                  |
-| ----------------------------- | ------ | ----------------------------------------------------- |
-| RTX 4060 Ti 16GB              | 16 GB  | Excellent -- plenty of headroom                       |
-| RTX 3060 12GB / RTX 2060 12GB | 12 GB  | Very good -- recommended configuration                |
-| RTX 3060 8GB / RTX 2060 6GB   | 6-8 GB | Limited -- smaller model needed or mixed CPU/GPU mode |
-| GTX 1060 6GB                  | 6 GB   | Only usable with a smaller model                      |
-
-> **Note:** AMD graphics cards (Radeon) are experimentally supported by Ollama on Windows via Vulkan. Results may vary depending on the model. Without working GPU acceleration, the processor takes over automatically.
-
-### Without a Graphics Card (CPU Mode)
-
-Without a suitable graphics card, the processor (CPU) computes the AI responses. This works but is considerably slower -- depending on the processor, roughly 3-10 seconds before a response starts, compared to under 2 seconds with a GPU.
-
-**Tip:** With an **OpenAI key** (optional, your own key), ELLA can send computations over the internet. The calculation then happens on OpenAI servers and is very fast regardless of your hardware. However, conversation data is transmitted to OpenAI in that case.
-
-### With an OpenAI Key (Cloud Mode)
-
-If you enter your own OpenAI API key, ELLA can optionally or additionally use OpenAI for chat responses. In this case, local hardware matters less -- even an older laptop without a graphics card delivers fast answers.
-
-| Mode           | Speed                    | Privacy                          | Hardware requirement |
-| -------------- | ------------------------ | -------------------------------- | -------------------- |
-| Local (Ollama) | GPU: fast, CPU: slower   | Everything stays on your machine | GPU recommended      |
-| Cloud (OpenAI) | Always fast              | Data is sent to OpenAI           | Low                  |
-| Auto           | Automatically picks best | Mixed                            | GPU recommended      |
+On the first start E.L.L.A. checks your hardware and suggests a suitable language model. You confirm the choice before anything is downloaded.
 
 ---
 
-## Does ELLA Work on My Laptop?
+## With and without a graphics card
 
-**Yes** -- ELLA runs on any Windows laptop with at least 16 GB of RAM. The experience depends on whether your laptop has a dedicated graphics card:
+### With an NVIDIA graphics card
 
-| Laptop type                                 | Experience                                |
-| ------------------------------------------- | ----------------------------------------- |
-| Gaming laptop with NVIDIA GPU (10+ GB VRAM) | Very good -- like a desktop               |
-| Laptop with smaller NVIDIA GPU (4-8 GB)     | OK -- slower AI mode or smaller model     |
-| Laptop without a dedicated graphics card    | Works, but slow -- OpenAI key recommended |
+If your computer has an NVIDIA graphics card with enough VRAM, the language model runs directly on the graphics card. This is the fastest option.
 
-**Battery note:** AI computation uses a lot of energy. On a laptop, we recommend plugging in while using ELLA.
+The default model is `llama3.1:8b`. On a card with 12 GB of VRAM it fits completely into the graphics memory. If the graphics memory is not quite enough, the processor handles part of the work – E.L.L.A. then answers more slowly.
 
----
+| Graphics card             | VRAM       | Experience with E.L.L.A.                     |
+| ------------------------- | ---------- | -------------------------------------------- |
+| RTX 2060 12 GB and above  | from 12 GB | smooth – the recommended configuration       |
+| RTX 3060 8 GB and similar | 8 GB       | good                                         |
+| GTX 1060 6 GB and similar | 6 GB       | minimum – runs, slower depending on the load |
 
-## Flash Attention -- Automatic Acceleration
+> **Note:** AMD graphics cards are supported by Ollama on Windows only to a limited extent. If acceleration does not work, the processor takes over automatically.
 
-ELLA automatically enables **Flash Attention** -- an optimization that makes processing your requests up to 12 times faster. You do not need to configure anything; the feature is active by default.
+### Without a graphics card
 
-> **What is Flash Attention?** A technique that optimizes how the AI model processes your text. Instead of holding all text in memory at once, it is processed in smaller chunks more efficiently. This saves memory and speeds up responses.
+Without a suitable graphics card the processor computes the answers. That works but takes noticeably longer.
 
-Additionally, ELLA uses **KV cache optimization**, which reduces video memory usage without noticeably affecting response quality.
+**Tip:** With your own **OpenAI key** E.L.L.A. can have the answers computed by OpenAI. Your own hardware then matters less. In return your messages go to OpenAI, and OpenAI bills you for the usage.
 
----
-
-## Disk Space
-
-ELLA requires disk space for the following components:
-
-| Component              | Size (approx.) | Note                             |
-| ---------------------- | -------------- | -------------------------------- |
-| ELLA installation      | 300 MB         | Program files + bundled services |
-| AI model (qwen2.5:14b) | 8.4 GB         | Downloaded on first launch       |
-| Memory model           | 274 MB         | For memories and search          |
-| Voice model (Kokoro)   | 80 MB          | For local text-to-speech         |
-| Database               | 50-500 MB      | Grows with usage                 |
-| **Total (initial)**    | **~10 GB**     |                                  |
-
-The largest share is the AI model. It is downloaded once on first launch.
+| Setting        | Speed                                       | Data                   |
+| -------------- | ------------------------------------------- | ---------------------- |
+| Ollama (local) | fast with a graphics card, otherwise slower | stays on your computer |
+| OpenAI         | consistently fast                           | goes to OpenAI         |
+| Auto           | local first, OpenAI only as a fallback      | depends on the request |
 
 ---
 
-## Common Hardware Questions
+## Does E.L.L.A. work on my laptop?
 
-### Can I choose a smaller AI model?
+Yes, from 8 GB of memory (16 GB recommended). How fast she answers depends on the graphics card:
 
-Yes. In Settings under **LLM** you can enter a different model that you have loaded in Ollama. Smaller models (e.g. with 3 or 7 billion parameters) need less VRAM and respond faster, but understand complex requests less well.
+| Laptop                             | Experience                                       |
+| ---------------------------------- | ------------------------------------------------ |
+| with a strong NVIDIA graphics card | like a desktop computer                          |
+| with a small NVIDIA graphics card  | works, answers more slowly                       |
+| without a dedicated graphics card  | works but is slow – an OpenAI key is recommended |
 
-### My machine only has 8 GB of RAM -- will that work?
+**Battery:** The language model uses a lot of energy. On a laptop, mains power is recommended.
 
-Not recommended. The AI model alone needs several GB of working memory. With 8 GB RAM, too little remains for Windows and ELLA at the same time. 16 GB is the minimum; 32 GB is recommended.
+If the computer is not powerful enough for the elaborate HUD or Aura appearances, E.L.L.A. stays on the plain “Calm” appearance by herself.
+
+---
+
+## Automatic acceleration
+
+E.L.L.A. switches on two Ollama optimizations by herself: **Flash Attention** speeds up the processing of your requests, and a compact way of storing the cache reduces the need for graphics memory. You do not have to configure anything.
+
+---
+
+## Disk space
+
+| Component                         | Size (approx.) | Note                                               |
+| --------------------------------- | -------------- | -------------------------------------------------- |
+| Installer                         | 1 GB           | contains the database, Ollama and other components |
+| Language model `llama3.1:8b`      | 5 GB           | downloaded once on the first start                 |
+| Memory model                      | 0.3 GB         | for memories and document knowledge                |
+| Copy of the installer for updates | 1 GB           | the basis for keeping updates small                |
+| Database                          | grows          | with use                                           |
+
+The language model takes up most of the space. Its download shows progress, speed and time left.
+
+---
+
+## Frequently asked hardware questions
+
+### Can I choose a smaller language model?
+
+Yes. Under **Settings → LLM** you choose another hardware profile or enter the name of your own Ollama model. Smaller models need less graphics memory and answer faster but understand difficult requests less well. Not every model can use tools – E.L.L.A. is proven with `llama3.1:8b`.
+
+### My computer has only 8 GB of memory – does that work?
+
+Yes, 8 GB is the minimum. Close other programs if E.L.L.A. gets slow. 16 GB is recommended.
 
 ### Do I need an SSD?
 
-Not strictly, but recommended. An SSD significantly speeds up ELLA's startup and AI model loading.
+Recommended. An SSD speeds up the start of E.L.L.A. and the loading of the language model considerably.
 
-### Can I use ELLA and games at the same time?
+### Can I use E.L.L.A. and games at the same time?
 
-If the GPU is fully occupied by the AI model, no VRAM remains for games. With high-VRAM cards (16+ GB), simultaneous use is possible. Otherwise, we recommend quitting ELLA via the tray icon before gaming.
+If the language model occupies the graphics memory, little is left for games. Quit E.L.L.A. before gaming via the icon in the notification area.
 
 ---
 
-_E.L.L.A. v1.5.7 -- Proprietary -- All rights reserved_
+_E.L.L.A. v1.6.9_
 
-_Further documentation: [FAQ](faq.md) -- [Network](netzwerk.md) -- [User Manual](bedienungsanleitung.md)_
+_Further documentation: [FAQ](faq.md) – [Network connections](network.md) – [User manual](bedienungsanleitung.md)_

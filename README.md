@@ -8,7 +8,7 @@
 
 **A personal AI assistant for Windows — fully offline, fully yours.**
 
-[![Version](https://img.shields.io/badge/version-1.6.4-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases)
+[![Version](https://img.shields.io/badge/version-1.6.9-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows)](https://ella-agent.de)
 [![License](https://img.shields.io/badge/license-Proprietary-ff6500?style=flat-square)](LICENSE)
 [![Directive](https://img.shields.io/badge/Directive-v1.0.0%20%E2%80%94%20sealed-3ecf8e?style=flat-square)](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
@@ -52,7 +52,7 @@ These are not rules you can turn off. They are architectural impossibilities —
 
 ---
 
-## 111 Tools — All Under the Directive
+## 123 Tools — All Under the Directive
 
 Full system control through natural language. Each of these tools runs locally on your machine and cannot violate the four prohibitions above — that's the difference between _collecting capabilities_ and _being responsible for capabilities_.
 
@@ -77,7 +77,7 @@ Full system control through natural language. Each of these tools runs locally o
 The tools above can be replicated. What can't be replicated is this:
 
 **Local AI — and you choose the model.**
-The LLM runs on your machine via [Ollama](https://ollama.com). Which model — that's your decision. You can switch, mix, or even use your own model at any time. E.L.L.A. doesn't lock you in. OpenAI is an optional fallback — opt-in, off by default, openly communicated.
+The LLM runs on your machine via [Ollama](https://ollama.com). Which model — that's your decision. You can switch, mix, or even use your own model at any time. E.L.L.A. doesn't lock you in. OpenAI is an optional fallback — opt-in, off by default, openly communicated, model of your choice.
 
 **She learns and evolves.**
 Every "thumbs up" becomes a golden example that feeds into future conversations. Through model selection, E.L.L.A. can be specialized — for coding, for instance. A wrapper collects capabilities and stays what it was. E.L.L.A. changes with every interaction — locally, on your machine. That's the difference between a tool and a counterpart that grows with you.
@@ -113,18 +113,25 @@ Why do we state this so clearly? Because the Directive prohibits "concealment." 
 
 **👁️ Proactive Intelligence** — E.L.L.A. speaks up on her own when something matters: RAM, disk, and temperature alerts, new USB devices, suspicious network connections, comeback briefing after absence, meeting prep, and end-of-day summary. 14 approval categories, auto-mute after 5 dismissals, mute button on every notification.
 
+**🔄 In-App Update** — from 1.6.9 on, check for updates under Settings → About E.L.L.A. Only on button press, and only the changed parts are downloaded. If you're on an older version, install 1.6.9 once by hand.
+
+**🧩 Plugins** — give E.L.L.A. a name, keywords and an example address, and she builds the plugin herself. Only you can enable it — E.L.L.A. can create a plugin but never turn it on.
+
+**🌐 Browser Control** — E.L.L.A. can open and read pages in a visible, dedicated Chrome/Edge/Brave window. Opt-in, off by default. Click only what you named; purchases and form submissions require your confirmation.
+
+**📖 E.L.L.A. Knows Her Manual** — give E.L.L.A. the user manual and FAQ from `docs/de` or `docs/en` as documents, and she answers questions about herself in chat.
+
 ---
 
 ## System Requirements
 
-| Component        | Minimum              | Recommended                   |
-| ---------------- | -------------------- | ----------------------------- |
-| Operating System | Windows 10 64-bit    | Windows 11 64-bit             |
-| RAM              | 16 GB                | 32 GB                         |
-| GPU              | NVIDIA GTX 1060 6 GB | RTX 3060 or better            |
-| VRAM             | 6 GB                 | 8 GB+                         |
-| Disk Space       | 10 GB free           | 20 GB free (models + DB)      |
-| CPU              | Any modern x64       | Intel 12th Gen+ / Ryzen 5000+ |
+| Component        | Minimum                           | Recommended                   |
+| ---------------- | --------------------------------- | ----------------------------- |
+| CPU              | Intel i3 (12th Gen) / AMD Ryzen 3 | Intel i5/i7 / AMD Ryzen 5/7   |
+| RAM              | 8 GB                              | 16 GB                         |
+| GPU              | NVIDIA GTX 1060 (6 GB VRAM)       | NVIDIA RTX 2060+ (12 GB VRAM) |
+| Disk Space       | 10 GB SSD                         | 20 GB SSD                     |
+| Operating System | Windows 10/11                     | Windows 11                    |
 
 > **GPU required for real-time inference.** Without a CUDA-capable GPU, Ollama falls back to CPU (3–5 tokens/sec vs. 14+ tokens/sec with GPU).
 
@@ -138,10 +145,10 @@ Why do we state this so clearly? Because the Directive prohibits "concealment." 
 
 The installer includes everything: Node.js, MariaDB, and Ollama as portable binaries. No separate installation required. A license key is needed for activation.
 
-| File                      | Description                |
-| ------------------------- | -------------------------- |
-| `E.L.L.A.Setup.1.6.4.exe` | Windows installer (NSIS)   |
-| `SHA256SUMS.txt`          | Checksums for verification |
+| File                   | Description                |
+| ---------------------- | -------------------------- |
+| `ELLA-Setup-1.6.9.exe` | Windows installer (NSIS)   |
+| `SHA256SUMS.txt`       | Checksums for verification |
 
 ---
 
@@ -157,7 +164,8 @@ For beginners, the user manual and FAQ — for everything technical (Directive e
 | FAQ            | [→](docs/de/faq.md)                 | [→](docs/en/faq.md)                 |
 | Hardware Guide | [→](docs/de/hardware.md)            | [→](docs/en/hardware.md)            |
 | Network        | [→](docs/de/netzwerk.md)            | [→](docs/en/network.md)             |
-| Changelog      | [→](CHANGELOG.md)                   | [→](CHANGELOG.md)                   |
+| Plugins        | [→](docs/de/plugins.md)             | [→](docs/en/plugins.md)             |
+| Changelog      | [→](docs/changelog.md)              | [→](CHANGELOG.md)                   |
 
 ---
 

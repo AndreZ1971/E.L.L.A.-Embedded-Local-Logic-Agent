@@ -1,6 +1,6 @@
 # E.L.L.A. -- Was kann ich für dich tun?
 
-Stand: v1.6.4 -- 90+ Fähigkeiten, 640 Tests bestanden
+Stand: v1.6.9 -- 123 Werkzeuge, 1675 Tests bestanden
 
 E.L.L.A. ist dein lokaler KI-Assistent für Windows. Sie läuft direkt auf deinem Rechner, versteht Sprache und Text, und hilft dir bei allem -- von einfachen Fragen bis zur Steuerung deines gesamten Desktops.
 
@@ -14,7 +14,7 @@ ELLA versteht dich per Text und per Stimme. Du kannst einfach "Ella" sagen -- si
 
 - **Wakeword "Ella"** -- sag einfach ihren Namen, und sie hört zu. Läuft auf deinem Rechner, kein Server nötig.
 - **Sprachsteuerung** -- stelle Fragen, gib Anweisungen, führe Gespräche. Per Mikrofon oder Textfeld.
-- **Sprachausgabe (TTS)** -- ELLA liest ihre Antworten vor. Lokal per Kokoro (neuronale Stimme) oder Microsoft Edge TTS als Fallback.
+- **Sprachausgabe (TTS)** -- ELLA liest ihre Antworten vor. Englisch, Französisch und Spanisch spricht die lokale Stimme Kokoro, Deutsch eine Stimme von Microsoft (Edge TTS). Im Offline-Modus spricht Deutsch die Windows-Stimme.
 - **Vier Stimmen** -- Deutsch, Englisch, Spanisch und Französisch. Wählbar im Onboarding oder in den Einstellungen.
 - **Diktat-Modus** -- ELLA hört zu und tippt das Gesprochene direkt ins aktive Fenster. Funktioniert systemweit -- in Word, im Browser, überall. Per Hotkey aktivierbar.
 - **Sofort unterbrechen** -- sag "Stopp", "Halt" oder "Sei still", und ELLA hört sofort auf zu sprechen.
@@ -112,6 +112,8 @@ Frag ELLA, wie es deinem Rechner geht -- oder lass sie aufraumen.
 
 ELLA kann deinen Desktop fernsteuern -- Apps starten, Fenster verschieben, klicken und tippen.
 
+**Ab Werk ausgeschaltet:** Die Werkzeuge für Maus, Tastatur, Fenster und das Lesen oder Beobachten des Bildschirms schaltest du selbst ein -- unter Einstellungen -> Tools -> Erlaubte Tools. Auch eingeschaltet benutzt ELLA sie nur auf deine direkte Bitte.
+
 **Was geht:**
 
 - **Apps starten** -- per Name oder Pfad.
@@ -141,7 +143,7 @@ ELLA durchsucht das Web, übersetzt, fasst zusammen und korrigiert Texte.
 
 - **Übersetzen** -- in jede Sprache, lokal per Ollama oder über OpenAI.
 - **Zusammenfassen** -- kurz, mittel oder ausführlich.
-- **Korrigieren** -- Grammatik und Zeichensetzung prüfen.
+- **Diktat korrigieren** -- auf Wunsch prüft ELLA Rechtschreibung und Zeichensetzung, bevor sie Diktiertes einfügt.
 - **Im eigenen Stil schreiben** -- ELLA lernt deinen Schreibstil aus deiner E-Mail-Historie und formuliert Texte so, wie du es tun würdest.
 
 > "Ella, suche nach den besten Rezepten für Kartoffelsuppe." -- "Ella, übersetze das ins Französische." -- "Ella, fasse diesen Text in 3 Sätzen zusammen."
@@ -161,12 +163,14 @@ ELLA ist sicher gebaut. Deine Daten bleiben bei dir.
 
 **Weitere Schutzmaßnahmen:**
 
-- **107 Sicherheitsregeln** -- automatisch beim Start aktiv. Schützen Systemdateien, Passwörter, kritische Prozesse.
+- **120 Sicherheitsregeln** -- automatisch beim Start aktiv. Schützen Systemdateien, Passwörter, kritische Prozesse.
 - **Bestätigungspflicht** -- vor dem Löschen, Klicken, Ausführen von Befehlen oder Schließen von Fenstern fragt ELLA nach.
 - **Passwort-Manager gesperrt** -- Maus-Tools funktionieren nicht in 1Password, KeePass, Bitwarden, PayPal oder Bank-Fenstern.
 - **Sensible Daten schwärzen** -- API-Keys, IBANs, Passwörter und Kreditkartennummern werden vor dem Speichern automatisch entfernt.
 - **Lokal zuerst** -- alle KI-Verarbeitung läuft bevorzugt auf deinem Rechner. OpenAI wird nur genutzt, wenn du es erlaubst und einen eigenen Key hinterlegst.
-- **Offline-Modus** -- sperrt alle Netzwerk-Tools. Beachte: Die deutsche Sprachausgabe (Edge TTS) benötigt weiterhin eine Internetverbindung; Englisch, Spanisch und Französisch laufen lokal über Kokoro.
+- **Offline-Modus** -- sperrt Websuche, Wetter, Standort, Webseiten, OpenAI, Browser-Steuerung, Plugins für Dienste im Internet und die Update-Prüfung. Deutsch spricht dann die Windows-Stimme; Englisch, Spanisch und Französisch laufen lokal über Kokoro.
+- **Fremde Inhalte geben keine Befehle** -- hat ELLA eine Webseite, einen Suchtreffer oder eine Plugin-Antwort gelesen, darf sie in derselben Antwort nur noch lesen, nichts mehr ändern oder versenden.
+- **Jedes Werkzeug hat einen Schalter** -- unter Einstellungen -> Tools -> Erlaubte Tools.
 - **Eigene Regeln erstellen** -- du kannst Tools gezielt erlauben oder verbieten.
 
 ---
@@ -233,20 +237,25 @@ ELLA passt sich an unterschiedliche Bedürfnisse an.
 
 ## 12. HUD & Erscheinungsbild
 
-Drei visuelle Stile -- von dezent bis technisch.
+Vier visuelle Stile -- von dezent bis technisch.
 
-**Calm (Standard):**
+**Ruhig (Standard):**
 
 - Dunkles, ruhiges Design. Ideal für den täglichen Einsatz.
 
 **HUD:**
 
 - Technisches Heads-Up-Display mit Cyan-, Violett- oder Bernstein-Akzent.
-- Zeigt konfigurierbare Widgets: Systemstatus, Monitore, Aufgaben, E-Mails, Musik, Uhr, Routinen und Directive-Regeln.
+- Zeigt 13 wählbare Felder: System, Monitore, Routinen, Directive, Uhr & Zeit, Aufgaben, E-Mails, Musik, Fine-Tuning, Gedächtnis, Cloud-Anfragen, Netzwerk und Hinweise. Passen nicht alle in eine Spalte, blätterst du per Klick.
 - Der Orb in der Mitte visualisiert ELLAs Zustand: bereit, hört zu, denkt nach, spricht, Cloud-Zugriff oder offline.
 - Drei-Spalten-Layout mit Widgets links und rechts vom Orb.
 
-**Show (Präsentation):**
+**Aura:**
+
+- Eine warme Pinnwand: dieselben Felder hängen als Zettel an der Wand.
+- Über ELLA ein Zettel für ein eigenes Bild, darunter deine neuesten Notizen.
+
+**Präsentation:**
 
 - Vollbild-Modus mit nur dem Orb und der letzten Antwort.
 - Sensible Inhalte (E-Mails, Dateien, Netzwerkdaten) werden automatisch als "[privat]" angezeigt.
@@ -254,7 +263,8 @@ Drei visuelle Stile -- von dezent bis technisch.
 
 **Weitere Details:**
 
-- Widgets sind konfigurierbar -- ziehe per Einstellungen, welche Panels links und rechts erscheinen.
+- Felder sind wählbar -- in den Einstellungen legst du fest, welche links und rechts erscheinen.
+- Reicht die Leistung des Rechners nicht, bleibt ELLA von selbst beim Stil „Ruhig“.
 - Performance-Drosselung: Animationen werden während des Nachdenkens automatisch reduziert.
 - Alle Stile respektieren "Reduzierte Bewegung" aus den Windows-Einstellungen.
 
@@ -262,9 +272,41 @@ Drei visuelle Stile -- von dezent bis technisch.
 
 ---
 
+## Browser
+
+ELLA öffnet ein eigenes, sichtbares Fenster in Chrome, Edge oder Brave und bedient es für dich. Die Funktion ist ab Werk ausgeschaltet.
+
+- Seiten aufrufen und lesen, auf Links klicken, Text eingeben, vor und zurück gehen.
+- Eigenes Browser-Profil -- deine Anmeldungen, Lesezeichen und dein Verlauf bleiben unberührt.
+- ELLA klickt und tippt nur, was du in deiner Nachricht verlangst. Passwortfelder füllt sie nie aus.
+- Vor Käufen, Bestellungen, Löschungen und dem Absenden von Formularen fragt sie nach.
+
+> "Ella, öffne ella-agent.de." -- "Ella, klick auf Impressum." -- "Ella, was steht auf der Seite?"
+
+---
+
+## Plugins
+
+Mit Plugins bekommt ELLA neue Auskunftsquellen, zum Beispiel Wechselkurse oder Feiertage.
+
+- ELLA baut ein Plugin selbst: Du nennst Name, Stichwörter und eine Beispiel-Adresse, die im Browser funktioniert.
+- Eingeschaltet wird ein Plugin nur von dir. Vorher siehst du, an welchen Server welche Werte gehen.
+- Ein Plugin enthält kein Programm. Wird seine Datei verändert, ist es sofort wieder aus.
+
+> "Ella, bau mir ein Plugin für Wechselkurse. Die Adresse ist ..." -- "Ella, was sind 250 Euro in Dollar?"
+
+---
+
+## Updates
+
+- Geprüft wird nur, wenn du unter Einstellungen -> Über E.L.L.A. auf den Knopf drückst -- nie von selbst.
+- ELLA lädt nur die geänderten Teile und installiert erst, wenn du es sagst. Daten und Einstellungen bleiben erhalten.
+
+---
+
 ## Kindermodus (Hausaufgaben-Modus)
 
-Ein PIN-geschützter Modus, der den Zugriff auf bestimmte Funktionen einschränkt. Nur die PIN beendet den Modus -- kein automatisches Zeitlimit, keine Umgehung möglich.
+Ein PIN-geschützter Modus, der den Zugriff auf bestimmte Funktionen einschränkt. Nur die PIN beendet den Modus -- kein automatisches Zeitlimit, keine Umgehung möglich. Browser-Steuerung, Plugins und der Notschalter sind in dieser Zeit gesperrt.
 
 > "Ella, aktiviere den Hausaufgaben-Modus."
 
@@ -285,7 +327,7 @@ ELLA kann dein lokales Netzwerk analysieren -- auch im Offline-Modus.
 
 ## Shell-Befehle
 
-Für fortgeschrittene Nutzer: ELLA kann PowerShell-Befehle ausführen. Vor jeder Ausführung wird eine Bestätigung eingeholt. Über 60 gefährliche Befehlsmuster sind gesperrt.
+Für fortgeschrittene Nutzer: ELLA kann PowerShell-Befehle ausführen. Das Werkzeug ist ab Werk ausgeschaltet (Einstellungen -> Tools -> Erlaubte Tools). Vor jeder Ausführung wird eine Bestätigung eingeholt, gefährliche Befehlsmuster sind gesperrt.
 
 > "Ella, führe 'Get-Process | Sort-Object CPU -Descending | Select -First 10' aus."
 
@@ -293,10 +335,10 @@ Für fortgeschrittene Nutzer: ELLA kann PowerShell-Befehle ausführen. Vor jeder
 
 ## Wie ELLA denkt
 
-ELLA läuft lokal über Ollama (qwen2.5:14b). Optional kannst du einen eigenen OpenAI-Key hinterlegen -- dann nutzt ELLA Cloud-KI als Ergänzung oder Fallback. Drei Modi stehen zur Wahl:
+ELLA läuft lokal über Ollama (llama3.1:8b). Optional kannst du einen eigenen OpenAI-Key hinterlegen -- dann nutzt ELLA Cloud-KI als Ergänzung oder Fallback. Drei Modi stehen zur Wahl:
 
 - **Automatisch** -- lokal zuerst, Cloud nur bei Bedarf.
 - **Nur lokal (Ollama)** -- keine Internetverbindung für KI nötig.
-- **Cloud bevorzugt (OpenAI)** -- schnellere Antworten, erfordert eigenen API-Key.
+- **Cloud bevorzugt (OpenAI)** -- schnellere Antworten, erfordert eigenen API-Key. Welches OpenAI-Modell ELLA nutzt, wählst du selbst.
 
 Deine Daten verlassen deinen Rechner nur, wenn du es ausdrücklich erlaubst.

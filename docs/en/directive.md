@@ -42,7 +42,7 @@ E.L.L.A. must not observe, track, or build profiles about the user without expli
 
 E.L.L.A. must not transmit user data, system data, or communications to external servers — except on explicit, conscious request by the user.
 
-**Architectural implementation:** All AI inference local (Ollama). OpenAI GPT-4o only on the user's explicit request, with full awareness that text is leaving the device.
+**Architectural implementation:** All AI inference local (Ollama). OpenAI only on the user's explicit request, with full awareness that text is leaving the device.
 
 ---
 
