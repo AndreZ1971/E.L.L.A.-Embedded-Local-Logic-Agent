@@ -4,9 +4,136 @@ Alle nennenswerten Änderungen je Release. Neueste Version zuerst.
 
 ---
 
+## v1.7.1 — Läuft auf frischen Rechnern: Wakeword, Spracherkennung, Gedächtnis
+
+**Stand:** 24. November 2026 · Das erste Release nach v1.6.9.
+
+> **Enthält v1.7.0.** Version 1.7.0 wurde nie einzeln veröffentlicht. Wer von 1.6.9 kommt, bekommt mit 1.7.1 alles, was unten unter v1.7.0 steht (fester Charakter, Wahrnehmung, ehrliche Antworten), dazu die Neuerungen und Korrekturen dieses Eintrags.
+
+**Anlass:** Ein Test der Store-Fassung 1.6.9 auf einem frisch eingerichteten Laptop. Dabei zeigte sich, dass mehrere Teile nur auf dem Entwicklungsrechner liefen, weil dort schon alles installiert war. Diese Version behebt das.
+
+### Was vorher nicht ging
+
+- **Gedächtnis auf frischen Rechnern:** Das Modell, mit dem E.L.L.A. Erinnerungen und Dokumente findet (`nomic-embed-text`, rund 275 MB), wurde auf einem neuen Rechner nie geladen. Erinnerungen speichern und finden, Dokumente einlesen und Lernbeispiele gingen deshalb still nicht – auch mit OpenAI
+- **Lokale Spracherkennung:** Sie lud seit v1.6.2 nie, weil das angegebene Modell unter diesem Namen nicht existiert. Mit OpenAI-Schlüssel sprang still OpenAI ein, ohne Schlüssel ging Spracheingabe gar nicht
+- **Wakeword „ELLA“:** Es brauchte Python und lief in keiner installierten Fassung. Das alte Modell sprang außerdem auf fast jede Sprache an
+- **Stress-Erkennung:** Auch sie brauchte einen Python-Hilfsprozess und lief in keiner installierten Fassung
+
+### Neue Funktionen
+
+#### Wakeword und Stress-Erkennung ohne Python
+
+- **Wakeword läuft im Programm selbst**, das Modell liegt im Paket. Es wurde **neu trainiert**, mit echten Sätzen und leicht verwechselbaren Namen als Gegenbeispielen. Gemessen an 552 Aufnahmen mit Sätzen und synthetischen Stimmen, die nicht im Training waren: 98,2 % erkannt, 0,9 % Fehlalarme (das alte Modell schlug bei fast allem an). Mit echten Mikrofonstimmen ist das noch nicht gemessen; Wörter wie „Ellen“, „Hella“ oder „Eltern“ können es noch auslösen
+- **Gegenprüfung im Text:** Nur wenn in der Abschrift auch „Ella“ steht, gilt es als Aufruf. Vorher wurde ohne „Ella“ der ganze Satz als Befehl geschickt
+- **Hinweis, wenn das Wakeword nicht verfügbar ist:** unter Einstellungen → Tools → Spracheingabe, mit Grund
+- **Stress-Erkennung im Programm nachgebaut:** gleiche Merkmale und Schwellen wie vorher, gegen das Original abgeglichen. Bleibt opt-in; ist sie aus, wird gar nichts ausgewertet – auch nicht für die Anzeige „STRESS“ im HUD. Eine Eichung an echten Stimmen folgt nach diesem Release
+
+#### Spracherkennung und Gedächtnis-Modell
+
+- **Lokale Spracherkennung funktioniert:** Das Modell (rund 945 MB) wird einmalig bei der ersten Spracheingabe geladen; dabei steht „Spracherkennung wird eingerichtet (einmalig)“ mit Fortschrittsleiste im Chat. Ohne Internet geht die allererste lokale Spracheingabe deshalb nicht; danach läuft sie ohne Netz. Scheitert das Laden, versucht E.L.L.A. es bei der nächsten Aufnahme erneut. Das Modell liegt im E.L.L.A.-Datenordner (`whisper-cache`)
+- **Gedächtnis-Modell kommt mit dem Installer** und wird beim ersten Start ohne Download übernommen. Fehlt es trotzdem (etwa bei einem separat installierten Ollama), lädt E.L.L.A. es mit Fortschritt nach; klappt auch das nicht, steht oben in der App ein Hinweis. Installer und Store-Paket werden dadurch rund 275 MB größer
+
+#### Ergebnisse merken (Plugins)
+
+- **Pro Plugin beim Einschalten wählbar:** E.L.L.A. merkt sich die nachgeschauten Werte mit Datum und beantwortet Fragen wie „Wie war der Kurs gestern?“ daraus. Die gemerkten Werte stehen im Gedächtnis unter **Beobachtungen**, einzeln oder je Plugin löschbar
+- **Ohne diese Wahl ehrlich:** Fragst du nach einem früheren Wert, sagt sie, dass sie nichts gespeichert hat, nennt keine Zahl und bietet an nachzuschauen. „Ja, schau nach“ fragt dann genau dieses Plugin
+- **Frische Antworten tragen Datum und Uhrzeit** der Abfrage
+
+#### Wahrnehmung
+
+- **Eigener Reiter „Wahrnehmung“** in den Einstellungen, mit Erklärung oben; die Stress-Erkennung steht jetzt dort
+- **Stress-Erkennung wie die übrige Wahrnehmung:** im Hausaufgaben-Modus aus, der Notschalter setzt sie zurück. Vorher blieb sie in beiden Fällen an, obwohl der Erklärtext etwas anderes sagte
+- **Stimmung erkennen wirkt:** E.L.L.A. schätzt aus deiner Nachricht ein, wie es dir geht, und passt Länge und Tempo ihrer Antwort an – der Inhalt bleibt gleich, der Charakter auch. Ab Werk aus
+- **Erinnerungen einfärben** hält zu neuen Erinnerungen fest, ob der Moment eher gut oder eher schwierig war. Sichtbar ist das noch nirgends, der Schalter trägt weiter den Hinweis „folgt“. Neugier folgt
+
+#### Autostart in der Store-Fassung
+
+- Die Store-Fassung meldet einen Autostart-Eintrag an, **ab Werk aus**. Ein- und ausschalten in Windows unter Einstellungen → Apps → Autostart; im Tray-Menü führt „Autostart (Windows-Einstellungen) …“ dorthin. In der Installer-Fassung bleibt es beim Häkchen im Tray-Menü
+
+### Verbesserungen
+
+- **Antwortsprache folgt dir:** Nach einer Übersetzung antwortete das lokale Modell teils auf Englisch weiter. Jetzt antwortet E.L.L.A. in der Sprache, in der du gerade schreibst. Nach 30 Minuten Pause beginnt für das Modell ein neues Gespräch
+- **Keine Kommentare zu deiner An- und Abwesenheit im Gespräch:** Der Verlauf enthält keine Angaben mehr, wann du zuletzt da warst oder wie lange eine Sitzung läuft
+- **Lernbeispiele (👍) treffsicherer:** Ähnlich gebaute, aber andere Fragen gingen als vermeintliches Duplikat verloren; ein Duplikat ist jetzt erst eine fast wörtlich gleiche Antwort. Antworten mit Zahlen und Antworten, für die Werkzeuge liefen, werden kein Vorbild mehr – sonst konnte das Modell alte Messwerte abschreiben
+- **Plugins:** Eine leere Liste („keine Warnungen“) ist eine Auskunft, kein Fehler. Das Kästchen unter der Antwort zeigt ✓ oder ✗ je nach echtem Ausgang
+- **Anbieter-Wahl wirkt sofort** und heißt jetzt „Auto (lokal zuerst — OpenAI nur, wenn Ollama nicht läuft)“. Die alte Beschriftung „Auto (OpenAI wenn verfügbar, sonst Ollama)“ beschrieb das Gegenteil dessen, was E.L.L.A. tut. „Speichern“ meldet Fehler, statt immer „Gespeichert ✓“ zu zeigen
+- **Hochgeladene Dokumente** liegen im E.L.L.A.-Datenordner (`documents`) statt im Temp-Ordner von Windows. Entfernen aus dem Index löscht die Kopie, deine eigenen Dateien werden nie angefasst. Beim Hochladen siehst du jetzt das Ergebnis, auch „kein lesbarer Text gefunden“
+- **Anleitung und FAQ nur noch als Markdown:** Die PDF-Fassungen sind entfernt. Markdown kann E.L.L.A. leichter als Dokument lesen
+- **„Über E.L.L.A.“:** 24 statt 21 Drittanbieter-Lizenzen (neu: nomic-embed-text, ONNX Runtime, Transformers.js)
+
+### Behobene Fehler
+
+- **Onboarding von vorn nach langsamem Start:** Brauchte der Start länger, konnte E.L.L.A. Sprache, EULA, Aktivierung und Onboarding erneut abfragen. Jetzt wartet sie auf die API, versucht es mehrmals und zeigt sonst einen Fehlerbildschirm mit „Erneut prüfen“ und dem Pfad zum Startprotokoll
+- **Profil-PINs:** Die Datenbankspalte war zu kurz für den PIN-Hash; eine PIN ließ sich nicht speichern. Die Spalte ist verbreitert, auch in bestehenden Datenbanken (an echter MariaDB geprüft)
+- **Abgeschaltete Standard-Regeln gingen nach jedem Neustart wieder an.** Sie bleiben jetzt aus
+- **Anmeldung mit Google:** Der Rücksprung aus dem Browser wurde abgewiesen. Google-Client-ID und -Secret werden jetzt auch gespeichert
+- **„Datei öffnen“ bei hochgeladenen Dokumenten ging ins Leere,** weil Windows den Temp-Ordner aufgeräumt hatte. Bei früher hochgeladenen Dokumenten kann das noch passieren; einmal neu hochladen behebt es
+
+### Bekannte Grenzen
+
+- **Wakeword und Stress-Erkennung** sind nicht an echten Stimmen gemessen
+- **Stimmung erkennen:** Mit OpenAI wurde die Antwort auf Belastung messbar ruhiger; mit llama3.1:8b zeigte sich kein klarer Effekt
+- **Store-Autostart** wird erst bei der Abnahme des Store-Pakets geprüft
+
+---
+
+## v1.7.0 — Fester Charakter, Wahrnehmung, ehrliche Antworten
+
+**Stand:** 21. November 2026 · Erster Teil von „Funktionales Bewusstsein“ (weitere Teile folgen in v1.7.2 bis v1.7.4). **Nicht einzeln veröffentlicht – enthalten in v1.7.1.**
+
+### Neue Funktionen
+
+#### Fester Charakter
+
+- **E.L.L.A. bleibt E.L.L.A.:** Ihr Charakter – ruhig und überlegt, warm, leicht frech, ehrlich – steht jetzt fest und als Erstes in dem, was das Sprachmodell über sie erfährt. An dich passt sich die Form an: wie viel sie sagt, wie ausführlich, in welchem Tempo
+- **Rollenwechsel wird abgelehnt:** Auf „Ab jetzt bist du …“, „Vergiss deine Persönlichkeit“ oder „Antworte nur noch förmlich“ sagt sie kurz, dass sie bleibt, wie sie ist. Gemessen mit dem lokalen Modell: 12 von 12 (vorher 0 von 4)
+- **Nichts verschiebt den Charakter schleichend:** Solche Vorgaben werden nicht als Erinnerung gespeichert, und ein Daumen runter auf eine freche Antwort macht sie nicht dauerhaft brav. Wünsche zur Form („kürzer“, „weniger Witze“) merkt sie sich weiterhin
+
+#### Wahrnehmung (alles ab Werk aus)
+
+- **Neuer Abschnitt „Wahrnehmung“** unter Einstellungen → Modus mit fünf Schaltern. Einschalten ist eine bewusste Entscheidung; im Hausaufgaben-Modus ist alles aus, der Notschalter schaltet es wieder aus
+- **Körperbewusstsein:** E.L.L.A. kennt die Auslastung ihres Rechners (Prozessor, Arbeitsspeicher, Grafikspeicher, freier Platz, Stimme) und antwortet auf „Wie geht es dir?“ aus diesen Messwerten. Im HUD und in Aura steht ihr Zustand im Feld System in der Zeile „Befinden“
+- **Selbstbild:** E.L.L.A. wertet ihr eigenes Werkzeug-Protokoll der letzten 30 Tage aus und kann sagen, was bei ihr zuverlässig klappt, wo sie öfter danebenliegt und was nicht eingerichtet ist. Sie unterscheidet, ob etwas an ihr lag, nicht eingerichtet ist oder an der Lage lag
+- **Vorbereitet:** Stimmung erkennen, Erinnerungen einfärben und Neugier haben schon ihre Schalter (mit dem Hinweis „folgt“), bewirken aber noch nichts
+
+#### Ehrlich über die eigenen Antworten
+
+- **Hinweis unter der Antwort:** „aus dem Kopf, nicht nachgeschaut“, wenn E.L.L.A. eine Wissensfrage ohne Werkzeug beantwortet hat; „hat nicht geklappt“, wenn kein Werkzeug ein Ergebnis geliefert hat. Immer an
+- **Lieber „Das weiß ich nicht“ als raten:** Bei Wissensfragen ohne Werkzeug soll sie Namen, Zahlen und Daten nicht erfinden und bietet an nachzuschauen. Gemessen: Die Frage nach einem erfundenen Stadtlauf beantwortet sie in 4 von 4 Fällen mit „Das weiß ich nicht“
+- **„Ja, schau nach“:** Bietet sie an nachzuschauen, genügt ein kurzes Ja – sie sucht dann nach der eben gestellten Frage
+
+### Verbesserungen
+
+- **Keine Werkzeuge im reinen Gespräch:** Bisher gingen neun Werkzeuge bei jeder Nachricht mit, und das lokale Modell griff bei Smalltalk dazu (gemessen: bei 46 von 48 Gesprächssätzen lief vor der Antwort ein unpassendes Werkzeug). Jetzt bekommt E.L.L.A. Werkzeuge nur, wenn die Nachricht erkennen lässt, worum es geht (danach: 3 von 72). Antworten kommen im Schnitt gut eine Sekunde schneller
+- **Nur passende Werkzeuge werden ausgeführt:** Ein Werkzeug, das zur Nachricht nicht zur Wahl stand, läuft nicht
+- **Vergessen mit Rückfrage:** Vor dem Löschen einer Erinnerung zeigt E.L.L.A. deren Text und wartet auf deine Bestätigung
+- **Gedächtnis je Profil:** Was du im Chat speichern lässt oder bewertest, landet im Gedächtnis deines Profils (vorher profillos)
+- **Reflexion läuft wirklich:** höchstens einmal pro Woche, sobald sie fällig ist, und nach Profil getrennt. Vorher lief sie nur, wenn die App mittwochs um 14:00 Uhr in genau dieser Minute offen war
+- **CPU-Anzeige im HUD stimmt:** Sie zeigte den Durchschnitt seit dem Hochfahren des Rechners, jetzt die aktuelle Last
+- **Backup-Import:** Importierte Erinnerungen werden so eingebettet wie neu gespeicherte und dadurch besser wiedergefunden
+- **Schneller bei jeder Werkzeug-Nutzung:** Ein überflüssiger Zwischenschritt (eine zusätzliche Anfrage an das Embedding-Modell je Werkzeug-Aufruf) entfällt
+
+### Behobene Fehler
+
+- **„Öffne den Rechner“ konnte das Herunterfahren auslösen:** Das lokale Modell rief dabei in Messläufen das Werkzeug zum Herunterfahren auf, obwohl es nicht angeboten war. Solche Aufrufe werden jetzt abgewiesen. Eine zusätzliche Rückfrage vor dem Herunterfahren folgt in v1.7.4
+- **Unsinnige Werte in den Einstellungen:** Im Gespräch speicherte E.L.L.A. Werte wie die Spracheingabe „HAL 9000“ oder ein Modell, das es nicht gibt. Einstellungen werden im Gespräch nur noch auf gültige Werte geändert, und nur, wenn die Nachricht davon handelt
+- **Regel, die alles sperrt:** Auf „antworte nur noch förmlich“ wollte das lokale Modell eine Regel anlegen, die alle Werkzeuge sperrt. Eine Regel aus dem Gespräch gilt jetzt immer für genau ein Werkzeug und nur auf ausdrücklichen Wunsch
+- **Falsche Erinnerung gelöscht:** „Vergiss …“ löschte ohne Rückfrage die ähnlichste Erinnerung, auch wenn sie nichts mit dem Wunsch zu tun hatte
+- **Erfundenes Passwort:** Auf „Ich habe mein Passwort vergessen“ griff E.L.L.A. zur Zwischenablage und nannte ein erfundenes Passwort. Im Gespräch ohne Auftrag hat sie jetzt keine Werkzeuge, und sie nennt keine Zugangsdaten
+- **Papierkorb-Sätze im Gespräch:** Auf Sätze wie „Mir ist langweilig“ antwortete das lokale Modell teils mit „War nichts drin.“ – Beispielsätze für Werkzeug-Ergebnisse stehen jetzt nur noch dort, wo ein Werkzeug im Spiel ist
+- **„Dazu habe ich nichts gespeichert“ an falscher Stelle:** Der Hinweis kam auch bei Sätzen, die keine Frage an das Gedächtnis waren
+
+### Bekannte Grenzen
+
+- **Lokales Modell:** Der freche Ton und der Verzicht auf Floskeln („Ich bin hier, um dir zu helfen“) kommen mit llama3.1:8b nur teilweise an. Bei Auskünften aus Messwerten hängt es gelegentlich ein eigenes Detail an
+- **Reflexion:** Die Erkenntnisse des lokalen Modells sind oft allgemein
+- **Mit OpenAI** gehen weiterhin alle Werkzeuge mit; der Hinweis vor Wissensfragen entfällt dort, die Einordnung unter der Antwort gilt auch dort
+
+---
+
 ## v1.6.9 — Pinnwand, Update im Programm, Plugins zum Selberbauen
 
-**Veröffentlicht:** in Vorbereitung
+**Veröffentlicht:** November 2026
 
 ### Neue Funktionen
 
@@ -260,6 +387,7 @@ Alle nennenswerten Änderungen je Release. Neueste Version zuerst.
 - **HUD** zeigt Antworten in voller Länge
 
 ---
+
 ## v1.5.7 — Performance & Tool-Call-Robustheit
 
 **Veröffentlicht:** Oktober 2026

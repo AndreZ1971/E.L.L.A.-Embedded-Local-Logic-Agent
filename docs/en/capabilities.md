@@ -1,6 +1,6 @@
 # E.L.L.A. -- What Can I Do for You?
 
-Version: v1.6.9 -- 123 tools, 1675 tests passing
+Version: v1.7.1 -- 123 tools, 2323 tests passing
 
 E.L.L.A. is your local AI assistant for Windows. She runs directly on your machine, understands speech and text, and helps with everything -- from simple questions to full desktop control.
 
@@ -12,8 +12,9 @@ ELLA understands you by text and by voice. Just say "Ella" -- she listens, respo
 
 **What you can do:**
 
-- **Wakeword "Ella"** -- just say her name and she starts listening. Runs on your machine, no server required.
+- **Wakeword "Ella"** -- just say her name and she starts listening. Runs on your machine, no server and no extra program required. It only counts as a call if "Ella" also appears in the recognised text -- a sentence without her name does not go to her.
 - **Voice control** -- ask questions, give instructions, have conversations. By microphone or text input.
+- **Local speech recognition** -- what you say is turned into text on your machine (Whisper). The model (about 945 MB) is downloaded once from the internet on the first voice input, with a progress display; after that it works without. With your own OpenAI key, OpenAI can transcribe instead.
 - **Text-to-speech (TTS)** -- ELLA reads her answers aloud. English, French and Spanish are spoken by the local Kokoro voice, German by a Microsoft voice (Edge TTS). In offline mode German is spoken by the Windows voice.
 - **Four voices** -- German, English, Spanish, and French. Selectable during onboarding or in settings.
 - **Dictation mode** -- ELLA listens and types what you say directly into the active window. Works system-wide -- in Word, in the browser, everywhere. Activatable by hotkey.
@@ -170,6 +171,8 @@ ELLA is built to be secure. Your data stays with you.
 - **Local first** -- all AI processing runs preferably on your machine. OpenAI is only used when you allow it and provide your own key.
 - **Offline mode** -- blocks web search, weather, location, web pages, OpenAI, browser control, plugins for internet services and the update check. German is then spoken by the Windows voice; English, Spanish, and French run locally via Kokoro.
 - **Foreign content gives no commands** -- once ELLA has read a web page, a search result or a plugin answer, she may only read for the rest of that answer, not change or send anything.
+- **Tools only when the message is about them** -- in plain conversation ELLA has no tools. Which ones she gets depends on your message; a tool that does not fit it is not executed.
+- **Settings and rules in conversation only on request** -- ELLA changes a setting only to valid values and only when your message is about it. She never creates a rule for all tools at once in conversation.
 - **Every tool has a switch** -- under Settings -> Tools -> Allowed tools.
 - **Create your own rules** -- you can specifically allow or block individual tools.
 
@@ -181,14 +184,16 @@ ELLA remembers what matters to you -- and gets better over time.
 
 **What you can do:**
 
-- **Long-term memory** -- ELLA stores important information permanently. "My favorite restaurant is Trattoria Roma." -- she remembers that.
+- **Long-term memory** -- ELLA stores important information permanently. "My favorite restaurant is Trattoria Roma." -- she remembers that. The memory model for this (nomic-embed-text) is included in the installer -- memories and document search work from the first start, even if you use OpenAI.
 - **Knowledge graph** -- ELLA recognizes connections. If you say "Max is my brother" and later "Max's birthday is March 15th", she links both together.
-- **Self-learning** -- when you rate a response with thumbs up, ELLA learns from it and gives similar answers in that style in the future.
+- **Self-learning** -- when you rate a response with thumbs up, ELLA learns from it and uses its length and structure as a guide for similar questions. Ratings do not change her character. Answers from tools (exchange rate, weather, system status) do not become examples -- the value would be outdated next time.
+- **Forgetting with confirmation** -- before ELLA deletes a memory, she shows you its text and waits for your confirmation.
+- **Memory per profile** -- what you tell ELLA or rate ends up in the memory of your profile.
 - **Proactive messages** -- ELLA speaks up on her own when something important happens: disk almost full, new device connected, appointment in 15 minutes.
 - **Adaptive notifications** -- if you dismiss a proactive message 5 times, ELLA automatically mutes that category.
 - **End of day & comeback** -- after a break, ELLA summarizes what changed. At the end of the day she reminds you of open tasks.
-- **Reflection** -- ELLA regularly reflects on collected experiences and recognizes patterns in your behavior.
-- **Stress detection** -- optional: ELLA analyzes your voice and gives gentle hints when you sound stressed.
+- **Reflection** -- at most once a week ELLA derives up to three insights from the latest memories of your profile. With the local model they are often rather general.
+- **Stress detection** -- optional, off by default: ELLA analyzes your voice on your machine and gives gentle hints when you sound stressed. When it is off, nothing is analyzed.
 
 > "Ella, what do you know about me?" -- "Ella, forget that I like coffee." -- "Ella, what changed since I was away?"
 
@@ -288,6 +293,7 @@ Plugins give ELLA new sources of information, for example exchange rates or publ
 - ELLA builds a plugin herself: you give a name, keywords and an example address that works in the browser.
 - Only you can enable a plugin. Before that you see which server receives which values.
 - A plugin contains no program. If its file is changed, it is switched off again immediately.
+- **Remember results** -- selectable when enabling: ELLA stores the plugin's answers with their date and answers questions about earlier values ("What was the rate yesterday?") from this memory. Without this choice she honestly says that she has stored nothing and offers to look it up. On the memory page you can delete the entries one by one or per plugin.
 
 > "Ella, build me a plugin for exchange rates. The address is ..." -- "Ella, what is 250 euros in dollars?"
 
@@ -326,6 +332,26 @@ ELLA can analyze your local network -- even in offline mode.
 For advanced users: ELLA can execute PowerShell commands. The tool is switched off by default (Settings -> Tools -> Allowed tools). Confirmation is required before every execution, and dangerous command patterns are blocked.
 
 > "Ella, run 'Get-Process | Sort-Object CPU -Descending | Select -First 10'."
+
+---
+
+## Character, Awareness & Honesty
+
+**Fixed character:** ELLA is calm and thoughtful, warm, slightly cheeky with dry humor, and honest. That stays. What adapts to you is the form -- length, pace, level of detail. To "From now on you are ..." or "Answer only formally from now on" she says briefly that she stays the way she is.
+
+**Awareness** (Settings -> Awareness, all switches off by default):
+
+- **Body awareness** -- ELLA knows the load on her computer and answers "How are you?" from these measurements. In the HUD and in Aura her state is shown in the line "Condition".
+- **Self-image** -- ELLA evaluates her tool log of the last 30 days and can say what works reliably, where she gets it wrong more often and what is not set up.
+- **Mood** -- if you say clearly how you feel ("I'm completely exhausted right now"), ELLA adapts the form of her reply: calmer and shorter, or a little more relaxed. The content stays the same.
+- **Colour memories, curiosity** -- prepared, coming in later versions.
+
+**Honesty about her own answers** (always on):
+
+- Below an answer it says "from memory, not looked up" when ELLA answered a knowledge question without a tool, and "did not work" when no tool returned a result.
+- If she is not sure about something, she says so and offers to look it up. A short "Yes" is then enough.
+
+> "Ella, how are you?" -- "Ella, what are you good at?" -- "Ella, who won the Buxtehude city run in 1987?"
 
 ---
 

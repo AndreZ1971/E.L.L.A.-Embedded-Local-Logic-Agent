@@ -1,6 +1,6 @@
 # E.L.L.A. – User Manual
 
-Version 1.6.9
+Version 1.7.1 – as of 24 November 2026
 
 This manual explains how to set up and use E.L.L.A. Every section stands on its own – you can start reading anywhere.
 
@@ -43,9 +43,11 @@ The public project always holds the versions for the latest release, along with 
 2. Choose the installation folder. The default is `C:\Program Files\E.L.L.A`.
 3. The installer brings everything E.L.L.A. needs. You do not have to install anything else.
 
-The installation takes a few minutes because the database, Ollama and other components are included. Depending on your Windows settings, Windows may show a security notice when the installer starts.
+The installation takes a few minutes because the database, Ollama, the memory model and other components are included. Depending on your Windows settings, Windows may show a security notice when the installer starts.
 
 E.L.L.A. is also available in the Microsoft Store. The Store version is installed and updated through the Store.
+
+The local speech recognition is not part of the package. E.L.L.A. downloads it once, the first time you speak to her (chapter 6).
 
 ### The first start
 
@@ -60,11 +62,24 @@ On the first start E.L.L.A. guides you through the setup:
 7. **Voice** – four voices in German, English, Spanish and French, each with a sample.
 8. **Location** – for weather and local information. You can skip this step.
 
+The first start takes longer than later ones because E.L.L.A. sets up her database. On slow computers this can take a few minutes – E.L.L.A. waits that long.
+
+If E.L.L.A. still does not get going, she shows an error screen: “E.L.L.A. is not starting” or “Settings could not be loaded”. Your settings and data are not lost, and the setup does not start over. Click **Retry** or restart E.L.L.A. The screen also shows the path to the startup log (chapter 21).
+
 ### The one-time model download
 
 After the setup E.L.L.A. downloads the chosen language model once. The default model is about 5 GB. A bar shows the progress: amount downloaded, speed, percent and the estimated time left. You can already look around in E.L.L.A. during this time; she can answer only after the download.
 
 If the connection drops, E.L.L.A. resumes the download where it stopped.
+
+The memory model, which E.L.L.A. uses to organize memories and documents, comes with her. It does not have to be downloaded (chapter 5).
+
+### Starting with Windows
+
+By default E.L.L.A. does not start automatically with Windows. To switch it on:
+
+- **Installer version:** Right-click the E.L.L.A. icon in the notification area of the taskbar and tick **Autostart**.
+- **Store version:** Here Windows decides. Open **Settings → Apps → Startup** in Windows and switch E.L.L.A. on there (or in Task Manager under **Startup apps**). In the menu of the E.L.L.A. icon in the notification area, **Autostart (Windows-Einstellungen) …** opens this page directly (the menu is in German).
 
 ---
 
@@ -86,6 +101,44 @@ Examples:
 - **Confirmation:** Before consequential actions (for example deleting files) E.L.L.A. asks and waits for your confirmation.
 - **Thumbs up / thumbs down:** Your rating teaches E.L.L.A. what you like.
 - **Notice bars:** Colored bars show when something special is active, such as offline mode, browser control or the clipboard history.
+- **“from memory, not looked up”:** This note appears below an answer when you asked for a fact and E.L.L.A. answered it without a tool – that is, from what the language model has learned. Such answers can be wrong, especially for names, numbers and dates.
+- **“did not work”:** This note appears below an answer when E.L.L.A. used tools but none of them returned a result.
+
+Answers that rest on a tool result, and ordinary conversation, carry no note.
+
+### Having her look it up
+
+If E.L.L.A. is not sure about something, she says so and offers to look it up. A short “Yes” or “Look it up” is then enough – she searches for the question you just asked. This works for the next five minutes.
+
+You can also ask that way from the start: “Search the internet for …”
+
+### E.L.L.A.'s character
+
+E.L.L.A. has a fixed character: calm and thoughtful, warm, slightly cheeky with dry humor, and honest. When you are having a bad time, she leaves the teasing out.
+
+- **What adapts:** how much she says, how detailed and at what pace. Feel free to tell her “Answer more briefly” or “Fewer jokes, I need to concentrate”.
+- **What does not adapt:** who she is. To “From now on you are …” or “Answer only formally from now on” she says briefly that she stays the way she is. She does not store such instructions as a memory either.
+
+### Language and breaks in the conversation
+
+E.L.L.A. answers in the language you write in: an English message gets an English answer, a German one a German answer.
+
+If more than half an hour passes between two messages, a new conversation begins for the language model. The older messages stay visible in the chat but no longer feed into the next answer. Anything that should last belongs in memory (chapter 5).
+
+The language model is not told when you last wrote or how long you were away. So E.L.L.A. does not comment on your breaks in her answers. The “Break” and “Welcome back” notices from chapter 14 are separate messages that you can mute.
+
+### Changing settings in conversation
+
+You can change a few settings in the chat: the provider and the model, the kind of voice input, reading aloud (on or off), the length of the history and your name. Examples:
+
+- “Stop reading everything aloud.”
+- “Call me Andre from now on.”
+
+E.L.L.A. only changes a setting when your message is about it, and only to valid values. Everything else you set in **Settings**.
+
+### Conversation and tasks
+
+In plain conversation E.L.L.A. uses no tools. Which tools she gets for a message depends on what the message is about. So name the thing: “Open the calculator”, “How full is my hard drive?”, “Search the internet for …”.
 
 ### Self-test
 
@@ -103,13 +156,27 @@ E.L.L.A. remembers things across conversations. You can teach her something on p
 - “What do you know about me?”
 - “Forget that I don't drink coffee.”
 
+Before E.L.L.A. forgets something, she shows you the memory she found and asks. It is deleted only after you confirm.
+
 She also recognizes connections. If you say “My son's name is Max” and later “Max goes to Einstein High School”, she can answer the question “Which school does my son go to?”
 
-Credentials such as passwords, keys, IBANs and credit card numbers are made unreadable before they are stored.
+Credentials such as passwords, keys, IBANs and credit card numbers are made unreadable before they are stored. E.L.L.A. therefore knows no passwords and does not name any.
+
+Anything that would change E.L.L.A.'s character is not stored either (see chapter 4). Wishes about form – “prefers short answers” – she does remember.
+
+Every memory belongs to the profile in which it was created.
 
 ### The “Memory” page
 
 The **Memory** page shows everything E.L.L.A. has stored. The entries are sorted into categories: about you, preferences, people, places, projects, system, notes and unsorted. You can add and delete entries by hand. A diagram shows how the memories relate to each other.
+
+The **Observations** section holds the results of plugins for which you switched on “Remember results” (chapter 10). You delete them one by one or all of a plugin at once.
+
+### The memory model
+
+To store and find memories and to read documents, E.L.L.A. needs a small model of its own, the memory model. It always runs on your computer, even when you use OpenAI. E.L.L.A. brings it along and sets it up on the first start. If you use a separately installed Ollama, she downloads it at startup and shows the progress.
+
+If it is still missing, the notice “The memory model is missing …” appears at the top of E.L.L.A. While it is shown, no memories are stored and no documents are read. Restart E.L.L.A. (with an internet connection) and she downloads it.
 
 ### Notes
 
@@ -143,6 +210,21 @@ Under **Settings → Tools → Voice input** you choose how E.L.L.A. listens:
 | **Wakeword**   | Say “Ella” – then she listens and answers.              |
 | **Hands-free** | She listens all the time.                               |
 | **Dictation**  | What you say is typed into the currently active window. |
+
+### Speech recognition
+
+E.L.L.A. recognizes speech on your computer. The model for it (about 945 MB) is not in the installer. E.L.L.A. downloads it once: if a voice input mode is switched on, already at startup, otherwise with your first recording. A bar at the top of E.L.L.A. then shows “Setting up speech recognition (one time)” with the progress. After that the model sits in your E.L.L.A. data folder and is not downloaded again.
+
+- **Without internet** the very first local voice input does not work. If the download fails, E.L.L.A. tries again with the next voice input.
+- **With OpenAI:** If the provider is set to **OpenAI** and a key is stored, your recordings go to OpenAI. With **Auto**, OpenAI steps in only if the local speech recognition does not work and a key is stored. In offline mode nothing goes to OpenAI.
+
+### The wakeword “Ella”
+
+Say “Ella” followed straight away by your request: “Ella, what will the weather be like tomorrow?” If you say only “Ella”, she waits up to 15 seconds for your request.
+
+E.L.L.A. recognizes the wakeword on your computer, without any extra program. Then she checks the recognized text to see whether it really says “Ella”. Only then does your sentence go to her. If it shows a similar word such as “Ellen” or “Hella”, nothing happens. For this check the wakeword needs the speech recognition too.
+
+If wakeword detection is not available, **Settings → Tools → Voice input** shows a notice with the reason. E.L.L.A. then does not react to “Ella”.
 
 In wakeword mode you can keep talking for 8 seconds after an answer without saying “Ella” again.
 
@@ -277,17 +359,17 @@ Many services on the internet offer such addresses, for example for exchange rat
 
 ### Example: exchange rates
 
-The Frankfurter service provides exchange rates from the European Central Bank. This address converts 250 euros into dollars:
+The Frankfurter service provides exchange rates from the European Central Bank. This address gives the rate for 1 euro in dollars:
 
 ```
-https://api.frankfurter.dev/v1/latest?amount=250&base=EUR&symbols=USD
+https://api.frankfurter.dev/v1/latest?amount=1&base=EUR&symbols=USD
 ```
 
 If you open it in your browser, you see the result as text. That is exactly the kind of address E.L.L.A. needs.
 
 **Step 1 – E.L.L.A. builds the plugin.** Write in the chat:
 
-> Build me a plugin for exchange rates. Keywords: exchange rate, euro, dollar, franc, pound, convert. The address is https://api.frankfurter.dev/v1/latest?amount=250&base=EUR&symbols=USD
+> Build me a plugin for exchange rates. Keywords: exchange rate, euro, dollar, franc, pound, convert. The address is https://api.frankfurter.dev/v1/latest?amount=1&base=EUR&symbols=USD
 
 E.L.L.A. creates the plugin. She works out by herself that the amount, the source currency and the target currency can change.
 
@@ -300,6 +382,19 @@ E.L.L.A. creates the plugin. She works out by herself that the amount, the sourc
 - “How much is 1000 euros in Swiss francs?”
 
 The **Plugins** tab in the settings also shows these three steps as a quick guide, with an example you can copy.
+
+### Remember results
+
+When enabling a plugin you can tick **Remember results** (off by default). E.L.L.A. then stores every reply of the plugin with its date and time on your computer. Later you can ask about the past:
+
+- “What was the euro-dollar rate yesterday?”
+- “What were 250 euros in dollars two days ago?”
+
+Ask about the present and E.L.L.A. queries the plugin fresh as always. For a day without a stored value she says that she does not know – she does not guess. You can see and delete the stored values under **Memory → Observations**.
+
+Tip for rates: create the plugin with the amount **1** (as in the example above). Then every stored value is the rate itself. With another amount, such as 250, the stored value only applies to that amount – asked “What was the rate yesterday?”, the local model then gave the amount for 250 euros as the rate.
+
+Without “Remember results” a plugin only knows the present. Asked “What was the rate yesterday?”, E.L.L.A. says that she does not know and offers to look up the current value.
 
 ### Why you have to enable it yourself
 
@@ -376,6 +471,12 @@ Under **Settings → Tools → Local RAG — Document Knowledge** you give E.L.L
 - “Which documents do you know?”
 
 Reading runs in the background. E.L.L.A. tells you in the chat when she is done. This is also how you teach her this manual (chapter 2).
+
+After adding a file you see the result: if the file could not be read, E.L.L.A. gives the reason. If it contains no readable text (for example a scanned PDF), it says “no readable text found”. If the memory model is missing (chapter 5), reading counts as failed.
+
+**Where the files are kept:** With **Add file** E.L.L.A. stores a copy in her data folder (subfolder `documents`). If you remove the document from the list, she deletes this copy. **Forget all** empties the whole store. Your own files and folders that you give her to read are never touched.
+
+Documents you added before version 1.7.1 stay in her knowledge. Back then, however, the copy was kept in the Windows temp folder, which Windows cleans up. If you ask E.L.L.A. to open such a document, she may no longer find the file. Simply add it again.
 
 ### Duplicate files
 
@@ -472,7 +573,9 @@ Sometimes E.L.L.A. writes into the chat on her own, for example when:
 - an alarm goes off,
 - an appointment is about to start,
 - tasks are still open in the evening,
-- you have been working for a long time without a break.
+- you have been working for a long time without a break (“Break” notice, at most every 90 minutes),
+- you write again after at least half an hour without a message (a short “Welcome back”, plus the number of system warnings in the meantime),
+- she has reflected on her experiences and derived something new from them (at most once a week).
 
 Each of these messages has two buttons: 👋 (“Show less often”) dismisses the message, 🔇 (“Mute this type of notification”) suppresses this kind of message permanently. If you dismiss the same kind five times, E.L.L.A. mutes it by herself. Alarms and scheduled setups cannot be muted.
 
@@ -519,6 +622,36 @@ Under **Settings → Mode → Accessibility**:
 
 Under **Settings → Mode → Gesture Control** you switch on control by hand movements in front of the camera. It is off at first.
 
+### Awareness
+
+In its own tab, **Settings → Awareness**, you decide what E.L.L.A. may perceive about herself and about you. A short text at the top explains how it works; the switches are below. **All switches are off by default.** Everything stays on your computer. In homework mode these five switches are always off; the emergency reset turns them off as well. They cannot be switched on in conversation.
+
+| Switch          | What it does                                                                                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Body awareness  | E.L.L.A. knows the load on her computer (processor, memory, graphics memory, free space, voice). She answers “How are you?” from these measurements.                           |
+| Self-image      | E.L.L.A. evaluates her own tool log of the last 30 days. She answers “What are you good at?”, “What are you bad at?” or “How long have we known each other?” from these facts. |
+| Recognise mood  | E.L.L.A. recognizes a clearly expressed mood in your message and adapts the form of her answer.                                                                                |
+| Colour memories | carries the note “coming” (see below)                                                                                                                                          |
+| Curiosity       | coming in a later version, does nothing yet                                                                                                                                    |
+
+**Recognise mood:** If you write, for example, “I feel terrible” or “I'm so exhausted”, E.L.L.A. answers calmly and briefly, without jokes. With “I'm so happy” or “I feel great” she may be a little more relaxed. This changes only the form, not the content and not her character. Recognition follows fixed patterns in the current message, without a language model. Anything not clearly expressed counts as neutral. Nothing is stored.
+
+**Colour memories:** When the switch is on, E.L.L.A. notes for memories she derives from the conversation whether the message sounded rather good or rather troubled. This note is not used or shown yet – that is why the settings say “coming”.
+
+**Body awareness:** When everything is normal she says, for example, “Everything is running smoothly.” When the graphics memory or the main memory is almost full, she says that she is slower right now. In the HUD and Aura appearances her state is also shown in the **System** panel in the line **Condition**. E.L.L.A. reads the measurements only while the switch is on.
+
+**Self-image:** E.L.L.A. distinguishes whether something was her fault (she used a tool wrongly), whether something is not set up (for example Google not connected) or whether it was down to the situation (the clipboard was empty). Only the first counts as a weakness. If she has done too little in an area, she says nothing about it.
+
+The facts come from measurements. How E.L.L.A. phrases them is up to the language model – the local model occasionally adds a detail of its own.
+
+### Voice stress detection
+
+The same tab holds the section **Voice Stress Detection** with the switch **Enable voice analysis**. When it is on, E.L.L.A. measures the volume, pitch and sound of your voice during voice input. If it sounds tense, E.L.L.A. answers more calmly. The analysis runs inside E.L.L.A. itself, without an extra program and without the internet.
+
+- The switch is off by default. Without your consent your voice is not analyzed for tension at all.
+- The thresholds are fixed and not yet calibrated on real voices. The assessment can be wrong.
+- Stress detection has a switch of its own but behaves like the rest of awareness: it is off in homework mode, and the emergency reset turns it off.
+
 ---
 
 ## 16. Language model and OpenAI
@@ -527,11 +660,13 @@ All related settings are under **Settings → LLM**.
 
 ### Local or cloud
 
-| Setting            | Meaning                                                        |
-| ------------------ | -------------------------------------------------------------- |
-| **Ollama (local)** | Everything runs on your computer. OpenAI is never used.                       |
-| **OpenAI**         | Answers come from OpenAI. You need your own key.               |
-| **Auto**           | The default: local first. OpenAI steps in only if it does not work locally and a key is stored. |
+| Setting            | Meaning                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| **Ollama (local)** | Everything runs on your computer. OpenAI is never used.                                      |
+| **OpenAI**         | Answers come from OpenAI. You need your own key.                                             |
+| **Auto**           | The default: local first. OpenAI steps in only if Ollama is not running and a key is stored. |
+
+In the settings the default is labeled “Auto (local first — OpenAI only if Ollama is not running)”. Your choice of provider takes effect immediately, without **Save**.
 
 ### The local model
 
@@ -552,7 +687,7 @@ If OpenAI shuts a model down, E.L.L.A. uses the recommendation until the next st
 
 ### Personal model
 
-E.L.L.A. can train a personal model from your ratings. Every answer with a thumbs up becomes a learning example. From 50 examples on, training is possible (**Settings → Tools → Personal Model (LoRA)**). It runs entirely on your computer, takes 10 to 30 minutes depending on the hardware and needs a graphics card with at least 12 GB of memory.
+E.L.L.A. can train a personal model from your ratings. An answer with a thumbs up becomes a learning example – except answers for which E.L.L.A. used tools (their content, such as an exchange rate or the weather, would be out of date next time). From 50 examples on, training is possible (**Settings → Tools → Personal Model (LoRA)**). It runs entirely on your computer, takes 10 to 30 minutes depending on the hardware and needs a graphics card with at least 12 GB of memory.
 
 ---
 
@@ -604,28 +739,32 @@ In addition you set your own rules, in the chat or under **Settings → Rules**:
 
 - “Create a rule: E.L.L.A. must not delete files.”
 
+A rule from the chat always applies to exactly one tool. E.L.L.A. only creates it when you explicitly want to block or allow something. A rule for all tools at once is never created in conversation – if you need one, create it under **Settings → Rules**.
+
+Under **Settings → Rules** you can also switch single rules off. A rule you switched off stays off after a restart.
+
 ### Which tools E.L.L.A. may use
 
-E.L.L.A. has 123 tools. Under **Settings → Tools → Allowed tools** each one has a switch. There you switch single tools on and off and then click **Save**.
+E.L.L.A. has 123 tools. Under **Settings → Tools → Allowed tools** each one has a switch. There you switch single tools on and off and then click **Save**. If it worked, the button shows “Saved ✓”. Otherwise “Not saved (…)” appears with the reason – then try again.
 
 Most tools are switched on by default. **Switched off by default** are the tools with which E.L.L.A. operates your computer herself or reaches deep into the system. You switch them on only if you want that:
 
-| Tool                    | What E.L.L.A. can do with it                             |
-| ----------------------- | -------------------------------------------------------- |
-| Send keystrokes         | send key presses to the active window                    |
-| Move mouse              | move the mouse pointer                                   |
-| Click at position       | click at a spot on the screen                            |
-| Drag and drop           | drag something with the mouse                            |
-| Click UI element        | click a button or field in a program                     |
-| Control windows         | minimize, maximize, close and move windows               |
-| Launch program directly | start an approved program with extra options             |
-| Read screen (OCR)       | read the text on the screen                              |
-| Watch screen            | wait for a change on the screen                          |
-| Run command             | run a system command                                     |
-| Manage services         | start and stop Windows services                          |
-| Delete files            | move several files to the recycle bin at once            |
-| List monitors           | name the connected screens                               |
-| Open app on a monitor   | open a program on a particular screen                    |
+| Tool                    | What E.L.L.A. can do with it                  |
+| ----------------------- | --------------------------------------------- |
+| Send keystrokes         | send key presses to the active window         |
+| Move mouse              | move the mouse pointer                        |
+| Click at position       | click at a spot on the screen                 |
+| Drag and drop           | drag something with the mouse                 |
+| Click UI element        | click a button or field in a program          |
+| Control windows         | minimize, maximize, close and move windows    |
+| Launch program directly | start an approved program with extra options  |
+| Read screen (OCR)       | read the text on the screen                   |
+| Watch screen            | wait for a change on the screen               |
+| Run command             | run a system command                          |
+| Manage services         | start and stop Windows services               |
+| Delete files            | move several files to the recycle bin at once |
+| List monitors           | name the connected screens                    |
+| Open app on a monitor   | open a program on a particular screen         |
 
 If you ask E.L.L.A. for something whose tool is switched off, she answers that the function is disabled. Then you switch the tool on in the list.
 
@@ -651,6 +790,8 @@ Connections to the outside exist only for specific purposes:
 - **Plugins** – only to the servers you approved.
 - **Update check** – only at the push of a button.
 - **Model download** – once during setup.
+- **Speech recognition** – a one-time download of the model (about 945 MB) with the first voice input.
+- **Memory model** – only if it is missing (for example with a separately installed Ollama).
 
 The complete list is under [Network connections](network.md).
 
@@ -682,6 +823,15 @@ The screen names the cause and the next step. Usually **Retry** or restarting E.
 **E.L.L.A. refuses something.**
 The red notice gives the reason: the Directive or one of your rules. You change your own rules under **Settings → Rules**.
 
+**E.L.L.A. only talks instead of doing something.**
+She only gets tools when your message shows what it is about. Name the thing (“Open the calculator”, “Set the volume to 30 percent”, “Search the internet for …”). If she offered to look something up, a “Yes” is enough.
+
+**Below the answer it says “from memory, not looked up”.**
+E.L.L.A. answered a knowledge question without a tool. If it matters, say “Look it up” – she then searches the internet.
+
+**E.L.L.A. will not store my memory.**
+She does not store texts that are too short, mere observations, or instructions that would change her character. She tells you why.
+
 **E.L.L.A. says the function is disabled.**
 The tool for it is switched off. Switch it on under **Settings → Tools → Allowed tools** and click **Save**. Chapter 18 lists the tools that are off by default.
 
@@ -694,12 +844,34 @@ Say in your message what she should click, using the label on the page: “Click
 **E.L.L.A. answers slowly.**
 How fast the local model answers depends on the graphics card. Choose a smaller hardware profile under **Settings → LLM** or use OpenAI. More under [Hardware](hardware.md).
 
+**At startup it says “E.L.L.A. is not starting” or “Settings could not be loaded”.**
+E.L.L.A. could not reach her settings just now – they are not lost. Wait a moment and click **Retry**, or restart E.L.L.A. If the screen stays, the startup log helps (see below).
+
+**At the top it says “The memory model is missing …”.**
+Without this model E.L.L.A. stores no memories and reads no documents. Restart E.L.L.A. with an internet connection and she downloads it (chapter 5).
+
+**The first voice input takes a long time.**
+E.L.L.A. is then downloading the speech recognition once (about 945 MB). The bar “Setting up speech recognition (one time)” shows the progress. Without internet this does not work; E.L.L.A. tries again with the next voice input (chapter 6).
+
+**E.L.L.A. does not react to “Ella”.**
+Check under **Settings → Tools → Voice input** whether **Wakeword** mode is selected and whether a notice there explains why wakeword detection is not available.
+
+**E.L.L.A. cannot open a document from her document knowledge.**
+It was probably added before version 1.7.1, and the copy is gone. Add it again under **Settings → Tools → Local RAG — Document Knowledge** (chapter 11).
+
+**A setting was not applied.**
+Many settings take effect only after you click **Save** at the bottom of the page. If it says “Not saved (…)”, the message gives the reason. The choice of provider under **Settings → LLM** takes effect immediately.
+
 **Where is the startup log?**
-In the file `%APPDATA%\ELLA\ella-startup.log`. Under **Settings → About E.L.L.A.** you can also copy the most important details about your system for a support request.
+
+- **Installer version:** `%APPDATA%\ELLA\ella-startup.log`
+- **Store version:** `%LOCALAPPDATA%\Packages\<package>\LocalCache\Roaming\ELLA\ella-startup.log` – `<package>` is the folder whose name contains “E.L.L.A.”.
+
+Under **Settings → About E.L.L.A.** you can also copy the most important details about your system for a support request.
 
 More answers are in the [FAQ](faq.md).
 
 ---
 
-_E.L.L.A. v1.6.9 – Embedded Local Logic Agent_
+_E.L.L.A. v1.7.1 – Embedded Local Logic Agent_
 _For Windows 10 and 11 (64-bit)_

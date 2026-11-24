@@ -1,6 +1,6 @@
 # E.L.L.A. — Plugins
 
-As of v1.6.8
+As of v1.7.0
 
 A plugin gives E.L.L.A. tools of your own without changing any program code. A plugin is **purely declarative**: it describes which fixed address is called with which validated values. It contains no executable code and cannot start programs.
 
@@ -18,6 +18,15 @@ Each plugin is a folder holding exactly one file, `ella-plugin.json`:
 
 The folder name must equal the `id` in the manifest. E.L.L.A. shows the exact path under **Settings → Plugins**. New or changed plugins appear there after "Rescan".
 
+## E.L.L.A. creates a plugin for you
+
+Since v1.6.9 you do not have to write the file yourself. Say in the chat what the plugin is for and give an example address that works in the browser – for instance: "Build me a plugin for exchange rates. The address is https://api.frankfurter.dev/v1/latest?amount=1&base=EUR&symbols=USD". E.L.L.A. creates the folder and the manifest from it: the part before the question mark becomes the fixed address, every value after it a parameter.
+
+- The address must appear word for word in your message. E.L.L.A. does not build a plugin for an address she found or guessed herself.
+- Nothing is enabled by this. You check the plugin like any other under Settings → Plugins and approve it there.
+- An existing plugin folder is never overwritten.
+- Not possible this way: services with a key or sign-in, POST requests, fixed choice lists and more than eight values. For those you write the manifest by hand, as described below.
+
 ## Enabling means approving
 
 A plugin is **off** after you drop it in. Before you enable it, E.L.L.A. shows:
@@ -27,6 +36,14 @@ A plugin is **off** after you drop it in. Before you enable it, E.L.L.A. shows:
 - which fixed headers are sent along (names only, never the values).
 
 Your approval covers exactly this version of the file. **If the manifest changes later, E.L.L.A. disables the plugin immediately** until you have reviewed and enabled it again.
+
+## Remember results
+
+On the approval page you can also tick **Remember results** (off by default). E.L.L.A. then stores each successful reply of the plugin with its date and time (table `observations`, at most 2 KB per entry, no time limit). Asked about the past (“What was the rate yesterday?”), she answers from these entries and names the date; for a day without an entry she says so and does not guess. Questions about the present still go to the plugin fresh. The approval is bound to the manifest version like enabling itself, and can be changed later in the plugin list. Stored entries are shown and deleted under Memory → Observations.
+
+A plugin without “Remember results” only knows the present: asked about the past, E.L.L.A. does not offer it the tool (unless it has a `date` parameter) and offers to look up the current value instead.
+
+For rates, use the amount 1 in the example address — then each stored value is the rate itself.
 
 ## Example
 

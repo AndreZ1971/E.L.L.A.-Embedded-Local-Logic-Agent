@@ -1,6 +1,6 @@
 # E.L.L.A. -- Was kann ich für dich tun?
 
-Stand: v1.6.9 -- 123 Werkzeuge, 1675 Tests bestanden
+Stand: v1.7.1 -- 123 Werkzeuge, 2323 Tests bestanden
 
 E.L.L.A. ist dein lokaler KI-Assistent für Windows. Sie läuft direkt auf deinem Rechner, versteht Sprache und Text, und hilft dir bei allem -- von einfachen Fragen bis zur Steuerung deines gesamten Desktops.
 
@@ -12,8 +12,9 @@ ELLA versteht dich per Text und per Stimme. Du kannst einfach "Ella" sagen -- si
 
 **Was geht:**
 
-- **Wakeword "Ella"** -- sag einfach ihren Namen, und sie hört zu. Läuft auf deinem Rechner, kein Server nötig.
+- **Wakeword "Ella"** -- sag einfach ihren Namen, und sie hört zu. Läuft auf deinem Rechner, kein Server und kein Zusatzprogramm nötig. Als Aufruf gilt es erst, wenn im erkannten Text auch "Ella" steht -- ein Satz ohne ihren Namen geht nicht an sie.
 - **Sprachsteuerung** -- stelle Fragen, gib Anweisungen, führe Gespräche. Per Mikrofon oder Textfeld.
+- **Lokale Spracherkennung** -- was du sagst, wird auf deinem Rechner in Text umgewandelt (Whisper). Das Modell (rund 945 MB) lädt einmalig bei der ersten Spracheingabe aus dem Internet, mit Fortschrittsanzeige; danach geht es ohne. Mit eigenem OpenAI-Key kann stattdessen OpenAI transkribieren.
 - **Sprachausgabe (TTS)** -- ELLA liest ihre Antworten vor. Englisch, Französisch und Spanisch spricht die lokale Stimme Kokoro, Deutsch eine Stimme von Microsoft (Edge TTS). Im Offline-Modus spricht Deutsch die Windows-Stimme.
 - **Vier Stimmen** -- Deutsch, Englisch, Spanisch und Französisch. Wählbar im Onboarding oder in den Einstellungen.
 - **Diktat-Modus** -- ELLA hört zu und tippt das Gesprochene direkt ins aktive Fenster. Funktioniert systemweit -- in Word, im Browser, überall. Per Hotkey aktivierbar.
@@ -170,6 +171,8 @@ ELLA ist sicher gebaut. Deine Daten bleiben bei dir.
 - **Lokal zuerst** -- alle KI-Verarbeitung läuft bevorzugt auf deinem Rechner. OpenAI wird nur genutzt, wenn du es erlaubst und einen eigenen Key hinterlegst.
 - **Offline-Modus** -- sperrt Websuche, Wetter, Standort, Webseiten, OpenAI, Browser-Steuerung, Plugins für Dienste im Internet und die Update-Prüfung. Deutsch spricht dann die Windows-Stimme; Englisch, Spanisch und Französisch laufen lokal über Kokoro.
 - **Fremde Inhalte geben keine Befehle** -- hat ELLA eine Webseite, einen Suchtreffer oder eine Plugin-Antwort gelesen, darf sie in derselben Antwort nur noch lesen, nichts mehr ändern oder versenden.
+- **Werkzeuge nur, wenn es um sie geht** -- im reinen Gespräch hat ELLA keine Werkzeuge. Welche sie bekommt, richtet sich nach deiner Nachricht; ein Werkzeug, das nicht dazu passt, wird nicht ausgeführt.
+- **Einstellungen und Regeln im Gespräch nur auf Verlangen** -- ELLA ändert eine Einstellung nur auf gültige Werte und nur, wenn deine Nachricht davon handelt. Eine Regel für alle Werkzeuge auf einmal legt sie im Gespräch nie an.
 - **Jedes Werkzeug hat einen Schalter** -- unter Einstellungen -> Tools -> Erlaubte Tools.
 - **Eigene Regeln erstellen** -- du kannst Tools gezielt erlauben oder verbieten.
 
@@ -181,14 +184,16 @@ ELLA merkt sich, was dir wichtig ist -- und wird mit der Zeit besser.
 
 **Was geht:**
 
-- **Langzeitgedächtnis** -- ELLA speichert wichtige Informationen dauerhaft. "Mein Lieblingsrestaurant ist die Trattoria Roma." -- das merkt sie sich.
+- **Langzeitgedächtnis** -- ELLA speichert wichtige Informationen dauerhaft. "Mein Lieblingsrestaurant ist die Trattoria Roma." -- das merkt sie sich. Das Gedächtnis-Modell dafür (nomic-embed-text) ist im Installer enthalten -- Erinnerungen und Dokumenten-Suche funktionieren ab dem ersten Start, auch wenn du OpenAI nutzt.
 - **Knowledge Graph** -- ELLA erkennt Zusammenhänge. Wenn du sagst "Max ist mein Bruder" und später "Max hat Geburtstag am 15. März", verknüpft sie beides.
-- **Self-Learning** -- wenn du eine Antwort mit Daumen hoch bewertest, lernt ELLA daraus und gibt ähnliche Antworten künftig in diesem Stil.
+- **Self-Learning** -- wenn du eine Antwort mit Daumen hoch bewertest, lernt ELLA daraus und orientiert sich bei ähnlichen Fragen an Länge und Aufbau. Ihren Charakter ändern Bewertungen nicht. Antworten aus Werkzeugen (Kurs, Wetter, Systemstatus) werden kein Vorbild -- der Wert wäre beim nächsten Mal veraltet.
+- **Vergessen mit Rückfrage** -- bevor ELLA eine Erinnerung löscht, zeigt sie dir deren Text und wartet auf deine Bestätigung.
+- **Gedächtnis je Profil** -- was du ELLA sagst oder bewertest, landet im Gedächtnis deines Profils.
 - **Proaktive Nachrichten** -- ELLA meldet sich von selbst, wenn etwas Wichtiges passiert: Festplatte fast voll, neues Gerät verbunden, Termin in 15 Minuten.
 - **Lernende Benachrichtigungen** -- wenn du eine proaktive Nachricht 5-mal wegklickst, stellt ELLA diese Kategorie automatisch stumm.
 - **Tagesabschluss & Comeback** -- nach einer Pause fasst ELLA zusammen, was sich verändert hat. Am Ende des Tages erinnert sie an offene Aufgaben.
-- **Reflexion** -- ELLA reflektiert regelmäßig über gesammelte Erfahrungen und erkennt Muster in deinem Verhalten.
-- **Stresserkennung** -- optional: ELLA analysiert deine Stimme und gibt sanfte Hinweise, wenn du gestresst klingst.
+- **Reflexion** -- höchstens einmal pro Woche leitet ELLA aus den neuesten Erinnerungen deines Profils bis zu drei Erkenntnisse ab. Mit dem lokalen Modell fallen sie oft allgemein aus.
+- **Stresserkennung** -- optional, ab Werk aus: ELLA analysiert deine Stimme auf deinem Rechner und gibt sanfte Hinweise, wenn du gestresst klingst. Ist sie aus, wird nichts ausgewertet.
 
 > "Ella, was weißt du über mich?" -- "Ella, vergiss dass ich Kaffee mag." -- "Ella, was hat sich verändert, seit ich weg war?"
 
@@ -292,6 +297,7 @@ Mit Plugins bekommt ELLA neue Auskunftsquellen, zum Beispiel Wechselkurse oder F
 - ELLA baut ein Plugin selbst: Du nennst Name, Stichwörter und eine Beispiel-Adresse, die im Browser funktioniert.
 - Eingeschaltet wird ein Plugin nur von dir. Vorher siehst du, an welchen Server welche Werte gehen.
 - Ein Plugin enthält kein Programm. Wird seine Datei verändert, ist es sofort wieder aus.
+- **Ergebnisse merken** -- beim Einschalten wählbar: ELLA speichert die Antworten des Plugins mit Datum und beantwortet Fragen nach früheren Werten ("Wie war der Kurs gestern?") aus diesem Gedächtnis. Ohne diese Wahl sagt sie ehrlich, dass sie nichts gespeichert hat, und bietet an nachzuschauen. Auf der Gedächtnis-Seite kannst du die Einträge einzeln oder je Plugin löschen.
 
 > "Ella, bau mir ein Plugin für Wechselkurse. Die Adresse ist ..." -- "Ella, was sind 250 Euro in Dollar?"
 
@@ -330,6 +336,26 @@ ELLA kann dein lokales Netzwerk analysieren -- auch im Offline-Modus.
 Für fortgeschrittene Nutzer: ELLA kann PowerShell-Befehle ausführen. Das Werkzeug ist ab Werk ausgeschaltet (Einstellungen -> Tools -> Erlaubte Tools). Vor jeder Ausführung wird eine Bestätigung eingeholt, gefährliche Befehlsmuster sind gesperrt.
 
 > "Ella, führe 'Get-Process | Sort-Object CPU -Descending | Select -First 10' aus."
+
+---
+
+## Charakter, Wahrnehmung & Ehrlichkeit
+
+**Fester Charakter:** ELLA ist ruhig und überlegt, warm, leicht frech mit trockenem Humor, und ehrlich. Das bleibt so. An dich passt sich die Form an -- Länge, Tempo, Ausführlichkeit. Auf "Ab jetzt bist du ..." oder "Antworte nur noch förmlich" sagt sie kurz, dass sie bleibt, wie sie ist.
+
+**Wahrnehmung** (Einstellungen -> Wahrnehmung, alle Schalter ab Werk aus):
+
+- **Körperbewusstsein** -- ELLA kennt die Auslastung ihres Rechners und antwortet auf "Wie geht es dir?" aus diesen Messwerten. Im HUD und in Aura steht ihr Zustand in der Zeile "Befinden".
+- **Selbstbild** -- ELLA wertet ihr Werkzeug-Protokoll der letzten 30 Tage aus und kann sagen, was bei ihr zuverlässig klappt, wo sie öfter danebenliegt und was nicht eingerichtet ist.
+- **Stimmung** -- sagst du klar, wie es dir geht ("ich bin gerade völlig erschöpft"), passt ELLA die Form ihrer Antwort an: ruhiger und kürzer, oder etwas lockerer. Am Inhalt ändert das nichts.
+- **Erinnerungen einfärben, Neugier** -- vorbereitet, folgen in späteren Versionen.
+
+**Ehrlichkeit über die eigenen Antworten** (immer an):
+
+- Unter einer Antwort steht "aus dem Kopf, nicht nachgeschaut", wenn ELLA eine Wissensfrage ohne Werkzeug beantwortet hat, und "hat nicht geklappt", wenn kein Werkzeug ein Ergebnis geliefert hat.
+- Weiß sie etwas nicht sicher, sagt sie das und bietet an nachzuschauen. Ein kurzes "Ja" genügt dann.
+
+> "Ella, wie geht es dir?" -- "Ella, was kannst du gut?" -- "Ella, wer hat 1987 den Stadtlauf in Buxtehude gewonnen?"
 
 ---
 

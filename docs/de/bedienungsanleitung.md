@@ -1,6 +1,6 @@
 # E.L.L.A. – Bedienungsanleitung
 
-Version 1.6.9
+Version 1.7.1 – Stand: 24.11.2026
 
 Diese Anleitung erklärt, wie du E.L.L.A. einrichtest und benutzt. Jeder Abschnitt steht für sich – du kannst an jeder Stelle einsteigen.
 
@@ -43,9 +43,11 @@ Im öffentlichen Projekt stehen immer die Fassungen zur neuesten Version, dazu d
 2. Wähle den Installationsort. Vorgabe ist `C:\Program Files\E.L.L.A`.
 3. Der Installer bringt alles mit, was E.L.L.A. braucht. Du musst nichts zusätzlich installieren.
 
-Die Installation dauert einige Minuten, weil die Datenbank, Ollama und weitere Bausteine mitgeliefert werden. Je nach Windows-Einstellung kann beim Start des Installers ein Sicherheitshinweis von Windows erscheinen.
+Die Installation dauert einige Minuten, weil die Datenbank, Ollama, das Gedächtnis-Modell und weitere Bausteine mitgeliefert werden. Je nach Windows-Einstellung kann beim Start des Installers ein Sicherheitshinweis von Windows erscheinen.
 
 E.L.L.A. gibt es auch im Microsoft Store. Die Store-Fassung wird über den Store installiert und aktualisiert.
+
+Nicht im Paket ist die lokale Spracherkennung. E.L.L.A. lädt sie einmalig, wenn du zum ersten Mal sprichst (Kapitel 6).
 
 ### Der erste Start
 
@@ -60,11 +62,24 @@ Beim ersten Start führt dich E.L.L.A. durch die Einrichtung:
 7. **Stimme** – vier Stimmen in Deutsch, Englisch, Spanisch und Französisch, jeweils mit Hörprobe.
 8. **Standort** – für Wetter und lokale Auskünfte. Dieser Schritt lässt sich überspringen.
 
+Der erste Start dauert länger als die folgenden, weil E.L.L.A. dabei ihre Datenbank einrichtet. Auf langsamen Rechnern kann das einige Minuten dauern – E.L.L.A. wartet so lange.
+
+Kommt E.L.L.A. trotzdem nicht in Gang, zeigt sie einen Fehlerbildschirm: „E.L.L.A. startet nicht“ oder „Einstellungen ließen sich nicht laden“. Deine Einstellungen und Daten sind dann nicht verloren, und die Einrichtung beginnt nicht von vorn. Klicke auf **Erneut prüfen** oder starte E.L.L.A. neu. Der Bildschirm nennt auch den Pfad zum Startprotokoll (Kapitel 21).
+
 ### Der einmalige Modell-Download
 
 Nach der Einrichtung lädt E.L.L.A. einmalig das gewählte Sprachmodell herunter. Das Standardmodell ist etwa 5 GB groß. Ein Balken zeigt den Fortschritt: geladene Menge, Geschwindigkeit, Prozent und die geschätzte Restzeit. Du kannst E.L.L.A. in dieser Zeit schon ansehen, antworten kann sie erst nach dem Download.
 
 Bricht die Verbindung ab, setzt E.L.L.A. den Download an der Stelle fort, an der er stehen geblieben ist.
+
+Das Gedächtnis-Modell, mit dem E.L.L.A. Erinnerungen und Dokumente einordnet, bringt sie selbst mit. Es muss nicht geladen werden (Kapitel 5).
+
+### Mit Windows starten
+
+Ab Werk startet E.L.L.A. nicht automatisch mit Windows. So schaltest du das ein:
+
+- **Installer-Fassung:** Klicke mit der rechten Maustaste auf das E.L.L.A.-Symbol im Infobereich der Taskleiste und setze das Häkchen bei **Autostart**.
+- **Store-Fassung:** Hier entscheidet Windows. Öffne in Windows **Einstellungen → Apps → Autostart** und schalte E.L.L.A. dort ein (oder im Task-Manager unter **Autostart-Apps**). Im Menü des E.L.L.A.-Symbols im Infobereich öffnet **Autostart (Windows-Einstellungen) …** diese Seite direkt.
 
 ---
 
@@ -86,6 +101,44 @@ Beispiele:
 - **Rückfrage:** Vor folgenreichen Aktionen (zum Beispiel Dateien löschen) fragt E.L.L.A. nach und wartet auf deine Bestätigung.
 - **Daumen hoch / Daumen runter:** Mit deiner Bewertung lernt E.L.L.A., was dir gefällt.
 - **Hinweis-Balken:** Farbige Balken zeigen an, wenn etwas Besonderes aktiv ist, etwa der Offline-Modus, die Browser-Steuerung oder der Zwischenablage-Verlauf.
+- **„aus dem Kopf, nicht nachgeschaut“:** Dieser Hinweis steht unter einer Antwort, wenn du nach einer Tatsache gefragt hast und E.L.L.A. sie ohne Werkzeug beantwortet hat – also aus dem, was das Sprachmodell gelernt hat. Solche Antworten können falsch sein, vor allem bei Namen, Zahlen und Daten.
+- **„hat nicht geklappt“:** Dieser Hinweis steht unter einer Antwort, wenn E.L.L.A. Werkzeuge benutzt hat, aber keines ein Ergebnis geliefert hat.
+
+Antworten, die auf einem Werkzeug-Ergebnis beruhen, und normales Gespräch bekommen keinen Hinweis.
+
+### Nachschauen lassen
+
+Weiß E.L.L.A. etwas nicht sicher, sagt sie das und bietet an nachzuschauen. Dann genügt ein kurzes „Ja“ oder „Schau nach“ – sie sucht nach der Frage, die du eben gestellt hast. Das gilt für die nächsten fünf Minuten.
+
+Du kannst auch gleich so fragen: „Such im Internet nach …“
+
+### E.L.L.A.s Charakter
+
+E.L.L.A. hat einen festen Charakter: ruhig und überlegt, warm, leicht frech mit trockenem Humor, und ehrlich. Wenn es dir schlecht geht, lässt sie den Spott weg.
+
+- **Was sich anpasst:** wie viel sie sagt, wie ausführlich und in welchem Tempo. Sag ihr ruhig „Antworte kürzer“ oder „Weniger Witze, ich muss mich konzentrieren“.
+- **Was sich nicht anpasst:** wer sie ist. Auf „Ab jetzt bist du …“ oder „Antworte nur noch förmlich“ sagt sie kurz, dass sie bleibt, wie sie ist. Solche Vorgaben speichert sie auch nicht als Erinnerung.
+
+### Sprache und Gesprächspausen
+
+E.L.L.A. antwortet in der Sprache, in der du schreibst: auf eine deutsche Nachricht deutsch, auf eine englische englisch.
+
+Liegt zwischen zwei Nachrichten mehr als eine halbe Stunde, beginnt für das Sprachmodell ein neues Gespräch. Die älteren Nachrichten bleiben im Chat sichtbar, fließen aber nicht mehr in die nächste Antwort ein. Was länger gelten soll, steht im Gedächtnis (Kapitel 5).
+
+Wann du zuletzt geschrieben hast oder wie lange du weg warst, erfährt das Sprachmodell nicht. E.L.L.A. kommentiert deine Pausen deshalb in ihren Antworten nicht. Die Hinweise „Pause“ und „Willkommen zurück“ aus Kapitel 14 sind eigene Meldungen, die du stummschalten kannst.
+
+### Einstellungen im Gespräch ändern
+
+Ein paar Einstellungen kannst du im Chat ändern: den Anbieter und das Modell, die Art der Spracheingabe, das Vorlesen (an oder aus), die Länge des Verlaufs und deinen Namen. Beispiele:
+
+- „Hör auf, alles vorzulesen.“
+- „Nenn mich ab jetzt Andre.“
+
+E.L.L.A. ändert eine Einstellung nur, wenn deine Nachricht davon handelt, und nur auf gültige Werte. Alles andere stellst du in den **Einstellungen** ein.
+
+### Gespräch und Aufträge
+
+Im reinen Gespräch benutzt E.L.L.A. keine Werkzeuge. Welche Werkzeuge sie für eine Nachricht bekommt, hängt davon ab, worum es in der Nachricht geht. Nenne die Sache deshalb beim Namen: „Öffne den Rechner“, „Wie voll ist meine Festplatte?“, „Such im Internet nach …“.
 
 ### Selbsttest
 
@@ -103,13 +156,27 @@ E.L.L.A. merkt sich Dinge über Gespräche hinweg. Du kannst ihr gezielt etwas b
 - „Was weißt du über mich?“
 - „Vergiss, dass ich keinen Kaffee trinke.“
 
+Bevor E.L.L.A. etwas vergisst, zeigt sie dir die Erinnerung, die sie gefunden hat, und fragt nach. Erst nach deiner Bestätigung wird gelöscht.
+
 Sie erkennt auch Zusammenhänge. Sagst du „Mein Sohn heißt Max“ und später „Max geht aufs Einstein-Gymnasium“, kann sie die Frage „Auf welche Schule geht mein Sohn?“ beantworten.
 
-Zugangsdaten wie Passwörter, Schlüssel, IBANs und Kreditkartennummern werden vor dem Speichern unkenntlich gemacht.
+Zugangsdaten wie Passwörter, Schlüssel, IBANs und Kreditkartennummern werden vor dem Speichern unkenntlich gemacht. E.L.L.A. kennt deshalb keine Passwörter und nennt auch keine.
+
+Nicht gespeichert wird außerdem, was E.L.L.A.s Charakter ändern würde (siehe Kapitel 4). Wünsche zur Form – „bevorzugt kurze Antworten“ – merkt sie sich.
+
+Jede Erinnerung gehört zu dem Profil, in dem sie entstanden ist.
 
 ### Die Seite „Gedächtnis“
 
 Auf der Seite **Gedächtnis** siehst du alles, was E.L.L.A. gespeichert hat. Die Einträge sind in Kategorien sortiert: Über dich, Vorlieben, Menschen, Orte, Projekte, System, Notizen und Unsortiert. Du kannst Einträge von Hand hinzufügen und löschen. Ein Schaubild zeigt, wie die Erinnerungen zusammenhängen.
+
+Im Abschnitt **Beobachtungen** stehen die Ergebnisse von Plugins, bei denen du „Ergebnisse merken“ eingeschaltet hast (Kapitel 10). Du löschst sie einzeln oder alle eines Plugins auf einmal.
+
+### Das Gedächtnis-Modell
+
+Damit E.L.L.A. Erinnerungen speichern und wiederfinden und Dokumente einlesen kann, braucht sie ein eigenes kleines Modell, das Gedächtnis-Modell. Es läuft immer auf deinem Rechner, auch wenn du OpenAI nutzt. E.L.L.A. bringt es mit und richtet es beim ersten Start ein. Nutzt du ein separat installiertes Ollama, lädt sie es beim Start nach und zeigt den Fortschritt.
+
+Fehlt es trotzdem, steht oben in E.L.L.A. der Hinweis „Das Gedächtnis-Modell fehlt …“. Solange er zu sehen ist, werden keine Erinnerungen gespeichert und keine Dokumente eingelesen. Starte E.L.L.A. neu (mit Internetverbindung), dann lädt sie es nach.
 
 ### Notizen
 
@@ -143,6 +210,21 @@ Unter **Einstellungen → Tools → Spracheingabe** wählst du, wie E.L.L.A. zuh
 | **Wakeword** | Sag „Ella“ – dann hört sie zu und antwortet.             |
 | **Freihand** | Sie hört dauerhaft zu.                                   |
 | **Diktat**   | Was du sagst, wird in das gerade aktive Fenster getippt. |
+
+### Die Spracherkennung
+
+E.L.L.A. erkennt Sprache auf deinem Rechner. Das Modell dafür (rund 945 MB) ist nicht im Installer. E.L.L.A. lädt es einmalig: Ist eine Spracheingabe eingeschaltet, schon beim Start, sonst bei deiner ersten Aufnahme. Oben in E.L.L.A. zeigt dann ein Balken „Spracherkennung wird eingerichtet (einmalig)“ den Fortschritt. Danach liegt das Modell in deinem E.L.L.A.-Datenordner und wird nicht noch einmal geladen.
+
+- **Ohne Internet** funktioniert die allererste lokale Spracheingabe nicht. Klappt das Laden nicht, versucht E.L.L.A. es bei der nächsten Spracheingabe erneut.
+- **Mit OpenAI:** Steht der Anbieter auf **OpenAI** und ist ein Key hinterlegt, gehen deine Aufnahmen an OpenAI. Bei **Auto** springt OpenAI nur ein, wenn die lokale Spracherkennung nicht funktioniert und ein Key hinterlegt ist. Im Offline-Modus geht nichts an OpenAI.
+
+### Das Wakeword „Ella“
+
+Sag „Ella“ und gleich deinen Wunsch: „Ella, wie wird das Wetter morgen?“ Sagst du nur „Ella“, wartet sie bis zu 15 Sekunden auf deinen Wunsch.
+
+Das Wakeword erkennt E.L.L.A. auf deinem Rechner, ohne Zusatzprogramm. Danach prüft sie im erkannten Text nach, ob dort wirklich „Ella“ steht. Nur dann geht dein Satz an sie. Steht dort ein ähnliches Wort wie „Ellen“ oder „Hella“, passiert nichts. Für diese Prüfung braucht auch das Wakeword die Spracherkennung.
+
+Ist die Wakeword-Erkennung nicht verfügbar, steht unter **Einstellungen → Tools → Spracheingabe** ein Hinweis mit dem Grund. E.L.L.A. reagiert dann nicht auf „Ella“.
 
 Im Wakeword-Modus kannst du nach einer Antwort 8 Sekunden lang weitersprechen, ohne erneut „Ella“ zu sagen.
 
@@ -277,17 +359,17 @@ Viele Dienste im Internet bieten solche Adressen an, zum Beispiel für Wechselku
 
 ### Beispiel: Wechselkurse
 
-Der Dienst Frankfurter liefert Wechselkurse der Europäischen Zentralbank. Diese Adresse rechnet 250 Euro in Dollar um:
+Der Dienst Frankfurter liefert Wechselkurse der Europäischen Zentralbank. Diese Adresse nennt den Kurs für 1 Euro in Dollar:
 
 ```
-https://api.frankfurter.dev/v1/latest?amount=250&base=EUR&symbols=USD
+https://api.frankfurter.dev/v1/latest?amount=1&base=EUR&symbols=USD
 ```
 
 Öffnest du sie im Browser, siehst du das Ergebnis als Text. Genau so eine Adresse braucht E.L.L.A.
 
 **Schritt 1 – E.L.L.A. baut das Plugin.** Schreib in den Chat:
 
-> Bau mir ein Plugin für Wechselkurse. Stichwörter: Wechselkurs, Euro, Dollar, Franken, Pfund, umrechnen. Die Adresse ist https://api.frankfurter.dev/v1/latest?amount=250&base=EUR&symbols=USD
+> Bau mir ein Plugin für Wechselkurse. Stichwörter: Wechselkurs, Euro, Dollar, Franken, Pfund, umrechnen. Die Adresse ist https://api.frankfurter.dev/v1/latest?amount=1&base=EUR&symbols=USD
 
 E.L.L.A. legt das Plugin an. Sie erkennt selbst, dass sich Betrag, Ausgangswährung und Zielwährung ändern können.
 
@@ -300,6 +382,19 @@ E.L.L.A. legt das Plugin an. Sie erkennt selbst, dass sich Betrag, Ausgangswähr
 - „Wie viel sind 1000 Euro in Schweizer Franken?“
 
 Der Reiter **Plugins** in den Einstellungen zeigt diese drei Schritte auch als Kurzanleitung, mit einem Beispiel zum Kopieren.
+
+### Ergebnisse merken
+
+Beim Einschalten kannst du **Ergebnisse merken** ankreuzen (ab Werk aus). Dann speichert E.L.L.A. jede Antwort des Plugins mit Datum und Uhrzeit auf deinem Rechner. Später kannst du nach Früherem fragen:
+
+- „Wie war der Euro-Dollar-Kurs gestern?“
+- „Was waren 250 Euro vor zwei Tagen in Dollar?“
+
+Fragst du nach dem Jetzt, fragt E.L.L.A. das Plugin wie immer frisch. Für einen Tag ohne gespeicherten Wert sagt sie, dass sie nichts weiß – sie schätzt nicht. Die gespeicherten Werte siehst und löschst du unter **Gedächtnis → Beobachtungen**.
+
+Tipp für Kurse: Leg das Plugin mit dem Betrag **1** an (wie im Beispiel oben). Dann ist jeder gespeicherte Wert der Kurs selbst. Mit einem anderen Betrag, etwa 250, gilt der gespeicherte Wert nur für diesen Betrag – auf „Wie war der Kurs gestern?“ nannte das lokale Modell dann den Betrag für 250 Euro als Kurs.
+
+Ohne „Ergebnisse merken“ kennt ein Plugin nur das Jetzt. Auf „Wie war der Kurs gestern?“ sagt E.L.L.A. dann, dass sie dazu nichts weiß, und bietet an, den aktuellen Wert nachzuschauen.
 
 ### Warum du selbst einschalten musst
 
@@ -376,6 +471,12 @@ Unter **Einstellungen → Tools → Lokales RAG – Dokument-Wissen** gibst du E
 - „Welche Dokumente kennst du?“
 
 Das Einlesen läuft im Hintergrund. E.L.L.A. meldet sich im Chat, wenn sie fertig ist. Genau so bringst du ihr auch diese Anleitung bei (Kapitel 2).
+
+Nach dem Hinzufügen einer Datei siehst du das Ergebnis: Ließ sich die Datei nicht einlesen, nennt E.L.L.A. den Grund. Enthält sie keinen lesbaren Text (zum Beispiel ein eingescanntes PDF), steht dort „kein lesbarer Text gefunden“. Fehlt das Gedächtnis-Modell (Kapitel 5), gilt das Einlesen als fehlgeschlagen.
+
+**Wo die Dateien liegen:** Mit **Datei hinzufügen** legt E.L.L.A. eine Kopie in ihrem Datenordner ab (Unterordner `documents`). Entfernst du das Dokument aus der Liste, löscht sie diese Kopie. **Alles vergessen** leert die ganze Ablage. Deine eigenen Dateien und Ordner, die du ihr zu lesen gibst, fasst sie dabei nie an.
+
+Dokumente, die du vor Version 1.7.1 hinzugefügt hast, bleiben im Wissen. Die Kopie lag damals aber im Temp-Ordner von Windows, und den räumt Windows auf. Bittest du E.L.L.A., ein solches Dokument zu öffnen, findet sie die Datei dann nicht mehr. Füge sie einfach noch einmal hinzu.
 
 ### Doppelte Dateien
 
@@ -472,7 +573,9 @@ Manchmal schreibt E.L.L.A. von sich aus in den Chat, zum Beispiel wenn:
 - ein Wecker klingelt,
 - ein Termin in Kürze beginnt,
 - am Abend noch Aufgaben offen sind,
-- du lange ohne Pause arbeitest.
+- du lange ohne Pause arbeitest (Hinweis „Pause“, höchstens alle 90 Minuten),
+- du nach mindestens einer halben Stunde ohne Nachricht wieder schreibst (kurzes „Willkommen zurück“, dazu die Zahl der Systemwarnungen aus der Zwischenzeit),
+- sie über ihre Erfahrungen nachgedacht und etwas Neues daraus abgeleitet hat (höchstens einmal pro Woche).
 
 Jede dieser Meldungen hat zwei Knöpfe: 👋 („Nicht mehr so oft zeigen“) drückt die Meldung weg, 🔇 („Diesen Hinweistyp stummschalten“) unterdrückt diese Art von Meldung dauerhaft. Drückst du dieselbe Art fünfmal weg, schaltet E.L.L.A. sie von selbst stumm. Wecker und geplante Setups lassen sich nicht stummschalten.
 
@@ -519,6 +622,36 @@ Unter **Einstellungen → Modus → Barrierefreiheit**:
 
 Unter **Einstellungen → Modus → Gestensteuerung** schaltest du die Steuerung per Handbewegung vor der Kamera ein. Sie ist zunächst aus.
 
+### Wahrnehmung
+
+Im eigenen Reiter **Einstellungen → Wahrnehmung** entscheidest du, was E.L.L.A. über sich und über dich wahrnehmen darf. Oben erklärt ein kurzer Text, wie es funktioniert, darunter stehen die Schalter. **Alle Schalter sind ab Werk aus.** Alles bleibt auf deinem Rechner. Im Hausaufgaben-Modus sind diese fünf Schalter immer aus; der Notschalter schaltet sie ebenfalls aus. Im Gespräch lassen sie sich nicht einschalten.
+
+| Schalter               | Was er bewirkt                                                                                                                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Körperbewusstsein      | E.L.L.A. kennt die Auslastung ihres Rechners (Prozessor, Arbeitsspeicher, Grafikspeicher, freier Platz, Stimme). Auf „Wie geht es dir?“ antwortet sie aus diesen Messwerten.                   |
+| Selbstbild             | E.L.L.A. wertet ihr eigenes Werkzeug-Protokoll der letzten 30 Tage aus. Auf „Was kannst du gut?“, „Worin bist du schlecht?“ oder „Wie lange kennen wir uns?“ antwortet sie aus diesen Angaben. |
+| Stimmung erkennen      | E.L.L.A. erkennt eine klar ausgedrückte Stimmung in deiner Nachricht und passt die Form ihrer Antwort an.                                                                                      |
+| Erinnerungen einfärben | trägt den Hinweis „folgt“ (siehe unten)                                                                                                                                                        |
+| Neugier                | folgt in einer späteren Version, bewirkt noch nichts                                                                                                                                           |
+
+**Stimmung erkennen:** Schreibst du etwa „Mir geht es schlecht“ oder „Ich bin total erschöpft“, antwortet E.L.L.A. ruhig und kurz, ohne Witze. Bei „Ich freu mich“ oder „Mir geht's super“ darf sie etwas lockerer sein. Das ändert nur die Form, nicht den Inhalt und nicht ihren Charakter. Erkannt wird nach festen Mustern in der aktuellen Nachricht, ohne Sprachmodell. Was nicht klar ausgedrückt ist, gilt als neutral. Gespeichert wird dabei nichts.
+
+**Erinnerungen einfärben:** Ist der Schalter an, vermerkt E.L.L.A. zu Erinnerungen, die sie aus dem Gespräch ableitet, ob die Nachricht eher gut oder eher belastet klang. Genutzt oder angezeigt wird dieser Vermerk noch nicht – deshalb steht in den Einstellungen „folgt“.
+
+**Körperbewusstsein:** Läuft alles normal, sagt sie zum Beispiel „Alles läuft rund.“ Ist der Grafikspeicher oder der Arbeitsspeicher fast voll, sagt sie, dass sie gerade langsamer ist. In den Erscheinungsbildern HUD und Aura steht ihr Zustand zusätzlich im Feld **System** in der Zeile **Befinden**. Die Messwerte liest E.L.L.A. nur bei eingeschaltetem Schalter.
+
+**Selbstbild:** E.L.L.A. unterscheidet, ob etwas an ihr lag (sie hat ein Werkzeug falsch benutzt), ob etwas nicht eingerichtet ist (zum Beispiel Google nicht verbunden) oder ob es an der Lage lag (die Zwischenablage war leer). Nur das Erste zählt als Schwäche. Hat sie in einem Bereich zu wenig gemacht, sagt sie darüber nichts.
+
+Die Angaben stammen aus Messungen. Wie E.L.L.A. sie formuliert, entscheidet das Sprachmodell – das lokale Modell hängt dabei gelegentlich ein eigenes Detail an.
+
+### Stress-Erkennung
+
+Im selben Reiter steht der Abschnitt **Stress-Erkennung** mit dem Schalter **Stimmanalyse aktivieren**. Ist er an, misst E.L.L.A. bei Spracheingaben Lautstärke, Tonhöhe und Klang deiner Stimme. Klingt sie angespannt, antwortet E.L.L.A. ruhiger. Die Auswertung läuft in E.L.L.A. selbst, ohne Zusatzprogramm und ohne Internet.
+
+- Der Schalter ist ab Werk aus. Ohne deine Zustimmung wird deine Stimme gar nicht auf Anspannung ausgewertet.
+- Die Grenzwerte sind fest eingestellt und noch nicht an echten Stimmen geeicht. Die Einschätzung kann danebenliegen.
+- Die Stress-Erkennung ist ein eigener Schalter, verhält sich aber wie die übrige Wahrnehmung: Im Hausaufgaben-Modus ist sie aus, und der Notschalter schaltet sie ab.
+
 ---
 
 ## 16. Sprachmodell und OpenAI
@@ -527,11 +660,13 @@ Alle Einstellungen dazu stehen unter **Einstellungen → LLM**.
 
 ### Lokal oder Cloud
 
-| Einstellung        | Bedeutung                                                       |
-| ------------------ | --------------------------------------------------------------- |
-| **Ollama (lokal)** | Alles läuft auf deinem Rechner. OpenAI wird nie benutzt.                         |
-| **OpenAI**         | Antworten kommen von OpenAI. Du brauchst einen eigenen Key.     |
-| **Auto**           | Die Vorgabe: zuerst lokal. OpenAI springt nur ein, wenn es lokal nicht geht und ein Key hinterlegt ist. |
+| Einstellung        | Bedeutung                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------ |
+| **Ollama (lokal)** | Alles läuft auf deinem Rechner. OpenAI wird nie benutzt.                                               |
+| **OpenAI**         | Antworten kommen von OpenAI. Du brauchst einen eigenen Key.                                            |
+| **Auto**           | Die Vorgabe: zuerst lokal. OpenAI springt nur ein, wenn Ollama nicht läuft und ein Key hinterlegt ist. |
+
+In den Einstellungen heißt die Vorgabe „Auto (lokal zuerst — OpenAI nur, wenn Ollama nicht läuft)“. Die Wahl des Anbieters gilt sofort, ohne **Speichern**.
 
 ### Das lokale Modell
 
@@ -552,7 +687,7 @@ Schaltet OpenAI ein Modell ab, nutzt E.L.L.A. bis zum nächsten Start die Empfeh
 
 ### Persönliches Modell
 
-E.L.L.A. kann aus deinen Bewertungen ein persönliches Modell trainieren. Jede Antwort mit Daumen hoch wird ein Lernbeispiel. Ab 50 Beispielen ist ein Training möglich (**Einstellungen → Tools → Persönliches Modell**). Es läuft vollständig auf deinem Rechner, dauert je nach Hardware 10 bis 30 Minuten und braucht eine Grafikkarte mit mindestens 12 GB Speicher.
+E.L.L.A. kann aus deinen Bewertungen ein persönliches Modell trainieren. Eine Antwort mit Daumen hoch wird ein Lernbeispiel – außer Antworten, für die E.L.L.A. Werkzeuge benutzt hat (ihr Inhalt, etwa ein Kurs oder das Wetter, wäre beim nächsten Mal veraltet). Ab 50 Beispielen ist ein Training möglich (**Einstellungen → Tools → Persönliches Modell (LoRA)**). Es läuft vollständig auf deinem Rechner, dauert je nach Hardware 10 bis 30 Minuten und braucht eine Grafikkarte mit mindestens 12 GB Speicher.
 
 ---
 
@@ -604,28 +739,32 @@ Zusätzlich legst du eigene Regeln fest, im Chat oder unter **Einstellungen → 
 
 - „Erstell eine Regel: E.L.L.A. darf keine Dateien löschen.“
 
+Eine Regel aus dem Chat gilt immer für genau ein Werkzeug. E.L.L.A. legt sie nur an, wenn du ausdrücklich etwas sperren oder freigeben willst. Eine Regel für alle Werkzeuge auf einmal entsteht nie im Gespräch – die legst du, wenn du sie brauchst, unter **Einstellungen → Regeln** an.
+
+Unter **Einstellungen → Regeln** schaltest du auch einzelne Regeln aus. Eine ausgeschaltete Regel bleibt auch nach einem Neustart aus.
+
 ### Welche Werkzeuge E.L.L.A. benutzen darf
 
-E.L.L.A. hat 123 Werkzeuge. Unter **Einstellungen → Tools → Erlaubte Tools** hat jedes einen Schalter. Dort schaltest du einzelne Werkzeuge ein und aus und klickst danach auf **Speichern**.
+E.L.L.A. hat 123 Werkzeuge. Unter **Einstellungen → Tools → Erlaubte Tools** hat jedes einen Schalter. Dort schaltest du einzelne Werkzeuge ein und aus und klickst danach auf **Speichern**. Hat es geklappt, steht auf dem Knopf „Gespeichert ✓“. Sonst erscheint „Nicht gespeichert (…)“ mit dem Grund – dann versuche es erneut.
 
 Die meisten Werkzeuge sind ab Werk eingeschaltet. **Ab Werk ausgeschaltet** sind die Werkzeuge, mit denen E.L.L.A. deinen Rechner selbst bedient oder tief ins System eingreift. Du schaltest sie nur ein, wenn du das willst:
 
-| Werkzeug                         | Was E.L.L.A. damit kann                                   |
-| -------------------------------- | --------------------------------------------------------- |
-| Tasten senden                    | Tastendrücke an das aktive Fenster schicken               |
-| Maus bewegen                     | den Mauszeiger bewegen                                    |
-| An Position klicken              | an einer Stelle auf dem Bildschirm klicken                |
-| Ziehen und Ablegen               | etwas mit der Maus ziehen                                 |
-| Bedienelement anklicken          | einen Knopf oder ein Feld in einem Programm anklicken     |
-| Fenster steuern                  | Fenster minimieren, maximieren, schließen, verschieben    |
-| Programm direkt starten          | ein freigegebenes Programm mit Zusatzangaben starten      |
-| Bildschirm lesen (Texterkennung) | den Text auf dem Bildschirm auslesen                      |
-| Bildschirm beobachten            | auf eine Änderung auf dem Bildschirm warten               |
-| Befehl ausführen                 | einen Systembefehl ausführen                              |
-| Dienste steuern                  | Windows-Dienste starten und stoppen                       |
-| Dateien löschen                  | mehrere Dateien auf einmal in den Papierkorb verschieben  |
-| Monitore auflisten               | die angeschlossenen Bildschirme nennen                    |
-| App auf Monitor öffnen           | ein Programm auf einem bestimmten Bildschirm öffnen       |
+| Werkzeug                         | Was E.L.L.A. damit kann                                  |
+| -------------------------------- | -------------------------------------------------------- |
+| Tasten senden                    | Tastendrücke an das aktive Fenster schicken              |
+| Maus bewegen                     | den Mauszeiger bewegen                                   |
+| An Position klicken              | an einer Stelle auf dem Bildschirm klicken               |
+| Ziehen und Ablegen               | etwas mit der Maus ziehen                                |
+| Bedienelement anklicken          | einen Knopf oder ein Feld in einem Programm anklicken    |
+| Fenster steuern                  | Fenster minimieren, maximieren, schließen, verschieben   |
+| Programm direkt starten          | ein freigegebenes Programm mit Zusatzangaben starten     |
+| Bildschirm lesen (Texterkennung) | den Text auf dem Bildschirm auslesen                     |
+| Bildschirm beobachten            | auf eine Änderung auf dem Bildschirm warten              |
+| Befehl ausführen                 | einen Systembefehl ausführen                             |
+| Dienste steuern                  | Windows-Dienste starten und stoppen                      |
+| Dateien löschen                  | mehrere Dateien auf einmal in den Papierkorb verschieben |
+| Monitore auflisten               | die angeschlossenen Bildschirme nennen                   |
+| App auf Monitor öffnen           | ein Programm auf einem bestimmten Bildschirm öffnen      |
 
 Bittest du E.L.L.A. um etwas, dessen Werkzeug ausgeschaltet ist, antwortet sie: „Das kann ich gerade nicht – diese Funktion ist deaktiviert.“ Dann schaltest du das Werkzeug in der Liste ein.
 
@@ -651,6 +790,8 @@ Verbindungen nach außen gibt es nur für bestimmte Zwecke:
 - **Plugins** – nur an die Server, denen du zugestimmt hast.
 - **Update-Prüfung** – nur auf Knopfdruck.
 - **Modell-Download** – einmalig bei der Einrichtung.
+- **Spracherkennung** – einmaliger Download des Modells (rund 945 MB) bei der ersten Spracheingabe.
+- **Gedächtnis-Modell** – nur, falls es fehlt (zum Beispiel bei einem separat installierten Ollama).
 
 Die vollständige Liste steht unter [Netzwerkverbindungen](netzwerk.md).
 
@@ -682,6 +823,15 @@ Der Bildschirm nennt die Ursache und den nächsten Schritt. Meist hilft **Erneut
 **E.L.L.A. lehnt etwas ab.**
 Der rote Hinweis nennt den Grund: die Directive oder eine deiner Regeln. Eigene Regeln änderst du unter **Einstellungen → Regeln**.
 
+**E.L.L.A. redet nur, statt etwas zu tun.**
+Sie bekommt Werkzeuge nur, wenn deine Nachricht erkennen lässt, worum es geht. Nenne die Sache beim Namen („Öffne den Rechner“, „Stell die Lautstärke auf 30 Prozent“, „Such im Internet nach …“). Hat sie angeboten nachzuschauen, genügt ein „Ja“.
+
+**Unter der Antwort steht „aus dem Kopf, nicht nachgeschaut“.**
+E.L.L.A. hat eine Wissensfrage ohne Werkzeug beantwortet. Wenn es darauf ankommt, sag „Schau nach“ – dann sucht sie im Internet.
+
+**E.L.L.A. will meine Erinnerung nicht speichern.**
+Zu kurze Texte, reine Beobachtungen und Vorgaben, die ihren Charakter ändern würden, speichert sie nicht. Sie sagt dir, warum.
+
 **E.L.L.A. sagt „Diese Funktion ist deaktiviert“.**
 Das Werkzeug dafür ist ausgeschaltet. Schalte es unter **Einstellungen → Tools → Erlaubte Tools** ein und klicke auf **Speichern**. Welche Werkzeuge ab Werk aus sind, steht in Kapitel 18.
 
@@ -694,12 +844,34 @@ Nenne in deiner Nachricht, worauf sie klicken soll, mit der Beschriftung auf der
 **E.L.L.A. antwortet langsam.**
 Wie schnell das lokale Modell antwortet, hängt von der Grafikkarte ab. Wähle unter **Einstellungen → LLM** ein kleineres Hardware-Profil oder nutze OpenAI. Näheres unter [Hardware](hardware.md).
 
+**Beim Start steht „E.L.L.A. startet nicht“ oder „Einstellungen ließen sich nicht laden“.**
+E.L.L.A. hat ihre Einstellungen gerade nicht erreicht – sie sind nicht verloren. Klicke nach einem Moment auf **Erneut prüfen** oder starte E.L.L.A. neu. Bleibt der Bildschirm, hilft das Startprotokoll (siehe unten).
+
+**Oben steht „Das Gedächtnis-Modell fehlt …“.**
+Ohne dieses Modell speichert E.L.L.A. keine Erinnerungen und liest keine Dokumente ein. Starte E.L.L.A. mit Internetverbindung neu, dann lädt sie es nach (Kapitel 5).
+
+**Die erste Spracheingabe dauert lange.**
+E.L.L.A. lädt dann einmalig die Spracherkennung (rund 945 MB). Der Balken „Spracherkennung wird eingerichtet (einmalig)“ zeigt den Fortschritt. Ohne Internet klappt das nicht; E.L.L.A. versucht es bei der nächsten Spracheingabe erneut (Kapitel 6).
+
+**E.L.L.A. reagiert nicht auf „Ella“.**
+Sieh unter **Einstellungen → Tools → Spracheingabe** nach, ob der Modus **Wakeword** gewählt ist und ob dort ein Hinweis steht, warum die Wakeword-Erkennung nicht verfügbar ist.
+
+**E.L.L.A. kann ein Dokument aus dem Dokument-Wissen nicht öffnen.**
+Vermutlich wurde es vor Version 1.7.1 hinzugefügt, und die Kopie ist nicht mehr da. Füge es unter **Einstellungen → Tools → Lokales RAG – Dokument-Wissen** noch einmal hinzu (Kapitel 11).
+
+**Eine Einstellung wurde nicht übernommen.**
+Viele Einstellungen gelten erst nach einem Klick auf **Speichern** unten auf der Seite. Steht dort „Nicht gespeichert (…)“, nennt die Meldung den Grund. Die Wahl des Anbieters unter **Einstellungen → LLM** gilt sofort.
+
 **Wo steht das Startprotokoll?**
-In der Datei `%APPDATA%\ELLA\ella-startup.log`. Unter **Einstellungen → Über E.L.L.A.** kannst du außerdem die wichtigsten Angaben zu deinem System für eine Support-Anfrage kopieren.
+
+- **Installer-Fassung:** `%APPDATA%\ELLA\ella-startup.log`
+- **Store-Fassung:** `%LOCALAPPDATA%\Packages\<Paket>\LocalCache\Roaming\ELLA\ella-startup.log` – `<Paket>` ist der Ordner, dessen Name „E.L.L.A.“ enthält.
+
+Unter **Einstellungen → Über E.L.L.A.** kannst du außerdem die wichtigsten Angaben zu deinem System für eine Support-Anfrage kopieren.
 
 Weitere Antworten stehen in der [FAQ](faq.md).
 
 ---
 
-_E.L.L.A. v1.6.9 – Embedded Local Logic Agent_
+_E.L.L.A. v1.7.1 – Embedded Local Logic Agent_
 _Für Windows 10 und 11 (64 Bit)_

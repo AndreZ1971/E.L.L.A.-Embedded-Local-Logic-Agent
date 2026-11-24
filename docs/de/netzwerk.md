@@ -1,6 +1,6 @@
 # Wann verbindet sich E.L.L.A. mit dem Internet?
 
-Version 1.6.9
+Version 1.7.1
 
 **Keine Telemetrie. Kein Tracking. Kein Cloud-Zwang.**
 E.L.L.A. sendet keine Nutzungsdaten, keine Fehlerberichte und keine Auswertungen an uns oder Dritte.
@@ -27,25 +27,28 @@ Englisch, Französisch und Spanisch spricht eine lokale Stimme (Kokoro) ohne Ver
 
 ### Einmalige Downloads
 
-| Was                                    | Woher           | Größe ca.            | Wann                                        |
-| -------------------------------------- | --------------- | -------------------- | ------------------------------------------- |
-| Sprachmodell (Standard: `llama3.1:8b`) | Ollama-Registry | 5 GB, je nach Modell | nach der Modellwahl beim ersten Start       |
-| Gedächtnis-Modell `nomic-embed-text`   | Ollama-Registry | 0,3 GB               | beim ersten Start                           |
-| Lokale Stimme Kokoro (EN/FR/ES)        | HuggingFace Hub | 80 MB                | beim ersten Start, falls nicht im Installer |
-| Modell für die lokale Spracherkennung  | HuggingFace Hub | einige hundert MB    | bei der ersten Spracheingabe                |
+| Was                                                                  | Woher                                  | Größe ca.            | Wann                                                                                                                  |
+| -------------------------------------------------------------------- | -------------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Sprachmodell (Standard: `llama3.1:8b`)                               | Ollama-Registry (`registry.ollama.ai`) | 5 GB, je nach Modell | nach der Modellwahl beim ersten Start                                                                                 |
+| Lokale Stimme Kokoro (EN/FR/ES)                                      | Hugging Face (`huggingface.co`)        | 80 MB                | beim ersten Start                                                                                                     |
+| Modell für die lokale Spracherkennung (`onnx-community/whisper-medium-ONNX`) | Hugging Face (`huggingface.co`) | 0,9 GB               | bei der ersten Spracheingabe; ist die Spracheingabe eingeschaltet, schon beim Start. Mit Fortschrittsanzeige |
 
-Das Modell für die Gestensteuerung liegt im Installer; dafür ist keine Verbindung nötig.
+Das **Gedächtnis-Modell** `nomic-embed-text` liegt seit v1.7.1 im Installer und wird beim ersten Start ohne Verbindung übernommen. Nur wenn es trotzdem fehlt – etwa weil E.L.L.A. ein separat installiertes Ollama mitbenutzt –, lädt sie es einmalig aus der Ollama-Registry (`registry.ollama.ai`, 0,3 GB) nach.
+
+Ohne Internet funktioniert die allererste lokale Spracheingabe nicht, weil das Modell dafür noch fehlt; ein gescheiterter Download wird bei der nächsten Aufnahme erneut versucht. Das Modell landet im Datenordner (`…\ELLA\whisper-cache`).
+
+Das Modell für die Gestensteuerung und die Wakeword-Modelle liegen im Installer; dafür ist keine Verbindung nötig.
 
 ### Nur auf deine Anfrage
 
-| Funktion                                    | Ziel                            | Was wird gesendet                            | Im Offline-Modus |
-| ------------------------------------------- | ------------------------------- | -------------------------------------------- | ---------------- |
-| Websuche                                    | DuckDuckGo                      | der Suchbegriff                              | gesperrt         |
-| Wetter                                      | Open-Meteo                      | Ort bzw. Koordinaten                         | gesperrt         |
+| Funktion                                    | Ziel                            | Was wird gesendet                                                 | Im Offline-Modus |
+| ------------------------------------------- | ------------------------------- | ----------------------------------------------------------------- | ---------------- |
+| Websuche                                    | DuckDuckGo                      | der Suchbegriff                                                   | gesperrt         |
+| Wetter                                      | Open-Meteo                      | Ort bzw. Koordinaten                                              | gesperrt         |
 | Standort                                    | ip-api.com                      | deine Internet-Adresse (IP), unverschlüsselt – nur nach Rückfrage | gesperrt         |
-| Webseite abrufen oder beschreiben           | die genannte Adresse            | der Seitenaufruf                             | gesperrt         |
-| Browser-Steuerung (falls eingeschaltet)     | die Seiten, die du öffnen lässt | was ein Browser beim Surfen sendet           | gesperrt         |
-| Gmail und Google Kalender (falls verbunden) | Google                          | die jeweilige Abfrage                        | –                |
+| Webseite abrufen oder beschreiben           | die genannte Adresse            | der Seitenaufruf                                                  | gesperrt         |
+| Browser-Steuerung (falls eingeschaltet)     | die Seiten, die du öffnen lässt | was ein Browser beim Surfen sendet                                | gesperrt         |
+| Gmail und Google Kalender (falls verbunden) | Google                          | die jeweilige Abfrage                                             | –                |
 
 ### Plugins (nur eingeschaltete)
 

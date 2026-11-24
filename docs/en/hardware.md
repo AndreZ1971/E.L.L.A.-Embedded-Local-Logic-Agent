@@ -1,6 +1,6 @@
 # E.L.L.A. – Hardware Guide
 
-Version 1.6.9
+Version 1.7.1
 
 The figures on [ella-agent.de](https://ella-agent.de) are binding. This guide explains them.
 
@@ -84,13 +84,14 @@ E.L.L.A. switches on two Ollama optimizations by herself: **Flash Attention** sp
 
 ## Disk space
 
-| Component                         | Size (approx.) | Note                                               |
-| --------------------------------- | -------------- | -------------------------------------------------- |
-| Installer                         | 1 GB           | contains the database, Ollama and other components |
-| Language model `llama3.1:8b`      | 5 GB           | downloaded once on the first start                 |
-| Memory model                      | 0.3 GB         | for memories and document knowledge                |
-| Copy of the installer for updates | 1 GB           | the basis for keeping updates small                |
-| Database                          | grows          | with use                                           |
+| Component                         | Size (approx.) | Note                                                                     |
+| --------------------------------- | -------------- | ------------------------------------------------------------------------ |
+| Installer                         | 1.2 GB         | contains the database, Ollama, the memory model and other components     |
+| Language model `llama3.1:8b`      | 5 GB           | downloaded once on the first start                                       |
+| Memory model                      | 0.3 GB         | for memories and document knowledge; in the installer, no download       |
+| Local speech recognition          | 0.9 GB         | downloaded once on the first voice input (only if you speak)             |
+| Copy of the installer for updates | 1.2 GB         | the basis for keeping updates small                                      |
+| Database                          | grows          | with use                                                                 |
 
 The language model takes up most of the space. Its download shows progress, speed and time left.
 
@@ -116,6 +117,6 @@ If the language model occupies the graphics memory, little is left for games. Qu
 
 ---
 
-_E.L.L.A. v1.6.9_
+_E.L.L.A. v1.7.1_
 
 _Further documentation: [FAQ](faq.md) – [Network connections](network.md) – [User manual](bedienungsanleitung.md)_

@@ -1,6 +1,6 @@
 # When does E.L.L.A. connect to the internet?
 
-Version 1.6.9
+Version 1.7.1
 
 **No telemetry. No tracking. No forced cloud.**
 E.L.L.A. sends no usage data, no error reports and no analytics to us or to third parties.
@@ -27,14 +27,17 @@ English, French and Spanish are spoken by a local voice (Kokoro) without a conne
 
 ### One-time downloads
 
-| What                                    | From            | Size approx.             | When                                        |
-| --------------------------------------- | --------------- | ------------------------ | ------------------------------------------- |
-| Language model (default: `llama3.1:8b`) | Ollama registry | 5 GB, depending on model | after choosing the model on the first start |
-| Memory model `nomic-embed-text`         | Ollama registry | 0.3 GB                   | on the first start                          |
-| Local voice Kokoro (EN/FR/ES)           | HuggingFace Hub | 80 MB                    | on the first start, if not in the installer |
-| Model for local speech recognition      | HuggingFace Hub | a few hundred MB         | on the first voice input                    |
+| What                                                                 | From                                   | Size approx.             | When                                                                                                         |
+| -------------------------------------------------------------------- | -------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Language model (default: `llama3.1:8b`)                              | Ollama registry (`registry.ollama.ai`) | 5 GB, depending on model | after choosing the model on the first start                                                                  |
+| Local voice Kokoro (EN/FR/ES)                                        | Hugging Face (`huggingface.co`)        | 80 MB                    | on the first start                                                                                           |
+| Model for local speech recognition (`onnx-community/whisper-medium-ONNX`) | Hugging Face (`huggingface.co`)   | 0.9 GB                   | on the first voice input; if voice input is switched on, already at start. With a progress display |
 
-The model for gesture control is included in the installer; no connection is needed for it.
+Since v1.7.1 the **memory model** `nomic-embed-text` is included in the installer and is taken over without a connection on the first start. Only if it is missing anyway – for example because E.L.L.A. uses a separately installed Ollama – does she download it once from the Ollama registry (`registry.ollama.ai`, 0.3 GB).
+
+Without internet the very first local voice input does not work, because its model is still missing; a failed download is retried on the next recording. The model is stored in the data folder (`…\ELLA\whisper-cache`).
+
+The model for gesture control and the wake word models are included in the installer; no connection is needed for them.
 
 ### Only at your request
 

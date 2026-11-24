@@ -1,6 +1,6 @@
 # E.L.L.A. — Plugins
 
-Stand: v1.6.8
+Stand: v1.7.0
 
 Mit einem Plugin bekommt E.L.L.A. eigene Tools, ohne dass Programmcode geändert wird. Ein Plugin ist **rein deklarativ**: Es beschreibt, welche feste Adresse mit welchen geprüften Werten aufgerufen wird. Es enthält keinen ausführbaren Code und kann keine Programme starten.
 
@@ -18,6 +18,15 @@ Jedes Plugin ist ein Ordner mit genau einer Datei `ella-plugin.json`:
 
 Der Ordnername muss der `id` im Manifest entsprechen. Den genauen Pfad zeigt E.L.L.A. unter **Einstellungen → Plugins** an. Neue oder geänderte Plugins erscheinen dort nach „Neu einlesen".
 
+## E.L.L.A. legt ein Plugin für dich an
+
+Seit v1.6.9 musst du die Datei nicht selbst schreiben. Nenne im Chat, wofür das Plugin sein soll, und eine Beispiel-Adresse, die im Browser funktioniert – etwa: „Bau mir ein Plugin für Wechselkurse. Die Adresse ist https://api.frankfurter.dev/v1/latest?amount=1&base=EUR&symbols=USD“. E.L.L.A. legt daraus den Ordner und das Manifest an: Der Teil vor dem Fragezeichen wird die feste Adresse, jeder Wert dahinter ein Parameter.
+
+- Die Adresse muss wörtlich in deiner Nachricht stehen. E.L.L.A. baut kein Plugin für eine Adresse, die sie selbst gefunden oder erraten hat.
+- Eingeschaltet wird dabei nichts. Du prüfst das Plugin wie jedes andere unter Einstellungen → Plugins und stimmst dort zu.
+- Ein vorhandener Plugin-Ordner wird nie überschrieben.
+- Nicht auf diesem Weg: Dienste mit Schlüssel oder Anmeldung, POST-Anfragen, feste Auswahllisten und mehr als acht Werte. Dafür schreibst du das Manifest von Hand, wie unten beschrieben.
+
 ## Einschalten heißt zustimmen
 
 Ein Plugin ist nach dem Ablegen **aus**. Vor dem Einschalten zeigt E.L.L.A.:
@@ -27,6 +36,14 @@ Ein Plugin ist nach dem Ablegen **aus**. Vor dem Einschalten zeigt E.L.L.A.:
 - welche Kopfzeilen fest mitgesendet werden (nur die Namen, nie die Werte).
 
 Die Zustimmung gilt für genau diesen Stand der Datei. **Wird das Manifest später verändert, schaltet E.L.L.A. das Plugin sofort aus**, bis du es erneut geprüft und eingeschaltet hast.
+
+## Ergebnisse merken
+
+Auf der Zustimmungsseite kannst du zusätzlich **Ergebnisse merken** ankreuzen (ab Werk aus). Dann speichert E.L.L.A. jede erfolgreiche Antwort des Plugins mit Datum und Uhrzeit (Tabelle `observations`, höchstens 2 KB je Eintrag, ohne Zeitgrenze). Fragst du nach Früherem („Wie war der Kurs gestern?“), antwortet sie aus diesen Einträgen und nennt das Datum; für einen Tag ohne Eintrag sagt sie das und schätzt nicht. Fragen nach dem Jetzt gehen weiter frisch an das Plugin. Die Freigabe ist wie das Einschalten an den Stand des Manifests gebunden und lässt sich später in der Plugin-Liste ändern. Gespeichertes siehst und löschst du unter Gedächtnis → Beobachtungen.
+
+Ein Plugin ohne „Ergebnisse merken“ kennt nur das Jetzt: Bei einer Frage nach Früherem bietet E.L.L.A. das Werkzeug nicht an (außer es hat einen Parameter mit `date`) und bietet stattdessen an, den aktuellen Wert nachzuschauen.
+
+Für Kurse empfiehlt sich in der Beispiel-Adresse der Betrag 1 — dann ist jeder gespeicherte Wert der Kurs selbst.
 
 ## Beispiel
 

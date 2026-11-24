@@ -4,6 +4,44 @@ All notable changes to E.L.L.A. are documented here.
 
 ---
 
+## [1.7.1] — November 2026
+
+First release after 1.6.9. Includes everything from 1.7.0, which was never released on its own.
+
+### Fixed
+
+- **Memory on fresh computers.** The embedding model was never shipped. On new computers E.L.L.A. remembered nothing and read no documents, even with OpenAI. The model now comes with the installer.
+- **Local speech recognition.** Never loaded since 1.6.2. With an OpenAI key, OpenAI silently took over; without one it did not work at all. Now runs locally, downloaded once on first voice input (~945 MB).
+- **"Ella" wake word.** Ran in no installed version. The model has been retrained — 98/100 recognition, <1/100 false triggers (measured with computer voices).
+- **Stress detection.** Ran in no installed version. Now runs directly inside E.L.L.A., still only with consent.
+- **No onboarding after a slow start.** Language, licence and onboarding no longer restart on slow machines.
+- **AI provider.** Choice takes effect immediately. "Auto" is labelled honestly: local first, OpenAI only as fallback.
+- **Documents.** Uploaded files now stay in the E.L.L.A. folder, not in Windows temp.
+- **Autostart in the Store version.** Now in Windows Settings → Apps → Startup, off by default.
+- **Profile PINs** are stored completely.
+
+### New
+
+- **"Remember results" for plugins.** Decide per plugin whether E.L.L.A. remembers query results. Without it she says honestly that she has nothing stored.
+- **Plugin answers with time.** Fresh values carry date and time; empty lists count as answers, not errors.
+- **Conversations with a beginning and an end.** After a 30-minute pause a new conversation begins; old topics no longer leak into new answers.
+- **Awareness in its own tab.** Body awareness, self-image, and mood. Everything off by default.
+- **Learning from thumbs-up** is more reliable: similar answers no longer lost as duplicates.
+
+---
+
+## [1.7.0] — November 2026
+
+Never released on its own. Everything here ships with 1.7.1.
+
+- **Fixed character:** calm, warm, a little cheeky, honest. Role changes are declined.
+- **Tools only when needed.** Tools that do not fit the question are not run.
+- **Honest notes below answers** ("from memory, not looked up"). "I don't know" instead of guessing.
+- **Body awareness and self-image** from measurements (off by default).
+- **Safer:** settings and rules can only be changed with valid values; before a memory is forgotten she shows the text and asks.
+
+---
+
 ## [1.6.9] — November 2026
 
 ### New

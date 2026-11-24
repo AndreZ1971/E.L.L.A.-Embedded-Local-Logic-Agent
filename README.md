@@ -8,7 +8,7 @@
 
 **A personal AI assistant for Windows — fully offline, fully yours.**
 
-[![Version](https://img.shields.io/badge/version-1.6.9-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases)
+[![Version](https://img.shields.io/badge/version-1.7.1-7c6af7?style=flat-square)](https://github.com/AndreZ1971/E.L.L.A.-Embedded-Local-Logic-Agent/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows)](https://ella-agent.de)
 [![License](https://img.shields.io/badge/license-Proprietary-ff6500?style=flat-square)](LICENSE)
 [![Directive](https://img.shields.io/badge/Directive-v1.0.0%20%E2%80%94%20sealed-3ecf8e?style=flat-square)](https://github.com/AndreZ1971/The-E.L.L.A.-Directive-)
@@ -147,7 +147,7 @@ The installer includes everything: Node.js, MariaDB, and Ollama as portable bina
 
 | File                   | Description                |
 | ---------------------- | -------------------------- |
-| `ELLA-Setup-1.6.9.exe` | Windows installer (NSIS)   |
+| `ELLA-Setup-1.7.1.exe` | Windows installer (NSIS)   |
 | `SHA256SUMS.txt`       | Checksums for verification |
 
 ---

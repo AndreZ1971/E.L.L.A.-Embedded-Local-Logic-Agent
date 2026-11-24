@@ -1,6 +1,6 @@
 # E.L.L.A. – Hardware-Leitfaden
 
-Version 1.6.9
+Version 1.7.1
 
 Verbindlich sind die Angaben auf [ella-agent.de](https://ella-agent.de). Dieser Leitfaden erklärt sie.
 
@@ -84,13 +84,14 @@ E.L.L.A. schaltet zwei Optimierungen von Ollama selbst ein: **Flash Attention** 
 
 ## Speicherplatz
 
-| Bestandteil                      | Größe (ca.) | Hinweis                                         |
-| -------------------------------- | ----------- | ----------------------------------------------- |
-| Installer                        | 1 GB        | enthält Datenbank, Ollama und weitere Bausteine |
-| Sprachmodell `llama3.1:8b`       | 5 GB        | wird beim ersten Start einmalig geladen         |
-| Gedächtnis-Modell                | 0,3 GB      | für Erinnerungen und Dokument-Wissen            |
-| Kopie des Installers für Updates | 1 GB        | Grundlage dafür, dass Updates klein bleiben     |
-| Datenbank                        | wächst      | mit der Nutzung                                 |
+| Bestandteil                      | Größe (ca.) | Hinweis                                                                      |
+| -------------------------------- | ----------- | ---------------------------------------------------------------------------- |
+| Installer                        | 1,2 GB      | enthält Datenbank, Ollama, Gedächtnis-Modell und weitere Bausteine           |
+| Sprachmodell `llama3.1:8b`       | 5 GB        | wird beim ersten Start einmalig geladen                                      |
+| Gedächtnis-Modell                | 0,3 GB      | für Erinnerungen und Dokument-Wissen; im Installer, kein Download            |
+| Lokale Spracherkennung           | 0,9 GB      | wird einmalig bei der ersten Spracheingabe geladen (nur wenn du sprichst)    |
+| Kopie des Installers für Updates | 1,2 GB      | Grundlage dafür, dass Updates klein bleiben                                  |
+| Datenbank                        | wächst      | mit der Nutzung                                                              |
 
 Den größten Teil belegt das Sprachmodell. Sein Download zeigt Fortschritt, Geschwindigkeit und Restzeit an.
 
@@ -116,6 +117,6 @@ Belegt das Sprachmodell den Grafikspeicher, bleibt für Spiele wenig übrig. Bee
 
 ---
 
-_E.L.L.A. v1.6.9_
+_E.L.L.A. v1.7.1_
 
 _Weitere Dokumentation: [FAQ](faq.md) – [Netzwerkverbindungen](netzwerk.md) – [Bedienungsanleitung](bedienungsanleitung.md)_
