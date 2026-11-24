@@ -1,6 +1,6 @@
 # Wann verbindet sich E.L.L.A. mit dem Internet?
 
-Version 1.7.1
+Version 1.7.2
 
 **Keine Telemetrie. Kein Tracking. Kein Cloud-Zwang.**
 E.L.L.A. sendet keine Nutzungsdaten, keine Fehlerberichte und keine Auswertungen an uns oder Dritte.

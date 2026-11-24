@@ -1,6 +1,6 @@
 # E.L.L.A. -- Was kann ich für dich tun?
 
-Stand: v1.7.1 -- 123 Werkzeuge, 2323 Tests bestanden
+Stand: v1.7.2 -- 123 Werkzeuge, 2517 Tests bestanden
 
 E.L.L.A. ist dein lokaler KI-Assistent für Windows. Sie läuft direkt auf deinem Rechner, versteht Sprache und Text, und hilft dir bei allem -- von einfachen Fragen bis zur Steuerung deines gesamten Desktops.
 

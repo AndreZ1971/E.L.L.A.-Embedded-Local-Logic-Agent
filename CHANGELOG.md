@@ -4,6 +4,44 @@ All notable changes to E.L.L.A. are documented here.
 
 ---
 
+## [1.7.2] — November 2026
+
+First start and laptop fixes. Reason: installer 1.7.1 on a freshly set-up laptop without an NVIDIA graphics card.
+
+### Fixed
+
+- **Unrequested model download.** No language model is downloaded before you choose one, and afterwards only the chosen one. With OpenAI, none at all.
+- **Model choice was lost.** It was overwritten shortly after being saved.
+- **Memory models as chat or voice model.** They can no longer be chosen; wrongly saved values are corrected at startup.
+- **Database was never shut down cleanly.** E.L.L.A. now waits for it, also when Windows shuts down. Before, almost every start was followed by a database repair.
+- **Sluggish interface.** Queries for HUD and Aura (monitors, music title, reminders, mailbox) held everything else up. The graphics card is no longer searched for on every query.
+- **Local Kokoro voice** never loaded in the installed version. Interrupted downloads of Kokoro and speech recognition are now detected and repeated.
+- **Dictation shortcut in the settings** was registered system-wide with every keystroke, even half-typed; if a new one failed, the old one was gone.
+- **"Server ready" for a foreign Ollama.** If a different one answers, the log now says so.
+- **Quitting.** The command to shut down the database could reach a foreign database.
+- **License window.** Duplicated sentence removed.
+
+### New
+
+- **Onboarding with a real hardware scan and model suggestion.** E.L.L.A. shows what she read (processor, graphics card, memory) and suggests a suitable model. Every other choice stays possible, including no local model. The download runs in the background.
+- **Occupied dictation shortcut** is reported, with free shortcuts to click.
+- **Notice about a separately installed Ollama** in Settings → LLM, including its version.
+- **Startup log helps with troubleshooting:** which model answered and how long it took, plus slow queries. No messages, search terms or error texts.
+
+### Changed
+
+- **Mailbox** is only read if the mail widget is selected.
+- **Offline mode** also stops downloads of the chat model, Kokoro and speech recognition.
+- **qwen2.5** is no longer offered because it called no tools in our measurement. Whoever uses it keeps it.
+- **"TTS engine" switch** removed, it had no effect.
+
+### Known limits
+
+- AMD and Intel graphics cards count as "no NVIDIA" for the suggestion.
+- If a separately installed Ollama is already running, E.L.L.A. shares it and downloads her models there as well.
+
+---
+
 ## [1.7.1] — November 2026
 
 First release after 1.6.9. Includes everything from 1.7.0, which was never released on its own.

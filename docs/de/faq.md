@@ -1,6 +1,6 @@
 # E.L.L.A. – Häufig gestellte Fragen (FAQ)
 
-Version 1.7.1 – Stand: 24.11.2026
+Version 1.7.2 – Stand: 24.11.2026
 
 Jede Antwort steht für sich. Du kannst diese Datei zusammen mit der [Bedienungsanleitung](bedienungsanleitung.md) E.L.L.A. zu lesen geben – dann beantwortet sie diese Fragen direkt im Chat (siehe „Kann E.L.L.A. Fragen zu sich selbst beantworten?“).
 
@@ -740,6 +740,6 @@ Unter **Einstellungen → Über E.L.L.A.** kopierst du die wichtigsten Angaben z
 
 ---
 
-_E.L.L.A. v1.7.1_
+_E.L.L.A. v1.7.2_
 
 _Weitere Dokumentation: [Bedienungsanleitung](bedienungsanleitung.md) – [Hardware](hardware.md) – [Netzwerkverbindungen](netzwerk.md) – [Plugins](plugins.md)_

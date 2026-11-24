@@ -1,6 +1,6 @@
 # E.L.L.A. – Frequently Asked Questions (FAQ)
 
-Version 1.7.1 – as of 24 November 2026
+Version 1.7.2 – as of 24 November 2026
 
 Every answer stands on its own. You can give this file, together with the [user manual](bedienungsanleitung.md), to E.L.L.A. to read – she then answers these questions right in the chat (see “Can E.L.L.A. answer questions about herself?”).
 
@@ -740,6 +740,6 @@ Under **Settings → About E.L.L.A.** you copy the most important details about 
 
 ---
 
-_E.L.L.A. v1.7.1_
+_E.L.L.A. v1.7.2_
 
 _Further documentation: [User manual](bedienungsanleitung.md) – [Hardware](hardware.md) – [Network connections](network.md) – [Plugins](plugins.md)_

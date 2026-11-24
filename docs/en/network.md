@@ -1,6 +1,6 @@
 # When does E.L.L.A. connect to the internet?
 
-Version 1.7.1
+Version 1.7.2
 
 **No telemetry. No tracking. No forced cloud.**
 E.L.L.A. sends no usage data, no error reports and no analytics to us or to third parties.

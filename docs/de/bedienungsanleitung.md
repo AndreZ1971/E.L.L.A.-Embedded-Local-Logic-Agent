@@ -1,6 +1,6 @@
 # E.L.L.A. – Bedienungsanleitung
 
-Version 1.7.1 – Stand: 24.11.2026
+Version 1.7.2 – Stand: 24.11.2026
 
 Diese Anleitung erklärt, wie du E.L.L.A. einrichtest und benutzt. Jeder Abschnitt steht für sich – du kannst an jeder Stelle einsteigen.
 
@@ -58,7 +58,7 @@ Beim ersten Start führt dich E.L.L.A. durch die Einrichtung:
 3. **Lizenz** – deinen Lizenzschlüssel eingeben (`ELLA-XXXX-XXXX-XXXX-XXXX`).
 4. **Name** – wie E.L.L.A. dich ansprechen soll.
 5. **Directive** – die vier Grundregeln, an die sich E.L.L.A. immer hält (Kapitel 18).
-6. **Hardware** – E.L.L.A. prüft deinen Rechner und schlägt ein passendes Sprachmodell vor. Du bestätigst die Auswahl. Es wird nichts geladen, bevor du zugestimmt hast.
+6. **Hardware und Sprachmodell** – E.L.L.A. liest Prozessor, Grafikkarte und Arbeitsspeicher und schlägt ein passendes Sprachmodell vor. Du bestätigst den Vorschlag oder wählst anders, auch ganz ohne lokales Modell. Es wird kein Sprachmodell geladen, bevor du zugestimmt hast; danach läuft der Download im Hintergrund.
 7. **Stimme** – vier Stimmen in Deutsch, Englisch, Spanisch und Französisch, jeweils mit Hörprobe.
 8. **Standort** – für Wetter und lokale Auskünfte. Dieser Schritt lässt sich überspringen.
 
@@ -234,7 +234,7 @@ Während E.L.L.A. spricht, kannst du sie jederzeit unterbrechen. Sag „Stopp“
 
 ### Diktieren in andere Programme
 
-Im Diktat-Modus tippt E.L.L.A. deine Worte in das Fenster, das gerade aktiv ist – egal ob Word, Browser oder E-Mail-Programm. Du schaltest ihn in den Einstellungen ein oder mit dem Tastenkürzel `Strg+Alt+Leertaste`. Das Kürzel lässt sich ändern. Auf Wunsch korrigiert E.L.L.A. die Rechtschreibung vor dem Einfügen. Der Inhalt deiner Zwischenablage bleibt dabei erhalten.
+Im Diktat-Modus tippt E.L.L.A. deine Worte in das Fenster, das gerade aktiv ist – egal ob Word, Browser oder E-Mail-Programm. Du schaltest ihn in den Einstellungen ein oder mit dem Tastenkürzel `Strg+Alt+Leertaste`. Ist das Kürzel von einem anderen Programm belegt, sagt E.L.L.A. es dir oben im Fenster und schlägt freie Kürzel vor. Ändern lässt es sich unter **Einstellungen → Tools**, wenn der Sprachmodus auf Diktat steht. Auf Wunsch korrigiert E.L.L.A. die Rechtschreibung vor dem Einfügen. Der Inhalt deiner Zwischenablage bleibt dabei erhalten.
 
 ### Stimmen
 
@@ -873,5 +873,5 @@ Weitere Antworten stehen in der [FAQ](faq.md).
 
 ---
 
-_E.L.L.A. v1.7.1 – Embedded Local Logic Agent_
+_E.L.L.A. v1.7.2 – Embedded Local Logic Agent_
 _Für Windows 10 und 11 (64 Bit)_

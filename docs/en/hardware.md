@@ -1,6 +1,6 @@
 # E.L.L.A. – Hardware Guide
 
-Version 1.7.1
+Version 1.7.2
 
 The figures on [ella-agent.de](https://ella-agent.de) are binding. This guide explains them.
 
@@ -26,7 +26,16 @@ E.L.L.A. runs on most Windows computers of recent years. She runs best with an N
 
 With the minimum configuration E.L.L.A. runs but answers more slowly. With the recommended configuration she answers smoothly.
 
-On the first start E.L.L.A. checks your hardware and suggests a suitable language model. You confirm the choice before anything is downloaded.
+On the first start E.L.L.A. checks your hardware and suggests a suitable language model. The suggestion is preselected; you confirm it or choose differently. Nothing is downloaded before that.
+
+| Found                                                  | Suggestion                                        |
+| ------------------------------------------------------ | ------------------------------------------------- |
+| NVIDIA graphics card with 6 GB of VRAM or more         | `llama3.1:8b`                                     |
+| NVIDIA graphics card with 4 to 6 GB of VRAM            | `llama3.2:3b`                                     |
+| no or a smaller NVIDIA card, 8 GB of memory or more    | `llama3.2:3b` – slow, OpenAI is faster            |
+| no or a smaller NVIDIA card, less memory               | no local model, OpenAI with your own key          |
+
+Any other choice remains possible, including "No local model".
 
 ---
 
@@ -117,6 +126,6 @@ If the language model occupies the graphics memory, little is left for games. Qu
 
 ---
 
-_E.L.L.A. v1.7.1_
+_E.L.L.A. v1.7.2_
 
 _Further documentation: [FAQ](faq.md) – [Network connections](network.md) – [User manual](bedienungsanleitung.md)_

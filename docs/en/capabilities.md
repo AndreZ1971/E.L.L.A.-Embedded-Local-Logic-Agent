@@ -1,6 +1,6 @@
 # E.L.L.A. -- What Can I Do for You?
 
-Version: v1.7.1 -- 123 tools, 2323 tests passing
+Version: v1.7.2 -- 123 tools, 2517 tests passing
 
 E.L.L.A. is your local AI assistant for Windows. She runs directly on your machine, understands speech and text, and helps with everything -- from simple questions to full desktop control.
 

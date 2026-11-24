@@ -1,6 +1,6 @@
 # E.L.L.A. – User Manual
 
-Version 1.7.1 – as of 24 November 2026
+Version 1.7.2 – as of 24 November 2026
 
 This manual explains how to set up and use E.L.L.A. Every section stands on its own – you can start reading anywhere.
 
@@ -58,7 +58,7 @@ On the first start E.L.L.A. guides you through the setup:
 3. **License** – enter your license key (`ELLA-XXXX-XXXX-XXXX-XXXX`).
 4. **Name** – how E.L.L.A. should address you.
 5. **Directive** – the four basic rules E.L.L.A. always follows (chapter 18).
-6. **Hardware** – E.L.L.A. checks your computer and suggests a suitable language model. You confirm the choice. Nothing is downloaded before you agree.
+6. **Hardware and language model** – E.L.L.A. reads the processor, graphics card and memory and suggests a suitable language model. You confirm the suggestion or choose differently, even without any local model. No language model is downloaded before you have agreed; after that the download runs in the background.
 7. **Voice** – four voices in German, English, Spanish and French, each with a sample.
 8. **Location** – for weather and local information. You can skip this step.
 
@@ -234,7 +234,7 @@ You can interrupt E.L.L.A. at any time while she is speaking. Say “Stop”, �
 
 ### Dictating into other programs
 
-In dictation mode E.L.L.A. types your words into whichever window is active – Word, a browser or an email program. You switch it on in the settings or with the shortcut `Ctrl+Alt+Space`. The shortcut can be changed. If you like, E.L.L.A. corrects the spelling before inserting. The contents of your clipboard are preserved.
+In dictation mode E.L.L.A. types your words into whichever window is active – Word, a browser or an email program. You switch it on in the settings or with the shortcut `Ctrl+Alt+Space`. If another program already uses the shortcut, E.L.L.A. tells you at the top of the window and suggests free ones. You can change it under **Settings → Tools** while the voice mode is set to dictation. If you like, E.L.L.A. corrects the spelling before inserting. The contents of your clipboard are preserved.
 
 ### Voices
 
@@ -873,5 +873,5 @@ More answers are in the [FAQ](faq.md).
 
 ---
 
-_E.L.L.A. v1.7.1 – Embedded Local Logic Agent_
+_E.L.L.A. v1.7.2 – Embedded Local Logic Agent_
 _For Windows 10 and 11 (64-bit)_

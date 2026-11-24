@@ -4,6 +4,46 @@ Alle nennenswerten Änderungen je Release. Neueste Version zuerst.
 
 ---
 
+## v1.7.2 — Erststart und Laptop-Fehler
+
+**Stand:** 24. November 2026
+
+**Anlass:** Der Installer 1.7.1 auf einem frisch eingerichteten Laptop ohne NVIDIA-Grafikkarte. Der Erststart lud ungefragt ein großes Modell, vergaß die Wahl des Nutzers und wurde dadurch sehr langsam.
+
+### Neue Funktionen
+
+- **Onboarding mit echtem Hardware-Scan und Modellvorschlag:** Nach der Directive zeigt E.L.L.A., was sie gelesen hat (Prozessor, Grafikkarte mit Grafikspeicher, Arbeitsspeicher), und schlägt ein passendes Sprachmodell vor. Der Vorschlag ist vorausgewählt, jede andere Wahl bleibt möglich, auch „Kein lokales Modell“. Der Download läuft danach im Hintergrund. Vorher zeigte der Scan-Schritt Dinge an, die gar nicht geprüft wurden
+- **Belegtes Diktat-Kürzel:** Ist das Kürzel von einem anderen Programm belegt, sagt E.L.L.A. es und bietet freie Kürzel zum Anklicken an
+- **Hinweis auf ein separat installiertes Ollama** in den Einstellungen unter LLM, samt Version
+- **Startprotokoll hilft bei der Fehlersuche:** welches Modell geantwortet hat und wie lange, dazu langsame Abfragen. Nachrichten, Suchbegriffe und Fehlertexte stehen nicht darin
+
+### Behobene Fehler
+
+- **Ungefragter Modell-Download:** Vor der Wahl wird kein Sprachmodell mehr geladen, danach nur das gewählte. Mit OpenAI gar keins
+- **Modellwahl ging verloren:** Sie wurde kurz nach dem Speichern wieder überschrieben
+- **Gedächtnis-Modelle als Chat- oder Sprachmodell:** stehen nicht mehr zur Wahl; falsch gespeicherte Werte werden beim Start berichtigt
+- **Datenbank nie sauber beendet:** E.L.L.A. wartet jetzt ihr Ende ab, auch beim Herunterfahren von Windows. Vorher folgte auf fast jeden Start eine Reparatur der Datenbank
+- **Träge Oberfläche:** Abfragen für HUD und Aura (Monitore, Musiktitel, Erinnerungen, Postfach) hielten alles andere an. Auch die Grafikkarte wird nicht mehr bei jeder Abfrage gesucht
+- **Lokale Stimme Kokoro lud in der installierten Fassung nie:** Ihr Modell liegt jetzt im Datenordner. Abgebrochene Downloads von Kokoro und Spracherkennung werden erkannt und wiederholt
+- **Diktat-Kürzel in den Einstellungen:** belegte bei jedem Tastendruck systemweit, auch halb getippt; scheiterte ein neues, war das alte weg
+- **„Server bereit“ für ein fremdes Ollama:** Antwortet ein anderes, steht das jetzt so im Protokoll
+- **Beenden:** Der Befehl zum Herunterfahren der Datenbank konnte an eine fremde Datenbank gehen
+- **Lizenzfenster:** doppelter Satz entfernt
+
+### Geändert
+
+- **Postfach** wird nur gelesen, wenn das Mail-Widget gewählt ist
+- **Offline-Modus** hält auch den Download von Chat-Modell, Kokoro und Spracherkennung auf
+- **qwen2.5** wird nicht mehr angeboten, weil es in unserer Messung keine Werkzeuge aufrief. Wer es nutzt, behält es
+- **Schalter „TTS-Engine“** entfernt, er hatte keine Wirkung
+
+### Bekannte Grenzen
+
+- AMD- und Intel-Grafikkarten zählen beim Vorschlag als „keine NVIDIA”
+- Läuft schon ein separat installiertes Ollama, benutzt E.L.L.A. es mit und lädt ihre Modelle auch dort herunter
+
+---
+
 ## v1.7.1 — Läuft auf frischen Rechnern: Wakeword, Spracherkennung, Gedächtnis
 
 **Stand:** 24. November 2026 · Das erste Release nach v1.6.9.
@@ -79,7 +119,7 @@ Alle nennenswerten Änderungen je Release. Neueste Version zuerst.
 
 ## v1.7.0 — Fester Charakter, Wahrnehmung, ehrliche Antworten
 
-**Stand:** 21. November 2026 · Erster Teil von „Funktionales Bewusstsein“ (weitere Teile folgen in v1.7.2 bis v1.7.4). **Nicht einzeln veröffentlicht – enthalten in v1.7.1.**
+**Stand:** 21. November 2026 · Erster Teil von „Funktionales Bewusstsein“ (weitere Teile folgen in v1.7.4 bis v1.7.6). **Nicht einzeln veröffentlicht – enthalten in v1.7.1.**
 
 ### Neue Funktionen
 
@@ -115,7 +155,7 @@ Alle nennenswerten Änderungen je Release. Neueste Version zuerst.
 
 ### Behobene Fehler
 
-- **„Öffne den Rechner“ konnte das Herunterfahren auslösen:** Das lokale Modell rief dabei in Messläufen das Werkzeug zum Herunterfahren auf, obwohl es nicht angeboten war. Solche Aufrufe werden jetzt abgewiesen. Eine zusätzliche Rückfrage vor dem Herunterfahren folgt in v1.7.4
+- **„Öffne den Rechner“ konnte das Herunterfahren auslösen:** Das lokale Modell rief dabei in Messläufen das Werkzeug zum Herunterfahren auf, obwohl es nicht angeboten war. Solche Aufrufe werden jetzt abgewiesen. Eine zusätzliche Rückfrage vor dem Herunterfahren folgt in v1.7.7
 - **Unsinnige Werte in den Einstellungen:** Im Gespräch speicherte E.L.L.A. Werte wie die Spracheingabe „HAL 9000“ oder ein Modell, das es nicht gibt. Einstellungen werden im Gespräch nur noch auf gültige Werte geändert, und nur, wenn die Nachricht davon handelt
 - **Regel, die alles sperrt:** Auf „antworte nur noch förmlich“ wollte das lokale Modell eine Regel anlegen, die alle Werkzeuge sperrt. Eine Regel aus dem Gespräch gilt jetzt immer für genau ein Werkzeug und nur auf ausdrücklichen Wunsch
 - **Falsche Erinnerung gelöscht:** „Vergiss …“ löschte ohne Rückfrage die ähnlichste Erinnerung, auch wenn sie nichts mit dem Wunsch zu tun hatte
